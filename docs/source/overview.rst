@@ -88,6 +88,7 @@ It stores the following information for every user:
 - Password (unencrypted so organizers can give it back to people who lose it)
 - At his computer right now (timestamp of last activity)
 - Type (contestant, organizer, root)
+- SSH key (mostly useful for roots)
 
 As with the MDB, the UDB is used as the main data source for several services:
 every service accepting logins from users synchronizes the user data from the
