@@ -24,9 +24,9 @@ import sys
 import yaml
 
 # Prologin is based in France, use Europe/Paris as the default TZ if none is
-# provided, and fr-fr as the default locale.
+# provided, and en-us as default locale (this is mostly for internal tools).
 _DEFAULT_TZ = 'Europe/Paris'
-_DEFAULT_LANG = 'fr-fr'
+_DEFAULT_LANG = 'en-us'
 
 
 def use_yaml_config(path, out=None):
