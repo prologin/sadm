@@ -19,6 +19,11 @@ from django.contrib import admin
 from mdbapi import models
 
 
+class IPPoolAdmin(admin.ModelAdmin):
+    list_display = ('mtype', 'network', 'last')
+    radio_fields = { 'mtype': admin.HORIZONTAL }
+
+
 class MachineAdmin(admin.ModelAdmin):
     list_display = ('hostname', 'aliases', 'ip', 'mtype', 'room')
     list_filter = ('mtype', 'room')
@@ -32,5 +37,6 @@ class VolatileSettingAdmin(admin.ModelAdmin):
     search_fields = ('key', 'value_str')
 
 
+admin.site.register(models.IPPool, IPPoolAdmin)
 admin.site.register(models.Machine, MachineAdmin)
 admin.site.register(models.VolatileSetting, VolatileSettingAdmin)

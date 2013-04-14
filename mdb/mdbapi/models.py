@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
+import ipaddress
+
 from django.db import models
 
 
@@ -46,8 +48,44 @@ class Machine(models.Model):
     def __str__(self):
         return self.hostname
 
+    def to_dict(self):
+        return {
+            'hostname': self.hostname,
+            'aliases': self.aliases,
+            'ip': self.ip,
+            'mac': self.mac,
+            'rfs': self.rfs,
+            'hfs': self.hfs,
+            'mtype': self.mtype,
+            'room': self.room,
+        }
+
+    def allocate_ip(self):
+        pool = IPPool.objects.get(mtype=self.mtype)
+        pool.last += 1
+        pool.save()
+
+        net = ipaddress.IPv4Network(pool.network)
+        self.ip = str(net.network_address + pool.last)
+
     class Meta:
         ordering = ('hostname', 'ip')
+
+
+class IPPool(models.Model):
+    mtype = models.CharField(max_length=20, choices=Machine.TYPES, unique=True,
+                             verbose_name='For type')
+    network = models.CharField(max_length=32, unique=True, verbose_name='CIDR')
+    last = models.IntegerField(blank=True, default=0,
+                               verbose_name='Last allocation')
+
+    def __str__(self):
+        return 'Pool for %r: %s' % (self.mtype, self.network)
+
+    class Meta:
+        ordering = ('mtype',)
+        verbose_name = 'IP Pool'
+        verbose_name_plural = 'IP Pools'
 
 
 class VolatileSetting(models.Model):
