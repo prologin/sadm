@@ -1,0 +1,17 @@
+* mdb
+  * ipxe registration script
+* udb
+* pam_udb
+* django_udb (plugs into the auth system)
+* simple monitoring system (ping, users connected, matches launched)
+* Syncing services
+  * mdb
+    * DHCP
+    * DNS
+    * Monitoring
+  * udb
+    * authorized_keys
+    * minecraft authdb
+    * wiki
+    * bug tracker
+* hfs migration daemon
