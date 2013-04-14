@@ -61,7 +61,11 @@ class Machine(models.Model):
         }
 
     def allocate_ip(self):
-        pool = IPPool.objects.get(mtype=self.mtype)
+        if self.mtype == 'orga':
+            pooltype = 'user'  # organizers are in the same pool as users
+        else:
+            pooltype = self.mtype
+        pool = IPPool.objects.get(mtype=pooltype)
         pool.last += 1
         pool.save()
 
