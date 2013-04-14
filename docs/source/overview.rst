@@ -65,7 +65,6 @@ It stores the following information for each machine:
 - Nearest home NFS server
 - Machine type (user, orga, cluster, service)
 - Room id (pasteur, masters, cluster, other)
-- User currently connected with a graphical session
 
 It is the main data source for DHCP, DNS, monitoring and other stuff.
 
