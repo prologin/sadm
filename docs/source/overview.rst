@@ -40,7 +40,7 @@ is reserved for machines not in the MDB.
 The Matches LAN uses 192.168.2.0/24, and the gateway (named ``gw.cl``) is
 192.168.2.254.
 
-Both ``gw``and ``gw.cl`` communicate through an OpenVPN point to point
+Both ``gw`` and ``gw.cl`` communicate through an OpenVPN point to point
 connection.
 
 Machine database
