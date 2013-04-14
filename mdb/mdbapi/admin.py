@@ -15,14 +15,22 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
-from django.conf.urls import patterns, include, url
 from django.contrib import admin
-from mdbapi import views
+from mdbapi import models
 
-admin.autodiscover()
 
-urlpatterns = patterns('',
-    url(r'^query$', views.query, name='mdbapi-query'),
-    url(r'^register$', views.register, name='mdbapi-register'),
-    url(r'', include(admin.site.urls)),
-)
+class MachineAdmin(admin.ModelAdmin):
+    list_display = ('hostname', 'aliases', 'ip', 'mtype', 'room')
+    list_filter = ('mtype', 'room')
+    list_per_page = 250
+    radio_fields = { 'mtype': admin.HORIZONTAL, 'room': admin.HORIZONTAL }
+    search_fields = ('hostname', 'aliases', 'ip', 'mac')
+
+
+class VolatileSettingAdmin(admin.ModelAdmin):
+    list_display = ('key', 'value_bool', 'value_str', 'value_int')
+    search_fields = ('key', 'value_str')
+
+
+admin.site.register(models.Machine, MachineAdmin)
+admin.site.register(models.VolatileSetting, VolatileSettingAdmin)

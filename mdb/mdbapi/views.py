@@ -15,14 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
-from django.conf.urls import patterns, include, url
-from django.contrib import admin
-from mdbapi import views
 
-admin.autodiscover()
+def query(request):
+    pass
 
-urlpatterns = patterns('',
-    url(r'^query$', views.query, name='mdbapi-query'),
-    url(r'^register$', views.register, name='mdbapi-register'),
-    url(r'', include(admin.site.urls)),
-)
+
+def register(request):
+    pass
