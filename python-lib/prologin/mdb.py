@@ -46,7 +46,7 @@ class _MDBClient:
         if self.auth is not None:
             params['auth'] = self.auth
         r = requests.post(url, **params)
-        return r.json
+        return r.json()
 
     def query(self, **kwargs):
         """Query the MDB using the Django query syntax. The possible fields
