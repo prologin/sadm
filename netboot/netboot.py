@@ -39,9 +39,8 @@ reboot
 
 BOOT_SCRIPT = """#!ipxe
 echo Booting the kernel on rfs-%(rfs)d:/nfsroot
-kernel http://netboot/kernel/
-initrd http://netboot/initrd/
-boot rfs=%(rfs)d %(options)s
+initrd http://netboot/initrd
+boot http://netboot/kernel rfs=%(rfs)d %(options)s
 """
 
 REGISTER_ERROR_SCRIPT = """#!ipxe
@@ -83,11 +82,11 @@ def register():
 
 @route('/kernel')
 def kernel():
-    return static_file(CFG.get('kernel'))
+    return open(CFG.get('kernel'))
 
 @route('/initrd')
 def initrd():
-    return static_file(CFG.get('initrd'))
+    return open(CFG.get('initrd'))
 
 application = default_app()
 if __name__ == '__main__':
