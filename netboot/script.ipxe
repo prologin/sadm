@@ -1,0 +1,54 @@
+#!ipxe
+
+echo =============================================================
+echo Prologin netboot environment
+echo =============================================================
+
+echo Getting our IP from DHCP
+dhcp
+iseq ${gateway} 192.168.250.254 && goto alien
+
+echo Machine known by MDB, chainloading to the MDB provided configuration
+chain http://netboot/boot/${mac}/
+
+:alien
+menu Machine not known by MDB. Do you want to register this machine?
+item y Yes
+item n No
+choose choice && goto alien_register_${choice}
+
+:alien_register_y
+echo Current MAC address: ${mac}
+echo -n Hostname (usually pas-r0Xp0Y or mas-r0Xp0Y): && read hostname
+echo -n Nearest RFS id: && read rfs_id
+echo -n Nearest HFS id: && read hfs_id
+
+menu Room hosting this machine
+item pasteur Lab pasteur
+item masters Amphi masters
+item lse LSE (cluster)
+item other Other
+choose room
+
+menu Machine type
+item user Contestant machine
+item orga Organizer machine
+choose mtype
+
+echo =============================================================
+echo Summary:
+echo  Hostname: ${hostname}
+echo  Connecting to rfs-${rfs_id} and hfs-${hfs_id}
+echo  Hosted in ${room}
+echo  Machine type ${mtype}
+echo =============================================================
+echo -n Is this correct? (Y/n) && read choice2
+
+iseq ${choice2} n && goto alien_register_y ||
+
+chain http://netboot/register?hostname=${hostname}&mac=${mac}&rfs=${rfs_id}&hfs=${hfs_id}&room=${room}&mtype=${mtype}
+
+:alien_register_n
+echo Waiting 10 seconds before rebooting...
+sleep 10
+reboot
