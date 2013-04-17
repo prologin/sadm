@@ -1,0 +1,9 @@
+- fields: {last: 0, mtype: user, network: 192.168.0.0/24}
+  model: mdbapi.ippool
+  pk: 1
+- fields: {last: 0, mtype: cluster, network: 192.168.2.0/24}
+  model: mdbapi.ippool
+  pk: 2
+- fields: {key: allow_self_registration, value_bool: false, value_int: null, value_str: ''}
+  model: mdbapi.volatilesetting
+  pk: 1

@@ -18,6 +18,12 @@
 from prologin.djangoconf import use_yaml_config
 use_yaml_config('/etc/prologin/mdb-server.yml')
 
+import os.path
+
+FIXTURE_DIRS = (
+    os.path.join(os.path.dirname(os.path.dirname(__file__)), 'fixtures'),
+)
+
 ADMINS = (
     ('Pierre Bourdon', 'pierre.bourdon@prologin.org'),
 )
