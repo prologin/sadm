@@ -15,6 +15,7 @@ hardware and network, which explains why some things seem very complicated.
    :maxdepth: 2
 
    overview
+   setup
    cookbook
 
 Indices and tables
