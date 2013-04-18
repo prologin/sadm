@@ -40,6 +40,7 @@ if 'shared_secret' not in CFG:
 
 class InternalPubSubQueue:
     def __init__(self):
+        # TODO(delroth): implem regular backlog packing to remove duplicates
         self.backlog = self.get_initial_backlog()
         self.subscribers = set()
 
