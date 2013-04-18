@@ -16,13 +16,16 @@
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 from prologin.djangoconf import use_yaml_config
-use_yaml_config('/etc/prologin/mdb-server.yml')
+cfg = use_yaml_config('/etc/prologin/mdb-server.yml')
 
 import os.path
 
 FIXTURE_DIRS = (
     os.path.join(os.path.dirname(os.path.dirname(__file__)), 'fixtures'),
 )
+
+MDBSYNC_URL = cfg.get('mdbsync_url', 'http://mdbsync/')
+MDBSYNC_SECRET = cfg['mdbsync_secret']
 
 ADMINS = (
     ('Pierre Bourdon', 'pierre.bourdon@prologin.org'),

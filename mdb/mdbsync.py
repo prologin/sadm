@@ -44,20 +44,17 @@ class InternalPubSubQueue:
         self.subscribers = set()
 
     def get_initial_backlog(self):
-        machines = prologin.mdb.connect(CFG.get('mdb', 'http://mdb/')).query()
-        msg = { 'add': machines }
-        return [json.dumps(msg)]
+        return prologin.mdb.connect(CFG.get('mdb', 'http://mdb/')).query()
 
     def post_message(self, msg):
         logging.info('sending update message: %s' % msg)
-        self.backlog.append(msg)
+        self.backlog.extend(msg)
         for callback in self.subscribers:
-            callback(msg)
+            callback(json.dumps(msg))
 
     def register_subscriber(self, callback):
         logging.info("new subscriber arrived, sending the backlog")
-        for msg in self.backlog:
-            callback(msg)
+        callback(json.dumps(self.backlog))
         self.subscribers.add(callback)
         logging.info("added a new subscriber, count is now %d"
                          % len(self.subscribers))
@@ -103,7 +100,7 @@ class UpdateHandler(tornado.web.RequestHandler):
             self.send_error(500)
             return
 
-        ipsq.post_message(msg)
+        ipsq.post_message(json.loads(msg))
 
 
 application = tornado.web.Application([

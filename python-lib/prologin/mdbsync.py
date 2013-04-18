@@ -42,11 +42,14 @@ class _MDBSyncClient:
         self.url = url
         self.secret = secret
 
-    def send_update(self, update_type, params):
+    def send_update(self, update):
+        self.send_updates([update])
+
+    def send_updates(self, updates):
         if self.secret is None:
             raise ValueError("No secret provided, can't send update")
 
-        msg = json.dumps({ update_type: params })
+        msg = json.dumps(updates)
         ts = int(time.time())
         s = str(len(msg)) + ':' + msg + str(ts)
         hm = hmac.new(self.secret.encode('utf-8'), msg=s.encode('utf-8'),
