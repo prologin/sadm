@@ -44,7 +44,8 @@ class InternalPubSubQueue:
         self.subscribers = set()
 
     def get_initial_backlog(self):
-        return prologin.mdb.connect(CFG.get('mdb', 'http://mdb/')).query()
+        machines = prologin.mdb.connect(CFG.get('mdb', 'http://mdb/')).query()
+        return [{ "type": "update", "data": m } for m in machines]
 
     def post_message(self, msg):
         logging.info('sending update message: %s' % msg)

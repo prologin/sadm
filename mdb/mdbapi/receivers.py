@@ -22,7 +22,7 @@ import threading
 
 from django.conf import settings
 from django.dispatch import receiver
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_delete
 from mdbapi.models import Machine
 
 
@@ -59,4 +59,10 @@ _update_sender = UpdateSenderTask()
 def post_save_handler(sender, instance, created, *args, **kwargs):
     if sender is not Machine:
         return
-    _update_sender.send(instance.to_dict())
+    _update_sender.send({ "type": "update", "data": instance.to_dict() })
+
+@receiver(pre_delete)
+def pre_delete_handler(sender, instance, *args, **kwargs):
+    if sender is not Machine:
+        return
+    _update_sender.send({ "type": "delete", "data": instance.to_dict() })
