@@ -24,11 +24,17 @@ variable.
 """
 
 import os
+import prologin.log
+import prologin.mdb
 import requests
+import tornado.ioloop
+import tornado.web
+import tornado.wsgi
 import yaml
 
-from bottle import default_app, request, response, route, run, static_file
-from prologin import mdb
+
+CFG = yaml.load(open(os.environ.get('NETBOOT_CONFIG',
+                                   '/etc/prologin/netboot.yml')))
 
 BOOT_UNKNOWN_SCRIPT = """#!ipxe
 echo An error occurred: netboot can't find the MAC in MDB.
@@ -39,8 +45,8 @@ reboot
 
 BOOT_SCRIPT = """#!ipxe
 echo Booting the kernel on rfs-%(rfs)d:/nfsroot
-initrd http://netboot/initrd
-boot http://netboot/kernel rfs=%(rfs)d %(options)s
+initrd http://netboot/static/initrd
+boot http://netboot/static/kernel rfs=%(rfs)d %(options)s
 """
 
 REGISTER_ERROR_SCRIPT = """#!ipxe
@@ -56,38 +62,41 @@ sleep 30
 reboot
 """
 
-CFG = yaml.load(open(os.environ.get('NETBOOT_CONFIG',
-                                   '/etc/prologin/netboot.yml')))
+class BootHandler(tornado.web.RequestHandler):
+    def get(self, mac):
+        self.content_type = 'text/plain; charset=utf-8'
+        # TODO(delroth): This is blocking - not perfect... should be fast
+        # though.
+        machine = prologin.mdb.connect().query(mac=mac)
+        if len(machine) != 1:
+            self.finish(BOOT_UNKNOWN_SCRIPT)
+        machine = machine[0]
+        script = BOOT_SCRIPT % { 'rfs': machine['rfs'],
+                                 'options': CFG.get('options', '') }
+        self.finish(script)
 
-@route('/boot/<mac>/')
-def boot(mac):
-    response.content_type = 'text/plain; charset=utf-8'
-    # TODO(delroth): This is blocking - not perfect... should be fast though.
-    machine = mdb.connect().query(mac=mac)
-    if len(machine) != 1:
-        return BOOT_UNKNOWN_SCRIPT
-    machine = machine[0]
-    return BOOT_SCRIPT % { 'rfs': machine['rfs'],
-                           'options': CFG.get('options', '') }
 
-@route('/register')
-def register():
-    response.content_type = 'text/plain; charset=utf-8'
-    qs = request.query_string
-    r = requests.get(CFG.get('mdb', 'http://mdb/') + 'register?' + qs)
-    if r.status_code != 200:
-        return REGISTER_ERROR_SCRIPT % { 'err': r.text }
-    else:
-        return REGISTER_DONE_SCRIPT
+class RegisterHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.content_type = 'text/plain; charset=utf-8'
+        qs = self.request.query
+        r = requests.get(CFG.get('mdb', 'http://mdb/') + 'register?' + qs)
+        if r.status_code != 200:
+            self.finish(REGISTER_ERROR_SCRIPT % { 'err': r.text })
+        else:
+            self.finish(REGISTER_DONE_SCRIPT)
 
-@route('/kernel')
-def kernel():
-    return open(CFG.get('kernel'))
 
-@route('/initrd')
-def initrd():
-    return open(CFG.get('initrd'))
+prologin.log.setup_logging('netboot')
 
-application = default_app()
+static_path = CFG.get('static_path')
+application = tornado.wsgi.WSGIApplication([
+    (r'/boot/(.*)/', BootHandler),
+    (r'/register', RegisterHandler),
+    (r'/static/(.*)', tornado.web.StaticFileHandler, { 'path': static_path }),
+])
+
 if __name__ == '__main__':
-    run(host='localhost', port=8081)
+    import wsgiref.simple_server
+    server = wsgiref.simple_server.make_server('', 8000, application)
+    server.serve_forever()

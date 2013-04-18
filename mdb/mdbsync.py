@@ -27,12 +27,9 @@ import prologin.log
 import prologin.mdb
 import os
 import time
-import tornado.gen
 import tornado.ioloop
 import tornado.web
 import yaml
-
-from tornado.gen import Task
 
 
 CFG = yaml.load(open(os.environ.get('MDBSYNC_CONFIG',
@@ -116,5 +113,5 @@ application = tornado.web.Application([
 
 if __name__ == '__main__':
     prologin.log.setup_logging('mdbsync')
-    application.listen(8000)
+    application.listen(CFG.get('port', 8000))
     tornado.ioloop.IOLoop.instance().start()

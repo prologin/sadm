@@ -1,4 +1,3 @@
 mdb: http://mdb/
-kernel: /boot/vmlinuz-linux
-initrd: /boot/initramfs-linux.img
+static_path: /var/tftp/boot
 options: my_cool_kernel_option init=/bin/sh quiet
