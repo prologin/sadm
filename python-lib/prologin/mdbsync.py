@@ -29,6 +29,7 @@ import logging
 import requests
 import time
 import urllib.parse
+import urllib.request
 
 _DEFAULT_URL = 'http://mdbsync'
 
@@ -60,6 +61,32 @@ class _MDBSyncClient:
                           data={ 'msg': msg, 'ts': ts, 'hmac': hm })
         if r.status_code != 200:
             raise RuntimeError("Unable to post update to MDBSync")
+
+    def poll_updates(self, callback):
+        while True:
+            state = {}  # indexed by mac
+            poll_url = urllib.parse.urljoin(self.url, '/poll')
+            try:
+                with urllib.request.urlopen(poll_url) as resp:
+                    while True:
+                        try:
+                            l = resp.readline().decode('utf-8').strip()
+                            updates = json.loads(l)
+                        except Exception:
+                            break
+                        for update in updates:
+                            data = update['data']
+                            if update['type'] == 'update':
+                                state[data['mac']] = data
+                            elif update['type'] == 'delete':
+                                if not data['mac'] in state:
+                                    logging.error('removing unexisting data')
+                                else:
+                                    del state[data['mac']]
+                        callback(state.values())
+            except Exception:
+                logging.error('mdbsync connection lost, retrying in 2s')
+                time.sleep(2)
 
 
 def connect(url=_DEFAULT_URL, secret=None):
