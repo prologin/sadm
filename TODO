@@ -1,13 +1,10 @@
-* mdb
-  * ipxe registration script
+* rework the configuration system
 * udb
 * pam_udb
 * django_udb (plugs into the auth system)
 * simple monitoring system (ping, users connected, matches launched)
 * Syncing services
   * mdb
-    * DHCP
-    * DNS
     * Monitoring
   * udb
     * authorized_keys
@@ -15,3 +12,5 @@
     * wiki
     * bug tracker
 * hfs migration daemon
+* notification system
+* map of all connected users
