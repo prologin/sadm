@@ -19,7 +19,7 @@ import logging
 import logging.handlers
 
 
-def setup_logging(program, verbose=False, local=False):
+def setup_logging(program, verbose=False, local=True):
     """Sets up the default Python logger.
 
     Always log to syslog, optionaly log to stdout.
