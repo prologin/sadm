@@ -1,0 +1,13 @@
+server {
+    listen 80;
+    server_name mdbsync;
+
+    access_log logs/mdbsync.access.log main;
+
+    location / {
+        proxy_pass http://localhost:8012;
+        proxy_buffering off;
+        proxy_read_timeout 3600000;
+        proxy_send_timeout 3600000;
+    }
+}
