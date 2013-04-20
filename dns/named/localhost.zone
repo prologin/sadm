@@ -1,0 +1,9 @@
+$ORIGIN localhost.
+@	IN	SOA	@ root (
+			42		; serial (yyyymmdd##)
+			3H		; refresh
+			15M		; retry
+			1W		; expiry
+			604800 )	; minimum ttl
+			NS	@
+	IN 	A	127.0.0.1
