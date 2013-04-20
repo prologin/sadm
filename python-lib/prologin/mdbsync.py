@@ -73,6 +73,7 @@ class _MDBSyncClient:
                             l = resp.readline().decode('utf-8').strip()
                             updates = json.loads(l)
                         except Exception:
+                            logging.exception('could not decode updates')
                             break
                         for update in updates:
                             data = update['data']
@@ -83,7 +84,10 @@ class _MDBSyncClient:
                                     logging.error('removing unexisting data')
                                 else:
                                     del state[data['mac']]
-                        callback(state.values())
+                        try:
+                            callback(state.values())
+                        except Exception:
+                            logging.exception('error in the mdbsync callback')
             except Exception:
                 logging.error('mdbsync connection lost, retrying in 2s')
                 time.sleep(2)
