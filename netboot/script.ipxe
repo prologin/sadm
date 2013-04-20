@@ -6,7 +6,7 @@ echo =============================================================
 
 echo Getting our IP from DHCP
 dhcp
-iseq ${gateway} 192.168.250.254 && goto alien ||
+iseq ${scriptlet} alien && goto alien ||
 
 echo Machine known by MDB, chainloading to the MDB provided configuration
 chain http://netboot/boot/${mac}/
