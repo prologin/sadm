@@ -104,3 +104,7 @@ class VolatileSetting(models.Model):
 
     class Meta:
         ordering = ('key',)
+
+
+# Import the signal receivers so they are activated
+import mdbapi.receivers
