@@ -1,0 +1,13 @@
+digraph G {
+    mdb -> dns;
+    mdb -> mdbsync;
+    mdbdns -> mdbsync;
+    mdbdhcp -> mdbsync;
+    mdbdns -> dns;
+    mdbdhcp -> dns;
+    dns -> mdbdns;
+    dhcp -> mdbdhcp;
+    netboot -> dhcp;
+    netboot -> dns;
+    netboot -> mdb;
+}
