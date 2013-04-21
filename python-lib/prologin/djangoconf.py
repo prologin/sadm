@@ -15,13 +15,13 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Utility functions to load Django configuration from external YAML files."""
+"""Utility functions to load Django configuration from profile configs."""
 
 import os
 import os.path
+import prologin.config
 import random
 import sys
-import yaml
 
 # Prologin is based in France, use Europe/Paris as the default TZ if none is
 # provided, and en-us as default locale (this is mostly for internal tools).
@@ -29,29 +29,21 @@ _DEFAULT_TZ = 'Europe/Paris'
 _DEFAULT_LANG = 'en-us'
 
 
-def use_yaml_config(path, out=None):
-    """Loads configuration values from a YAML file to some dictionary.
-
-    If the DJANGOCONF_YAML environment variable is set, use it instead of the
-    provided path (used when debugging for example).
+def use_profile_config(profile, out=None):
+    """Loads configuration values from a configuration profile some dictionary.
 
     If no dictionary is provided, frame magic is done in order to get the
     globals of our caller (most likely the globals of settings.py).
 
     Args:
-      path: Path to the YAML configuration file.
+      profile: Configuration profile to load values from.
       out: Dictionary where to store the loaded Django settings.
 
     Returns:
-      The parsed YAML file so that the settings file can load more custom
+      The configuration profile so that the caller can load more custom
       settings if wanted.
     """
-    path = os.environ.get('DJANGOCONF_YAML', path)
-    if not os.path.exists(path):
-        raise RuntimeError("No YAML configuration file at %r. Please "
-                           "configure the application." % path)
-    with open(path) as fp:
-        cfg = yaml.load(fp)
+    cfg = prologin.config.load(profile)
 
     if out is None:
         try:

@@ -26,12 +26,13 @@ import hashlib
 import hmac
 import json
 import logging
+import prologin.config
 import requests
 import time
 import urllib.parse
 import urllib.request
 
-_DEFAULT_URL = 'http://mdbsync'
+CFG = prologin.config.load('mdbsync-puller')
 
 
 class _MDBSyncClient:
@@ -93,7 +94,8 @@ class _MDBSyncClient:
                 time.sleep(2)
 
 
-def connect(url=_DEFAULT_URL, secret=None):
+def connect(secret=None):
+    url = CFG['url']
     logging.info('Creating MDBSync connection object: url=%s, has_secret=%s'
                  % (url, secret is not None))
     return _MDBSyncClient(url, secret)

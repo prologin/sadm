@@ -19,10 +19,11 @@
 
 import json
 import logging
+import prologin.config
 import requests
 import urllib.parse
 
-_DEFAULT_URL = 'http://mdb'
+CFG = prologin.config.load('mdb')
 
 
 class _MDBClient:
@@ -71,7 +72,8 @@ class _MDBClient:
         return self._submit_rpc('/query', data=kwargs)
 
 
-def connect(url=_DEFAULT_URL, auth=None):
+def connect(auth=None):
+    url = CFG['url']
     logging.info('Creating MDB connection object: url=%s, has_auth=%s'
                  % (url, auth is not None))
     return _MDBClient(url, auth)

@@ -24,17 +24,16 @@ variable.
 """
 
 import os
+import prologin.config
 import prologin.log
 import prologin.mdb
 import requests
 import tornado.ioloop
 import tornado.web
 import tornado.wsgi
-import yaml
 
 
-CFG = yaml.load(open(os.environ.get('NETBOOT_CONFIG',
-                                   '/etc/prologin/netboot.yml')))
+CFG = prologin.config.load('netboot')
 
 BOOT_UNKNOWN_SCRIPT = """#!ipxe
 echo An error occurred: netboot can't find the MAC in MDB.

@@ -23,6 +23,7 @@ import hashlib
 import hmac
 import json
 import logging
+import prologin.config
 import prologin.log
 import prologin.mdb
 import os
@@ -30,11 +31,10 @@ import sys
 import time
 import tornado.ioloop
 import tornado.web
-import yaml
 
 
-CFG = yaml.load(open(os.environ.get('MDBSYNC_CONFIG',
-                                    '/etc/prologin/mdbsync.yml')))
+CFG = prologin.config.load('mdbsync-pusher')
+
 if 'shared_secret' not in CFG:
     raise RuntimeError("Missing shared_secret in the YAML config")
 
@@ -46,7 +46,7 @@ class InternalPubSubQueue:
         self.subscribers = set()
 
     def get_initial_backlog(self):
-        machines = prologin.mdb.connect(CFG.get('mdb', 'http://mdb/')).query()
+        machines = prologin.mdb.connect().query()
         return [{ "type": "update", "data": m } for m in machines]
 
     def post_message(self, msg):

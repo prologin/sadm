@@ -15,8 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
-from prologin.djangoconf import use_yaml_config
-cfg = use_yaml_config('/etc/prologin/mdb-server.yml')
+from prologin.djangoconf import use_profile_config
+cfg = use_profile_config('mdb-server')
 
 import os.path
 
