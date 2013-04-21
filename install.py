@@ -66,16 +66,23 @@ def cwd(path):
     os.chdir(dirpath)
 
 
-def mkdir(path, mode):
+def mkdir(path, mode, owner='root:root'):
     if os.path.exists(path):
         os.chmod(path, mode)
     else:
         os.mkdir(path, mode)
+    user, group = owner.split(':')
+    shutil.chown(path, user, group)
 
+
+def copy(old, new, mode=0o600, owner='root:root'):
+    shutil.copy(old, new)
+    os.chmod(new, mode)
+    user, group = owner.split(':')
+    shutil.chown(new, user, group)
 
 CFG_TO_REVIEW = []
 def install_cfg(path, dest_dir, owner='root:root', mode=0o600):
-    user, group = owner.split(':')
     dest_path = os.path.join(dest_dir, os.path.basename(path))
 
     if os.path.exists(dest_path):
@@ -87,13 +94,12 @@ def install_cfg(path, dest_dir, owner='root:root', mode=0o600):
         dest_path += '.new'
 
     print('Copying configuration %r -> %r' % (path, dest_path))
-    shutil.copy(path, dest_path)
-    shutil.chown(dest_path, user, group)
+    copy(path, dest_path, mode=0o640, owner=owner)
     os.chmod(dest_path, mode)
 
 
 def install_cfg_profile(name, group):
-    mkdir('/etc/prologin', mode=0o755)
+    mkdir('/etc/prologin', mode=0o755, owner='root:root')
     install_cfg(os.path.join('config', name + '.yml'), '/etc/prologin',
                 owner='root:%s' % group, mode=0o640)
 
@@ -110,7 +116,7 @@ def install_systemd_unit(name):
 
 def install_service_dir(name, owner, mode):
     if not os.path.exists('/var/prologin'):
-        mkdir('/var/prologin', mode=0o755)
+        mkdir('/var/prologin', mode=0o755, owner='root:root')
     # Nothing in Python allows merging two directories together...
     os.system('cp -rv %s /var/prologin' % name)
     user, group = owner.split(':')
@@ -134,17 +140,29 @@ def install_libprologin():
         os.system('python setup.py install')
 
     install_cfg_profile('mdb-client', group='mdb_public')
+    install_cfg_profile('mdbsync-pub', group='mdbsync')
     install_cfg_profile('mdbsync-sub', group='mdbsync_public')
 
 
 def install_nginxcfg():
     install_cfg('nginx/nginx.conf', '/etc/nginx', owner='root:root',
                 mode=0o644)
-    mkdir('/etc/nginx/services', mode=0o755)
+    mkdir('/etc/nginx/services', mode=0o755, owner='root:root')
     if not os.path.exists('/etc/nginx/logs'):
-        mkdir('/var/log/nginx', mode=0o750)
-        shutil.chown('/var/log/nginx', 'http', 'log')
+        mkdir('/var/log/nginx', mode=0o750, owner='http:log')
         os.symlink('/var/log/nginx', '/etc/nginx/logs')
+
+
+def install_bindcfg():
+    install_cfg('dns/named.conf', '/etc', owner='root:named', mode=0o640)
+    if not os.path.exists('/etc/named'):
+        mkdir('/etc/named', mode=0o750, owner='named:mdbdns')
+    for zone in ('0.in-addr.arpa', '127.in-addr.arpa', '255.in-addr.arpa',
+                 'localhost'):
+        install_cfg('dns/named/%s.zone' % zone, '/etc/named',
+                    owner='named:named', mode=0o640)
+    install_cfg('dns/named/root.hint', '/etc/named', owner='named:named',
+                mode=0o640)
 
 
 def install_mdb():
@@ -163,10 +181,33 @@ def install_mdb():
         django_syncdb('mdb')
 
 
+def install_mdbsync():
+    requires('libprologin')
+    requires('nginxcfg')
+
+    install_service_dir('mdbsync', owner='mdbsync:mdbsync', mode=0o700)
+    install_nginx_service('mdbsync')
+    install_systemd_unit('mdbsync')
+
+
+def install_mdbdns():
+    requires('libprologin')
+    requires('bindcfg')
+
+    mkdir('/var/prologin/dns', mode=0o700, owner='mdbdns:mdbdns')
+    copy('dns/mdbdns.py', '/var/prologin/dns/mdbdns.py', mode=0o750,
+         owner='mdbdns:mdbdns')
+
+    install_systemd_unit('mdbdns')
+
+
 COMPONENTS = [
     'libprologin',
+    'bindcfg',
     'nginxcfg',
     'mdb',
+    'mdbsync',
+    'mdbdns',
 ]
 
 # Runtime helpers: requires() function and user/groups handling
