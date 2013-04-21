@@ -5,6 +5,6 @@ server {
     access_log logs/mdb.access.log main;
 
     location / {
-        proxy_pass http://localhost:8010;
+        proxy_pass http://localhost:20000;
     }
 }
