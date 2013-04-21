@@ -156,7 +156,7 @@ def install_nginxcfg():
 def install_bindcfg():
     install_cfg('dns/named.conf', '/etc', owner='root:named', mode=0o640)
     if not os.path.exists('/etc/named'):
-        mkdir('/etc/named', mode=0o750, owner='named:mdbdns')
+        mkdir('/etc/named', mode=0o770, owner='named:mdbdns')
     for zone in ('0.in-addr.arpa', '127.in-addr.arpa', '255.in-addr.arpa',
                  'localhost'):
         install_cfg('dns/named/%s.zone' % zone, '/etc/named',
