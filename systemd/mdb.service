@@ -1,0 +1,12 @@
+[Unit]
+Description = Machine Database
+After = network.target
+
+[Service]
+Type=simple
+User=mdb
+WorkingDirectory=/var/prologin/mdb
+ExecStart=/var/prologin/venv/bin/gunicorn -b 127.0.0.1:20000 mdb.wsgi
+
+[Install]
+WantedBy=multi-user.target

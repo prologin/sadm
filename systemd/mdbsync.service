@@ -1,0 +1,12 @@
+[Unit]
+Description = MDBSync pubsub service
+After = mdb.service
+
+[Service]
+Type=simple
+User=mdbsync
+WorkingDirectory=/var/prologin/mdbsync
+ExecStart=/var/prologin/venv/bin/python mdbsync.py 20010
+
+[Install]
+WantedBy=multi-user.target

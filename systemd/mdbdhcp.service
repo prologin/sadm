@@ -1,0 +1,12 @@
+[Unit]
+Description = MDB DHCP synchronization daemon
+After = mdbsync.service
+
+[Service]
+Type=simple
+User=mdbdhcp
+WorkingDirectory=/var/prologin/dhcp
+ExecStart=/var/prologin/venv/bin/python mdbdhcp.py
+
+[Install]
+WantedBy=multi-user.target
