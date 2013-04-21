@@ -21,8 +21,7 @@ import os
 import os.path
 import yaml
 
-class NoConfigDir(Exception):
-    pass
+DEFAULT_CFG_DIR = '/etc/prologin'
 
 class ConfigReadError(Exception):
     pass
@@ -32,9 +31,9 @@ loaded_configs = {}
 def load(profile):
     """Load (if needed) and return the configuration file for `profile`.
 
-    Profile configurations are cached. Raise a NoConfigDir if the "CFG_DIR"
-    environment variable is not set, and raise a ConfigReadError if no such
-    file exist.
+    Profile configurations are cached. Look for configuration profiles in the
+    "CFG_DIR" environment variable if it is set, or in the DEFAULT_CFG_DIR
+    otherwise. Raise a ConfigReadError if no such file exist.
     """
 
     try:
@@ -43,12 +42,7 @@ def load(profile):
         pass
 
     cfg_filename = '{}.yml'.format(profile)
-
-    try:
-        cfg_directory = os.environ['CFG_DIR']
-    except KeyError:
-        raise NoConfigDir()
-
+    cfg_directory = os.environ.get('CFG_DIR', DEFAULT_CFG_DIR)
     cfg_path = os.path.join(cfg_directory, cfg_filename)
 
     try:
