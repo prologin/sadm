@@ -71,7 +71,7 @@ class BootHandler(tornado.web.RequestHandler):
             self.finish(BOOT_UNKNOWN_SCRIPT)
         machine = machine[0]
         script = BOOT_SCRIPT % { 'rfs': machine['rfs'],
-                                 'options': CFG.get('options', '') }
+                                 'options': CFG['options'] }
         self.finish(script)
 
 
@@ -79,16 +79,17 @@ class RegisterHandler(tornado.web.RequestHandler):
     def get(self):
         self.content_type = 'text/plain; charset=utf-8'
         qs = self.request.query
-        r = requests.get(CFG.get('mdb', 'http://mdb/') + 'register?' + qs)
-        if r.status_code != 200:
-            self.finish(REGISTER_ERROR_SCRIPT % { 'err': r.text })
+        try:
+            prologin.mdb.connect().register(qs)
+        except prologin.mdb.RegistrationError as e:
+            self.finish(REGISTER_ERROR_SCRIPT % { 'err': e.message })
         else:
             self.finish(REGISTER_DONE_SCRIPT)
 
 
 prologin.log.setup_logging('netboot')
 
-static_path = CFG.get('static_path')
+static_path = CFG['static_path']
 application = tornado.wsgi.WSGIApplication([
     (r'/boot/(.*)/', BootHandler),
     (r'/register', RegisterHandler),

@@ -23,7 +23,13 @@ import prologin.config
 import requests
 import urllib.parse
 
-CFG = prologin.config.load('mdb')
+CFG = prologin.config.load('mdb-client')
+
+
+class RegistrationError(Exception):
+    def __init__(self, message):
+        super(RegistrationError, self).__init__()
+        self.message = message
 
 
 class _MDBClient:
@@ -71,9 +77,18 @@ class _MDBClient:
             raise ValueError('non serializable argument type')
         return self._submit_rpc('/query', data=kwargs)
 
+    def register(self, qs):
+        """Register a machine to MDB, transmitting the query string.
 
-def connect(auth=None):
+        Raise a RegistrationError on failure. Return None if successful.
+        """
+        r = requests.get(CFG.get['mdb'] + 'register?' + qs)
+        if r.status_code != 200:
+            raise RegistrationError(r.text)
+
+
+def connect():
     url = CFG['url']
-    logging.info('Creating MDB connection object: url=%s, has_auth=%s'
-                 % (url, auth is not None))
+    logging.info('Creating MDB connection object: url=%s, no authentication'
+                 % (url, ))
     return _MDBClient(url, auth)

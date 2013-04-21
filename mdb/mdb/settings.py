@@ -24,9 +24,6 @@ FIXTURE_DIRS = (
     os.path.join(os.path.dirname(os.path.dirname(__file__)), 'fixtures'),
 )
 
-MDBSYNC_URL = cfg.get('mdbsync_url', 'http://mdbsync/')
-MDBSYNC_SECRET = cfg['mdbsync_secret']
-
 ADMINS = (
     ('Pierre Bourdon', 'pierre.bourdon@prologin.org'),
 )

@@ -33,7 +33,7 @@ import tornado.ioloop
 import tornado.web
 
 
-CFG = prologin.config.load('mdbsync-pusher')
+CFG = prologin.config.load('mdbsync-pub')
 
 if 'shared_secret' not in CFG:
     raise RuntimeError("Missing shared_secret in the YAML config")

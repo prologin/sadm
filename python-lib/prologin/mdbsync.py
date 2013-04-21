@@ -32,7 +32,7 @@ import time
 import urllib.parse
 import urllib.request
 
-CFG = prologin.config.load('mdbsync-puller')
+CFG = prologin.config.load('mdbsync-sub')
 
 
 class _MDBSyncClient:
@@ -94,7 +94,11 @@ class _MDBSyncClient:
                 time.sleep(2)
 
 
-def connect(secret=None):
+def connect(pub=False):
+    if pub:
+        secret = prologin.config.load('mdbsync-pub')['shared_secret']
+    else:
+        secret = None
     url = CFG['url']
     logging.info('Creating MDBSync connection object: url=%s, has_secret=%s'
                  % (url, secret is not None))
