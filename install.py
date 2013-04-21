@@ -141,6 +141,10 @@ def install_nginxcfg():
     install_cfg('nginx/nginx.conf', '/etc/nginx', owner='root:root',
                 mode=0o644)
     mkdir('/etc/nginx/services', mode=0o755)
+    if not os.path.exists('/etc/nginx/logs'):
+        mkdir('/var/log/nginx', mode=0o750)
+        shutil.chown('/var/log/nginx', 'http', 'log')
+        os.symlink('/var/log/nginx', '/etc/nginx/logs')
 
 
 def install_mdb():
