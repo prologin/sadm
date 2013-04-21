@@ -15,7 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
-
 """Installation script for the components of Prologin SADM.
 
 Handles upgrades as well, including configuration upgrades (creates a .new file
@@ -162,6 +161,7 @@ def install_bindcfg():
                     owner='named:named', mode=0o640)
     install_cfg('dns/named/root.hint', '/etc/named', owner='named:named',
                 mode=0o640)
+    shutil.chown('/etc/rndc.key', 'named', 'mdbdns')
 
 
 def install_mdb():
