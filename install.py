@@ -34,7 +34,8 @@ import sys
 
 # It's better to have a consistent user<->uid mapping. We keep it here.
 USERS = {
-    'mdb': { 'uid': 20000, 'groups': ('mdb', 'mdb_public') },
+    'mdb': { 'uid': 20000, 'groups': ('mdb', 'mdb_public', 'mdbsync',
+                                      'mdbsync_public') },
     'mdbsync': { 'uid': 20010, 'groups': ('mdbsync', 'mdbsync_public',
                                           'mdb_public') },
     'netboot': { 'uid': 20020, 'groups': ('netboot', 'mdb_public') },
