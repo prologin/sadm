@@ -37,9 +37,8 @@ class _MDBClient:
     object.
     """
 
-    def __init__(self, url, auth):
+    def __init__(self, url):
         self.url = url
-        self.auth = auth
 
     def _submit_rpc(self, path, data=None):
         """Sends a RPC to the mdb. Passes authentication data if available.
@@ -50,8 +49,6 @@ class _MDBClient:
         """
         url = urllib.parse.urljoin(self.url, path)
         params = { 'data': data }
-        if self.auth is not None:
-            params['auth'] = self.auth
         r = requests.post(url, **params)
         return r.json()
 
@@ -89,6 +86,5 @@ class _MDBClient:
 
 def connect():
     url = CFG['url']
-    logging.info('Creating MDB connection object: url=%s, no authentication'
-                 % (url, ))
-    return _MDBClient(url, auth)
+    logging.info('Creating MDB connection object: url=%s' % url)
+    return _MDBClient(url)
