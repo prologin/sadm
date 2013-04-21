@@ -26,6 +26,7 @@ import logging
 import prologin.log
 import prologin.mdb
 import os
+import sys
 import time
 import tornado.ioloop
 import tornado.web
@@ -112,5 +113,9 @@ application = tornado.web.Application([
 
 if __name__ == '__main__':
     prologin.log.setup_logging('mdbsync')
-    application.listen(CFG.get('port', 8000))
+    if len(sys.argv) > 1:
+        port = int(sys.argv[1])
+    else:
+        port = 8000
+    application.listen(port)
     tornado.ioloop.IOLoop.instance().start()
