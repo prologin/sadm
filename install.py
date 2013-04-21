@@ -147,7 +147,7 @@ def install_mdb():
     requires('libprologin')
     requires('nginxcfg')
 
-    first_time = os.path.exists('/var/prologin/mdb')
+    first_time = not os.path.exists('/var/prologin/mdb')
 
     install_service_dir('mdb', owner='mdb:mdb', mode=0o700)
     install_nginx_service('mdb')
