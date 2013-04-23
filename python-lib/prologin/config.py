@@ -49,7 +49,8 @@ def load(profile):
         with open(cfg_path, 'r') as cfg_fp:
             cfg = yaml.load(cfg_fp)
     except IOError:
-        raise ConfigReadError(cfg_path)
+        raise ConfigReadError("%s does not exist (specify CFG_DIR?)"
+                              % cfg_path)
 
     loaded_configs[profile] = cfg
 
