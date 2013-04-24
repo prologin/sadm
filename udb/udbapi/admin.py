@@ -42,10 +42,10 @@ class UserAdmin(admin.ModelAdmin):
         return root(request) or obj.group != 'root'
 
 
-    def save(self, request, obj, form, change):
+    def save_model(self, request, obj, form, change):
         if not root(request):
             return
-        return super().save(request, obj, form, change)
+        return super().save_model(request, obj, form, change)
 
 
 admin.site.register(models.User, UserAdmin)
