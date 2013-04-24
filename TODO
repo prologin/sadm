@@ -1,7 +1,7 @@
-* rework the configuration system
-* udb
-* pam_udb
-* django_udb (plugs into the auth system)
+* [delroth] nss_udb
+* [delroth] pam_udb
+* [pm] udbsync
+* pssh mdb wrappers
 * simple monitoring system (ping, users connected, matches launched)
 * Syncing services
   * mdb
@@ -11,6 +11,7 @@
     * minecraft authdb
     * wiki
     * bug tracker
-* hfs migration daemon
+* [magicking] hfs migration daemon
 * notification system
-* map of all connected users
+  * probably via IRC
+* [pm] map of all connected users (in progress)
