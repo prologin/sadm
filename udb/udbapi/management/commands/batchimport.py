@@ -20,7 +20,7 @@ import string
 import subprocess
 import unicodedata
 
-from django.core.management import BaseCommand
+from django.core.management import BaseCommand, CommandError
 from optparse import make_option
 from udbapi.models import User
 
@@ -34,7 +34,7 @@ def generate_password(length):
     proc = subprocess.Popen(['pwgen', '-cnB', str(length)],
                             stdout=subprocess.PIPE)
     out, err = proc.communicate()
-    return out
+    return out.strip()
 
 
 def create_users(names, options):
