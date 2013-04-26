@@ -4,11 +4,11 @@ server {
 
     access_log logs/paste.access.log main;
 
-    location ~ ^(.*)/paste.css {
+    location ~ ^(.*)/(.*).css {
         root /var/paste/;
     }
 
-    location ~ ^(.*)/favicon.ico {
+    location ~ ^(.*)/(.*).png {
         root /var/paste/;
     }
 
