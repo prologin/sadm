@@ -1,0 +1,27 @@
+server {
+    listen 80;
+    server_name paste;
+
+    access_log logs/paste.access.log main;
+
+    location ~ ^(.*)/paste.css {
+        root /var/paste/;
+    }
+
+    location ~ ^(.*)/favicon.ico {
+        root /var/paste/;
+    }
+
+    location / {
+        rewrite ^/$ / break;
+        rewrite ^/user/([^/]+)$ /?user=$1 break;
+        rewrite ^/user/([^/]+)/([^&]+)?&(.*)$ /?id=$1/$2&$3 break;
+        rewrite ^/([^&]+)&(.*)$ /?id=$1&$2 break;
+        rewrite ^/(.*)$ /?id=$1 break;
+
+        proxy_pass http://localhost:20090;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
