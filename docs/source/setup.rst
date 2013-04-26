@@ -144,8 +144,8 @@ your default DNS server::
   nameserver 127.0.0.1
   EOF
 
-Building the iPXE bootrom
--------------------------
+Step 2: building the iPXE bootrom
+---------------------------------
 
 The iPXE bootrom is an integral part of the boot chain for user machines. It is
 loaded by the machine BIOS via PXE and is responsible for booting the Linux
@@ -165,3 +165,15 @@ You can now build iPXE: go to ``src/`` and build the bootrom using our script
 provided in ``prologin-sadm/netboot``::
 
   make bin/undionly.kpxe EMBED=/path/to/prologin-sadm/netboot/script.ipxe
+
+Step 3: setting up the web services
+------------
+
+You can autoinstall ``paste`` and ``docs`` using::
+
+  python3 install.py webservices
+
+Then enable them::
+
+  systemctl enable paste && systemctl start paste
+  systemctl enable docs && systemctl start docs

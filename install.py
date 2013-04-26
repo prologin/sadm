@@ -40,6 +40,7 @@ USERS = {
     'netboot': { 'uid': 20020, 'groups': ('netboot', 'mdb_public') },
     'mdbdns': { 'uid': 20030, 'groups': ('mdbdns', 'mdbsync_public') },
     'mdbdhcp': { 'uid': 20040, 'groups': ('mdbdhcp', 'mdbsync_public') },
+    'webservices': { 'uid': 20050, 'groups': ('webservices',) },
 }
 
 # Same with groups. *_public groups are used for services that need to access
@@ -52,6 +53,7 @@ GROUPS = {
     'netboot': 20020,
     'mdbdns': 20030,
     'mdbdhcp': 20040,
+    'webservices': 20050,
 }
 
 # Helper functions for installation procedures.
@@ -199,6 +201,18 @@ def install_mdbdns():
 
     install_systemd_unit('mdbdns')
 
+def install_webservices():
+    requires('nginxcfg')
+
+    install_service_dir('webservices/paste', mode=0o750,
+            owner='webservices:webservices')
+    install_nginx_service('paste')
+    install_systemd_unit('paste')
+
+    install_service_dir('webservices/docs', mode=0o750,
+            owner='webservices:webservices')
+    install_nginx_service('docs')
+
 
 COMPONENTS = [
     'libprologin',
@@ -207,6 +221,7 @@ COMPONENTS = [
     'mdb',
     'mdbsync',
     'mdbdns',
+    'webservices',
 ]
 
 # Runtime helpers: requires() function and user/groups handling
