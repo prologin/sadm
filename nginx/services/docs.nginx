@@ -1,0 +1,10 @@
+server {
+    listen 80;
+    server_name docs;
+
+    access_log logs/docs.access.log main;
+
+    location / {
+        root /var/prologin/docs
+    }
+}
