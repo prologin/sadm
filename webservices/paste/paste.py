@@ -4,6 +4,7 @@
 # By acieroid (https://github.com/acieroid/paste-py)
 # Modified for Prologin
 
+import sys
 import tornado.ioloop
 import tornado.web
 from tornado.escape import xhtml_escape as escape
@@ -318,6 +319,6 @@ application = tornado.web.Application([
 ])
 
 if __name__ == "__main__":
-    application.listen(20051)
+    application.listen(sys.argv[1])
     application.debug = not production
     tornado.ioloop.IOLoop.instance().start()
