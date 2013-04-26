@@ -30,7 +30,7 @@ filename_characters = ascii_letters + digits
 mldown_path = '' # if '', disable the mldown option
 mldown_args = []
 linenos_type = 'table' # 'table', 'inline' or '' (table is copy-paste friendly)
-production = False
+production = True
 base_url = '/'
 if not production:
     base_url += '?id='

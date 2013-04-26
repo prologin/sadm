@@ -1,0 +1,8 @@
+[Unit]
+Description = Paste service
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/var/prologin/paste
+ExecStart=/var/prologin/venv/bin/python paste.py
