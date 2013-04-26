@@ -173,7 +173,6 @@ You can autoinstall ``paste`` and ``docs`` using::
 
   python3 install.py webservices
 
-Then enable them::
+Then start ``paste``::
 
   systemctl enable paste && systemctl start paste
-  systemctl enable docs && systemctl start docs
