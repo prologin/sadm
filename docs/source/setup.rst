@@ -74,9 +74,11 @@ This command installed the ``mdb`` application to ``/var/prologin/mdb`` and
 installed the ``systemd`` and ``nginx`` configuration files required to run the
 application.
 
-Don't forget to change the secret_key of the mdb-server::
+Don't forget to change the ``secret_key`` used by Django and the
+``shared_secret`` used for ``mdb`` to ``mdbsync`` pushes::
 
   $EDITOR /etc/prologin/mdb-server.yml
+  $EDITOR /etc/prologin/mdbsync-pub.yml
 
 You should be able to start ``mdb`` and ``nginx`` like this::
 
@@ -106,9 +108,6 @@ config generation scripts use it to automatically update the configuration when
 ``mdb`` changes. Once again, setting up ``mdbsync`` is pretty easy::
 
   python3 install.py mdbsync
-
-  # Don't forget to change the shared secret
-  $EDITOR /etc/prologin/mdbsync-pub.yml
 
   systemctl enable mdbsync && systemctl start mdbsync
   systemctl restart nginx
