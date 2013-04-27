@@ -272,6 +272,7 @@ def sync_users():
             os.system(cmd)
 
 if __name__ == '__main__':
+    os.umask(0)  # Trust our chmods.
     if len(sys.argv) == 1:
         print('usage: python3 install.py <component> [components...]')
         print('Components:')
