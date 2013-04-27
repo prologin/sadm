@@ -166,6 +166,11 @@ def install_bindcfg():
     shutil.chown('/etc/rndc.key', 'named', 'mdbdns')
 
 
+def install_dhcpdcfg():
+    install_cfg('dhcp/dhcpd.conf', '/etc', owner='root:root', mode=0o640)
+    mkdir('/etc/dhcpd', mode=0o770, owner='root:mdbdhcp')
+
+
 def install_mdb():
     requires('libprologin')
     requires('nginxcfg')
@@ -201,6 +206,18 @@ def install_mdbdns():
 
     install_systemd_unit('mdbdns')
 
+
+def install_mdbdhcp():
+    requires('libprologin')
+    requires('dhcpdcfg')
+
+    mkdir('/var/prologin/dhcp', mode=0o700, owner='mdbdhcp:mdbdhcp')
+    copy('dhcp/mdbdhcp.py', '/var/prologin/dhcp/mdbdhcp.py', mode=0o750,
+         owner='mdbdhcp:mdbdhcp')
+
+    install_systemd_unit('mdbdhcp')
+
+
 def install_webservices():
     requires('nginxcfg')
 
@@ -218,9 +235,11 @@ COMPONENTS = [
     'libprologin',
     'bindcfg',
     'nginxcfg',
+    'dhcpdcfg',
     'mdb',
     'mdbsync',
     'mdbdns',
+    'mdbdhcp',
     'webservices',
 ]
 
