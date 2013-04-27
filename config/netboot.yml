@@ -1,2 +1,2 @@
-static_path: /var/tftp/boot
-options: my_cool_kernel_option init=/bin/sh quiet
+static_path: /srv/tftp
+options: init=/bin/sh
