@@ -114,7 +114,14 @@ class Server(tornado.web.Application):
         ])
         self.port = port
         self.shared_secret = shared_secret.encode('utf-8')
-        self.pubsub_queue = InternalPubSubQueue(self.get_initial_backlog())
+        while True:
+            try:
+                backlog = self.get_initial_backlog()
+                break
+            except Exception:
+                logging.exception('unable to get the backlog, retrying in 2s')
+                time.sleep(2)
+        self.pubsub_queue = InternalPubSubQueue(backlog)
 
     def start(self):
         """Run the server."""
