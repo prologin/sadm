@@ -133,9 +133,10 @@ class Client:
     """Synchronisation client.
     """
 
-    def __init__(self, url, secret):
+    def __init__(self, url, secret=None, pk=None):
         self.url = url
         self.secret = secret
+        self.pk = pk
 
     def send_update(self, update):
         self.send_updates([update])
@@ -157,6 +158,8 @@ class Client:
             raise RuntimeError("Unable to post an update")
 
     def poll_updates(self, callback):
+        if self.pk is None:
+            raise ValueError('No primary key field name specified')
         while True:
             state = {}  # indexed by mac
             poll_url = urllib.parse.urljoin(self.url, '/poll')
@@ -172,12 +175,12 @@ class Client:
                         for update in updates:
                             data = update['data']
                             if update['type'] == 'update':
-                                state[data['mac']] = data
+                                state[data[self.pk]] = data
                             elif update['type'] == 'delete':
-                                if not data['mac'] in state:
+                                if not data[self.pk] in state:
                                     logging.error('removing unexisting data')
                                 else:
-                                    del state[data['mac']]
+                                    del state[self.pk]
                         try:
                             callback(state.values())
                         except Exception:

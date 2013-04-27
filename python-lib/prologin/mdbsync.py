@@ -37,4 +37,4 @@ def connect(pub=False):
     url = CFG['url']
     logging.info('Creating MDBSync connection object: url=%s, has_secret=%s'
                  % (url, secret is not None))
-    return prologin.synchronisation.Client(url, secret)
+    return prologin.synchronisation.Client(url, secret, 'mac')

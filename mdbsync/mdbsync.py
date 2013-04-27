@@ -32,7 +32,6 @@ if 'shared_secret' not in CFG:
 
 
 class SyncServer(prologin.synchronisation.Server):
-
     def get_initial_backlog(self):
         machines = prologin.mdb.connect().query()
         return [{ "type": "update", "data": m } for m in machines]
