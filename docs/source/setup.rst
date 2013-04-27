@@ -153,6 +153,29 @@ your default DNS server::
   nameserver 127.0.0.1
   EOF
 
+mdbdhcp
+~~~~~~~
+
+``mdbdhcp`` works just like ``mdbdns``, but for DHCP. The installation steps
+are as usual::
+
+  python3 install.py mdbdhcp
+  mv /etc/dhcpd.conf{.new,}
+  # ^ To replace the default configuration by our own.
+  systemctl enable mdbdhcp && systemctl start mdbdhcp
+  systemctl enable dhcpd4 && systemctl start dhcpd4
+
+netboot
+~~~~~~~
+
+Netboot is a small HTTP service used to handle interactions with the PXE boot
+script: machine registration and serving kernel files. Once again, very simple
+setup::
+
+  python3 install.py netboot
+  systemctl enable netboot && systemctl start netboot
+  systemctl restart nginx
+
 Step 2: building the iPXE bootrom
 ---------------------------------
 
