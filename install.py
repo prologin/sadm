@@ -231,6 +231,17 @@ def install_webservices():
     install_nginx_service('docs')
 
 
+def install_netboot():
+    requires('libprologin')
+    requires('nginxcfg')
+
+    mkdir('/var/prologin/netboot', mode=0o700, owner='netboot:netboot')
+    copy('netboot/netboot.py', '/var/prologin/netboot/netboot.py', mode=0o750,
+         owner='mdbdns:mdbdns')
+    install_nginx_service('netboot')
+    install_systemd_unit('netboot')
+
+
 COMPONENTS = [
     'libprologin',
     'bindcfg',
@@ -241,6 +252,7 @@ COMPONENTS = [
     'mdbdns',
     'mdbdhcp',
     'webservices',
+    'netboot',
 ]
 
 # Runtime helpers: requires() function and user/groups handling
