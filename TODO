@@ -1,7 +1,5 @@
 * [delroth] nss_udb
 * [delroth] pam_udb
-* udbsync
-  * Add a feature to let privileged users get users password
 * pssh mdb wrappers
 * simple monitoring system (ping, users connected, matches launched)
 * Syncing services
