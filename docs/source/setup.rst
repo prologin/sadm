@@ -260,18 +260,66 @@ Then, install the ``nginx`` configuration from the repository::
   mv /etc/nginx/nginx.conf{.new,}
   systemctl enable nginx && systemctl start nginx
 
-paste and docs
-~~~~~~~~~~~~~~
+Autoinstall
+~~~~~~~~~~~
 
-You can autoinstall ``paste`` and ``docs`` using::
+You can autoinstall some services and configuration files::
 
   python3 install.py webservices
 
-Then start ``paste``::
+doc
+~~~
+
+You have to retrieve the documentations of each language::
+
+  cd /var/prologin/docs
+  su webservices # So we don't have to change permissions afterwards
+  ./get_docs.sh
+
+paste
+~~~~~
+
+You just have to start the ``paste`` service::
 
   systemctl enable paste && systemctl start paste
+
+wiki
+~~~~
+
+Download and install MoinMoin package::
+
+  wget http://static.moinmo.in/files/moin-1.9.7.tar.gz
+  tar xvf moin-1.9.7.tar.gz
+  cd moin*
+  python2 setup.py build
+  python2 setup.py install
+  mkdir -p /var/prologin/wiki
+  cp -r wiki /var/prologin/wiki
+
+Then install the configuration::
+
+  cd /var/prologin/wiki/wiki
+  cp config/wikiconfig.py ./
+  cp server/moin.wsgi ./
+
+  echo "sys.path.insert(0, '/var/prologin/wiki/wiki/')" >> moin.wsgi
+
+Fix permissions::
+
+  chown -R webservices:webservices /var/prologin/wiki
+  chmod o-rwx -R /var/prologin/wiki
+
+Add users in the sadm folder::
+
+  webservices/wiki/create_users.sh < passwords.txt
+
+Then you can just start the service::
+
+  systemctl enable wiki && systemctl start wiki
 
 Step 5: the matches cluster
 ---------------------------
 
 TODO
+=======
+
