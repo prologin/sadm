@@ -24,6 +24,7 @@ import hashlib
 import hmac
 import json
 import logging
+import prologin.timeauth
 import requests
 import time
 import tornado.ioloop
@@ -62,9 +63,15 @@ class InternalPubSubQueue:
 class PollHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     def get(self):
-        self.application.pubsub_queue.register_subscriber(
-            self.message_callback
-        )
+        if not prologin.timeauth.check_token(
+            self.application.sub_secret,
+            self.get_argument('hmac')
+        ):
+            self.send_error(403)
+        else:
+            self.application.pubsub_queue.register_subscriber(
+                self.message_callback
+            )
 
     def on_connection_close(self):
         self.application.pubsub_queue.unregister_subscriber(
@@ -83,7 +90,7 @@ class UpdateHandler(tornado.web.RequestHandler):
         provided_hmac = self.get_argument("hmac")
 
         s = str(len(msg)) + ':' + msg + str(ts)
-        computed_hmac = hmac.new(self.application.shared_secret,
+        computed_hmac = hmac.new(self.application.pub_secret,
                                  msg=s.encode('utf-8'),
                                  digestmod=hashlib.sha256).hexdigest()
         if provided_hmac != computed_hmac:
@@ -104,7 +111,7 @@ class Server(tornado.web.Application):
     required methods.
     """
 
-    def __init__(self, shared_secret, port):
+    def __init__(self, pub_secret, sub_secret, port):
         """The `shared_secret` is used to restrict clients that can add
         updates.
         """
@@ -113,7 +120,8 @@ class Server(tornado.web.Application):
             (r'/update', UpdateHandler),
         ])
         self.port = port
-        self.shared_secret = shared_secret.encode('utf-8')
+        self.pub_secret = pub_secret.encode('utf-8')
+        self.sub_secret = sub_secret.encode('utf-8')
         while True:
             try:
                 backlog = self.get_initial_backlog()
@@ -140,22 +148,24 @@ class Client:
     """Synchronisation client.
     """
 
-    def __init__(self, url, secret=None, pk=None):
+    def __init__(self, url, pub_secret=None, sub_secret=None, pk=None):
         self.url = url
-        self.secret = secret
+        self.pub_secret = pub_secret and pub_secret.encode('utf-8')
+        self.sub_secret = sub_secret.encode('utf-8')
         self.pk = pk
 
     def send_update(self, update):
         self.send_updates([update])
 
     def send_updates(self, updates):
-        if self.secret is None:
+        if self.pub_secret is None:
             raise ValueError("No secret provided, can't send update")
 
         msg = json.dumps(updates)
         ts = int(time.time())
         s = str(len(msg)) + ':' + msg + str(ts)
-        hm = hmac.new(self.secret.encode('utf-8'), msg=s.encode('utf-8'),
+        hm = hmac.new(self.pub_secret,
+                      msg=s.encode('utf-8'),
                       digestmod=hashlib.sha256)
         hm = hm.hexdigest()
 
@@ -167,9 +177,15 @@ class Client:
     def poll_updates(self, callback):
         if self.pk is None:
             raise ValueError('No primary key field name specified')
+        if self.sub_secret is None:
+            raise ValueError('No subscriber shared secret specified')
+
         while True:
             state = {}  # indexed by mac
-            poll_url = urllib.parse.urljoin(self.url, '/poll')
+            params = urllib.parse.urlencode({
+                'hmac': prologin.timeauth.generate_token(self.sub_secret)
+            })
+            poll_url = urllib.parse.urljoin(self.url, '/poll?%s' % params)
             try:
                 with urllib.request.urlopen(poll_url) as resp:
                     while True:

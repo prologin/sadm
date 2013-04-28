@@ -24,10 +24,14 @@ import prologin.synchronisation
 import sys
 
 
-CFG = prologin.config.load('udbsync-pub')
+PUB_CFG = prologin.config.load('udbsync-pub')
+SUB_CFG = prologin.config.load('udbsync-sub')
 
-if 'shared_secret' not in CFG:
-    raise RuntimeError("Missing shared_secret in the YAML config")
+if 'shared_secret' not in PUB_CFG:
+    raise RuntimeError("Missing shared_secret in the udbsync-pub YAML config")
+
+if 'shared_secret' not in SUB_CFG:
+    raise RuntimeError("Missing shared_secret in the udbsync-sub YAML config")
 
 
 class SyncServer(prologin.synchronisation.Server):
@@ -43,5 +47,9 @@ if __name__ == '__main__':
         port = int(sys.argv[1])
     else:
         port = 8000
-    server = SyncServer(CFG['shared_secret'], port)
+    server = SyncServer(
+        PUB_CFG['shared_secret'],
+        SUB_CFG['shared_secret'],
+        port
+    )
     server.start()

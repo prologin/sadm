@@ -39,7 +39,7 @@ class _UDBClient:
 
     def __init__(self, url, secret=None):
         self.url = url
-        self.secret = secret
+        self.secret = secret.encode('utf-8')
 
     def _submit_rpc(self, path, data=None):
         """Sends a RPC to the udb. Passes authentication data if available.

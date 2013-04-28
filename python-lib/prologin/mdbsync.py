@@ -26,15 +26,16 @@ import logging
 import prologin.config
 import prologin.synchronisation
 
-CFG = prologin.config.load('mdbsync-sub')
+SUB_CFG = prologin.config.load('mdbsync-sub')
 
 
 def connect(pub=False):
     if pub:
-        secret = prologin.config.load('mdbsync-pub')['shared_secret']
+        pub_secret = prologin.config.load('mdbsync-pub')['shared_secret']
     else:
-        secret = None
-    url = CFG['url']
-    logging.info('Creating MDBSync connection object: url=%s, has_secret=%s'
-                 % (url, secret is not None))
-    return prologin.synchronisation.Client(url, secret, 'mac')
+        pub_secret = None
+    url = SUB_CFG['url']
+    sub_secret = SUB_CFG['shared_secret']
+    logging.info('Creating MDBSync connection object: url=%s, can_pub=%s'
+                 % (url, pub_secret is not None))
+    return prologin.synchronisation.Client(url, pub_secret, sub_secret, 'mac')

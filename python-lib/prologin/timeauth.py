@@ -37,6 +37,9 @@ def generate_token(secret):
 def check_token(secret, token):
     """Return if `token` is valid according to `secret` and current time."""
 
+    if token is None:
+        return False
+
     # Reject badly formatted tokens.
     chunks = token.split(':')
     if len(chunks) != 2:
@@ -62,7 +65,7 @@ def check_token(secret, token):
 def get_hmac(secret, timestamp):
     """Return a HMAC of `timestamp` for some `secret`."""
     return hmac.new(
-        secret.encode('ascii'),
+        secret,
         timestamp.encode('ascii'),
         digestmod=hashlib.sha256
     ).hexdigest()

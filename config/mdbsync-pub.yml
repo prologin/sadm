@@ -18,9 +18,6 @@
 # URL to push updates to mdbsync.
 url: http://mdbsync/
 
-# Shared secret for updates. Should match the shared secret in the MDB
-# configuration.
-shared_secret: LOLOL42
-
-# URL to access MDB.
-mdb: http://mdb/
+# Shared secret for updates. Both MDBSync server and its clients read this
+# file.
+shared_secret: "shared secret for mdbsync publication"

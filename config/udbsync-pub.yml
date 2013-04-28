@@ -15,11 +15,8 @@
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 # URL to push updates to udbsync.
-url: http://udbsync/
+url: http://localhost:8003/
 
 # Shared secret for updates. Should match the shared secret in the UDB
 # configuration.
 shared_secret: LOLOL42
-
-# URL to access UDB.
-udb: http://udb/
