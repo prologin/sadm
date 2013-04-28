@@ -33,7 +33,7 @@ def query(request):
     auth_required = hmac is not None
     if auth_required:
         shared_secret = CFG['shared_secret'].encode('utf-8')
-        if not prologin.timeauth.check_token(shared_secret, hmac):
+        if not prologin.timeauth.check_token(hmac, shared_secret):
             return HttpResponseForbidden(
                 'hmac is invalid',
                 content_type='text/plain'

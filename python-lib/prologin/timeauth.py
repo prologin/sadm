@@ -27,14 +27,16 @@ import time
 TOKEN_TIMEOUT = 10
 
 
-def generate_token(secret):
+def generate_token(secret, message=None):
     """Generate a token given some `secret`."""
     timestamp = str(int(time.time()))
-    timestamp_hmac = get_hmac(secret, timestamp)
-    return '{}:{}'.format(timestamp, timestamp_hmac)
+    return '{}:{}'.format(
+        timestamp,
+        get_hmac(secret, str(message) + timestamp),
+    )
 
 
-def check_token(secret, token):
+def check_token(token, secret, message=None):
     """Return if `token` is valid according to `secret` and current time."""
 
     if token is None:
@@ -54,8 +56,10 @@ def check_token(secret, token):
         return False
 
     # Reject invalid tokens.
-    timestamp_hmac = get_hmac(secret, chunks[0])
-    if timestamp_hmac != chunks[1]:
+    if get_hmac(
+        secret,
+        str(message) + chunks[0],
+    ) != chunks[1]:
         return False
 
     # What remains should be valid.

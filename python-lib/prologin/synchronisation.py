@@ -20,8 +20,6 @@ clients.
 """
 
 
-import hashlib
-import hmac
 import json
 import logging
 import prologin.timeauth
@@ -64,8 +62,8 @@ class PollHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     def get(self):
         if not prologin.timeauth.check_token(
+            self.get_argument('hmac'),
             self.application.sub_secret,
-            self.get_argument('hmac')
         ):
             self.send_error(403)
         else:
@@ -85,22 +83,15 @@ class PollHandler(tornado.web.RequestHandler):
 
 class UpdateHandler(tornado.web.RequestHandler):
     def post(self):
-        msg = self.get_argument("msg")
-        ts = int(self.get_argument("ts"))
-        provided_hmac = self.get_argument("hmac")
+        msg = self.get_argument('msg')
 
-        s = str(len(msg)) + ':' + msg + str(ts)
-        computed_hmac = hmac.new(self.application.pub_secret,
-                                 msg=s.encode('utf-8'),
-                                 digestmod=hashlib.sha256).hexdigest()
-        if provided_hmac != computed_hmac:
-            logging.error('received an update request with bad HMAC')
-            self.send_error(500)
-            return
-
-        if not (time.time() - 5 < ts < time.time() + 5):
-            logging.error('received an update request with bad timestamp')
-            self.send_error(500)
+        if not prologin.timeauth.check_token(
+            self.get_argument('hmac'),
+            self.application.pub_secret,
+            msg
+        ):
+            logging.error('received an update request with invalid token')
+            self.send_error(403)
             return
 
         self.application.pubsub_queue.post_message(json.loads(msg))
@@ -162,15 +153,13 @@ class Client:
             raise ValueError("No secret provided, can't send update")
 
         msg = json.dumps(updates)
-        ts = int(time.time())
-        s = str(len(msg)) + ':' + msg + str(ts)
-        hm = hmac.new(self.pub_secret,
-                      msg=s.encode('utf-8'),
-                      digestmod=hashlib.sha256)
-        hm = hm.hexdigest()
-
-        r = requests.post(urllib.parse.urljoin(self.url, '/update'),
-                          data={ 'msg': msg, 'ts': ts, 'hmac': hm })
+        r = requests.post(
+            urllib.parse.urljoin(self.url, '/update'),
+            data={
+                'msg': msg,
+                'hmac': prologin.timeauth.generate_token(self.pub_secret, msg),
+            }
+        )
         if r.status_code != 200:
             raise RuntimeError("Unable to post an update")
 
