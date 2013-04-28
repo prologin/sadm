@@ -19,6 +19,7 @@
 import json
 import logging
 import prologin.config
+import prologin.timeauth
 import requests
 import urllib.parse
 
@@ -36,8 +37,9 @@ class _UDBClient:
     object.
     """
 
-    def __init__(self, url):
+    def __init__(self, url, secret=None):
         self.url = url
+        self.secret = secret
 
     def _submit_rpc(self, path, data=None):
         """Sends a RPC to the udb. Passes authentication data if available.
@@ -47,6 +49,8 @@ class _UDBClient:
           data: Optional data dictionary to POST.
         """
         url = urllib.parse.urljoin(self.url, path)
+        if self.secret:
+            data['hmac'] = prologin.timeauth.generate_token(self.secret)
         params = { 'data': data }
         r = requests.post(url, **params)
         return r.json()
@@ -75,7 +79,12 @@ class _UDBClient:
         return self._submit_rpc('/query', data=kwargs)
 
 
-def connect():
+def connect(auth=False):
+    if auth:
+        secret = prologin.config.load('udb-client-auth')['shared_secret']
+    else:
+        secret = None
     url = CFG['url']
-    logging.info('Creating UDB connection object: url=%s' % url)
-    return _UDBClient(url)
+    logging.info('Creating UDB connection object: url=%s, has_secret=%s'
+                 % (url, secret is not None))
+    return _UDBClient(url, secret)
