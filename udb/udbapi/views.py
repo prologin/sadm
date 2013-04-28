@@ -16,15 +16,34 @@
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
+import prologin.config
+import prologin.timeauth
 
 from django.http import HttpResponse
 from udbapi.models import User
 
+CFG = prologin.config.load('udb-server')
 
 def query(request):
-    args = request.REQUEST
+    args = dict(request.REQUEST)
+
+    # If a HMAC is provided, check for authentication. If checking fails,
+    # return a HTTP 403 error.
+    hmac = args.pop('hmac', None)
+    auth_required = hmac is not None
+    if auth_required:
+        if not prologin.timeauth.check_token(CFG['shared_secret'], hmac):
+            return HttpResponseForbidden(
+                'hmac is invalid',
+                content_type='text/plain'
+            )
+
     users = User.objects.filter(**args)  # TODO(delroth): secure?
     users = [m.to_dict() for m in users]
-    for u in users:
-        del u['password']
+
+    # Only authenticated clients shall read passwords.
+    if not auth_required:
+        for u in users:
+            del u['password']
+
     return HttpResponse(json.dumps(users), content_type='application/json')
