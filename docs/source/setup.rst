@@ -176,13 +176,40 @@ setup::
   systemctl enable netboot && systemctl start netboot
   systemctl restart nginx
 
-Step 2: building the iPXE bootrom
+udb
+~~~
+
+TODO
+
+udbsync
+~~~~~~~
+
+TODO
+
+Step 2: file storage
+--------------------
+
+TODO: setting up ``rhfs0`` + instructions to setup other ``rhfs`` machines and
+sync them.
+
+Step 3: booting the user machines
 ---------------------------------
+
+Note: if you are good at typing on two keyboards at once, or you have a spare
+root doing nothing, this step can be done in parallel with step 4.
+
+Installing the base user system
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+TODO: Arch chroot install in ``/exports/nfsroot`` on ``rhfs0``.
+
+iPXE bootrom
+~~~~~~~~~~~~
 
 The iPXE bootrom is an integral part of the boot chain for user machines. It is
 loaded by the machine BIOS via PXE and is responsible for booting the Linux
 kernel using the nearest RFS. It also handles registering the machine in the
-MDB if needed.
+MDB if needed. These instructions need to be run on ``gw``.
 
 iPXE is an external open source project, clone it first::
 
@@ -197,9 +224,44 @@ You can now build iPXE: go to ``src/`` and build the bootrom using our script
 provided in ``prologin-sadm/netboot``::
 
   make bin/undionly.kpxe EMBED=/path/to/prologin-sadm/netboot/script.ipxe
+  cp bin/undionly.kpxe /srv/tftp/prologin.kpxe
 
-Step 3: setting up the web services
-------------
+Copying the kernel and initramfs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+TODO: basically, take the kernel+initrd from the nfsroot and put it in
+``/srv/tftp`` on ``gw``.
+
+Step 4: setting up the web services
+-----------------------------------
+
+The web services will usually be set up on a separate machine from the ``gw``,
+for availability and performance reasons (all services on ``gw`` are critical,
+so you wouldn't want to mount a NFS on it for example). This machine is usually
+named ``web.prolo``.
+
+Once again, set up a standard Arch system. Then register it on ``mdb``, via the
+web interface, or using::
+
+  cd /var/prologin/mdb
+  python3 manage.py addmachine --hostname web --mac 11:22:33:44:55:66 \
+      --ip 192.168.1.100 --rfs 0 --hfs 0 \
+      --aliases concours,wiki,bugs,docs,home,paste,map \
+      --mtype service --room pasteur
+
+When this is done, reboot ``web``: it should get the correct IP address from
+the DHCP server, and should be able to access the internet. Proceed to setup a
+virtualenv in ``/var/prologin/venv`` and clone the sadm repository by following
+the same instructions given for ``gw`` ("Basic system" part).
+
+Then, install the ``nginx`` configuration from the repository::
+
+  python3 install.py nginxcfg
+  mv /etc/nginx/nginx.conf{.new,}
+  systemctl enable nginx && systemctl start nginx
+
+paste and docs
+~~~~~~~~~~~~~~
 
 You can autoinstall ``paste`` and ``docs`` using::
 
@@ -208,3 +270,8 @@ You can autoinstall ``paste`` and ``docs`` using::
 Then start ``paste``::
 
   systemctl enable paste && systemctl start paste
+
+Step 5: the matches cluster
+---------------------------
+
+TODO
