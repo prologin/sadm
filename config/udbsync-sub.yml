@@ -16,3 +16,7 @@
 
 # URL to access UDBSync
 url: http://udbsync/
+
+# Shared secret for subscription. Both UDBSync server and its clients read this
+# file.
+shared_secret: "shared secret for udbsync subscription"
