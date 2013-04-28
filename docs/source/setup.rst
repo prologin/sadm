@@ -113,11 +113,6 @@ config generation scripts use it to automatically update the configuration when
   systemctl restart nginx
   echo '127.0.0.1 mdbsync' >> /etc/hosts
 
-To check if ``mdbsync`` is working, try to register for updates::
-
-  curl http://mdbsync/poll
-  # Should return [] and keep the connection open
-
 mdbdns
 ~~~~~~
 
