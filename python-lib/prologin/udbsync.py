@@ -38,5 +38,5 @@ def connect(pub=False):
     logging.info('Creating UDBSync connection object: url=%s, can_pub=%s'
                  % (url, pub_secret is not None))
     return prologin.synchronisation.Client(
-        url, pub_secret, sub_secret, 'login'
+        url, 'login', pub_secret, sub_secret
     )

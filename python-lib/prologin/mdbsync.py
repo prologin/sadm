@@ -38,4 +38,4 @@ def connect(pub=False):
     sub_secret = SUB_CFG['shared_secret']
     logging.info('Creating MDBSync connection object: url=%s, can_pub=%s'
                  % (url, pub_secret is not None))
-    return prologin.synchronisation.Client(url, pub_secret, sub_secret, 'mac')
+    return prologin.synchronisation.Client(url, 'mac', pub_secret, sub_secret)

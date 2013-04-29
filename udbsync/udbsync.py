@@ -35,10 +35,13 @@ if 'shared_secret' not in SUB_CFG:
 
 
 class SyncServer(prologin.synchronisation.Server):
+    def __init__(self, pub_secret, sub_secret, port):
+        super(SyncServer, self).__init__(
+            'login', pub_secret, sub_secret, port
+        )
 
     def get_initial_backlog(self):
-        users = prologin.udb.connect(auth=True).query()
-        return [{ "type": "update", "data": u } for u in users]
+        return prologin.udb.connect(auth=True).query()
 
 
 if __name__ == '__main__':

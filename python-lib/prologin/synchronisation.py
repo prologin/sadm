@@ -31,23 +31,47 @@ import urllib.parse
 import urllib.request
 
 
+def update_backlog(pk, backlog, updates):
+    for update in updates:
+        data = update['data']
+        key = data[pk]
+        if update['type'] == 'update':
+            backlog[key] = data
+        elif update['type'] == 'detele':
+            if backlog.pop(key, None) is None:
+                logging.error('removing unexisting data')
+        else:
+            logging.error('invalid update type: {}'.format(update['type']))
+
+def items_to_updates(items):
+    return [
+        {'type': 'update', 'data': item}
+        for item in items
+    ]
+
+
 class InternalPubSubQueue:
     """Maintain a backlog of updates. Used by the server.
     """
-    def __init__(self, initial_backlog):
-        # TODO(delroth): implem regular backlog packing to remove duplicates
-        self.backlog = list(initial_backlog)
+    def __init__(self, pk, initial_backlog):
+        self.pk = pk
+        self.backlog = {}
         self.subscribers = set()
+        self.update_backlog(items_to_updates(initial_backlog))
+
+    def update_backlog(self, updates):
+        update_backlog(self.pk, self.backlog, updates)
 
     def post_message(self, msg):
         logging.info('sending update message: %s' % msg)
-        self.backlog.extend(msg)
+        self.update_backlog(msg)
         for callback in self.subscribers:
             callback(json.dumps(msg))
 
     def register_subscriber(self, callback):
         logging.info("new subscriber arrived, sending the backlog")
-        callback(json.dumps(self.backlog))
+        updates = items_to_updates(self.backlog.values())
+        callback(json.dumps(updates))
         self.subscribers.add(callback)
         logging.info("added a new subscriber, count is now %d"
                          % len(self.subscribers))
@@ -102,7 +126,7 @@ class Server(tornado.web.Application):
     required methods.
     """
 
-    def __init__(self, pub_secret, sub_secret, port):
+    def __init__(self, pk, pub_secret, sub_secret, port):
         """The `shared_secret` is used to restrict clients that can add
         updates.
         """
@@ -110,6 +134,7 @@ class Server(tornado.web.Application):
             (r'/poll', PollHandler),
             (r'/update', UpdateHandler),
         ])
+        self.pk = pk
         self.port = port
         self.pub_secret = pub_secret.encode('utf-8')
         self.sub_secret = sub_secret.encode('utf-8')
@@ -120,7 +145,7 @@ class Server(tornado.web.Application):
             except Exception:
                 logging.exception('unable to get the backlog, retrying in 2s')
                 time.sleep(2)
-        self.pubsub_queue = InternalPubSubQueue(backlog)
+        self.pubsub_queue = InternalPubSubQueue(pk, backlog)
 
     def start(self):
         """Run the server."""
@@ -136,14 +161,13 @@ class Server(tornado.web.Application):
 
 
 class Client:
-    """Synchronisation client.
-    """
+    """Synchronisation client."""
 
-    def __init__(self, url, pub_secret=None, sub_secret=None, pk=None):
+    def __init__(self, url, pk, pub_secret=None, sub_secret=None):
         self.url = url
+        self.pk = pk
         self.pub_secret = pub_secret and pub_secret.encode('utf-8')
         self.sub_secret = sub_secret.encode('utf-8')
-        self.pk = pk
 
     def send_update(self, update):
         self.send_updates([update])
@@ -184,15 +208,7 @@ class Client:
                         except Exception:
                             logging.exception('could not decode updates')
                             break
-                        for update in updates:
-                            data = update['data']
-                            if update['type'] == 'update':
-                                state[data[self.pk]] = data
-                            elif update['type'] == 'delete':
-                                if not data[self.pk] in state:
-                                    logging.error('removing unexisting data')
-                                else:
-                                    del state[self.pk]
+                        update_backlog(self.pk, state, updates)
                         try:
                             callback(state.values())
                         except Exception:
