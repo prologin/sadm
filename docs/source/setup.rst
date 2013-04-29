@@ -113,6 +113,11 @@ config generation scripts use it to automatically update the configuration when
   systemctl restart nginx
   echo '127.0.0.1 mdbsync' >> /etc/hosts
 
+To check if ``mdbsync`` is working, try to register for updates::
+
+  python -c 'import prologin.mdbsync; prologin.mdbsync.connect().poll_updates(print)'
+  # Should print dictvalues([]) and wait for updates
+
 mdbdns
 ~~~~~~
 
