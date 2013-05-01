@@ -4,7 +4,7 @@ After = mdbsync.service
 
 [Service]
 Type=simple
-User=mdbdhcp
+User=root
 WorkingDirectory=/var/prologin/dhcp
 ExecStart=/var/prologin/venv/bin/python mdbdhcp.py
 
