@@ -1,5 +1,6 @@
 Django==1.5.1
 PyYAML==3.10
+Pygments==1.6
 distribute==0.6.34
 gunicorn==0.17.2
 requests==1.2.0
