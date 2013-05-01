@@ -186,14 +186,12 @@ class Server(tornado.web.Application):
         """The `shared_secret` is used to restrict clients that can add
         updates.
         """
-        super(Server, self).__init__([
-            (r'/poll', PollHandler),
-            (r'/update', UpdateHandler),
-        ])
+        super(Server, self).__init__(self.get_handlers())
         self.pk = pk
         self.port = port
         self.pub_secret = pub_secret.encode('utf-8')
         self.sub_secret = sub_secret.encode('utf-8')
+
         while True:
             try:
                 backlog = self.get_initial_backlog()
@@ -207,6 +205,13 @@ class Server(tornado.web.Application):
         """Run the server."""
         self.listen(self.port)
         tornado.ioloop.IOLoop.instance().start()
+
+    def get_handlers(self):
+        """Return a list of URL/request handlers couples for this server."""
+        return [
+            (r'/poll', PollHandler),
+            (r'/update', UpdateHandler),
+        ]
 
     def get_initial_backlog(self):
         """Return the initial state of updates as a list.
