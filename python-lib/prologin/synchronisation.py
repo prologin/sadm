@@ -99,18 +99,32 @@ class InternalPubSubQueue:
         self.update_backlog(items_to_updates(initial_backlog))
 
     def update_backlog(self, updates):
+        """Apply `updates` to the backlog and return the update message to be
+        sent to subscribers.
+
+        Overriding this method enables one to customize backlog updating and to
+        filter/reformat update information before sending it to subscribers.
+        """
         update_backlog(self.pk, self.backlog, updates)
+        return updates
+
+    def get_backlog(self):
+        """Return the backlog that is sent to new subscribers as a JSON object.
+
+        Overriding this method enables one to filter/reformat backlog
+        information before sending it to new subscribers.
+        """
+        return items_to_updates(self.backlog.values())
 
     def post_message(self, msg):
-        logging.info('sending update message: %s' % msg)
-        self.update_backlog(msg)
+        clients_updates = self.update_backlog(msg)
+        logging.info('sending update message: %s' % clients_updates)
         for callback in self.subscribers:
-            callback(json.dumps(msg))
+            callback(json.dumps(clients_updates))
 
     def register_subscriber(self, callback):
         logging.info("new subscriber arrived, sending the backlog")
-        updates = items_to_updates(self.backlog.values())
-        callback(json.dumps(updates))
+        callback(json.dumps(self.get_backlog()))
         self.subscribers.add(callback)
         logging.info("added a new subscriber, count is now %d"
                          % len(self.subscribers))
@@ -196,10 +210,14 @@ class Server(tornado.web.Application):
             try:
                 backlog = self.get_initial_backlog()
                 break
-            except Exception:
-                logging.exception('unable to get the backlog, retrying in 2s')
+            except Exception as e:
+                logging.exception(
+                    'unable to get the backlog, retrying in 2s: {}: {}'.format(
+                        type(e).__name__, e
+                    )
+                )
                 time.sleep(2)
-        self.pubsub_queue = InternalPubSubQueue(pk, backlog)
+        self.pubsub_queue = self.create_pubsub_queue(backlog)
 
     def start(self):
         """Run the server."""
@@ -212,6 +230,9 @@ class Server(tornado.web.Application):
             (r'/poll', PollHandler),
             (r'/update', UpdateHandler),
         ]
+
+    def create_pubsub_queue(self, initial_backlog):
+        return InternalPubSubQueue(self.pk, initial_backlog)
 
     def get_initial_backlog(self):
         """Return the initial state of updates as a list.
