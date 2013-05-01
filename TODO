@@ -1,15 +1,19 @@
-* [delroth] nss_udb
-* [delroth] pam_udb
+* [pm] pam_udb
 * pssh mdb wrappers
 * simple monitoring system (ping, users connected, matches launched)
 * Syncing services
   * mdb
+    * Firewall
     * Monitoring
   * udb
     * authorized_keys
+    * /etc/{passwd,shadow}
     * minecraft authdb
     * wiki
     * bug tracker
+    * mdb/udb web admin
+    * concours
 * [magicking] hfs migration daemon
 * notification system
   * probably via IRC
+* [seirl] docs for stechec2 and sadm to http://docs/
