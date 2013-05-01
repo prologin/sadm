@@ -119,7 +119,7 @@ def install_service_dir(name, owner, mode):
     if not os.path.exists('/var/prologin'):
         mkdir('/var/prologin', mode=0o755, owner='root:root')
     # Nothing in Python allows merging two directories together...
-    os.system('cp -rv %s /var/prologin' % name)
+    os.system('cp -rv %s /var/prologin/%s' % name)
     user, group = owner.split(':')
     shutil.chown('/var/prologin/%s' % name, user, group)
     os.chmod('/var/prologin/%s' % name, mode)
@@ -221,13 +221,15 @@ def install_mdbdhcp():
 def install_webservices():
     requires('nginxcfg')
 
+    mkdir('/var/prologin/webservices', mode=0o755,
+          owner='webservices:webservices')
     install_service_dir('webservices/paste', mode=0o750,
-            owner='webservices:webservices')
+                        owner='webservices:webservices')
     install_nginx_service('paste')
     install_systemd_unit('paste')
 
     install_service_dir('webservices/docs', mode=0o750,
-            owner='webservices:webservices')
+                        owner='webservices:webservices')
     install_nginx_service('docs')
 
 
