@@ -30,11 +30,11 @@ def root(request):
 
 
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('login', 'group', 'curr_machine')
+    list_display = ('login', 'group')
     list_filter = ('group',)
     list_per_page = 250
     radio_fields = { 'group': admin.HORIZONTAL }
-    search_fields = ('login', 'curr_machine')
+    search_fields = ('login', )
 
     def has_change_permission(self, request, obj=None):
         if obj is None:

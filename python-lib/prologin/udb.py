@@ -62,11 +62,10 @@ class _UDBClient:
           uid : its system UID
           group: kind of user, either user/orga/root
           shell: its default system shell
-          curr_machine: name of the machine the user is logged on. Can be null.
           ssh_key: SSH public key of the user
         """
         fields = {
-            'login', 'uid', 'group', 'shell', 'curr_machine', 'ssh_key'
+            'login', 'uid', 'group', 'shell', 'ssh_key'
         }
         for q in kwargs:
             base = q.split('_')[0]

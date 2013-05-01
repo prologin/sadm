@@ -31,8 +31,6 @@ class User(models.Model):
     group = models.CharField(max_length=20, choices=TYPES)
     password = models.CharField(max_length=64, help_text='pwgen -cnB 8')
     shell = models.CharField(max_length=64, default='/bin/bash')
-    curr_machine = models.CharField(max_length=64, null=True, blank=True,
-                                    verbose_name='Current machine')
     ssh_key = models.CharField(max_length=512, null=True, blank=True,
                                verbose_name='SSH public key')
 
@@ -46,7 +44,6 @@ class User(models.Model):
             'group': self.group,
             'password': self.password,
             'shell': self.shell,
-            'curr_machine': self.curr_machine,
             'ssh_key': self.ssh_key,
         }
 
