@@ -41,6 +41,13 @@ USERS = {
     'mdbdns': { 'uid': 20030, 'groups': ('mdbdns', 'mdbsync_public') },
     'mdbdhcp': { 'uid': 20040, 'groups': ('mdbdhcp', 'mdbsync_public') },
     'webservices': { 'uid': 20050, 'groups': ('webservices',) },
+    'presencesync': { 'uid': 20060, 'groups': ('presencesync',
+                                               'presencesync_public',
+                                               'presencesync_private') },
+    'presenced': { 'uid': 20070, 'groups': ('presenced',
+                                            'presencesync',
+                                            'presencesync_private',
+                                            'presencesync_private') },
 }
 
 # Same with groups. *_public groups are used for services that need to access
@@ -54,6 +61,10 @@ GROUPS = {
     'mdbdns': 20030,
     'mdbdhcp': 20040,
     'webservices': 20050,
+    'presencesync': 20060,
+    'presencesync_public': 20061,
+    'presencesync_private': 20062,
+    'presenced': 20070,
 }
 
 # Helper functions for installation procedures.
