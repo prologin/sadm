@@ -4,7 +4,7 @@ Description = Paste service
 [Service]
 Type=simple
 User=webservices
-WorkingDirectory=/var/prologin/paste
+WorkingDirectory=/var/prologin/webservices/paste
 ExecStart=/var/prologin/venv/bin/python paste.py 20050
 
 [Install]
