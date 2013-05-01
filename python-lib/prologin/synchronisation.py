@@ -31,19 +31,19 @@ import urllib.parse
 import urllib.request
 
 
-def update_backlog(pk, backlog, updates, watch=None):
+def apply_updates(pk, backlog, updates, watch=None):
     """Update `backlog` with `updates` using `pk` as primary key for records.
     If `watch` is None, the set of primary keys for updated records is
     returned. Otherwise, `watch` must be a set of fields, and the set of
     primary keys for records whose changed fields match those is returned.
 
     For instance:
-    >>> update_backlog('k', {'k': 1, {'k': 1, 'v': 2}},
-                       [{'type': 'update', 'data': {'k': 1, 'v': 3}}])
+    >>> apply_updates('k', {'k': 1, {'k': 1, 'v': 2}},
+                      [{'type': 'update', 'data': {'k': 1, 'v': 3}}])
     {1}
-    >>> update_backlog('k', {'k': 1, {'k': 1, 'v': 2, 'w': 1}},
-                       [{'type': 'update', 'data': {'k': 1, 'v': 3, 'w': 1}}],
-                       watch={'w'})
+    >>> apply_updates('k', {'k': 1, {'k': 1, 'v': 2, 'w': 1}},
+                      [{'type': 'update', 'data': {'k': 1, 'v': 3, 'w': 1}}],
+                      watch={'w'})
     set()
     """
     watched_updates = set()
@@ -89,50 +89,65 @@ def items_to_updates(items):
     ]
 
 
-class InternalPubSubQueue:
+class BasePubSubQueue:
     """Maintain a backlog of updates. Used by the server.
+
+    This is a base abstract class. It define common utilities, let
+    subclasses implement required methods and let them add other methods.
     """
-    def __init__(self, pk, initial_backlog):
-        self.pk = pk
-        self.backlog = {}
+    def __init__(self):
         self.subscribers = set()
-        self.update_backlog(items_to_updates(initial_backlog))
 
-    def update_backlog(self, updates):
-        """Apply `updates` to the backlog and return the update message to be
-        sent to subscribers.
-
-        Overriding this method enables one to customize backlog updating and to
-        filter/reformat update information before sending it to subscribers.
-        """
-        update_backlog(self.pk, self.backlog, updates)
-        return updates
-
-    def get_backlog(self):
+    def get_backlog_message(self):
         """Return the backlog that is sent to new subscribers as a JSON object.
-
-        Overriding this method enables one to filter/reformat backlog
-        information before sending it to new subscribers.
         """
-        return items_to_updates(self.backlog.values())
+        raise NotImplementedError()
 
-    def post_message(self, msg):
-        clients_updates = self.update_backlog(msg)
-        logging.info('sending update message: %s' % clients_updates)
+    def post_updates(self, update_msg):
+        """Publish an update message to all subscribers."""
+        logging.info('sending update message: %s' % update_msg)
         for callback in self.subscribers:
-            callback(json.dumps(clients_updates))
+            callback(json.dumps(update_msg))
 
     def register_subscriber(self, callback):
-        logging.info("new subscriber arrived, sending the backlog")
+        """Register a new subscriber to the queue.  `callback` will be invoked
+        for each published update message (including the initial backlog).
+        """
+        logging.info('new subscriber arrived, sending the backlog')
         callback(json.dumps(self.get_backlog()))
         self.subscribers.add(callback)
-        logging.info("added a new subscriber, count is now %d"
+        logging.info('added a new subscriber, count is now %d'
                          % len(self.subscribers))
 
     def unregister_subscriber(self, callback):
+        """Remove a subscriber from the queue."""
         self.subscribers.remove(callback)
-        logging.info("removed a subscriber, count is now %d"
+        logging.info('removed a subscriber, count is now %d'
                          % len(self.subscribers))
+
+class DefaultPubSubQueue(BasePubSubQueue):
+    """Maintain a backlog of updates for records with a field that is unique.
+    """
+
+    def __init__(self, pk, initial_backlog):
+        super(DefaultPubSubQueue, self).__init__()
+        self.pk = pk
+        self.backlog = {}
+        self.apply_updates(items_to_updates(initial_backlog))
+
+    def get_backlog_message(self):
+        return items_to_updates(self.backlog.values())
+
+    #
+    # Public interface
+    #
+
+    def apply_updates(self, updates):
+        """Apply `updates` to the backlog and publish the corresponding update
+        message.
+        """
+        apply_updates(self.pk, self.backlog, updates)
+        self.post_updates(updates)
 
 
 class AuthRequestHandler(tornado.web.RequestHandler):
@@ -158,6 +173,10 @@ class AuthRequestHandler(tornado.web.RequestHandler):
         else:
             return self.get_argument('msg', None)
 
+    @property
+    def pubsub_queue(self):
+        return self.application.pubsub_queue
+
 
 class PollHandler(AuthRequestHandler):
     @tornado.web.asynchronous
@@ -167,12 +186,12 @@ class PollHandler(AuthRequestHandler):
         except RuntimeError:
             pass
         else:
-            self.application.pubsub_queue.register_subscriber(
+            self.pubsub_queue.register_subscriber(
                 self.message_callback
             )
 
     def on_connection_close(self):
-        self.application.pubsub_queue.unregister_subscriber(
+        self.pubsub_queue.unregister_subscriber(
             self.message_callback
         )
 
@@ -188,7 +207,7 @@ class UpdateHandler(AuthRequestHandler):
         except RuntimeError:
             pass
         else:
-            self.application.pubsub_queue.post_message(json.loads(msg))
+            self.pubsub_queue.apply_updates(json.loads(msg))
 
 
 class Server(tornado.web.Application):
@@ -205,19 +224,7 @@ class Server(tornado.web.Application):
         self.port = port
         self.pub_secret = pub_secret.encode('utf-8')
         self.sub_secret = sub_secret.encode('utf-8')
-
-        while True:
-            try:
-                backlog = self.get_initial_backlog()
-                break
-            except Exception as e:
-                logging.exception(
-                    'unable to get the backlog, retrying in 2s: {}: {}'.format(
-                        type(e).__name__, e
-                    )
-                )
-                time.sleep(2)
-        self.pubsub_queue = self.create_pubsub_queue(backlog)
+        self.pubsub_queue = self.create_pubsub_queue()
 
     def start(self):
         """Run the server."""
@@ -231,8 +238,25 @@ class Server(tornado.web.Application):
             (r'/update', UpdateHandler),
         ]
 
-    def create_pubsub_queue(self, initial_backlog):
-        return InternalPubSubQueue(self.pk, initial_backlog)
+    def create_pubsub_queue(self):
+        """Create and return a brand new pupsub queue, taking care of filling
+        it with an initial backlog.
+
+        Override this method if you want to have a custom pubsub queue.
+        """
+
+        while True:
+            try:
+                backlog = self.get_initial_backlog()
+                break
+            except Exception as e:
+                logging.exception(
+                    'unable to get the backlog, retrying in 2s: {}: {}'.format(
+                        type(e).__name__, e
+                    )
+                )
+                time.sleep(2)
+        return DefaultPubSubQueue(self.pk, backlog)
 
     def get_initial_backlog(self):
         """Return the initial state of updates as a list.
@@ -307,7 +331,7 @@ class Client:
                         except Exception:
                             logging.exception('could not decode updates')
                             break
-                        watched_updates = update_backlog(
+                        watched_updates = apply_updates(
                             self.pk, state,
                             updates, watch
                         )
