@@ -114,7 +114,7 @@ class BasePubSubQueue:
         for each published update message (including the initial backlog).
         """
         logging.info('new subscriber arrived, sending the backlog')
-        callback(json.dumps(self.get_backlog()))
+        callback(json.dumps(self.get_backlog_message()))
         self.subscribers.add(callback)
         logging.info('added a new subscriber, count is now %d'
                          % len(self.subscribers))

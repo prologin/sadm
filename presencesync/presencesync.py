@@ -137,7 +137,7 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
         if update_msg:
             self.post_updates(update_msg)
 
-    def get_backlog(self):
+    def get_backlog_message(self):
         """Return an update message-formatted backlog.  Check for expired
         logins first.
         """
@@ -206,7 +206,7 @@ class HeartbeatHandler(prologin.synchronisation.AuthRequestHandler):
             pass
         else:
             msg = json.loads(msg)
-            self.pubsub_queue.update_host(msg['login'], msg['hostname'])
+            self.pubsub_queue.update_backlog(msg['login'], msg['hostname'])
             self.set_status(200, 'OK')
 
 
