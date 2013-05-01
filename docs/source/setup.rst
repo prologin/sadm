@@ -243,6 +243,7 @@ named ``web.prolo``.
 Once again, set up a standard Arch system. Then register it on ``mdb``, via the
 web interface, or using::
 
+  source /var/prologin/venv/bin/activate
   cd /var/prologin/mdb
   python3 manage.py addmachine --hostname web --mac 11:22:33:44:55:66 \
       --ip 192.168.1.100 --rfs 0 --hfs 0 \
@@ -266,15 +267,19 @@ Autoinstall
 You can autoinstall some services and configuration files::
 
   python3 install.py webservices
+  systemctl reload nginx
 
 doc
 ~~~
 
 You have to retrieve the documentations of each language::
 
-  cd /var/prologin/docs
+  pacman -S wget unzip
+  cd /var/prologin/webservices/docs
   su webservices # So we don't have to change permissions afterwards
   ./get_docs.sh
+
+TODO: stechec2 docs, sadm docs
 
 paste
 ~~~~~
@@ -286,12 +291,17 @@ You just have to start the ``paste`` service::
 wiki
 ~~~~
 
+This requires Python 2.x, so set up a Python 2 virtualenv::
+
+  pacman -S python2 python-pip python2-virtualenv
+  virtualenv2 /var/prologin/venv2
+  source /var/prologin/venv2/bin/activate
+
 Download and install MoinMoin package::
 
   wget http://static.moinmo.in/files/moin-1.9.7.tar.gz
   tar xvf moin-1.9.7.tar.gz
   cd moin*
-  python2 setup.py build
   python2 setup.py install
   mkdir -p /var/prologin/wiki
   cp -r wiki /var/prologin/wiki
@@ -302,14 +312,17 @@ Then install the configuration::
   cp config/wikiconfig.py ./
   cp server/moin.wsgi ./
 
-  echo "sys.path.insert(0, '/var/prologin/wiki/wiki/')" >> moin.wsgi
+Edit ``moin.wsgi`` to set the path to the wiki configuration directory:
+uncomment the line after ``a2)`` and modify it like this::
+
+  sys.path.insert(0, '/var/prologin/wiki/wiki')
 
 Fix permissions::
 
   chown -R webservices:webservices /var/prologin/wiki
   chmod o-rwx -R /var/prologin/wiki
 
-Add users in the sadm folder::
+Add users in the sadm folder (TODO: will be obsolete with udbsync)::
 
   webservices/wiki/create_users.sh < passwords.txt
 
@@ -321,5 +334,3 @@ Step 5: the matches cluster
 ---------------------------
 
 TODO
-=======
-
