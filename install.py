@@ -222,14 +222,14 @@ def install_webservices():
     requires('nginxcfg')
 
     mkdir('/var/prologin/webservices', mode=0o755,
-          owner='webservices:webservices')
+          owner='webservices:nginx')
     install_service_dir('webservices/paste', mode=0o750,
-                        owner='webservices:webservices')
+                        owner='webservices:nginx')
     install_nginx_service('paste')
     install_systemd_unit('paste')
 
     install_service_dir('webservices/docs', mode=0o750,
-                        owner='webservices:webservices')
+                        owner='webservices:nginx')
     install_nginx_service('docs')
 
 
