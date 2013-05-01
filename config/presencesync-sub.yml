@@ -1,0 +1,5 @@
+url: http://presencesync/
+shared_secret: "presencesync subscription secret key"
+
+# Time before expiration for an association login <-> hostname
+timeout: 30
