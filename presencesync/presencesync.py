@@ -241,25 +241,15 @@ class SyncServer(prologin.synchronisation.Server):
         """Loop forever, asking the PrecenceSync server to remove expired
         logins periodically.
         """
-        conn = None
+        conn = prologin.presencesync.connect(pub=True)
         while True:
-            # Communicate with the PResenceSync server just like any other
+            # Communicate with the PresenceSync server just like any other
             # client in order to handle concurrent accesses nicely.
 
-            # Try to connect, forever and ever and ever.
-            while not conn:
-                try:
-                    conn = prologin.presencesync.connect(pub=True)
-                except Exception as e:
-                    logging.exception(
-                        'Expired removing thread: error while connecting to'
-                        ' the PresenceSync server, retrying in 2s'
-                    )
-                    time.sleep(2)
+            # Try to send a message, forever and ever and ever.
             try:
                 conn.remove_expired()
             except Exception as e:
-                conn = None
                 logging.exception(
                     'Expired removing thread: error while sending a message to'
                     ' the PresenceSync server, retrying in 2s'
