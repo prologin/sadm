@@ -31,17 +31,56 @@ import urllib.parse
 import urllib.request
 
 
-def update_backlog(pk, backlog, updates):
+def update_backlog(pk, backlog, updates, watch=None):
+    """Update `backlog` with `updates` using `pk` as primary key for records.
+    If `watch` is None, the set of primary keys for updated records is
+    returned. Otherwise, `watch` must be a set of fields, and the set of
+    primary keys for records whose changed fields match those is returned.
+
+    For instance:
+    >>> update_backlog('k', {'k': 1, {'k': 1, 'v': 2}},
+                       [{'type': 'update', 'data': {'k': 1, 'v': 3}}])
+    {1}
+    >>> update_backlog('k', {'k': 1, {'k': 1, 'v': 2, 'w': 1}},
+                       [{'type': 'update', 'data': {'k': 1, 'v': 3, 'w': 1}}],
+                       watch={'w'})
+    set()
+    """
+    watched_updates = set()
+
     for update in updates:
+
         data = update['data']
         key = data[pk]
+
         if update['type'] == 'update':
+            # Add key to watched updates if any watched field changes.
+            try:
+                old_data = backlog[key]
+            except KeyError:
+                # The update must be watched if it creates a new record.
+                watched_updates.add(key)
+            else:
+                # The update must be watched if all fields are updates or if at
+                # least one watched field has changed.
+                if watch is None or any(
+                    data[field] != old_data[field] for field in watch
+                ):
+                    watched_updates.add(key)
+
             backlog[key] = data
-        elif update['type'] == 'detele':
+
+        elif update['type'] == 'delete':
             if backlog.pop(key, None) is None:
                 logging.error('removing unexisting data')
+            else:
+                # All deletions are watched.
+                watched_updates.add(key)
+
         else:
             logging.error('invalid update type: {}'.format(update['type']))
+
+    return watched_updates
 
 def items_to_updates(items):
     return [
@@ -187,7 +226,16 @@ class Client:
         if r.status_code != 200:
             raise RuntimeError("Unable to post an update")
 
-    def poll_updates(self, callback):
+    def poll_updates(self, callback, watch=None):
+        """Call `callback` for each set of updates.
+
+        `callback` is called with an iterable that contain an up-to-date list
+        of records, and with the set of key for records than has watched
+        changes. Note that the callback is invoked even if the watched list of
+        changes is empty. See `updated_backlog` for the meaning of `watch` and
+        for returned watched changes.
+        """
+
         if self.pk is None:
             raise ValueError('No primary key field name specified')
         if self.sub_secret is None:
@@ -208,9 +256,12 @@ class Client:
                         except Exception:
                             logging.exception('could not decode updates')
                             break
-                        update_backlog(self.pk, state, updates)
+                        watched_updates = update_backlog(
+                            self.pk, state,
+                            updates, watch
+                        )
                         try:
-                            callback(state.values())
+                            callback(state.values(), watched_updates)
                         except Exception:
                             logging.exception(
                                 'error in the synchorisation client callback'
