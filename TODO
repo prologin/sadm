@@ -17,3 +17,6 @@
 * notification system
   * probably via IRC
 * [seirl] docs for stechec2 and sadm to http://docs/
+
+* [low priority]
+  * Put common code from *db/*dbapi/receivers.py to a library

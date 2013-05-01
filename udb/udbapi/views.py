@@ -18,6 +18,7 @@
 import json
 import prologin.config
 import prologin.timeauth
+import udbapi.receivers  # To connect our receivers
 
 from django.http import HttpResponse
 from udbapi.models import User

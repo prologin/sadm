@@ -49,3 +49,7 @@ class User(models.Model):
 
     class Meta:
         ordering = ('group', 'login',)
+
+
+# Import the signal receivers so they are activated
+import udbapi.receivers
