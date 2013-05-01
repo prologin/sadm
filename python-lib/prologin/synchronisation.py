@@ -293,13 +293,13 @@ class Client:
             raise ValueError('No subscriber shared secret specified')
 
         while True:
-            state = {}  # indexed by mac
             params = urllib.parse.urlencode({
                 'hmac': prologin.timeauth.generate_token(self.sub_secret)
             })
             poll_url = urllib.parse.urljoin(self.url, '/poll?%s' % params)
             try:
                 with urllib.request.urlopen(poll_url) as resp:
+                    state = {}  # indexed by self.pk
                     while True:
                         try:
                             l = resp.readline().decode('utf-8').strip()
