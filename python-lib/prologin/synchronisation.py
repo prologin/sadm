@@ -121,14 +121,37 @@ class InternalPubSubQueue:
                          % len(self.subscribers))
 
 
-class PollHandler(tornado.web.RequestHandler):
+class AuthRequestHandler(tornado.web.RequestHandler):
+    """Regular base handler class, just add a few utility to check auth."""
+
+    def check_authentication(self, secret, check_msg=False):
+        """Return the message if the current request is correctly authenticated
+        with respects to `secret` (checking the message itself if asked to).
+        Send an error response and raise a RuntimeError otherwise.
+        """
+
+        msg = (
+            self.get_argument('msg')
+            if check_msg else
+            None
+        )
+        if not prologin.timeauth.check_token(
+            self.get_argument('hmac'), secret, msg
+        ):
+            logging.error('received an update request with invalid token')
+            self.send_error(403)
+            raise RuntimeError('Invalid token')
+        else:
+            return self.get_argument('msg', None)
+
+
+class PollHandler(AuthRequestHandler):
     @tornado.web.asynchronous
     def get(self):
-        if not prologin.timeauth.check_token(
-            self.get_argument('hmac'),
-            self.application.sub_secret,
-        ):
-            self.send_error(403)
+        try:
+            msg = self.check_authentication(self.application.sub_secret)
+        except RuntimeError:
+            pass
         else:
             self.application.pubsub_queue.register_subscriber(
                 self.message_callback
@@ -144,20 +167,14 @@ class PollHandler(tornado.web.RequestHandler):
         self.flush()
 
 
-class UpdateHandler(tornado.web.RequestHandler):
+class UpdateHandler(AuthRequestHandler):
     def post(self):
-        msg = self.get_argument('msg')
-
-        if not prologin.timeauth.check_token(
-            self.get_argument('hmac'),
-            self.application.pub_secret,
-            msg
-        ):
-            logging.error('received an update request with invalid token')
-            self.send_error(403)
-            return
-
-        self.application.pubsub_queue.post_message(json.loads(msg))
+        try:
+            msg = self.check_authentication(self.application.pub_secret, True)
+        except RuntimeError:
+            pass
+        else:
+            self.application.pubsub_queue.post_message(json.loads(msg))
 
 
 class Server(tornado.web.Application):
@@ -208,6 +225,20 @@ class Client:
         self.pub_secret = pub_secret and pub_secret.encode('utf-8')
         self.sub_secret = sub_secret.encode('utf-8')
 
+    def send_request(self, resource, secret, data):
+        """Send an request that is authenticated using `secret` and that
+        contains `data` (a JSON data structure) to `resource`. Return the
+        request object.
+        """
+        msg = json.dumps(data)
+        return requests.post(
+            urllib.parse.urljoin(self.url, resource),
+            data={
+                'msg': msg,
+                'hmac': prologin.timeauth.generate_token(secret, msg),
+            }
+        )
+
     def send_update(self, update):
         self.send_updates([update])
 
@@ -216,13 +247,7 @@ class Client:
             raise ValueError("No secret provided, can't send update")
 
         msg = json.dumps(updates)
-        r = requests.post(
-            urllib.parse.urljoin(self.url, '/update'),
-            data={
-                'msg': msg,
-                'hmac': prologin.timeauth.generate_token(self.pub_secret, msg),
-            }
-        )
+        r = self.send_request('/update', self.pub_secret, updates)
         if r.status_code != 200:
             raise RuntimeError("Unable to post an update")
 
