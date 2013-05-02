@@ -291,9 +291,9 @@ You just have to start the ``paste`` service::
 wiki
 ~~~~
 
-Download and install the MoinMoin archlinux package::
+Download and install the MoinMoin archlinux package, and its dependancies::
 
-  pacman -S moinmoin
+  pacman -S python2 moinmoin gunicorn
   mkdir -p /var/prologin/wiki
   cp -r /usr/share/moin /var/prologin/wiki/
 

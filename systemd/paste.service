@@ -1,5 +1,5 @@
 [Unit]
-Description = Paste service
+Description = Paste
 
 [Service]
 Type=simple
