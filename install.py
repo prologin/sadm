@@ -278,6 +278,17 @@ def install_presenced():
     )
     install_systemd_unit('presenced')
 
+    cfg = '/etc/pam.d/system-login'
+    cfg_line = (
+        'session requisite pam_exec.so'
+        ' /var/prologin/presenced/pam_presenced.py'
+    )
+    with open(cfg, 'r') as f:
+        to_append = cfg_line not in f.read().split('\n')
+    if to_append:
+        with open(cfg, 'a') as f:
+            print(cfg_line, file=f)
+
 
 COMPONENTS = [
     'libprologin',
