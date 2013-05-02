@@ -297,10 +297,9 @@ Download and install the MoinMoin archlinux package, and its dependancies::
   mkdir -p /var/prologin/wiki
   cp -r /usr/share/moin /var/prologin/wiki/
 
-Then install the configuration::
+Then install the WSGI file::
 
   cd /var/prologin/wiki/moin
-  cp config/wikiconfig.py ./
   cp server/moin.wsgi ./moin.py
 
 Edit ``moin.py`` to set the path to the wiki configuration directory:
@@ -308,10 +307,19 @@ uncomment the line after ``a2)`` and modify it like this::
 
   sys.path.insert(0, '/var/prologin/wiki/moin')
 
+Copy the wiki configuration file::
+
+  cp webservices/wiki/wikiconfig.py /var/prologin/wiki
+
 Fix permissions::
 
   chown -R webservices:webservices /var/prologin/wiki
   chmod o-rwx -R /var/prologin/wiki
+
+Create the ``prologin`` super-user::
+
+  moin --config-dir=/var/prologin/wiki account create --name prologin  \
+       --alias prologin --password CHANGEME --email prologin@example.com
 
 Add users in the sadm folder (TODO: will be obsolete with udbsync)::
 
