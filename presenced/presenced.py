@@ -18,6 +18,7 @@
 and transmits login requests from pam_presenced.
 """
 
+import json
 import logging
 import os
 import prologin.config
@@ -91,7 +92,7 @@ class LoginHandler(prologin.synchronisation.AuthRequestHandler):
         except RuntimeError:
             pass
         else:
-            login = msg['login']
+            login = json.loads(msg)['login']
             result = self.application.presencesync.request_login(
                 login, HOSTNAME
             )
