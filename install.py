@@ -127,7 +127,9 @@ def install_service_dir(name, owner, mode):
     if not os.path.exists('/var/prologin'):
         mkdir('/var/prologin', mode=0o755, owner='root:root')
     # Nothing in Python allows merging two directories together...
-    os.system('cp -rv %s /var/prologin/%s' % (name, name))
+    # Be careful with rsync(1) arguments: to merge two directories, trailing
+    # slash are meaningful.
+    os.system('rsync -rv %s/ /var/prologin/%s' % (name, name))
     user, group = owner.split(':')
     shutil.chown('/var/prologin/%s' % name, user, group)
     os.chmod('/var/prologin/%s' % name, mode)
