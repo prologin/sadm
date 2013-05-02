@@ -1,0 +1,13 @@
+server {
+    listen 80;
+    server_name presencesync;
+
+    access_log logs/presencesync.access.log main;
+
+    location / {
+        proxy_pass http://localhost:20060;
+        proxy_buffering off;
+        proxy_read_timeout 3600000;
+        proxy_send_timeout 3600000;
+    }
+}

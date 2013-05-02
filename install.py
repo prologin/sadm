@@ -42,12 +42,10 @@ USERS = {
     'mdbdhcp': { 'uid': 20040, 'groups': ('mdbdhcp', 'mdbsync_public') },
     'webservices': { 'uid': 20050, 'groups': ('webservices',) },
     'presencesync': { 'uid': 20060, 'groups': ('presencesync',
-                                               'presencesync_public',
-                                               'presencesync_private') },
+                                               'presencesync_public') },
     'presenced': { 'uid': 20070, 'groups': ('presenced',
                                             'presencesync',
-                                            'presencesync_private',
-                                            'presencesync_private') },
+                                            'presencesync_public') },
 }
 
 # Same with groups. *_public groups are used for services that need to access
@@ -63,7 +61,6 @@ GROUPS = {
     'webservices': 20050,
     'presencesync': 20060,
     'presencesync_public': 20061,
-    'presencesync_private': 20062,
     'presenced': 20070,
 }
 
@@ -154,6 +151,9 @@ def install_libprologin():
     install_cfg_profile('mdb-client', group='mdb_public')
     install_cfg_profile('mdbsync-pub', group='mdbsync')
     install_cfg_profile('mdbsync-sub', group='mdbsync_public')
+    install_cfg_profile('presencesync-pub', group='presencesync')
+    install_cfg_profile('presencesync-sub', group='presencesync_public')
+    install_cfg_profile('presenced-client', group='presenced')
 
 
 def install_nginxcfg():
@@ -255,6 +255,28 @@ def install_netboot():
     install_systemd_unit('netboot')
 
 
+def install_presencesync():
+    requires('libprologin')
+    requires('nginxcfg')
+
+    install_service_dir(
+        'presencesync', owner='presencesync:presencesync',
+        mode=0o700
+    )
+    install_nginx_service('presencesync')
+    install_systemd_unit('presencesync')
+
+def install_presenced():
+    requires('libprologin')
+    requires('nginxcfg')
+
+    install_service_dir(
+        'presenced', owner='presenced:presenced',
+        mode=0o700
+    )
+    install_systemd_unit('presenced')
+
+
 COMPONENTS = [
     'libprologin',
     'bindcfg',
@@ -266,6 +288,8 @@ COMPONENTS = [
     'mdbdhcp',
     'webservices',
     'netboot',
+    'presencesync',
+    'presenced',
 ]
 
 # Runtime helpers: requires() function and user/groups handling
