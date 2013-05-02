@@ -291,31 +291,22 @@ You just have to start the ``paste`` service::
 wiki
 ~~~~
 
-This requires Python 2.x, so set up a Python 2 virtualenv::
+Download and install the MoinMoin archlinux package::
 
-  pacman -S python2 python-pip python2-virtualenv
-  virtualenv2 /var/prologin/venv2
-  source /var/prologin/venv2/bin/activate
-
-Download and install MoinMoin package::
-
-  wget http://static.moinmo.in/files/moin-1.9.7.tar.gz
-  tar xvf moin-1.9.7.tar.gz
-  cd moin*
-  python2 setup.py install
+  pacman -S moinmoin
   mkdir -p /var/prologin/wiki
-  cp -r wiki /var/prologin/wiki
+  cp -r /usr/share/moin /var/prologin/wiki/
 
 Then install the configuration::
 
-  cd /var/prologin/wiki/wiki
+  cd /var/prologin/wiki/moin
   cp config/wikiconfig.py ./
-  cp server/moin.wsgi ./
+  cp server/moin.wsgi ./moin.py
 
-Edit ``moin.wsgi`` to set the path to the wiki configuration directory:
+Edit ``moin.py`` to set the path to the wiki configuration directory:
 uncomment the line after ``a2)`` and modify it like this::
 
-  sys.path.insert(0, '/var/prologin/wiki/wiki')
+  sys.path.insert(0, '/var/prologin/wiki/moin')
 
 Fix permissions::
 
