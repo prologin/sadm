@@ -318,7 +318,8 @@ Fix permissions::
 
 Create the ``prologin`` super-user::
 
-  moin --config-dir=/var/prologin/wiki account create --name prologin  \
+  PYTHONPATH=/var/prologin/wiki:$PYTHONPATH                              \
+  moin --config-dir=/var/prologin/wiki account create --name prologin    \
        --alias prologin --password CHANGEME --email prologin@example.com
 
 Add users in the sadm folder (TODO: will be obsolete with udbsync)::

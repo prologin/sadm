@@ -17,6 +17,8 @@ class Config(multiconfig.DefaultConfig):
     acl_rights_before = u"prologin:read,write,delete,revert,admin"
     password_checker = None
 
+    page_front_page = u"Wiki"
+
     navi_bar = [
         u'RecentChanges',
         u'FindPage',
