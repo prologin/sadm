@@ -61,7 +61,7 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
     def __init__(self):
         super(TimeoutedPubSubQueue, self).__init__()
         # By default, a machine has no user and its information is expired.
-        self.backlog = collections.defaultdict(lambda: (0, None))
+        self.backlog = {}
         # Mapping hostname -> user login or None.
         self.reverse_backlog = collections.defaultdict(lambda: None)
 
@@ -169,7 +169,10 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
                 login not in self.backlog
                 and hostname not in self.reverse_backlog
             )
-            or self.backlog[login][1] == hostname
+            or (
+                login in self.backlog
+                and self.backlog[login][1] == hostname
+            )
         ):
             self.update_backlog(login, hostname)
             return True
