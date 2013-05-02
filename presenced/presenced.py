@@ -25,7 +25,6 @@ import prologin.log
 import prologin.presenced
 import prologin.presencesync
 import prologin.synchronisation
-import pwd
 import socket
 import subprocess
 import sys
@@ -49,13 +48,6 @@ def get_logged_prologin_users():
     """Return the list of logged user that are handled by Prologin."""
     result = set()
 
-    # Get mapping user name -> UID. A user is handled by Prologin if and only
-    # if its UID >= 1000.
-    uids = {
-        user.pw_name: user.pw_uid
-        for user in pwd.getpwall()
-    }
-
     with open(os.devnull, 'r') as devnull:
         who = subprocess.Popen(
             ['who'], stdin=devnull, stdout=subprocess.PIPE
@@ -65,7 +57,7 @@ def get_logged_prologin_users():
         if not line.strip():
             continue
         login = line.split()[0].decode('ascii')
-        if uids[login] >= 1000:
+        if prologin.presenced.is_prologin_user(login):
             result.add(login)
 
     return result

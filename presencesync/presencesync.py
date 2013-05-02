@@ -160,9 +160,10 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
 
         # A login request is accepted if and only if one of the following
         # conditions is True:
-        # 1 - The user is not logged in anywhere and nobody is loggen on
-        #     `hostname`
-        # 2 - The user is already loggen on `hostname`
+        # 1 - The user is not logged in anywhere, nobody is logged on
+        #     `hostname` and (TODO) the user is allowed to log on `hostname` (a
+        #     contestant cannot log on an organizer host.
+        # 2 - The user is already logged on `hostname`
         if (
             (
                 login not in self.backlog

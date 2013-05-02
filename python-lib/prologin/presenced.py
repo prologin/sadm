@@ -19,10 +19,21 @@
 import json
 import logging
 import prologin.config
+import pwd
 import requests
 import urllib.parse
 
 CFG = prologin.config.load('presenced-client')
+
+def is_prologin_user(user):
+    """Return if `user` (a username or an UID) is handled by Prologin.
+
+    Raise a KeyError if the user does not exist."""
+    if isinstance(user, str):
+        uid = pwd.getpwnam(user).pw_uid
+    else:
+        uid = pwd.getpwuid(user).pw_uid
+    return 10000 <= uid < 20000
 
 
 class Client:
