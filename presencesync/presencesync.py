@@ -60,6 +60,7 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
 
     def __init__(self):
         super(TimeoutedPubSubQueue, self).__init__()
+        self.start_ts = None
         # By default, a machine has no user and its information is expired.
         self.backlog = {}
         # Mapping hostname -> user login or None.
@@ -151,12 +152,21 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
     # Public interface
     #
 
+    def set_start_ts(self, start_ts):
+        self.start_ts = start_ts
+
     def request_login(self, login, hostname):
         """Try to register `login` as logged on `hostname`.  Return if
         successful, and if it is, send an update for it.  Check for expired
         logins first.
         """
         self.remove_and_publish_expired()
+
+        # Refuse all requests until the server is started for at least the
+        # expiration TIMEOUT. This will prevent users from logging until
+        # database is regenerated thanks to heartbeats.
+        if self.start_ts is None or time.time() < self.start_ts + self.TIMEOUT:
+            return False
 
         # A login request is accepted if and only if one of the following
         # conditions is True:
