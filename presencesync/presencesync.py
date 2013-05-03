@@ -161,6 +161,7 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
 
         # 1 - The user is already logged on `hostname`
         if self.backlog.get(login, (None, None))[1] == hostname:
+            logging.debug('{} is already logged on {}'.format(login, hostname))
             return True
 
         # 2 - The user is not logged in anywhere, nobody is logged on
@@ -170,24 +171,38 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
             login not in self.backlog
             and hostname not in self.reverse_backlog
         ):
+            logging.debug(
+                '{} is not logged anywhere and {} is not busy'.format(
+                    login, hostname
+                )
+            )
             match = self.mdb.query(hostname=hostname)
             if len(match) != 1:
                 # Either there is no such hostname: refuse it, either there are
                 # many machine for a single hostname, which should never
                 # happen, or we have a big problem!
+                logging.debug(
+                    '{} is not a registered machine'.format(hostname)
+                )
                 return False
             machine = match[0]
 
             match = self.udb.query(login=login)
             if len(match) != 1:
+                logging.debug('{} is not a registered user'.format(login))
                 return False
             user = match[0]
 
             # The login will fail only if a simple user (contestant) tries to
             # log on a machine not for contestants. :-)
+            logging.debug('USER {} is a {}, MACHINE {} is a {}'.format(
+                login, user['group'],
+                hostname, machine['mtype']
+            ))
             return user['group'] != 'user' or machine['mtype'] == 'user'
 
         # By default, refuse the login.
+        logging.debug('Default for {} on {}: refuse'.format(login, hostname))
         return False
 
     #
@@ -208,6 +223,15 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
         # expiration TIMEOUT. This will prevent users from logging until
         # database is regenerated thanks to heartbeats.
         if self.start_ts is None or time.time() < self.start_ts + self.TIMEOUT:
+            logging.debug('Login for {} on {} refused: too early'.format(
+                login, hostname
+            ))
+            if self.start_ts is None:
+                logging.debug('Starting date is undefined')
+            else:
+                logging.debug('Still have to wait for {} seconds'.format(
+                    int(self.start_ts + self.TIMEOUT - time.time())
+                ))
             return False
 
         if self.is_login_allowed(login, hostname):
