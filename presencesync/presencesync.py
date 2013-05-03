@@ -24,8 +24,10 @@ import json
 import logging
 import prologin.config
 import prologin.log
+import prologin.mdb
 import prologin.presencesync
 import prologin.synchronisation
+import prologin.udb
 import sys
 import threading
 import time
@@ -65,6 +67,9 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
         self.backlog = {}
         # Mapping hostname -> user login or None.
         self.reverse_backlog = collections.defaultdict(lambda: None)
+
+        self.udb = prologin.udb.connect()
+        self.mdb = prologin.mdb.connect()
 
     def item_to_update(self, update_type, login, hostname):
         return {
@@ -148,6 +153,43 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
             for login, (_, hostname) in self.backlog.items()
         ]
 
+    def is_login_allowed(self, login, hostname):
+        """Return if `login` is allowed to log on `hostname`."""
+
+        # A login request is accepted if and only if one of the following
+        # conditions is True:
+
+        # 1 - The user is already logged on `hostname`
+        if self.backlog.get(login, (None, None))[1] == hostname:
+            return True
+
+        # 2 - The user is not logged in anywhere, nobody is logged on
+        #     `hostname` and the user is allowed to log on `hostname` (a
+        #     contestant cannot log on an organizer host.
+        if (
+            login not in self.backlog
+            and hostname not in self.reverse_backlog
+        ):
+            match = self.mdb.query(hostname=hostname)
+            if len(match) != 1:
+                # Either there is no such hostname: refuse it, either there are
+                # many machine for a single hostname, which should never
+                # happen, or we have a big problem!
+                return False
+            machine = match[0]
+
+            match = self.udb.query(login=login)
+            if len(match) != 1:
+                return False
+            user = match[0]
+
+            # The login will fail only if a simple user (contestant) tries to
+            # log on a machine not for contestants. :-)
+            return user['group'] != 'user' or machine['mtype'] == 'user'
+
+        # By default, refuse the login.
+        return False
+
     #
     # Public interface
     #
@@ -168,22 +210,7 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
         if self.start_ts is None or time.time() < self.start_ts + self.TIMEOUT:
             return False
 
-        # A login request is accepted if and only if one of the following
-        # conditions is True:
-        # 1 - The user is not logged in anywhere, nobody is logged on
-        #     `hostname` and (TODO) the user is allowed to log on `hostname` (a
-        #     contestant cannot log on an organizer host.
-        # 2 - The user is already logged on `hostname`
-        if (
-            (
-                login not in self.backlog
-                and hostname not in self.reverse_backlog
-            )
-            or (
-                login in self.backlog
-                and self.backlog[login][1] == hostname
-            )
-        ):
+        if self.is_login_allowed(login, hostname):
             self.update_backlog(login, hostname)
             return True
         else:
