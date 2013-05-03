@@ -146,7 +146,7 @@ class PresencedServer(tornado.web.Application):
 
 
 if __name__ == '__main__':
-    prologin.log.setup_logging('presenced', verbose=True, local=True)
+    prologin.log.setup_logging('presenced')
     if len(sys.argv) > 1:
         port = int(sys.argv[1])
     else:

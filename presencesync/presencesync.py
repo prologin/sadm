@@ -339,7 +339,7 @@ class SyncServer(prologin.synchronisation.Server):
 
 
 if __name__ == '__main__':
-    prologin.log.setup_logging('presencesync', verbose=True, local=True)
+    prologin.log.setup_logging('presencesync')
     if len(sys.argv) > 1:
         port = int(sys.argv[1])
     else:
