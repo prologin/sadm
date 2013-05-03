@@ -1,0 +1,16 @@
+[Unit]
+Description = Bugs
+After=syslog.target
+After=network.target
+
+[Service]
+Type=simple
+User=webservices
+Group=webservices
+ExecStart=/usr/bin/ruby /var/prologin/bugs/script/rails server webrick -e production
+
+TimeoutSec=300
+
+[Install]
+WantedBy=multi-user.target
+

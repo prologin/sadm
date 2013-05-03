@@ -320,7 +320,7 @@ Create the ``prologin`` super-user::
 
   PYTHONPATH=/var/prologin/wiki:$PYTHONPATH                              \
   moin --config-dir=/var/prologin/wiki account create --name prologin    \
-       --alias prologin --password CHANGEME --email prologin@example.com
+       --alias prologin --password **CHANGEME** --email prologin@example.com
 
 Add users in the sadm folder (TODO: will be obsolete with udbsync)::
 
@@ -329,6 +329,69 @@ Add users in the sadm folder (TODO: will be obsolete with udbsync)::
 Then you can just start the service::
 
   systemctl enable wiki && systemctl start wiki
+
+bugs
+~~~~
+
+Install redmine and its dependancies::
+
+  pacman -S ruby ruby-bundler redmine
+
+Move the redmine folder to /var/prologin::
+
+  cp -r /usr/share/webapps/redmine /var/prologin/bugs
+  cd /var/prologin/bugs
+
+Then execute these PostgreSQL queries to create the redmine DB::
+
+  CREATE ROLE redmine LOGIN ENCRYPTED PASSWORD '**CHANGEME**' NOINHERIT VALID
+  UNTIL 'infinity';
+  CREATE DATABASE redmine WITH ENCODING='UTF8' OWNER=redmine;
+
+Edit the configuration::
+
+  cp database.yml.example database.yml
+  $EDITOR database.yml
+
+A configuration example::
+
+  production:
+    adapter: postgresql
+    database: redmine
+    host: localhost
+    username: redmine
+    password: **CHANGEME**
+    encoding: utf8
+    schema_search_path: public
+
+Install required gems::
+
+  bundle install --without development test
+
+Generate the secret token::
+
+  rake generate_secret_token
+
+Fix permissions::
+
+  chown -R webservices:webservices /var/prologin/bugs
+  chmod o-rwx -R /var/prologin/bugs
+  su webservices
+
+Create the database structure and populate it with the default data::
+
+  RAILS_ENV=production rake db:migrate
+  RAILS_ENV=production REDMINE_LANG=fr-FR rake redmine:load_default_data
+  
+Set the FS permissions::
+
+  mkdir -p tmp tmp/pdf public/plugin_assets
+  chown -R webservices:http files log tmp public/plugin_assets
+  chmod -R 755 files log tmp tmp/pdf public/plugin_assets
+
+Then start the service::
+
+  systemctl enable bugs && systemctl start bugs
 
 Step 5: the matches cluster
 ---------------------------
