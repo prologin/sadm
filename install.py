@@ -46,6 +46,10 @@ USERS = {
     'presenced': { 'uid': 20070, 'groups': ('presenced',
                                             'presencesync',
                                             'presencesync_public') },
+    'udb': { 'uid': 20080, 'groups': ('udb', 'udb_public', 'udbsync',
+                                      'udbsync_public') },
+    'udbsync': { 'uid': 20090, 'groups': ('udbsync', 'udbsync_public',
+                                          'udb', 'udb_public') },
 }
 
 # Same with groups. *_public groups are used for services that need to access
@@ -62,6 +66,10 @@ GROUPS = {
     'presencesync': 20060,
     'presencesync_public': 20061,
     'presenced': 20070,
+    'udb': 20080,
+    'udb_public': 20081,
+    'udbsync': 20090,
+    'udbsync_public': 20091,
 }
 
 # Helper functions for installation procedures.
@@ -153,6 +161,9 @@ def install_libprologin():
     install_cfg_profile('mdb-client', group='mdb_public')
     install_cfg_profile('mdbsync-pub', group='mdbsync')
     install_cfg_profile('mdbsync-sub', group='mdbsync_public')
+    install_cfg_profile('udb-client', group='udb_public')
+    install_cfg_profile('udbsync-pub', group='udbsync')
+    install_cfg_profile('udbsync-sub', group='udbsync_public')
     install_cfg_profile('presencesync-pub', group='presencesync')
     install_cfg_profile('presencesync-sub', group='presencesync_public')
     install_cfg_profile('presenced-client', group='presenced')
@@ -257,6 +268,31 @@ def install_netboot():
     install_systemd_unit('netboot')
 
 
+def install_udb():
+    requires('libprologin')
+    requires('nginxcfg')
+
+    first_time = not os.path.exists('/var/prologin/udb')
+
+    install_service_dir('udb', owner='udb:udb', mode=0o700)
+    install_nginx_service('udb')
+    install_systemd_unit('udb')
+
+    install_cfg_profile('udb-server', group='udb')
+
+    if first_time:
+        django_syncdb('udb')
+
+
+def install_udbsync():
+    requires('libprologin')
+    requires('nginxcfg')
+
+    install_service_dir('udbsync', owner='udbsync:udbsync', mode=0o700)
+    install_nginx_service('udbsync')
+    install_systemd_unit('udbsync')
+
+
 def install_presencesync():
     requires('libprologin')
     requires('nginxcfg')
@@ -299,6 +335,8 @@ COMPONENTS = [
     'mdbsync',
     'mdbdns',
     'mdbdhcp',
+    'udb',
+    'udbsync',
     'webservices',
     'netboot',
     'presencesync',
