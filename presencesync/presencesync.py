@@ -194,8 +194,8 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
     # Public interface
     #
 
-    def set_start_ts(self, start_ts):
-        self.start_ts = start_ts
+    def start(self):
+        self.start_ts = int(time.time())
 
     def request_login(self, login, hostname):
         """Try to register `login` as logged on `hostname`.  Return if
@@ -270,7 +270,7 @@ class SyncServer(prologin.synchronisation.Server):
         self.start_ts = None
 
     def start(self):
-        self.start_ts = int(time.time())
+        self.pubsub_queue.start()
         self.removing_expired_thread = threading.Thread(
             target=self.loop_removing_expired,
             daemon=True
