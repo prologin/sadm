@@ -20,4 +20,4 @@ url: http://mdbsync/
 
 # Shared secret for updates. Both MDBSync server and its clients read this
 # file.
-shared_secret: "shared secret for mdbsync publication"
+shared_secret: "DEFAULT_PASSWORD"

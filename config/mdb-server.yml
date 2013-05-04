@@ -26,7 +26,7 @@ db:
         PORT:
 
 # Use http://www.miniwebtool.com/django-secret-key-generator/
-secret_key: "%i481q9clyr3-d6!wc9v%24ihbj3#walgtk*_!&5yjtf=1y7@o"
+secret_key: "DEFAULT_PASSWORD"
 
 # Should always be false in production!
 debug: true
