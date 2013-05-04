@@ -33,20 +33,34 @@ import urllib.request
 
 def apply_updates(pk, backlog, updates, watch=None):
     """Update `backlog` with `updates` using `pk` as primary key for records.
-    If `watch` is None, the set of primary keys for updated records is
-    returned. Otherwise, `watch` must be a set of fields, and the set of
-    primary keys for records whose changed fields match those is returned.
+
+    Return metadata about what have been updated using an encoding like:
+        {'obj1': 'updated', 'obj3': 'deleted', 'obj6': 'created'}
+    The previous example means: the entity whose primary key is 'obj1' have
+    been updated, 'obj6' have been created, ... Note that deletion and creation
+    of entities *always* result in returned metadata, whatever `watch`
+    contains.
+
+    If `watch` is not None, it must be a set of field names. In this case,
+    returned metadata includes only entities whose changes target fields in
+    `watch`.
 
     For instance:
-    >>> apply_updates('k', {'k': 1, {'k': 1, 'v': 2}},
+    >>> apply_updates('k', {1: {'k': 1, 'v': 2}},
                       [{'type': 'update', 'data': {'k': 1, 'v': 3}}])
-    {1}
-    >>> apply_updates('k', {'k': 1, {'k': 1, 'v': 2, 'w': 1}},
-                      [{'type': 'update', 'data': {'k': 1, 'v': 3, 'w': 1}}],
+    {1: 'updated'}
+    >>> apply_updates('k', {
+                          1: {'k': 1, 'v': 2, 'w': 1},
+                          2: {'k': 2, 'v': 3, 'w': 4}
+                      },
+                      [
+                          {'type': 'update', 'data': {'k': 1, 'v': 5, 'w': 6}}
+                          {'type': 'update', 'data': {'k': 1, 'v': 7, 'w': 4}}
+                      ],
                       watch={'w'})
-    set()
+    {1: 'updated'}
     """
-    watched_updates = set()
+    updates_metadata = {}
 
     for update in updates:
 
@@ -59,14 +73,14 @@ def apply_updates(pk, backlog, updates, watch=None):
                 old_data = backlog[key]
             except KeyError:
                 # The update must be watched if it creates a new record.
-                watched_updates.add(key)
+                updates_metadata[key] = 'created'
             else:
                 # The update must be watched if all fields are updates or if at
                 # least one watched field has changed.
                 if watch is None or any(
                     data[field] != old_data[field] for field in watch
                 ):
-                    watched_updates.add(key)
+                    updates_metadata[key] = 'updated'
 
             backlog[key] = data
 
@@ -75,12 +89,12 @@ def apply_updates(pk, backlog, updates, watch=None):
                 logging.error('removing unexisting data')
             else:
                 # All deletions are watched.
-                watched_updates.add(key)
+                updates_metadata[key] = 'deleted'
 
         else:
             logging.error('invalid update type: {}'.format(update['type']))
 
-    return watched_updates
+    return updates_metadata
 
 def items_to_updates(items):
     return [
@@ -305,10 +319,11 @@ class Client:
         """Call `callback` for each set of updates.
 
         `callback` is called with an iterable that contain an up-to-date list
-        of records, and with the set of key for records than has watched
-        changes. Note that the callback is invoked even if the watched list of
-        changes is empty. See `updated_backlog` for the meaning of `watch` and
-        for returned watched changes.
+        of records, and with a mapping: primary key changed -> kind of update,
+        for all records than has watched changes. Note that the callback is
+        invoked even if the watched list of changes is empty. See
+        `updated_backlog` for the meaning of `watch` and for returned watched
+        changes.
         """
 
         if self.pk is None:
@@ -331,12 +346,12 @@ class Client:
                         except Exception:
                             logging.exception('could not decode updates')
                             break
-                        watched_updates = apply_updates(
+                        updates_metadata = apply_updates(
                             self.pk, state,
                             updates, watch
                         )
                         try:
-                            callback(state.values(), watched_updates)
+                            callback(state.values(), updates_metadata)
                         except Exception:
                             logging.exception(
                                 'error in the synchorisation client callback'
