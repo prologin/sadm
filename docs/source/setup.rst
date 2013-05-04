@@ -10,6 +10,26 @@ present. Just follow the guide!
 
 Last update: 2013.
 
+Step 0: hardware and network setup
+----------------------------------
+
+Before installing servers, we need to make sure all the machines are connected
+to the network properly. Here are the major points you need to be careful
+about:
+
+* Make sure to balance the number of machines connected per switch: the least
+  machines connected to a switch, the better performance you'll get.
+* Inter-switch connections is not very important: we tried to make most things
+  local to a switch (RFS + HFS should each be local, the rest is mainly HTTP
+  connections to services).
+
+For each pair of switches, you will need one RHFS server (connected to the 2
+switches via 2 separate NICs, and hosting the RFS + HFS for the machines on
+these 2 switches). Please be careful out the disk space: assume that each RHFS
+has about 100GB usable for HFS storage. That means at most 50 contestants (2GB
+quota) or 20 organizers (5GB quota) per RHFS. With contestants that should not
+be a problem, but try to balance organizers machines as much as possible.
+
 Step 1: setting up the core services: MDB, DNS, DHCP
 ----------------------------------------------------
 
