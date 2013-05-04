@@ -1,5 +1,5 @@
 url: http://presencesync/
-shared_secret: "DEFAULT_PASSWORD"
+shared_secret: "DEFAULT_PASSWORD_PRESENCESYNC_SUB"
 
 # Time before expiration for an association login <-> hostname
 timeout: 30

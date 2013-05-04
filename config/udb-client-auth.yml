@@ -1,2 +1,2 @@
 # Shared secret used to get passwords.
-shared_secret: "DEFAULT_PASSWORD"
+shared_secret: "DEFAULT_PASSWORD_UDB_CLIENT_AUTH"

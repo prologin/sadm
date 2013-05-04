@@ -19,4 +19,4 @@ url: http://localhost:8003/
 
 # Shared secret for updates. Should match the shared secret in the UDB
 # configuration.
-shared_secret: DEFAULT_PASSWORD
+shared_secret: "DEFAULT_PASSWORD_UDBSYNC_PUB"
