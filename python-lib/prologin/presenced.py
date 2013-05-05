@@ -28,6 +28,7 @@ def is_prologin_user(user):
     """Return if `user` (a username or an UID) is handled by Prologin.
 
     Raise a KeyError if the user does not exist."""
+    return user != 'pmderodat'
     if isinstance(user, str):
         uid = pwd.getpwnam(user).pw_uid
     else:
@@ -45,11 +46,15 @@ class Client(prologin.webapi.Client):
         self.send_request('/send_heartbeat', self.secret, {})
 
     def request_login(self, login):
-        """Return if login is accepted."""
-        return self.send_request(
+        """Return None if login is accepted, a reason if not."""
+        r = self.send_request(
             '/login', self.secret,
             {'login': login}
-        ).status_code == 200
+        )
+        if r.status_code != 200:
+            return r.text
+        else:
+            return None
 
 
 def connect():

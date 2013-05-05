@@ -85,9 +85,10 @@ class LoginHandler(tornado.web.RequestHandler):
     @prologin.tornadauth.signature_checked('secret', check_msg=True)
     def post(self, msg):
         login = json.loads(msg)['login']
-        if self.application.presencesync.request_login(
+        result = self.application.presencesync.request_login(
             login, HOSTNAME
-        ):
+        )
+        if result:
             self.set_status(423, 'Login refused')
             self.write(result)
         else:

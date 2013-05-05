@@ -14,6 +14,11 @@ import sys
 if os.environ.get('PAM_TYPE', None) != 'open_session':
     sys.exit(0)
 
+def fail(reason):
+    # TODO: be sure the user can see the reason.
+    print(reason, file=sys.stderr)
+    sys.exit(1)
+
 login = os.environ['PAM_USER']
 
 try:
@@ -21,14 +26,15 @@ try:
 except KeyError:
     # The user does not exist: should not happen, but forbid anyway.
     # TODO: notify sysadmins...
-    sys.exit(1)
+    fail('No such user')
 
 if not is_prologin_user:
     sys.exit(0)
 
-if not prologin.presenced.connect().request_login(login):
+failure_reason = prologin.presenced.connect().request_login(login)
+if failure_reason:
     # Login is forbidden by presenced.
-    sys.exit(1)
+    fail('Login forbidden: {}'.format(failure_reason))
 
 # TODO: request HOME directory migration and wait for it.
 

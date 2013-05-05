@@ -156,23 +156,30 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
         ]
 
     def is_login_allowed(self, login, hostname):
-        """Return if `login` is allowed to log on `hostname`."""
+        """Return None if `login` is allowed to log on `hostname`, or a reason
+        message if not.
+        """
 
         # A login request is accepted if and only if one of the following
         # conditions is True:
 
+        def fail(reason):
+            logging.debug(reason)
+            return reason
+
         # 1 - The user is already logged on `hostname`
         if self.backlog.get(login, (None, None))[1] == hostname:
             logging.debug('{} is already logged on {}'.format(login, hostname))
-            return True
+            return None
 
         # 2 - The user is not logged in anywhere, nobody is logged on
         #     `hostname` and the user is allowed to log on `hostname` (a
         #     contestant cannot log on an organizer host.
-        if (
-            login not in self.backlog
-            and hostname not in self.reverse_backlog
-        ):
+        if login in self.backlog:
+            return fail('{} is already logged somewhere else'.format(login))
+        elif hostname in self.reverse_backlog:
+            return fail('{} is busy'.format(hostname))
+        else:
             logging.debug(
                 '{} is not logged anywhere and {} is not busy'.format(
                     login, hostname
@@ -183,16 +190,12 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
                 # Either there is no such hostname: refuse it, either there are
                 # many machine for a single hostname, which should never
                 # happen, or we have a big problem!
-                logging.debug(
-                    '{} is not a registered machine'.format(hostname)
-                )
-                return False
+                return fail('{} is not a registered machine'.format(hostname))
             machine = match[0]
 
             match = self.udb.query(login=login)
             if len(match) != 1:
-                logging.debug('{} is not a registered user'.format(login))
-                return False
+                return fail('{} is not a registered user'.format(login))
             user = match[0]
 
             # The login will fail only if a simple user (contestant) tries to
@@ -201,11 +204,16 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
                 login, user['group'],
                 hostname, machine['mtype']
             ))
-            return user['group'] != 'user' or machine['mtype'] == 'user'
+            if user['group'] == 'user' and machine['mtype'] != 'user':
+                return fail(
+                    '{} is not a kind of user'
+                    ' that is allowed to log on {}'.format(login, hostname)
+                )
+
+            return None
 
         # By default, refuse the login.
-        logging.debug('Default for {} on {}: refuse'.format(login, hostname))
-        return False
+        return fail('Default for {} on {}: refuse'.format(login, hostname))
 
     #
     # Public interface
@@ -215,9 +223,9 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
         self.start_ts = int(time.time())
 
     def request_login(self, login, hostname):
-        """Try to register `login` as logged on `hostname`.  Return if
-        successful, and if it is, send an update for it.  Check for expired
-        logins first.
+        """Try to register `login` as logged on `hostname`.  Return None if
+        successful, and if it is, send an update for it.  Return a failure
+        reason otherwise.  Also check for expired logins first.
         """
         self.remove_and_publish_expired()
 
@@ -234,13 +242,14 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
                 logging.debug('Still have to wait for {} seconds'.format(
                     int(self.start_ts + self.TIMEOUT - time.time())
                 ))
-            return False
+            return 'Too early login: try again later'
 
-        if self.is_login_allowed(login, hostname):
-            self.update_backlog(login, hostname)
-            return True
+        failure_reason = self.is_login_allowed(login, hostname)
+        if failure_reason:
+            return failure_reason
         else:
-            return False
+            self.update_backlog(login, hostname)
+            return None
 
     def update_with_heartbeat(self, login, hostname):
         """Accept and register as-is the association between `login` and
@@ -255,12 +264,14 @@ class LoginHandler(tornado.web.RequestHandler):
     @prologin.tornadauth.signature_checked('pub_secret', check_msg=True)
     def post(self, msg):
         msg = json.loads(msg)
-        if self.application.pubsub_queue.request_login(
+        failure_reason = self.application.pubsub_queue.request_login(
             msg['login'], msg['hostname']
-        ):
-            self.set_status(200, 'OK')
+        )
+        if failure_reason:
+            self.set_status(423, 'Login refused')
+            self.write(failure_reason)
         else:
-            self.set_status(423, 'User already logged somewhere else')
+            self.set_status(200, 'OK')
 
 
 class HeartbeatHandler(tornado.web.RequestHandler):
