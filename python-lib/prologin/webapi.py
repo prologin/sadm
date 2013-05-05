@@ -25,17 +25,17 @@ class Client:
     def __init__(self, url):
         self.url = url
 
-    def send_request(self, resource, secret, msg):
+    def send_request(self, resource, secret, msg, url=None):
         """Send an request that is authenticated using `secret` and that
-        contains `msg` (a JSON data structure) to `resource`. Return the
-        request object.
+        contains `msg` (a JSON data structure) to `resource`. Use client
+        default URL if `url` is None. Return the request object.
         """
         try:
             data = json.dumps(msg)
         except TypeError:
             raise ValueError('non serializable argument type')
         return requests.post(
-            urllib.parse.urljoin(self.url, resource),
+            urllib.parse.urljoin(url or self.url, resource),
             data={
                 'data': data,
                 'hmac': prologin.timeauth.generate_token(secret, data),

@@ -1,0 +1,2 @@
+host_pattern: "hfs{}"
+shared_secret: "DEFAULT_PASSWORD_HFS_CLIENT"

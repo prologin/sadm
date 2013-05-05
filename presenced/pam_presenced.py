@@ -8,10 +8,25 @@ directory is mounted.
 """
 
 import os
+import prologin.hfs
 import prologin.presenced
+import socket
+import subprocess
 import sys
 
-if os.environ.get('PAM_TYPE', None) != 'open_session':
+def get_home_dir(login):
+    return '/home/{}'.format(login)
+
+def get_block_device(login):
+    return '/dev/ndb{}'.format(login)
+
+if os.environ.get('PAM_TYPE', None) == 'close_session':
+    login = os.environ['PAM_USER']
+    subprocess.call(['umount', get_home_dir(login)])
+    subprocess.call(['ndb-client', '-d', get_block_device(login)])
+    sys.exit(0)
+
+elif os.environ.get('PAM_TYPE', None) != 'open_session':
     sys.exit(0)
 
 def fail(reason):
@@ -36,6 +51,19 @@ if failure_reason:
     # Login is forbidden by presenced.
     fail('Login forbidden: {}'.format(failure_reason))
 
-# TODO: request HOME directory migration and wait for it.
+# Request HOME directory migration and wait for it.
+hfs = prologin.hfs.connect()
+try:
+    host, port = hfs.get_hfs(login, socket.gethostname())
+except RuntimeError as e:
+    fail(str(e))
+
+# Get a block device for the HOME mount point.
+block_device = get_block_device(login)
+home_dir = get_home_dir(login)
+if subprocess.call(['nbd-client', '{}:{}', block_device]):
+    fail('Cannot get the home directory block device')
+if subprocess.call(['mount', block_device, home_dir]):
+    fail('Cannot mount the home directory')
 
 sys.exit(0)
