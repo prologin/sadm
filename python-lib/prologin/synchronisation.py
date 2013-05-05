@@ -310,7 +310,7 @@ class Client(prologin.webapi.Client):
                                 'error in the synchorisation client callback'
                             )
             except Exception:
-                logging.error(
+                logging.exception(
                     'connection lost to synchronisation server, retrying in 2s'
                 )
                 time.sleep(2)
