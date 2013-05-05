@@ -28,8 +28,5 @@ db:
 # Use http://www.miniwebtool.com/django-secret-key-generator/
 secret_key: "DEFAULT_PASSWORD_UDB_SERVER_SECRET_KEY"
 
-# Shared secret used to get passwords.
-shared_secret: "DEFAULT_PASSWORD_UDB_SERVER"
-
 # Should always be false in production!
 debug: true

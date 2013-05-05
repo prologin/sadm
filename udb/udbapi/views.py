@@ -20,10 +20,10 @@ import prologin.config
 import prologin.timeauth
 import udbapi.receivers  # To connect our receivers
 
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseForbidden
 from udbapi.models import User
 
-CFG = prologin.config.load('udb-server')
+CFG = prologin.config.load('udb-client-auth')
 
 def query(request):
     args = dict(request.REQUEST)
