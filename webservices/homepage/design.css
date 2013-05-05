@@ -1,0 +1,35 @@
+body{
+    margin: auto;
+    background: #fbfbfb;
+    font-family: Arial,sans-serif;
+}
+h1{
+    font-weight: bold;
+    margin: auto;
+    text-align: center;
+    font-size: 3em;
+    vertical-align: middle;
+}
+h2{
+    font-weight: bold;
+    margin: auto;
+    text-align: center;
+}
+a,a:active,a:hover,a:visited{
+    color: black;
+    font-size: 1.9em;
+}
+img{
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+ul{
+    margin: auto;
+    width: 600px;
+    margin-top: 40px;
+}
+
+li{
+    margin-bottom: 10px;
+}
