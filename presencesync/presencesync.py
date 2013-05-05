@@ -27,10 +27,12 @@ import prologin.log
 import prologin.mdb
 import prologin.presencesync
 import prologin.synchronisation
+import prologin.tornadauth
 import prologin.udb
 import sys
 import threading
 import time
+import tornado.web
 
 
 PUB_CFG = prologin.config.load('presencesync-pub')
@@ -249,41 +251,33 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
         self.update_backlog(login, hostname)
 
 
-class LoginHandler(prologin.synchronisation.AuthRequestHandler):
-    def post(self):
-        try:
-            msg = self.check_authentication(self.application.pub_secret, True)
-        except RuntimeError:
-            pass
-        else:
-            msg = json.loads(msg)
-            if self.pubsub_queue.request_login(msg['login'], msg['hostname']):
-                self.set_status(200, 'OK')
-            else:
-                self.set_status(423, 'User already logged somewhere else')
-
-
-class HeartbeatHandler(prologin.synchronisation.AuthRequestHandler):
-    def post(self):
-        try:
-            msg = self.check_authentication(self.application.pub_secret, True)
-        except RuntimeError:
-            pass
-        else:
-            msg = json.loads(msg)
-            self.pubsub_queue.update_backlog(msg['login'], msg['hostname'])
+class LoginHandler(tornado.web.RequestHandler):
+    @prologin.tornadauth.signature_checked('pub_secret', check_msg=True)
+    def post(self, msg):
+        msg = json.loads(msg)
+        if self.application.pubsub_queue.request_login(
+            msg['login'], msg['hostname']
+        ):
             self.set_status(200, 'OK')
-
-
-class RemoveExpiredHandler(prologin.synchronisation.AuthRequestHandler):
-    def post(self):
-        try:
-            msg = self.check_authentication(self.application.pub_secret, True)
-        except RuntimeError:
-            pass
         else:
-            self.pubsub_queue.remove_and_publish_expired()
-            self.set_status(200, 'OK')
+            self.set_status(423, 'User already logged somewhere else')
+
+
+class HeartbeatHandler(tornado.web.RequestHandler):
+    @prologin.tornadauth.signature_checked('pub_secret', check_msg=True)
+    def post(self, msg):
+        msg = json.loads(msg)
+        self.application.pubsub_queue.update_backlog(
+            msg['login'], msg['hostname']
+        )
+        self.set_status(200, 'OK')
+
+
+class RemoveExpiredHandler(tornado.web.RequestHandler):
+    @prologin.tornadauth.signature_checked('pub_secret', check_msg=True)
+    def post(self, msg):
+        self.application.pubsub_queue.remove_and_publish_expired()
+        self.set_status(200, 'OK')
 
 
 class SyncServer(prologin.synchronisation.Server):

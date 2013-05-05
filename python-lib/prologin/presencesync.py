@@ -23,7 +23,6 @@ The sync clients use Tornado for async long polling.
 import logging
 import prologin.config
 import prologin.synchronisation
-import prologin.timeauth
 import urllib.parse
 
 SUB_CFG = prologin.config.load('presencesync-sub')

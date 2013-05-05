@@ -19,10 +19,8 @@
 import json
 import logging
 import prologin.config
-import prologin.timeauth
+import prologin.webapi
 import pwd
-import requests
-import urllib.parse
 
 CFG = prologin.config.load('presenced-client')
 
@@ -37,25 +35,11 @@ def is_prologin_user(user):
     return 10000 <= uid < 20000
 
 
-class Client:
+class Client(prologin.webapi.Client):
 
     def __init__(self, url, secret):
-        self.url = url
+        super(Client, self).__init__(url)
         self.secret = secret.encode('ascii')
-
-    def send_request(self, resource, secret, data):
-        """Send an request that is authenticated using `secret` and that
-        contains `data` (a JSON data structure) to `resource`. Return the
-        request object.
-        """
-        msg = json.dumps(data)
-        return requests.post(
-            urllib.parse.urljoin(self.url, resource),
-            data={
-                'msg': msg,
-                'hmac': prologin.timeauth.generate_token(secret, msg),
-            }
-        )
 
     def send_heartbeat(self):
         self.send_request('/send_heartbeat', self.secret, {})

@@ -64,42 +64,34 @@ def get_logged_prologin_users():
     return result
 
 
-class SendHeartbeatHandler(prologin.synchronisation.AuthRequestHandler):
-    def post(self):
-        try:
-            msg = self.check_authentication(self.application.secret, True)
-        except RuntimeError:
-            pass
-        else:
-            logins = get_logged_prologin_users()
-            if len(logins) == 0:
-                self.set_status(200, 'OK, no one logged in')
-            elif len(logins) == 1:
-                self.application.presencesync.send_heartbeat(
-                    logins.pop(), HOSTNAME
-                )
-                self.set_status(200, 'OK, one user logged in')
-            else:
-                logging.error('There are too many users logged in: {}'.format(
-                    ', '.join(logins)
-                ))
-                self.set_status(500, 'Too many users logged in')
-
-class LoginHandler(prologin.synchronisation.AuthRequestHandler):
-    def post(self):
-        try:
-            msg = self.check_authentication(self.application.secret, True)
-        except RuntimeError:
-            pass
-        else:
-            login = json.loads(msg)['login']
-            result = self.application.presencesync.request_login(
-                login, HOSTNAME
+class SendHeartbeatHandler(tornado.web.RequestHandler):
+    @prologin.tornadauth.signature_checked('secret', check_msg=True)
+    def post(self, msg):
+        logins = get_logged_prologin_users()
+        if len(logins) == 0:
+            self.set_status(200, 'OK, no one logged in')
+        elif len(logins) == 1:
+            self.application.presencesync.send_heartbeat(
+                logins.pop(), HOSTNAME
             )
-            if result:
-                self.set_status(424, result)
-            else:
-                self.set_status(200, 'OK')
+            self.set_status(200, 'OK, one user logged in')
+        else:
+            logging.error('There are too many users logged in: {}'.format(
+                ', '.join(logins)
+            ))
+            self.set_status(500, 'Too many users logged in')
+
+class LoginHandler(tornado.web.RequestHandler):
+    @prologin.tornadauth.signature_checked('secret', check_msg=True)
+    def post(self, msg):
+        login = json.loads(msg)['login']
+        if self.application.presencesync.request_login(
+            login, HOSTNAME
+        ):
+            self.set_status(423, 'Login refused')
+            self.write(result)
+        else:
+            self.set_status(200, 'OK')
 
 
 class PresencedServer(tornado.web.Application):

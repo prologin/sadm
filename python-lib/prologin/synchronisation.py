@@ -23,6 +23,8 @@ clients.
 import json
 import logging
 import prologin.timeauth
+import prologin.tornadauth
+import prologin.webapi
 import requests
 import time
 import tornado.ioloop
@@ -164,48 +166,16 @@ class DefaultPubSubQueue(BasePubSubQueue):
         self.post_updates(updates)
 
 
-class AuthRequestHandler(tornado.web.RequestHandler):
-    """Regular base handler class, just add a few utility to check auth."""
-
-    def check_authentication(self, secret, check_msg=False):
-        """Return the message if the current request is correctly authenticated
-        with respects to `secret` (checking the message itself if asked to).
-        Send an error response and raise a RuntimeError otherwise.
-        """
-
-        msg = (
-            self.get_argument('msg')
-            if check_msg else
-            None
-        )
-        if not prologin.timeauth.check_token(
-            self.get_argument('hmac'), secret, msg
-        ):
-            logging.error('received an update request with invalid token')
-            self.send_error(403)
-            raise RuntimeError('Invalid token')
-        else:
-            return self.get_argument('msg', None)
-
-    @property
-    def pubsub_queue(self):
-        return self.application.pubsub_queue
-
-
-class PollHandler(AuthRequestHandler):
+class PollHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
-    def get(self):
-        try:
-            msg = self.check_authentication(self.application.sub_secret)
-        except RuntimeError:
-            pass
-        else:
-            self.pubsub_queue.register_subscriber(
-                self.message_callback
-            )
+    @prologin.tornadauth.signature_checked('sub_secret')
+    def get(self, msg):
+        self.application.pubsub_queue.register_subscriber(
+            self.message_callback
+        )
 
     def on_connection_close(self):
-        self.pubsub_queue.unregister_subscriber(
+        self.application.pubsub_queue.unregister_subscriber(
             self.message_callback
         )
 
@@ -214,14 +184,10 @@ class PollHandler(AuthRequestHandler):
         self.flush()
 
 
-class UpdateHandler(AuthRequestHandler):
-    def post(self):
-        try:
-            msg = self.check_authentication(self.application.pub_secret, True)
-        except RuntimeError:
-            pass
-        else:
-            self.pubsub_queue.apply_updates(json.loads(msg))
+class UpdateHandler(tornado.web.RequestHandler):
+    @prologin.tornadauth.signature_checked('pub_secret', check_msg=True)
+    def post(self, msg):
+        self.application.pubsub_queue.apply_updates(json.loads(msg))
 
 
 class Server(tornado.web.Application):
@@ -280,28 +246,14 @@ class Server(tornado.web.Application):
         raise NotImplementedError()
 
 
-class Client:
+class Client(prologin.webapi.Client):
     """Synchronisation client."""
 
     def __init__(self, url, pk, pub_secret=None, sub_secret=None):
-        self.url = url
+        super(Client, self).__init__(url)
         self.pk = pk
         self.pub_secret = pub_secret and pub_secret.encode('utf-8')
         self.sub_secret = sub_secret.encode('utf-8')
-
-    def send_request(self, resource, secret, data):
-        """Send an request that is authenticated using `secret` and that
-        contains `data` (a JSON data structure) to `resource`. Return the
-        request object.
-        """
-        msg = json.dumps(data)
-        return requests.post(
-            urllib.parse.urljoin(self.url, resource),
-            data={
-                'msg': msg,
-                'hmac': prologin.timeauth.generate_token(secret, msg),
-            }
-        )
 
     def send_update(self, update):
         self.send_updates([update])
@@ -333,7 +285,8 @@ class Client:
 
         while True:
             params = urllib.parse.urlencode({
-                'hmac': prologin.timeauth.generate_token(self.sub_secret)
+                'data': '{}',
+                'hmac': prologin.timeauth.generate_token(self.sub_secret),
             })
             poll_url = urllib.parse.urljoin(self.url, '/poll?%s' % params)
             try:
