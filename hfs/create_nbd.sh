@@ -26,7 +26,7 @@ skeleton="$4"
 mkfs.ext4 -F -m 0 "$filename"
 mnt=$(mktemp -d)
 mount -o loop "$filename" "$mnt"
-rsync -aHAX "$skeleton" "$mnt"
+rsync -aHAX "$skeleton/" "$mnt"
 chown -R "$username:$group" "$mnt"
 umount "$mnt"
 rmdir "$mnt"
