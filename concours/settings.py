@@ -1,46 +1,25 @@
-# Django settings for concours project.
+# -*- encoding: utf-8 -*-
+# Copyright (c) 2013 Association Prologin <info@prologin.org>
+#
+# Prologin-SADM is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Prologin-SADM is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
-import os.path
-import yaml
-
-if not os.path.exists("/etc/stechec/website.yml"):
-    raise RuntimeError("The website configuration file could not be found. "
-                       "Please copy the sample from @config_sample@ to "
-                       "/etc/stechec/website.yml and change the values.")
-cfg = yaml.load(open("/etc/stechec/website.yml"))
-
-DEBUG = cfg['website']['debug']
-TEMPLATE_DEBUG = DEBUG
+from prologin.djangoconf import use_profile_config
+cfg = use_profile_config('concours')
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
 )
-
-MANAGERS = ADMINS
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': cfg['sql']['database'],
-        'USER': cfg['sql']['user'],
-        'PASSWORD': cfg['sql']['password'],
-        'HOST': cfg['sql']['host'],
-        'PORT': cfg['sql']['port'],
-    }
-}
-
-# Local time zone for this installation. Choices can be found here:
-# http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
-# although not all choices may be available on all operating systems.
-# On Unix systems, a value of None will cause Django to use the same
-# timezone as the operating system.
-# If running in a Windows environment this must be set to the same as your
-# system time zone.
-TIME_ZONE = cfg['website']['timezone']
-
-# Language code for this installation. All choices can be found here:
-# http://www.i18nguy.com/unicode/language-identifiers.html
-LANGUAGE_CODE = 'en-us'
 
 SITE_ID = 1
 
@@ -97,9 +76,6 @@ STATICFILES_FINDERS = (
 #    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
-
-# Make this unique, and don't share it with anybody.
-SECRET_KEY = cfg['website']['secret_key']
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
