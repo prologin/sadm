@@ -51,6 +51,8 @@ USERS = {
                                       'udbsync_public') },
     'udbsync': { 'uid': 20090, 'groups': ('udbsync', 'udbsync_public',
                                           'udb', 'udb_public') },
+    'hfs': { 'uid': 20100, 'groups': ('hfs', 'hfs_public') },
+    'homepage': { 'uid': 20110, 'groups': ('homepage',) },
 }
 
 # Same with groups. *_public groups are used for services that need to access
@@ -71,6 +73,10 @@ GROUPS = {
     'udb_public': 20081,
     'udbsync': 20090,
     'udbsync_public': 20091,
+    'hfs': 20100,
+    'hfs_public': 20101,
+    'homepage': 20110,
+
 }
 
 # Helper functions for installation procedures.
