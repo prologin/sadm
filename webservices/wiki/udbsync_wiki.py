@@ -10,27 +10,25 @@ env['PYTHONPATH'] = ('/var/prologin/wiki:' +
                     (env['PYTHONPATH'] if 'PYTHONPATH' in env else ''))
 
 def callback(users, updates_metadata):
-    for u in users:
-        if updates_metadata[u.login] == 'created':
-            subprocess.call([
-                'moin', 'account', 'create',
-                '--name', u.login,
-                '--alias', u.login,
-                '--email', u.login + '@example.com',
-                '--password', u.password,
-                u.password,
-            ], env=env)
-        elif updates_metadata[u.login] == 'updated':
-            subprocess.call([
-                'moin', 'account', 'resetpw',
-                '--name', u.login,
-                u.password,
-            ], env=env)
     for login, status in updates_metadata.items():
         if status == 'deleted':
             subprocess.call([
                 'moin', 'account', 'disable',
                 '--name', login,
+            ], env=env)
+        elif status == 'created':
+            subprocess.call([
+                'moin', 'account', 'create',
+                '--name', login,
+                '--alias', login,
+                '--email', login + '@example.com',
+                '--password', users[login].password,
+            ], env=env)
+        elif status == 'updated':
+            subprocess.call([
+                'moin', 'account', 'resetpw',
+                '--name', login,
+                users[login].password,
             ], env=env)
     
         
