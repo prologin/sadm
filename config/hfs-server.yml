@@ -29,8 +29,5 @@ skeleton: /export/skeleton
 start_port_range: 40000
 end_port_range: 45000
 
-# Shared secret used to authenticate the requests.
-shared_secret: DEFAULT_PASSWORD
-
 # Port used by the command server.
 port: 20100

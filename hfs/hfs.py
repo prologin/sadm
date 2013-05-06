@@ -61,9 +61,10 @@ import urllib.parse
 import urllib.request
 
 CFG = prologin.config.load('hfs-server')
+CLT_CFG = prologin.config.loat('hfs-client')
 
-if 'shared_secret' not in CFG:
-    raise RuntimeError('Missing shared_secret in the hfs-server YAML config')
+if 'shared_secret' not in CLT_CFG:
+    raise RuntimeError('Missing shared_secret in the hfs-client YAML config')
 
 DB = postgresql.open(CFG['db'])
 
