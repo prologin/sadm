@@ -30,10 +30,11 @@ CFG = prologin.config.load('hfs-client')
 class Client(prologin.webapi.Client):
     """Internal HFS client. Use hfs.connect() to create a HFS client object."""
 
-    def __init__(self, host_pattern, secret):
+    def __init__(self, url_pattern, host_pattern, secret):
         super(Client, self).__init__(None)
+        self.url_pattern = url_pattern
         self.host_pattern = host_pattern
-        self.secret = secret
+        self.secret = secret.encode('ascii')
 
     def _log_and_raise(self, msg, exn=RuntimeError):
         logging.error(msg)
@@ -49,17 +50,19 @@ class Client(prologin.webapi.Client):
             login, hostname
         ))
 
-        user = prologin.udb.connect().query(login=login)
-        if len(user) != 1:
+        match = prologin.udb.connect().query(login=login)
+        if len(match) != 1:
             self._log_and_raise('No such user: {}'.format(login))
-        machine = prologin.mdb.connect().query(hostname=hostname)
-        if len(machine) != 1:
+        user = match[0]
+        match = prologin.mdb.connect().query(hostname=hostname)
+        if len(match) != 1:
             self._log_and_raise('No such machine: {}'.format(hostname))
+        machine = match[0]
 
         utype = user['group']
         hfs_id = machine['hfs']
         hfs_host = self.host_pattern.format(hfs_id)
-        hfs_url = 'http://{}/'.format(hfs_host)
+        hfs_url = self.url_pattern.format(hfs_host)
         logging.info(
             'Requesting a HFS on {} for user {} on host {}...'.format(
                 hfs_host, login, hostname
@@ -78,15 +81,16 @@ class Client(prologin.webapi.Client):
 
         logging.info('Got a HFS for user {} on host {}: {}:{}'.format(
             login, hostname, hfs_host, info['port']
-        )
+        ))
         return (hfs_host, info['port'])
 
 
 
 def connect():
+    url_pattern = CFG['url_pattern']
     host_pattern = CFG['host_pattern']
     secret = CFG['shared_secret']
     logging.info(
         'Creating HFS connection object: host_pattern=%s' % host_pattern
     )
-    return Client(host_pattern, secret)
+    return Client(url_pattern, host_pattern, secret)
