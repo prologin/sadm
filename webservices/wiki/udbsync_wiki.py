@@ -33,4 +33,4 @@ def callback(users, updates_metadata):
     
         
 c = prologin.udbsync.connect()
-c.poll_updates(callback, watch={'password'} or None)
+c.poll_updates(callback, watch={'password'})
