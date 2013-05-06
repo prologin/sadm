@@ -25,7 +25,6 @@ import logging
 import prologin.timeauth
 import prologin.tornadauth
 import prologin.webapi
-import requests
 import time
 import tornado.ioloop
 import tornado.web
@@ -262,7 +261,6 @@ class Client(prologin.webapi.Client):
         if self.pub_secret is None:
             raise ValueError("No secret provided, can't send update")
 
-        msg = json.dumps(updates)
         r = self.send_request('/update', self.pub_secret, updates)
         if r.status_code != 200:
             raise RuntimeError("Unable to post an update")
@@ -270,12 +268,12 @@ class Client(prologin.webapi.Client):
     def poll_updates(self, callback, watch=None):
         """Call `callback` for each set of updates.
 
-        `callback` is called with an iterable that contain an up-to-date list
-        of records, and with a mapping: primary key changed -> kind of update,
-        for all records than has watched changes. Note that the callback is
-        invoked even if the watched list of changes is empty. See
-        `updated_backlog` for the meaning of `watch` and for returned watched
-        changes.
+        `callback` is called with an iterable that contain an up-to-date
+        mapping of records (primary_key -> record), and with a mapping: primary
+        key changed -> kind of update, for all records than has watched
+        changes. Note that the callback is invoked even if the watched list of
+        changes is empty. See `updated_backlog` for the meaning of `watch` and
+        for returned watched changes.
         """
 
         if self.pk is None:
@@ -304,7 +302,7 @@ class Client(prologin.webapi.Client):
                             updates, watch
                         )
                         try:
-                            callback(state.values(), updates_metadata)
+                            callback(state, updates_metadata)
                         except Exception:
                             logging.exception(
                                 'error in the synchorisation client callback'
