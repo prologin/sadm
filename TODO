@@ -1,21 +1,22 @@
 * [pm] pam_udb
+  * mostly done
+
 * pssh mdb wrappers
+  * 30min task, can wait until we have the machines
+
 * simple monitoring system (ping, users connected, matches launched)
+  * integrated with mdb
+
 * Syncing services
-  * mdb
-    * Firewall
-    * Monitoring
   * udb
-    * authorized_keys
+    * authorized_keys for root
     * /etc/{passwd,shadow}
     * minecraft authdb
-    * wiki
     * bug tracker
-    * mdb/udb web admin
-    * concours
-* [magicking] hfs migration daemon
-* notification system
-  * probably via IRC
+    * mdb/udb/home web admin + concours (django generic)
+
+* [mareo] IRC server setup
+
 * [seirl] docs for stechec2 and sadm to http://docs/
 
 * [low priority]
