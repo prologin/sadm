@@ -108,7 +108,9 @@ def reload_zones():
     os.system('rndc reload')
 
 
-def update_dns_config(machines):
+def update_dns_config(machines_map):
+    machines = machines_map.values()
+
     logging.warning("MDB update received, generating zones")
     build_alien_revdns_zone()
     build_machines_revdns_zone(machines, 'user', '0.168.192')

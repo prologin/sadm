@@ -27,7 +27,7 @@ import prologin.mdbsync
 def update_dhcp_config(machines):
     logging.warning("Received update, regenerating DHCP config")
     fragments = []
-    for m in machines:
+    for m in machines.values():
         fragment = (
             'host %(hostname)s {\n'
             '\thardware ethernet %(mac)s;\n'
