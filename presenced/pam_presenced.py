@@ -1,18 +1,24 @@
 #! /var/prologin/venv/bin/python
 
-"""Exit with status code 0 if $PAM_TYPE != "open_session" or if the $PAM_USER
-exists and is allowed to log in. Exit with status code 1 otherwise.
+"""PAM script to handle {open,close}_session events.
 
-In case the user happen to be handled by Prologin, hang until its HOME
-directory is mounted.
+Exit with status code 0 if used for another event.  Exit with status code 0 if
+the $PAM_USER exists and is allowed to log in. Exit with status code 1
+otherwise.
+
+For open_session, in case the user login is accepted and is handled by
+Prologin, try to mount its HOME directory and hang until it is done. For
+close_session, try to unmount it.
 """
 
 import os
+import os.path
 import prologin.hfs
 import prologin.presenced
 import socket
 import subprocess
 import sys
+
 
 def get_home_dir(login):
     return '/home/{}'.format(login)
@@ -20,50 +26,65 @@ def get_home_dir(login):
 def get_block_device(login):
     return '/dev/ndb{}'.format(login)
 
-if os.environ.get('PAM_TYPE', None) == 'close_session':
-    login = os.environ['PAM_USER']
-    subprocess.call(['umount', get_home_dir(login)])
-    subprocess.call(['ndb-client', '-d', get_block_device(login)])
-    sys.exit(0)
-
-elif os.environ.get('PAM_TYPE', None) != 'open_session':
-    sys.exit(0)
-
 def fail(reason):
     # TODO: be sure the user can see the reason.
     print(reason, file=sys.stderr)
     sys.exit(1)
 
+PAM_TYPE = os.environ['PAM_TYPE']
+PAM_SERVICE = os.environ['PAM_SERVICE']
 login = os.environ['PAM_USER']
 
 try:
     is_prologin_user = prologin.presenced.is_prologin_user(login)
 except KeyError:
-    # The user does not exist: should not happen, but forbid anyway.
-    # TODO: notify sysadmins...
+    # The login/password was accepted by pam_unix.so, but user does not exist:
+    # should not happen, but forbid anyway.  TODO: notify sysadmins...
     fail('No such user')
 
-if not is_prologin_user:
+if PAM_TYPE == 'open_session':
+    # Not-prologin users are not resticted at all.
+    if not is_prologin_user:
+        sys.exit(0)
+
+    # Prologin users must use a display manager (not a TTY, nor screen).
+    if PAM_SERVICE not in ('gdm', 'kdm', 'slim', 'xdm'):
+        fail('Please log in the graphical display manager')
+
+    # Request the login to Presencd and PresenceSync.
+    failure_reason = prologin.presenced.connect().request_login(login)
+    if failure_reason:
+        # Login is forbidden by presenced.
+        fail('Login forbidden: {}'.format(failure_reason))
+
+    # Request HOME directory migration and wait for it.
+    hfs = prologin.hfs.connect()
+    try:
+        host, port = hfs.get_hfs(login, socket.gethostname())
+    except RuntimeError as e:
+        fail(str(e))
+
+    block_device = get_block_device(login)
+    home_dir = get_home_dir(login)
+
+    # Create the HOME mount point if needed.
+    if not os.path.exists(home_dir):
+        # There is no need to fix permissions: this is only a mount point.
+        os.mkdir(home_dir)
+
+    # Get a block device for the HOME mount point and mount it.
+    if subprocess.check_call(['nbd-client', '{}:{}', block_device]):
+        fail('Cannot get the home directory block device')
+    if subprocess.check_call(['mount', block_device, home_dir]):
+        fail('Cannot mount the home directory')
+
     sys.exit(0)
 
-failure_reason = prologin.presenced.connect().request_login(login)
-if failure_reason:
-    # Login is forbidden by presenced.
-    fail('Login forbidden: {}'.format(failure_reason))
+elif PAM_TYPE == 'close_session':
+    if is_prologin_user:
+        subprocess.check_call(['umount', get_home_dir(login)])
+        subprocess.check_call(['ndb-client', '-d', get_block_device(login)])
+    sys.exit(0)
 
-# Request HOME directory migration and wait for it.
-hfs = prologin.hfs.connect()
-try:
-    host, port = hfs.get_hfs(login, socket.gethostname())
-except RuntimeError as e:
-    fail(str(e))
-
-# Get a block device for the HOME mount point.
-block_device = get_block_device(login)
-home_dir = get_home_dir(login)
-if subprocess.call(['nbd-client', '{}:{}', block_device]):
-    fail('Cannot get the home directory block device')
-if subprocess.call(['mount', block_device, home_dir]):
-    fail('Cannot mount the home directory')
-
-sys.exit(0)
+else:
+    sys.exit(0)
