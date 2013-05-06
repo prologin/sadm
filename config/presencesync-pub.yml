@@ -1,1 +1,1 @@
-shared_secret: "presencesync publication secret key"
+shared_secret: "DEFAULT_PASSWORD_PRESENCESYNC_PUB"

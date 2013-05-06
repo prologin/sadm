@@ -23,7 +23,6 @@ The sync clients use Tornado for async long polling.
 import logging
 import prologin.config
 import prologin.synchronisation
-import prologin.timeauth
 import urllib.parse
 
 SUB_CFG = prologin.config.load('presencesync-sub')
@@ -32,22 +31,19 @@ PUB_CFG = prologin.config.load('presencesync-pub')
 
 class Client(prologin.synchronisation.Client):
 
-    ERROR_LOGGED_SOMEWHERE = 'already logged somewhere'
-    ERROR_UNKNOWN = 'error unknown'
-
     def request_login(self, login, hostname):
         """Try to register `login` as logged on `hostname` to the PresenceSync
-        server. Return None if login is accepted, or some ERROR_* constant
+        server. Return None if login is accepted, or some login failure reason
         otherwise.
         """
         r = self.send_request(
             '/login', self.pub_secret,
             {'login': login, 'hostname': hostname}
         )
-        if r.status_code == 423:
-            return self.ERROR_LOGGED_SOMEWHERE
-        elif r.status_code != 200:
-            return self.ERROR_UNKNOWN
+        if r.status_code != 200:
+            return r.text
+        else:
+            return None
 
     def send_heartbeat(self, login, hostname):
         """Send a heartbeat to the PresenceSync server in order to keep

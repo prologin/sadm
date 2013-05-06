@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-CONFIGDIR=/var/prologin/wiki/wiki
+CONFIGDIR=/var/prologin/wiki
 
 while read line; do
     user=`echo $line | cut -d ';' -f 1`

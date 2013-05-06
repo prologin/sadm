@@ -1,0 +1,12 @@
+[Unit]
+Description = Local Presencd daemon
+After = network.target
+
+[Service]
+Type=simple
+User=presenced
+WorkingDirectory=/var/prologin/presenced
+ExecStart=/var/prologin/venv/bin/python presenced.py 20070
+
+[Install]
+WantedBy=multi-user.target

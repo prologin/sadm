@@ -10,6 +10,26 @@ present. Just follow the guide!
 
 Last update: 2013.
 
+Step 0: hardware and network setup
+----------------------------------
+
+Before installing servers, we need to make sure all the machines are connected
+to the network properly. Here are the major points you need to be careful
+about:
+
+* Make sure to balance the number of machines connected per switch: the least
+  machines connected to a switch, the better performance you'll get.
+* Inter-switch connections is not very important: we tried to make most things
+  local to a switch (RFS + HFS should each be local, the rest is mainly HTTP
+  connections to services).
+
+For each pair of switches, you will need one RHFS server (connected to the 2
+switches via 2 separate NICs, and hosting the RFS + HFS for the machines on
+these 2 switches). Please be careful out the disk space: assume that each RHFS
+has about 100GB usable for HFS storage. That means at most 50 contestants (2GB
+quota) or 20 organizers (5GB quota) per RHFS. With contestants that should not
+be a problem, but try to balance organizers machines as much as possible.
+
 Step 1: setting up the core services: MDB, DNS, DHCP
 ----------------------------------------------------
 
@@ -37,7 +57,7 @@ readable name::
 Install a few packages we will need::
 
   pacman -S git dhcp bind python python-pip python-virtualenv libyaml nginx \
-            sqlite dnsutils
+            sqlite dnsutils rsync
 
 Create the main Python ``virtualenv`` we'll use for all our Prologin apps::
 
@@ -326,36 +346,36 @@ You just have to start the ``paste`` service::
 wiki
 ~~~~
 
-This requires Python 2.x, so set up a Python 2 virtualenv::
+Download and install the MoinMoin archlinux package, and its dependancies::
 
-  pacman -S python2 python-pip python2-virtualenv
-  virtualenv2 /var/prologin/venv2
-  source /var/prologin/venv2/bin/activate
-
-Download and install MoinMoin package::
-
-  wget http://static.moinmo.in/files/moin-1.9.7.tar.gz
-  tar xvf moin-1.9.7.tar.gz
-  cd moin*
-  python2 setup.py install
+  pacman -S python2 moinmoin gunicorn
   mkdir -p /var/prologin/wiki
-  cp -r wiki /var/prologin/wiki
+  cp -r /usr/share/moin /var/prologin/wiki/
 
-Then install the configuration::
+Then install the WSGI file::
 
-  cd /var/prologin/wiki/wiki
-  cp config/wikiconfig.py ./
-  cp server/moin.wsgi ./
+  cd /var/prologin/wiki/moin
+  cp server/moin.wsgi ./moin.py
 
-Edit ``moin.wsgi`` to set the path to the wiki configuration directory:
+Edit ``moin.py`` to set the path to the wiki configuration directory:
 uncomment the line after ``a2)`` and modify it like this::
 
-  sys.path.insert(0, '/var/prologin/wiki/wiki')
+  sys.path.insert(0, '/var/prologin/wiki/moin')
+
+Copy the wiki configuration file::
+
+  cp webservices/wiki/wikiconfig.py /var/prologin/wiki
 
 Fix permissions::
 
   chown -R webservices:webservices /var/prologin/wiki
   chmod o-rwx -R /var/prologin/wiki
+
+Create the ``prologin`` super-user::
+
+  PYTHONPATH=/var/prologin/wiki:$PYTHONPATH                              \
+  moin --config-dir=/var/prologin/wiki account create --name prologin    \
+       --alias prologin --password **CHANGEME** --email prologin@example.com
 
 Add users in the sadm folder (TODO: will be obsolete with udbsync)::
 
@@ -364,6 +384,69 @@ Add users in the sadm folder (TODO: will be obsolete with udbsync)::
 Then you can just start the service::
 
   systemctl enable wiki && systemctl start wiki
+
+bugs
+~~~~
+
+Install redmine and its dependancies::
+
+  pacman -S ruby ruby-bundler redmine
+
+Move the redmine folder to /var/prologin::
+
+  cp -r /usr/share/webapps/redmine /var/prologin/bugs
+  cd /var/prologin/bugs
+
+Then execute these PostgreSQL queries to create the redmine DB::
+
+  CREATE ROLE redmine LOGIN ENCRYPTED PASSWORD '**CHANGEME**' NOINHERIT VALID
+  UNTIL 'infinity';
+  CREATE DATABASE redmine WITH ENCODING='UTF8' OWNER=redmine;
+
+Edit the configuration::
+
+  cp database.yml.example database.yml
+  $EDITOR database.yml
+
+A configuration example::
+
+  production:
+    adapter: postgresql
+    database: redmine
+    host: localhost
+    username: redmine
+    password: **CHANGEME**
+    encoding: utf8
+    schema_search_path: public
+
+Install required gems::
+
+  bundle install --without development test
+
+Generate the secret token::
+
+  rake generate_secret_token
+
+Fix permissions::
+
+  chown -R webservices:webservices /var/prologin/bugs
+  chmod o-rwx -R /var/prologin/bugs
+  su webservices
+
+Create the database structure and populate it with the default data::
+
+  RAILS_ENV=production rake db:migrate
+  RAILS_ENV=production REDMINE_LANG=fr-FR rake redmine:load_default_data
+  
+Set the FS permissions::
+
+  mkdir -p tmp tmp/pdf public/plugin_assets
+  chown -R webservices:http files log tmp public/plugin_assets
+  chmod -R 755 files log tmp tmp/pdf public/plugin_assets
+
+Then start the service::
+
+  systemctl enable bugs && systemctl start bugs
 
 Step 5: the matches cluster
 ---------------------------

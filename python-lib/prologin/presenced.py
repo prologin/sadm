@@ -19,41 +19,42 @@
 import json
 import logging
 import prologin.config
-import requests
-import urllib.parse
+import prologin.webapi
+import pwd
 
 CFG = prologin.config.load('presenced-client')
 
+def is_prologin_user(user):
+    """Return if `user` (a username or an UID) is handled by Prologin.
 
-class Client:
+    Raise a KeyError if the user does not exist."""
+    return user != 'pmderodat'
+    if isinstance(user, str):
+        uid = pwd.getpwnam(user).pw_uid
+    else:
+        uid = pwd.getpwuid(user).pw_uid
+    return 10000 <= uid < 20000
+
+
+class Client(prologin.webapi.Client):
 
     def __init__(self, url, secret):
-        self.url = url
+        super(Client, self).__init__(url)
         self.secret = secret.encode('ascii')
-
-    def send_request(self, resource, secret, data):
-        """Send an request that is authenticated using `secret` and that
-        contains `data` (a JSON data structure) to `resource`. Return the
-        request object.
-        """
-        msg = json.dumps(data)
-        return requests.post(
-            urllib.parse.urljoin(self.url, resource),
-            data={
-                'msg': msg,
-                'hmac': prologin.timeauth.generate_token(secret, msg),
-            }
-        )
 
     def send_heartbeat(self):
         self.send_request('/send_heartbeat', self.secret, {})
 
     def request_login(self, login):
-        """Return if login is accepted."""
-        return self.send_request(
+        """Return None if login is accepted, a reason if not."""
+        r = self.send_request(
             '/login', self.secret,
             {'login': login}
-        ).status_code == 200
+        )
+        if r.status_code != 200:
+            return r.text
+        else:
+            return None
 
 
 def connect():

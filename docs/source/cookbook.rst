@@ -25,6 +25,21 @@ Giving back his password to a contestant
 Adding an organizer
     **Root only**. Go to ``udb`` and add a user with type ``orga``.
 
+Send an announce
+    Connect to the IRC server, join the #notify channel, and send a message
+    formatted like this::
+
+      !announce <expiration-delay> <message>
+
+    Example::
+
+      !announce 12 The lunch is ready!
+
+    Will create an announce which will stay for 12 minutes on the users's
+    desktops. Note that the delay will default to 2 when not specified::
+
+      !announce No milk today :(
+
 Machine registration
 --------------------
 

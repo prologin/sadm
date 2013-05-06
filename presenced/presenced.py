@@ -18,6 +18,7 @@
 and transmits login requests from pam_presenced.
 """
 
+import json
 import logging
 import os
 import prologin.config
@@ -25,7 +26,6 @@ import prologin.log
 import prologin.presenced
 import prologin.presencesync
 import prologin.synchronisation
-import pwd
 import socket
 import subprocess
 import sys
@@ -49,13 +49,6 @@ def get_logged_prologin_users():
     """Return the list of logged user that are handled by Prologin."""
     result = set()
 
-    # Get mapping user name -> UID. A user is handled by Prologin if and only
-    # if its UID >= 1000.
-    uids = {
-        user.pw_name: user.pw_uid
-        for user in pwd.getpwall()
-    }
-
     with open(os.devnull, 'r') as devnull:
         who = subprocess.Popen(
             ['who'], stdin=devnull, stdout=subprocess.PIPE
@@ -65,48 +58,41 @@ def get_logged_prologin_users():
         if not line.strip():
             continue
         login = line.split()[0].decode('ascii')
-        if uids[login] >= 1000:
+        if prologin.presenced.is_prologin_user(login):
             result.add(login)
 
     return result
 
 
-class SendHeartbeatHandler(prologin.synchronisation.AuthRequestHandler):
-    def post(self):
-        try:
-            msg = self.check_authentication(self.application.secret, True)
-        except RuntimeError:
-            pass
-        else:
-            logins = get_logged_prologin_users()
-            if len(logins) == 0:
-                self.set_status(200, 'OK, no one logged in')
-            elif len(logins) == 1:
-                self.application.presencesync.send_heartbeat(
-                    logins.pop(), HOSTNAME
-                )
-                self.set_status(200, 'OK, one user logged in')
-            else:
-                logging.error('There are too many users logged in: {}'.format(
-                    ', '.join(logins)
-                ))
-                self.set_status(500, 'Too many users logged in')
-
-class LoginHandler(prologin.synchronisation.AuthRequestHandler):
-    def post(self):
-        try:
-            msg = self.check_authentication(self.application.secret, True)
-        except RuntimeError:
-            pass
-        else:
-            login = msg['login']
-            result = self.application.presencesync.request_login(
-                login, HOSTNAME
+class SendHeartbeatHandler(tornado.web.RequestHandler):
+    @prologin.tornadauth.signature_checked('secret', check_msg=True)
+    def post(self, msg):
+        logins = get_logged_prologin_users()
+        if len(logins) == 0:
+            self.set_status(200, 'OK, no one logged in')
+        elif len(logins) == 1:
+            self.application.presencesync.send_heartbeat(
+                logins.pop(), HOSTNAME
             )
-            if result:
-                self.set_status(424, result)
-            else:
-                self.set_status(200, 'OK')
+            self.set_status(200, 'OK, one user logged in')
+        else:
+            logging.error('There are too many users logged in: {}'.format(
+                ', '.join(logins)
+            ))
+            self.set_status(500, 'Too many users logged in')
+
+class LoginHandler(tornado.web.RequestHandler):
+    @prologin.tornadauth.signature_checked('secret', check_msg=True)
+    def post(self, msg):
+        login = json.loads(msg)['login']
+        result = self.application.presencesync.request_login(
+            login, HOSTNAME
+        )
+        if result:
+            self.set_status(423, 'Login refused')
+            self.write(result)
+        else:
+            self.set_status(200, 'OK')
 
 
 class PresencedServer(tornado.web.Application):
@@ -153,7 +139,7 @@ class PresencedServer(tornado.web.Application):
 
 
 if __name__ == '__main__':
-    prologin.log.setup_logging('presenced', verbose=True, local=True)
+    prologin.log.setup_logging('presenced')
     if len(sys.argv) > 1:
         port = int(sys.argv[1])
     else:

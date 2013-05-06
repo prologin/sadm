@@ -43,11 +43,14 @@ USERS = {
     'webservices': { 'uid': 20050, 'groups': ('webservices',) },
     'presencesync': { 'uid': 20060, 'groups': ('presencesync',
                                                'presencesync_public',
-                                               'presencesync_private') },
+                                               'mdb_public', 'udb_public') },
     'presenced': { 'uid': 20070, 'groups': ('presenced',
                                             'presencesync',
-                                            'presencesync_private',
-                                            'presencesync_private') },
+                                            'presencesync_public') },
+    'udb': { 'uid': 20080, 'groups': ('udb', 'udb_public', 'udbsync',
+                                      'udbsync_public') },
+    'udbsync': { 'uid': 20090, 'groups': ('udbsync', 'udbsync_public',
+                                          'udb', 'udb_public') },
 }
 
 # Same with groups. *_public groups are used for services that need to access
@@ -63,8 +66,11 @@ GROUPS = {
     'webservices': 20050,
     'presencesync': 20060,
     'presencesync_public': 20061,
-    'presencesync_private': 20062,
     'presenced': 20070,
+    'udb': 20080,
+    'udb_public': 20081,
+    'udbsync': 20090,
+    'udbsync_public': 20091,
 }
 
 # Helper functions for installation procedures.
@@ -130,7 +136,9 @@ def install_service_dir(name, owner, mode):
     if not os.path.exists('/var/prologin'):
         mkdir('/var/prologin', mode=0o755, owner='root:root')
     # Nothing in Python allows merging two directories together...
-    os.system('cp -rv %s /var/prologin/%s' % (name, name))
+    # Be careful with rsync(1) arguments: to merge two directories, trailing
+    # slash are meaningful.
+    os.system('rsync -rv %s/ /var/prologin/%s' % (name, name))
     user, group = owner.split(':')
     shutil.chown('/var/prologin/%s' % name, user, group)
     os.chmod('/var/prologin/%s' % name, mode)
@@ -154,6 +162,12 @@ def install_libprologin():
     install_cfg_profile('mdb-client', group='mdb_public')
     install_cfg_profile('mdbsync-pub', group='mdbsync')
     install_cfg_profile('mdbsync-sub', group='mdbsync_public')
+    install_cfg_profile('udb-client', group='udb_public')
+    install_cfg_profile('udbsync-pub', group='udbsync')
+    install_cfg_profile('udbsync-sub', group='udbsync_public')
+    install_cfg_profile('presencesync-pub', group='presencesync')
+    install_cfg_profile('presencesync-sub', group='presencesync_public')
+    install_cfg_profile('presenced-client', group='presenced')
 
 
 def install_nginxcfg():
@@ -255,6 +269,64 @@ def install_netboot():
     install_systemd_unit('netboot')
 
 
+def install_udb():
+    requires('libprologin')
+    requires('nginxcfg')
+
+    first_time = not os.path.exists('/var/prologin/udb')
+
+    install_service_dir('udb', owner='udb:udb', mode=0o700)
+    install_nginx_service('udb')
+    install_systemd_unit('udb')
+
+    install_cfg_profile('udb-server', group='udb')
+
+    if first_time:
+        django_syncdb('udb')
+
+
+def install_udbsync():
+    requires('libprologin')
+    requires('nginxcfg')
+
+    install_service_dir('udbsync', owner='udbsync:udbsync', mode=0o700)
+    install_nginx_service('udbsync')
+    install_systemd_unit('udbsync')
+
+
+def install_presencesync():
+    requires('libprologin')
+    requires('nginxcfg')
+
+    install_service_dir(
+        'presencesync', owner='presencesync:presencesync',
+        mode=0o700
+    )
+    install_nginx_service('presencesync')
+    install_systemd_unit('presencesync')
+
+def install_presenced():
+    requires('libprologin')
+    requires('nginxcfg')
+
+    install_service_dir(
+        'presenced', owner='presenced:presenced',
+        mode=0o700
+    )
+    install_systemd_unit('presenced')
+
+    cfg = '/etc/pam.d/system-login'
+    cfg_line = (
+        'session requisite pam_exec.so'
+        ' /var/prologin/presenced/pam_presenced.py'
+    )
+    with open(cfg, 'r') as f:
+        to_append = cfg_line not in f.read().split('\n')
+    if to_append:
+        with open(cfg, 'a') as f:
+            print(cfg_line, file=f)
+
+
 COMPONENTS = [
     'libprologin',
     'bindcfg',
@@ -264,8 +336,12 @@ COMPONENTS = [
     'mdbsync',
     'mdbdns',
     'mdbdhcp',
+    'udb',
+    'udbsync',
     'webservices',
     'netboot',
+    'presencesync',
+    'presenced',
 ]
 
 # Runtime helpers: requires() function and user/groups handling

@@ -20,4 +20,4 @@ url: http://mdbsync/
 
 # Shared secret for subscription. Both MDBSync server and its clients read this
 # file.
-shared_secret: "shared secret for mdbsync subscription"
+shared_secret: "DEFAULT_PASSWORD_MDBSYNC_SUB"

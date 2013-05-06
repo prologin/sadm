@@ -1,5 +1,6 @@
 [Unit]
-Description = Paste service
+Description = Paste
+After = network.target
 
 [Service]
 Type=simple

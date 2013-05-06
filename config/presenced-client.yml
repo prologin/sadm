@@ -1,4 +1,4 @@
 # The only program that connects to presenced is the PAM script, so connection
 # is always to localhost.
 url: http://localhost:20070/
-shared_secret: "shared secret for presenced clients"
+shared_secret: "DEFAULT_PASSWORD_PRESENCED_CLIENT"

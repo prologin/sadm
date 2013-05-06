@@ -1,0 +1,50 @@
+# -*- encoding: utf-8 -*-
+# Copyright (c) 2013 Pierre Bourdon <pierre.bourdon@prologin.org>
+# Copyright (c) 2013 Association Prologin <info@prologin.org>
+#
+# Prologin-SADM is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Prologin-SADM is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
+
+# Informations to connect to the PostgreSQL database.
+# The same informations must be used in the master node configuration file.
+db:
+    default:
+        ENGINE: django.db.backends.postgresql_psycopg2
+        NAME: concours
+        USER: concours
+        PASSWORD: DEFAULT_PASSWORD
+        HOST: db
+        PORT:
+
+# Informations on where the master node is located.
+master:
+  url: http://master.cl:8067/   # URL to connect to the master node RPC.
+
+# What game is currently being played.
+contest:
+  game: CHANGEME        # Most likely "prologin<YEAR>"
+  nb_players: CHANGEME  # Number of players for this game.
+  directory: CHANGEME   # Root directory where the website uploads champions,
+                        # finds logs, etc. Should be shared with all the worker
+                        # nodes.
+
+# Use http://www.miniwebtool.com/django-secret-key-generator/
+secret_key: "DEFAULT_PASSWORD"
+
+# Should always be false in production!
+debug: true
+
+# Website related informations.
+website:
+  static_path: CHANGEME     # Directory containing static files for the custom
+                            # web design
