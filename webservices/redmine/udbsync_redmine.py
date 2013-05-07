@@ -35,17 +35,17 @@ def callback(users, updates_metadata):
         if status == 'created':
             subprocess.call([runner,
                 create_command.format(
-                    l=l, n=users[l].realname, p=users[l].password)
+                    l=l, n=users[l]['realname'], p=users[l]['password'])
             ], env=env)
         elif status == 'deleted':
             subprocess.call([runner,
                 delete_command.format(
-                    l=l, p=users[l].password)
+                    l=l, p=users[l]['password'])
             ], env=env)
         elif status == 'updated':
             subprocess.call([runner,
                 update_command.format(
-                    l=l, p=users[l].password)
+                    l=l, p=users[l]['password'])
             ], env=env)
     
         
