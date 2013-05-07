@@ -7,7 +7,7 @@ After=network.target
 Type=simple
 User=webservices
 Group=webservices
-ExecStart=/usr/bin/ruby /var/prologin/bugs/script/rails server webrick -e production
+ExecStart=/usr/bin/unicorn -D -E production -c /etc/unicorn/redmine.ru /var/prologin/bugs/script/rails server webrick -e production
 
 TimeoutSec=300
 

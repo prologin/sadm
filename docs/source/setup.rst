@@ -391,10 +391,12 @@ bugs
 Install redmine and its dependancies::
 
   pacman -S ruby ruby-bundler redmine
+  gem install unicorn
 
-Move the redmine folder to /var/prologin::
+Move the redmine folder to /var/prologin, and the configuration to /etc::
 
   cp -r /usr/share/webapps/redmine /var/prologin/bugs
+  cp webservices/redmine/redmine.ru /etc/unicorn/
   cd /var/prologin/bugs
 
 Then execute these PostgreSQL queries to create the redmine DB::
@@ -429,9 +431,9 @@ Generate the secret token::
 
 Fix permissions::
 
-  chown -R webservices:webservices /var/prologin/bugs
+  chown -R redmine:redmine /var/prologin/bugs
   chmod o-rwx -R /var/prologin/bugs
-  su webservices
+  su redmine
 
 Create the database structure and populate it with the default data::
 
@@ -441,8 +443,8 @@ Create the database structure and populate it with the default data::
 Set the FS permissions::
 
   mkdir -p tmp tmp/pdf public/plugin_assets
-  chown -R webservices:http files log tmp public/plugin_assets
-  chmod -R 755 files log tmp tmp/pdf public/plugin_assets
+  chown -R redmine:http files log tmp public/plugin_assets
+  chmod -R 775 files log tmp tmp/pdf public/plugin_assets
 
 Then start the service::
 

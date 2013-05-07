@@ -53,6 +53,7 @@ USERS = {
                                           'udb', 'udb_public') },
     'hfs': { 'uid': 20100, 'groups': ('hfs', 'hfs_public') },
     'homepage': { 'uid': 20110, 'groups': ('homepage',) },
+    'redmine': { 'uid': 20120, 'groups': ('redmine',) },
 }
 
 # Same with groups. *_public groups are used for services that need to access
@@ -76,7 +77,7 @@ GROUPS = {
     'hfs': 20100,
     'hfs_public': 20101,
     'homepage': 20110,
-
+    'redmine': 20120,
 }
 
 # Helper functions for installation procedures.
