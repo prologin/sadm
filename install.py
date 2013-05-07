@@ -73,6 +73,7 @@ GROUPS = {
     'udbsync_public': 20091,
 }
 
+
 # Helper functions for installation procedures.
 
 @contextlib.contextmanager
@@ -98,6 +99,7 @@ def copy(old, new, mode=0o600, owner='root:root'):
     os.chmod(new, mode)
     user, group = owner.split(':')
     shutil.chown(new, user, group)
+
 
 CFG_TO_REVIEW = []
 def install_cfg(path, dest_dir, owner='root:root', mode=0o600):
@@ -152,6 +154,7 @@ def django_syncdb(name, user=None):
         cmd = 'su -c "/var/prologin/venv/bin/python manage.py syncdb" '
         cmd += user
         os.system(cmd)
+
 
 # Component specific installation procedures
 
@@ -305,6 +308,7 @@ def install_presencesync():
     install_nginx_service('presencesync')
     install_systemd_unit('presencesync')
 
+
 def install_presenced():
     requires('libprologin')
     requires('nginxcfg')
@@ -343,6 +347,7 @@ COMPONENTS = [
     'presencesync',
     'presenced',
 ]
+
 
 # Runtime helpers: requires() function and user/groups handling
 
@@ -390,6 +395,7 @@ def sync_users():
                 cmd += ' -G %s' % ','.join(other_grps)
             cmd += ' ' + user
             os.system(cmd)
+
 
 if __name__ == '__main__':
     os.umask(0)  # Trust our chmods.
