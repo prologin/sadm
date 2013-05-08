@@ -79,7 +79,7 @@ class _MDBClient:
 
         Raise a RegistrationError on failure. Return None if successful.
         """
-        r = requests.get(CFG.get['mdb'] + 'register?' + qs)
+        r = requests.get(self.url + 'register?' + qs)
         if r.status_code != 200:
             raise RegistrationError(r.text)
 

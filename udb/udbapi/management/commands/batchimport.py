@@ -34,32 +34,39 @@ def generate_password(length):
     proc = subprocess.Popen(['pwgen', '-cnB', str(length)],
                             stdout=subprocess.PIPE)
     out, err = proc.communicate()
-    return out.strip()
+    return out.strip().decode('utf-8')
 
 
 def create_users(names, options):
     uid = options['uidbase']
     logins = set()  # To check for duplicates
-    for (firstname, lastname) in names:
-        fn, ln = make_ascii(firstname), make_ascii(lastname)
+    for t in names:
+        if options['logins']:
+            login = make_ascii(t)
+            realname = t
+        else:
+            firstname, lastname = t
+            fn, ln = make_ascii(firstname), make_ascii(lastname)
 
-        parts = re.split('[^a-z]', fn)
-        login = ''.join(p.strip()[0] for p in parts if p.strip())
+            parts = re.split('[^a-z]', fn)
+            login = ''.join(p.strip()[0] for p in parts if p.strip())
 
-        ln = ''.join(c for c in ln if c in string.ascii_lowercase)
-        ln = ln[:10]
-        login += ln
+            ln = ''.join(c for c in ln if c in string.ascii_lowercase)
+            ln = ln[:10]
+            login += ln
 
-        base_login = login
-        i = 1
-        while login in logins:
-            login = base_login + str(i)
-            i += 1
+            base_login = login
+            i = 1
+            while login in logins:
+                login = base_login + str(i)
+                i += 1
+            realname = firstname + ' ' + lastname
+
         logins.add(login)
 
         u = User()
         u.login = login
-        u.realname = firstname + ' ' + lastname
+        u.realname = realname
         u.uid = uid
         u.group = options['type']
         u.password = generate_password(options['pwdlen'])
@@ -77,6 +84,7 @@ class Command(BaseCommand):
         make_option('--type', default='user', help='User type (user/orga/root)'),
         make_option('--pwdlen', type='int', default=8, help='Password length'),
         make_option('--uidbase', type='int', default=10000, help='Base UID'),
+        make_option('--logins', action='store_true', default=False, help='File contains logins, not real names')
     )
 
     def handle(self, *args, **options):
@@ -86,7 +94,10 @@ class Command(BaseCommand):
         with open(options['file']) as fp:
             lines = [l for l in fp.read().split('\n') if l]
             for l in lines:
-                firstname, lastname = [f.strip() for f in l.split('\t')]
-                names.append((firstname, lastname))
+                if options['logins']:
+                    names.append(l.strip())
+                else:
+                    firstname, lastname = [f.strip() for f in l.split('\t')]
+                    names.append((firstname, lastname))
 
         create_users(names, options)
