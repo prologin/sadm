@@ -180,6 +180,7 @@ def install_libprologin():
     install_cfg_profile('presencesync-pub', group='presencesync')
     install_cfg_profile('presencesync-sub', group='presencesync_public')
     install_cfg_profile('presenced-client', group='presenced')
+    install_cfg_profile('hfs-client', group='hfs_public')
 
 
 def install_nginxcfg():
@@ -425,6 +426,7 @@ def install_hfs():
 
     install_service_dir('hfs', owner='hfs:hfs', mode=0o700)
     install_systemd_unit('hfs@')
+    install_cfg_profile('hfs-server', group='hfs')
 
 
 
