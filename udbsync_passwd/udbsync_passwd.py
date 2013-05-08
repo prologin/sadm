@@ -33,7 +33,7 @@ User = collections.namedtuple('User',
 Group = collections.namedtuple('Group', 'name password gid members')
 
 USER_PATTERN = re.compile(
-    '(?P<login>[-a-z]+)'
+    '(?P<login>[-a-z_0-9]+)'
     ':(?P<password>[^:]*)'
     ':(?P<uid>\d+)'
     ':(?P<gid>\d+)'
