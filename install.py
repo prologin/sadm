@@ -290,6 +290,22 @@ def install_webservices():
     install_nginx_service('docs')
 
 
+def install_homepage():
+    requires('libprologin')
+    requires('nginxcfg')
+
+    first_time = not os.path.exists('/var/prologin/homepage')
+
+    install_service_dir('homepage', owner='homepage:homepage', mode=0o700)
+    install_nginx_service('homepage')
+    install_systemd_unit('homepage')
+
+    install_cfg_profile('homepage-udbsync', group='homepage')
+
+    if first_time:
+        django_syncdb('homepage')
+
+
 def install_netboot():
     requires('libprologin')
     requires('nginxcfg')
@@ -492,6 +508,7 @@ COMPONENTS = [
     'udbsync_passwd',
     'udbsync_rootssh',
     'webservices',
+    'homepage',
     'netboot',
     'presencesync',
     'presenced',
