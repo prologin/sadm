@@ -50,7 +50,7 @@ Message = collections.namedtuple('Message', [
     's2'
 ])
 
-def encode(request_id, message_type, s1, s2=''):
+def encode(request_id, message_type, s1, s2=b''):
     r"""Composes a single rcon message containing ``s1`` and (optionally)
     ``s2``. The returned byte string is suitable for framing, and does not
     contain a length field:
@@ -72,7 +72,7 @@ def encode(request_id, message_type, s1, s2=''):
     """
     if b'\x00' in s1 or b'\x00' in s2:
         raise ValueError('data must not contain zero bytes')
-    payload = ''.join([s1, b'\x00', s2, b'\x00'])
+    payload = b''.join([s1, b'\x00', s2, b'\x00'])
     return struct.pack('<2i', request_id, message_type) + payload
 
 def decode(message):
@@ -115,7 +115,7 @@ def decode(message):
         s2, sep, remainder = remainder.partition(b'\x00')
         if sep != b'\x00':
             raise ValueError('incomplete message: %r' % (message,))
-        if remainder != '':
+        if remainder != b'':
             raise ValueError('trailing garbage in message: %r' % (message,))
         return Message(request_id, message_type, s1, s2)
     except struct.error:

@@ -1,13 +1,4 @@
-* Cleanup run_server startup code (if __name__ __main__)
-* Implement then use presencedb "ip to nick" in run_client and run_server
-* NBT servers.dat generation (nbt2yaml almost working in Python3)
-* Proper use of resource path in run_client:
-	The user ~/.minecraft should be like:
-		.minecraft
-		|-- bin/ --ln--> /var/prologin/minecraft/static/bin
-		|-- resources/ --ln--> /var/prologin/minecraft/static/resources
-		|-- servers.dat --ln--> /var/prolog/minecraft/static/servers.dat
-
-* Test everything
-* Web interface
-* "Proxy" to serve skins and default cape (in same web interface ?)
+- Nothing was tested!
+- Write nginx conf and systemd services to launch/handle:
+	- webserver (client skin upload, clien login request)
+	- fake skin server (must listen as `skins.minecraft.net`)

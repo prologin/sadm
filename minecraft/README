@@ -1,17 +1,30 @@
 # Prerequisites
-    - Run setup.py to download offline medias
-    - Copy local static/bin to conf static_dir/bin
 
-# Running Minecraft server
+    - Create /var/prologin directories (see minecraft.yml conf)
+        - empty /var/prologin/minecraft/skins
+        - copy or link static/{bin,default_cape.png} to /var/prologin/minecraft/static
 
-    0. /etc/hosts: map skins.minecraft.net to localhost (or something else?)
+    - Run setup.py; it will
+        - download offline medias to /var/prologin/minecraft/static/resources
+        - create a prefilled servers.dat with the prolocraft server address
 
-    1. Generate server.properties from minecraft.yml / properties,
-        replacing every _ with -
+    - IMPORTANT
+      Users ~ must have the following symbolic links:
+        ~/.minecraft/bin/        ---> /var/prologin/minecraft/static/bin
+        ~/.minecraft/resources   ---> /var/prologin/minecraft/static/resources
+        ~/.minecraft/servers.dat ---> /var/prologin/minecraft/static/servers.dat
 
-    2. Launch minecraft_server.jar
-        java -Xmx1024M -Xms1024M -jar minecraft_server.jar nogui
+# Services
 
-    3. Launch MCLogWatch
+    - server/skin_proxy.py
+      Handles skin serving to clients.
+      Must run "as" http://skins.minecraft.net:80/
 
-    4. Launch web interface
+    - server/webserver.py
+      Handles IP-to-login and skin upload from clients.
+      Must run at http://minecraft:80/
+
+    - server/run.py
+      Launches the minecraft Java server and the "watch log" service
+      to kick illegal users.
+      Must listen on host 'minecraft'

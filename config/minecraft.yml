@@ -1,9 +1,10 @@
+# minecraft_server.jar stuff
 server:
     host: minecraft
     human_name: Prolocraft
     working_dir: /var/prologin/minecraft/server
     log_check:
-        charset: utf8
+        charset: latin1  # yay! java!
         delay: 0.5
         case_sensitve: true
 
@@ -36,9 +37,8 @@ properties:
     view_distance: 10
     spawn_protection: 16
 
-
+# static client-side stuff + skins
 resources:
     media_url: http://s3.amazonaws.com/MinecraftResources/
-    #working_dir: '~'  # folder in which user_wide .minecraft will be stored
-    static_dir: /var/prologin/minecraft/static  # will contain bin/ and resources/
+    static_dir: /var/prologin/minecraft/static  # must be a copy/link of sadm/minecraft/static
     skin_dir: /var/prologin/minecraft/skins

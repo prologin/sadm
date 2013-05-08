@@ -17,27 +17,39 @@
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-import socket
 import subprocess
-import prologin.presenced
+import sys
+import requests
+
+BASE_URL = 'http://minecraft/mylogin'
 
 
-def run_minecraft():
-    os.chdir(os.path.expanduser('~/.minecraft'))
-    nick = prologin.presenced.ip_to_nick(socket.gethostname())
+if __name__ == '__main__':
+    try:
+        os.chdir(os.path.expanduser('~/.minecraft/bin'))
+    except OSError:
+        print("Votre machine est mal configurée (~/.minecraft/bin n'existe pas)")
+        sys.exit(1)
+
+    print("Récupération du login...")
+    r = requests.get(BASE_URL)
+    if not r.ok:
+        print("Votre machine n'est pas identifiable")
+        sys.exit(2)
+
+    login = r.content.decode('utf8')
+
+    print("Démarage de Minecraft avec le login `%s`" % login)
+
     subprocess.call([
         'java',
         '-Xmx1024M',
         '-Xms512M',
-        # '-Duser.home=%s' % os.path.expanduser('~'),
+        '-Duser.home=%s' % os.path.expanduser('~'),
         '-Djava.library.path=natives',
         '-classpath .',
         '-cp "*"',
         'net.minecraft.client.Minecraft',
-        nick,
-        '421337',
+        login,
+        '0',
     ])
-
-
-if __name__ == '__main__':
-    run_minecraft()
