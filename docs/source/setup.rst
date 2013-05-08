@@ -155,8 +155,8 @@ so that DNS configuration can be generated::
 
   cd /var/prologin/mdb
   python3 manage.py addmachine --hostname gw --mac 11:22:33:44:55:66 \
-      --ip 192.168.1.254 --rfs 0 --hfs 0 --aliases mdb,mdbsync,ns,netboot \
-      --mtype service --room pasteur
+      --ip 192.168.1.254 --rfs 0 --hfs 0 --mtype service --room pasteur \
+      --aliases mdb,mdbsync,ns,netboot,udb,udbsync,presencesync
 
 Once this is done, ``mdbdns`` should have automagically regenerated the DNS
 configuration::
