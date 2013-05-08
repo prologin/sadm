@@ -1,0 +1,10 @@
+server {
+    listen 80;
+    server_name home;
+
+    access_log logs/homepage.access.log main;
+
+    location / {
+        proxy_pass http://localhost:20110;
+    }
+}

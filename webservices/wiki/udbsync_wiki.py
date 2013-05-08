@@ -15,6 +15,7 @@ def callback(users, updates_metadata):
             subprocess.call([
                 'moin', 'account', 'disable',
                 '--name', login,
+                '--config-dir', '/var/prologin/wiki'
             ], env=env)
         elif status == 'created':
             subprocess.call([
@@ -22,15 +23,17 @@ def callback(users, updates_metadata):
                 '--name', login,
                 '--alias', login,
                 '--email', login + '@example.com',
-                '--password', users[login].password,
+                '--password', users[login]['password'],
+                '--config-dir', '/var/prologin/wiki'
             ], env=env)
         elif status == 'updated':
             subprocess.call([
                 'moin', 'account', 'resetpw',
                 '--name', login,
-                users[login].password,
+                users[login]['password'],
+                '--config-dir', '/var/prologin/wiki'
             ], env=env)
     
         
 c = prologin.udbsync.connect()
-c.poll_updates(callback, watch={'password'} or None)
+c.poll_updates(callback, watch={'password'})
