@@ -19,7 +19,7 @@
 db:
     default:
         ENGINE: django.db.backends.sqlite3
-        NAME: udb.db
+        NAME: /var/prologin/udb/udb.db
         USER:
         PASSWORD:
         HOST:
