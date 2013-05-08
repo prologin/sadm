@@ -16,15 +16,14 @@
 
 # Services
 
-    - server/skin_proxy.py
-      Handles skin serving to clients.
-      Must run "as" http://skins.minecraft.net:80/
+    - Nginx conf `minecraft-skins.nginx`
+      Must run "as" http://skins.minecraft.net:80/ client-side
 
-    - server/webserver.py
+    - server/webserver.py with Nginx conf `minecraft.nginx` and systemd `minecraft-skins.service`
       Handles IP-to-login and skin upload from clients.
       Must run at http://minecraft:80/
 
-    - server/run.py
+    - server/run.py with systemd `minecraft.service`
       Launches the minecraft Java server and the "watch log" service
       to kick illegal users.
       Must listen on host 'minecraft'
