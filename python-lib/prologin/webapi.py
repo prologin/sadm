@@ -25,7 +25,7 @@ class Client:
     def __init__(self, url):
         self.url = url
 
-    def send_request(self, resource, secret, msg, url=None):
+    def send_request(self, resource, secret, msg, url=None, method='post'):
         """Send an request that is authenticated using `secret` and that
         contains `msg` (a JSON data structure) to `resource`. Use client
         default URL if `url` is None. Return the request object.
@@ -34,10 +34,15 @@ class Client:
             data = json.dumps(msg)
         except TypeError:
             raise ValueError('non serializable argument type')
-        return requests.post(
-            urllib.parse.urljoin(url or self.url, resource),
-            data={
-                'data': data,
-                'hmac': prologin.timeauth.generate_token(secret, data),
-            }
-        )
+
+        full_url = urllib.parse.urljoin(url or self.url, resource)
+        args = {
+            'data': data,
+            'hmac': prologin.timeauth.generate_token(secret, data),
+        }
+        if method == 'get':
+            return requests.get(full_url, params=args)
+        elif method == 'post':
+            return requests.post(full_url, data=args)
+        else:
+            raise ValueError('Unsupported method: {}'.format(method))

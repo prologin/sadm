@@ -222,6 +222,16 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
     def start(self):
         self.start_ts = int(time.time())
 
+    def get_list(self):
+        """Return a mapping: login -> hostname for all logged in users.  Check
+        for expired logins first.
+        """
+        self.remove_and_publish_expired()
+        return {
+            login: info[1]
+            for login, info in self.backlog.items()
+        }
+
     def request_login(self, login, hostname):
         """Try to register `login` as logged on `hostname`.  Return None if
         successful, and if it is, send an update for it.  Return a failure
@@ -258,6 +268,14 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
         """
         self.remove_and_publish_expired(self)
         self.update_backlog(login, hostname)
+
+
+class GetListHandler(tornado.web.RequestHandler):
+    @prologin.tornadauth.signature_checked('sub_secret', check_msg=True)
+    def get(self, msg):
+        self.write(json.dumps(
+            self.application.pubsub_queue.get_list()
+        ))
 
 
 class LoginHandler(tornado.web.RequestHandler):
@@ -332,6 +350,7 @@ class SyncServer(prologin.synchronisation.Server):
         # Override default handlers: direct updating is not allowed.
         return [
             (r'/poll', prologin.synchronisation.PollHandler),
+            (r'/get_list', GetListHandler),
             (r'/login', LoginHandler),
             (r'/heartbeat', HeartbeatHandler),
             (r'/remove_expired', RemoveExpiredHandler),
