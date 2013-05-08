@@ -16,6 +16,13 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
+
+########################################################################
+# THIS FILE CAN BE IGNORED. YOU SHOULD USE NGINX CAPABILITIES INSTEAD. #
+# See nginx/services/minecraft-skins.nginx                             #
+########################################################################
+
+
 import os
 import prologin.config
 import tornado.ioloop

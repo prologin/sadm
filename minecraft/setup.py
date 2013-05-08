@@ -24,6 +24,7 @@ import prologin.log
 import requests
 from lxml import etree
 from io import BytesIO
+from nbt import *
 
 RES_CFG = prologin.config.load('minecraft')
 
@@ -45,5 +46,20 @@ def download_resources():
             logging.debug("Downloaded resource: %s (%d bytes)", path, size)
 
 
+def write_servers_dat():
+    nbtfile = NBTFile()
+    nbtfile.name = ''
+    root = TAG_List(type=TAG_Compound, name='servers')
+    prolocraft = TAG_Compound()
+    prolocraft.tags.append(TAG_Byte(name='hideAddress', value=0))
+    prolocraft.tags.append(TAG_String(name='name', value=RES_CFG['server']['human_name']))
+    prolocraft.tags.append(TAG_String(name='ip', value=RES_CFG['server']['host']))
+    root.tags.append(prolocraft)
+    nbtfile.tags.append(root)
+    nbtfile.write_file(
+        buffer=open(os.path.join(RES_CFG['resources']['static_dir'], 'servers.dat'), 'wb'))
+
+
 if __name__ == '__main__':
+    write_servers_dat()
     download_resources()
