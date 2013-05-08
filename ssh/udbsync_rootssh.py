@@ -8,7 +8,8 @@ import prologin.udbsync
 def callback(users, updates_metadata):
     os.makedirs('/root/.ssh/', mode=0o700, exist_ok=True)
     with open('/root/.ssh/authorized_keys', 'w') as f:
-        l = [u['ssh_key'] for u in users.values() if u['utype'] == 'root']
+        l = [u['ssh_key'] for u in users.values() if u['group'] == 'root']
+        l = [k for k in l if k] + ['']
         f.write('\n'.join(l))
 
 c = prologin.udbsync.connect()
