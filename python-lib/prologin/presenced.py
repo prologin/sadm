@@ -22,7 +22,9 @@ import prologin.config
 import prologin.webapi
 import pwd
 
-CFG = prologin.config.load('presenced-client')
+def is_prologin_uid(uid):
+    """Return if `uid` belongs to a user handled by Prologin."""
+    return 10000 <= uid < 20000
 
 def is_prologin_user(user):
     """Return if `user` (a username or an UID) is handled by Prologin.
@@ -33,7 +35,7 @@ def is_prologin_user(user):
         uid = pwd.getpwnam(user).pw_uid
     else:
         uid = pwd.getpwuid(user).pw_uid
-    return 10000 <= uid < 20000
+    return is_prologin_uid(uid)
 
 
 class Client(prologin.webapi.Client):
@@ -58,6 +60,7 @@ class Client(prologin.webapi.Client):
 
 
 def connect():
+    CFG = prologin.config.load('presenced-client')
     url = CFG['url']
     secret = CFG['shared_secret']
     logging.info('Creating Presenced client connection object: url=%s' % url)
