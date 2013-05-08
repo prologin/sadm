@@ -345,6 +345,18 @@ def install_presenced():
             print(cfg_line, file=f)
 
 
+def install_rfs():
+    rootfs = '/exports/nfsroot'
+    subnet = '192.168.0.0/24'
+    os.chdir('rfs')
+    os.environ['ROOTFS'] = rootfs
+    os.environ['SUBNET'] = subnet
+    with open('packages_lists') as f:
+      packages_lists = f.read()
+    os.environ['PACKAGES'] = ' '.join(packages_lists.split())
+    os.system('./init.sh')
+
+
 COMPONENTS = [
     'libprologin',
     'bindcfg',
@@ -361,6 +373,7 @@ COMPONENTS = [
     'netboot',
     'presencesync',
     'presenced',
+    'rfs',
 ]
 
 # Runtime helpers: requires() function and user/groups handling
