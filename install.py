@@ -177,6 +177,7 @@ def install_libprologin():
     install_cfg_profile('mdbsync-pub', group='mdbsync')
     install_cfg_profile('mdbsync-sub', group='mdbsync_public')
     install_cfg_profile('udb-client', group='udb_public')
+    install_cfg_profile('udb-client-auth', group='udb')
     install_cfg_profile('udbsync-pub', group='udbsync')
     install_cfg_profile('udbsync-sub', group='udbsync_public')
     install_cfg_profile('presencesync-pub', group='presencesync')
@@ -278,9 +279,10 @@ def install_netboot():
 
     mkdir('/var/prologin/netboot', mode=0o700, owner='netboot:netboot')
     copy('netboot/netboot.py', '/var/prologin/netboot/netboot.py', mode=0o750,
-         owner='mdbdns:mdbdns')
+         owner='netboot:netboot')
     install_nginx_service('netboot')
     install_systemd_unit('netboot')
+    install_cfg_profile('netboot', group='netboot')
 
 
 def install_udb():

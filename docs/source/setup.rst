@@ -57,7 +57,7 @@ readable name::
 Install a few packages we will need::
 
   pacman -S git dhcp bind python python-pip python-virtualenv libyaml nginx \
-            sqlite dnsutils rsync postgresql-libs tcpdump base-devel
+            sqlite dnsutils rsync postgresql-libs tcpdump base-devel pwgen
 
 Create the main Python ``virtualenv`` we'll use for all our Prologin apps::
 
@@ -130,7 +130,7 @@ config generation scripts use it to automatically update the configuration when
   python3 install.py mdbsync
 
   systemctl enable mdbsync && systemctl start mdbsync
-  systemctl restart nginx
+  systemctl reload nginx
   echo '127.0.0.1 mdbsync' >> /etc/hosts
 
 To check if ``mdbsync`` is working, try to register for updates::
@@ -194,7 +194,7 @@ setup::
 
   python3 install.py netboot
   systemctl enable netboot && systemctl start netboot
-  systemctl restart nginx
+  systemctl reload nginx
 
 TFTP
 ~~~~
@@ -208,10 +208,54 @@ chain: the iPXE binary (more on that in the next section). We simply setup
 
 The TFTP server will serve files from ``/srv/tftp``.
 
+iPXE bootrom
+~~~~~~~~~~~~
+
+The iPXE bootrom is an integral part of the boot chain for user machines. It is
+loaded by the machine BIOS via PXE and is responsible for booting the Linux
+kernel using the nearest RFS. It also handles registering the machine in the
+MDB if needed. These instructions need to be run on ``gw``.
+
+iPXE is an external open source project, clone it first::
+
+  git clone git://git.ipxe.org/ipxe.git
+
+Then compile time settings need to be modified. Uncomment the following lines::
+
+  // in src/config/general.h
+  #define REBOOT_CMD
+
+You can now build iPXE: go to ``src/`` and build the bootrom using our script
+provided in ``sadm/netboot``::
+
+  make bin/undionly.kpxe EMBED=/root/sadm/netboot/script.ipxe
+  cp bin/undionly.kpxe /srv/tftp/prologin.kpxe
+
 udb
 ~~~
 
-TODO
+Install ``udb`` using the ``install.py`` recipe::
+
+  python install.py udb
+  systemctl enable udb && systemctl start udb
+  systemctl reload nginx
+
+You can then import all contestants information to ``udb`` using the
+``batchimport`` command::
+
+  cd /var/prologin/udb
+  python manage.py batchimport --file=/root/finalistes.txt
+
+The password sheet data can then be generated with this command, then printed
+by someone else::
+
+  python manage.py pwdsheetdata --type=user > /root/user_pwdsheet_data
+
+Then do the same for organizers::
+
+  python manage.py batchimport --logins --type=orga --pwdlen=10 \
+      --uidbase=11000 --file=/root/orgas.txt
+  python manage.py pwdsheetdata --type=orga > /root/orga_pwdsheet_data
 
 udbsync
 ~~~~~~~
@@ -269,29 +313,6 @@ install the base system for diskless client system::
 
 TODO: How to install new package, sync, hook to generate /var... and more
 documentation to the above commands.
-
-iPXE bootrom
-~~~~~~~~~~~~
-
-The iPXE bootrom is an integral part of the boot chain for user machines. It is
-loaded by the machine BIOS via PXE and is responsible for booting the Linux
-kernel using the nearest RFS. It also handles registering the machine in the
-MDB if needed. These instructions need to be run on ``gw``.
-
-iPXE is an external open source project, clone it first::
-
-  git clone git://git.ipxe.org/ipxe.git
-
-Then compile time settings need to be modified. Uncomment the following lines::
-
-  // in config/general.h
-  #define REBOOT_CMD
-
-You can now build iPXE: go to ``src/`` and build the bootrom using our script
-provided in ``prologin-sadm/netboot``::
-
-  make bin/undionly.kpxe EMBED=/path/to/prologin-sadm/netboot/script.ipxe
-  cp bin/undionly.kpxe /srv/tftp/prologin.kpxe
 
 Copying the kernel and initramfs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
