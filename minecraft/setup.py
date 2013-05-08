@@ -27,6 +27,7 @@ from io import BytesIO
 from nbt import *
 
 RES_CFG = prologin.config.load('minecraft')
+AWS_NAMESPACE = '{http://s3.amazonaws.com/doc/2006-03-01/}'
 
 
 def download_resources():
@@ -34,9 +35,9 @@ def download_resources():
     page = etree.parse(BytesIO(
         requests.get(RES_CFG['resources']['media_url']).content))
 
-    for content in page.findall('Contents'):
-        path = content.find('Key').text
-        size = int(content.find('Size').text)
+    for content in page.findall('%sContents' % AWS_NAMESPACE):
+        path = content.find('%sKey' % AWS_NAMESPACE).text
+        size = int(content.find('%sSize' % AWS_NAMESPACE).text)
         if size == 0:
             os.makedirs(os.path.join(root, path), mode=0o755, exist_ok=True)
         else:
