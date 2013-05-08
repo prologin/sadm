@@ -57,7 +57,7 @@ readable name::
 Install a few packages we will need::
 
   pacman -S git dhcp bind python python-pip python-virtualenv libyaml nginx \
-            sqlite dnsutils rsync
+            sqlite dnsutils rsync postgresql-libs tcpdump base-devel
 
 Create the main Python ``virtualenv`` we'll use for all our Prologin apps::
 
