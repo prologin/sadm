@@ -209,7 +209,7 @@ def install_dhcpdcfg():
 
 
 def install_sshdcfg():
-    install_cfg('ssh/sshd_config', '/etc/ssh', owner='root:root', mode=0644)
+    install_cfg('ssh/sshd_config', '/etc/ssh', owner='root:root', mode=0o644)
 
 
 def install_mdb():
@@ -433,6 +433,7 @@ COMPONENTS = [
     'bindcfg',
     'nginxcfg',
     'dhcpdcfg',
+    'sshdcfg',
     'mdb',
     'mdbsync',
     'mdbdns',
