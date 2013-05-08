@@ -278,6 +278,7 @@ def install_netboot():
          owner='netboot:netboot')
     install_nginx_service('netboot')
     install_systemd_unit('netboot')
+    install_cfg_profile('netboot', group='netboot')
 
 
 def install_udb():
