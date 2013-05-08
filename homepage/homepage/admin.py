@@ -15,21 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
-# Database settings.
-db:
-    default:
-        ENGINE: django.db.backends.sqlite3
-        NAME: /var/prologin/homepage/home.db
-        USER:
-        PASSWORD:
-        HOST:
-        PORT:
+from django.contrib import admin
+from homepage import models
 
-# Use http://www.miniwebtool.com/django-secret-key-generator/
-secret_key: "DEFAULT_PASSWORD_HOME"
-
-# Should always be false in production!
-debug: true
-
-# Display links to contest restricted websites (docs, concours, ...)
-contest_mode: false
+admin.site.register(models.Link)

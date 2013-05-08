@@ -15,12 +15,11 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
-from django.conf.urls import patterns, include, url
-from django.contrib import admin
+from django.conf import settings
+from django.shortcuts import render_to_response
+from homepage.models import Link
 
-admin.autodiscover()
-
-urlpatterns = patterns('',
-    url(r'^$', 'home.views.home', name='home'),
-    url(r'^admin/', include(admin.site.urls)),
-)
+def home(request):
+    links = Link.objects.filter(contest_only=settings.CONTEST_MODE)
+    links = links.order_by('display_order', 'name')
+    return render_to_response('home.html', { 'links': links })
