@@ -43,14 +43,14 @@ USER_PATTERN = re.compile(
 )
 
 SHADOW_PATTERN = re.compile(
-    '(?P<login>[-a-z]+):(?P<remainder>.*)$'
+    '(?P<login>[-a-z_0-9]+):(?P<remainder>.*)$'
 )
 
 GROUP_PATTERN = re.compile(
-    '(?P<name>[-a-z]+)'
+    '(?P<name>[-a-z_0-9]+)'
     ':(?P<password>[^:]*)'
     ':(?P<gid>\d+)'
-    ':(?P<members>[-a-z,]*)$'
+    ':(?P<members>[-a-z_0-9,]*)$'
 )
 
 PROLOGIN_GROUPS = {
