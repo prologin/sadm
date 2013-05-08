@@ -281,6 +281,7 @@ def install_homepage():
     install_nginx_service('homepage')
     install_systemd_unit('homepage')
 
+    install_cfg_profile('homepage', group='homepage')
     install_cfg_profile('homepage-udbsync', group='homepage')
 
     if first_time:
