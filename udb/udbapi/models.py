@@ -40,6 +40,7 @@ class User(models.Model):
     def to_dict(self):
         return {
             'login': self.login,
+            'realname': self.realname,
             'uid': self.uid,
             'group': self.group,
             'password': self.password,

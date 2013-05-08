@@ -304,6 +304,17 @@ def install_udbsync():
     install_systemd_unit('udbsync')
 
 
+def install_udbsync_passwd():
+    requires('libprologin')
+    mkdir('/var/prologin/udbsync_passwd', mode=0o700, owner='root:root')
+    copy(
+        'udbsync_passwd/udbsync_passwd.py',
+        '/var/prologin/udbsync_passwd/udbsync_passwd.py',
+        mode=0o700, owner='root:root'
+    )
+    install_systemd_unit('udbsync_passwd')
+
+
 def install_presencesync():
     requires('libprologin')
     requires('nginxcfg')
@@ -349,6 +360,7 @@ COMPONENTS = [
     'mdbdhcp',
     'udb',
     'udbsync',
+    'udbsync_passwd',
     'webservices',
     'netboot',
     'presencesync',
