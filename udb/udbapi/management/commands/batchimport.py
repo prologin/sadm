@@ -34,7 +34,7 @@ def generate_password(length):
     proc = subprocess.Popen(['pwgen', '-cnB', str(length)],
                             stdout=subprocess.PIPE)
     out, err = proc.communicate()
-    return out.strip()
+    return out.strip().decode('utf-8')
 
 
 def create_users(names, options):
