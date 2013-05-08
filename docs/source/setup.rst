@@ -57,7 +57,7 @@ readable name::
 Install a few packages we will need::
 
   pacman -S git dhcp bind python python-pip python-virtualenv libyaml nginx \
-            sqlite dnsutils rsync postgresql-libs tcpdump base-devel
+            sqlite dnsutils rsync postgresql-libs tcpdump base-devel pwgen
 
 Create the main Python ``virtualenv`` we'll use for all our Prologin apps::
 
@@ -130,7 +130,7 @@ config generation scripts use it to automatically update the configuration when
   python3 install.py mdbsync
 
   systemctl enable mdbsync && systemctl start mdbsync
-  systemctl restart nginx
+  systemctl reload nginx
   echo '127.0.0.1 mdbsync' >> /etc/hosts
 
 To check if ``mdbsync`` is working, try to register for updates::
@@ -194,7 +194,7 @@ setup::
 
   python3 install.py netboot
   systemctl enable netboot && systemctl start netboot
-  systemctl restart nginx
+  systemctl reload nginx
 
 TFTP
 ~~~~
@@ -234,7 +234,28 @@ provided in ``sadm/netboot``::
 udb
 ~~~
 
-TODO
+Install ``udb`` using the ``install.py`` recipe::
+
+  python install.py udb
+  systemctl enable udb && systemctl start udb
+  systemctl reload nginx
+
+You can then import all contestants information to ``udb`` using the
+``batchimport`` command::
+
+  cd /var/prologin/udb
+  python manage.py batchimport --file=/root/finalistes.txt
+
+The password sheet data can then be generated with this command, then printed
+by someone else::
+
+  python manage.py pwdsheetdata --type=user > /root/user_pwdsheet_data
+
+Then do the same for organizers::
+
+  python manage.py batchimport --logins --type=orga --pwdlen=10 \
+      --uidbase=11000 --file=/root/orgas.txt
+  python manage.py pwdsheetdata --type=orga > /root/orga_pwdsheet_data
 
 udbsync
 ~~~~~~~
