@@ -208,6 +208,10 @@ def install_dhcpdcfg():
     mkdir('/etc/dhcpd', mode=0o770, owner='root:mdbdhcp')
 
 
+def install_sshdcfg():
+    install_cfg('ssh/sshd_config', '/etc/ssh', owner='root:root', mode=0644)
+
+
 def install_mdb():
     requires('libprologin')
     requires('nginxcfg')
