@@ -22,6 +22,7 @@ import os
 import prologin.config
 import prologin.log
 import requests
+import shutil
 from lxml import etree
 from io import BytesIO
 from nbt import *
@@ -44,6 +45,8 @@ def download_resources():
             with open(os.path.join(root, path), 'wb') as f:
                 f.write(requests.get(
                     RES_CFG['resources']['media_url'] + path).content)
+            os.chmod(f.name, 0o644)
+            shutil.chown(f.name, 'minecraft', 'minecraft')
             logging.debug("Downloaded resource: %s (%d bytes)", path, size)
 
     logging.info("Successfully downloaded all Minecraft resources")
@@ -59,8 +62,11 @@ def write_servers_dat():
     prolocraft.tags.append(TAG_String(name='ip', value=RES_CFG['server']['host']))
     root.tags.append(prolocraft)
     nbtfile.tags.append(root)
+
     with open(os.path.join(RES_CFG['resources']['static_dir'], 'servers.dat'), 'wb') as f:
         nbtfile.write_file(buffer=f)
+        os.chmod(f.name, 0o644)
+        shutil.chown(f.name, 'minecraft', 'minecraft')
         logging.info("Wrote %s" % f.name)
 
 
