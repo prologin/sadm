@@ -260,7 +260,18 @@ Then do the same for organizers::
 udbsync
 ~~~~~~~
 
-TODO
+Again, use the ``install.py`` recipe::
+
+  python install.py udbsync
+  systemctl enable udbsync && systemctl start udbsync
+  systemctl reload nginx
+
+We can then configure udbsync clients::
+
+  python install.py udbsync_django udbsync_rootssh
+  systemctl enable udbsync_django@mdb && systemctl start udbsync_django@mdb
+  systemctl enable udbsync_django@udb && systemctl start udbsync_django@udb
+  systemctl enable udbsync_rootssh && systemctl start udbsync_rootssh
 
 Step 2: file storage
 --------------------
