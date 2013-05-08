@@ -208,6 +208,29 @@ chain: the iPXE binary (more on that in the next section). We simply setup
 
 The TFTP server will serve files from ``/srv/tftp``.
 
+iPXE bootrom
+~~~~~~~~~~~~
+
+The iPXE bootrom is an integral part of the boot chain for user machines. It is
+loaded by the machine BIOS via PXE and is responsible for booting the Linux
+kernel using the nearest RFS. It also handles registering the machine in the
+MDB if needed. These instructions need to be run on ``gw``.
+
+iPXE is an external open source project, clone it first::
+
+  git clone git://git.ipxe.org/ipxe.git
+
+Then compile time settings need to be modified. Uncomment the following lines::
+
+  // in src/config/general.h
+  #define REBOOT_CMD
+
+You can now build iPXE: go to ``src/`` and build the bootrom using our script
+provided in ``sadm/netboot``::
+
+  make bin/undionly.kpxe EMBED=/root/sadm/netboot/script.ipxe
+  cp bin/undionly.kpxe /srv/tftp/prologin.kpxe
+
 udb
 ~~~
 
@@ -269,29 +292,6 @@ install the base system for diskless client system::
 
 TODO: How to install new package, sync, hook to generate /var... and more
 documentation to the above commands.
-
-iPXE bootrom
-~~~~~~~~~~~~
-
-The iPXE bootrom is an integral part of the boot chain for user machines. It is
-loaded by the machine BIOS via PXE and is responsible for booting the Linux
-kernel using the nearest RFS. It also handles registering the machine in the
-MDB if needed. These instructions need to be run on ``gw``.
-
-iPXE is an external open source project, clone it first::
-
-  git clone git://git.ipxe.org/ipxe.git
-
-Then compile time settings need to be modified. Uncomment the following lines::
-
-  // in config/general.h
-  #define REBOOT_CMD
-
-You can now build iPXE: go to ``src/`` and build the bootrom using our script
-provided in ``prologin-sadm/netboot``::
-
-  make bin/undionly.kpxe EMBED=/path/to/prologin-sadm/netboot/script.ipxe
-  cp bin/undionly.kpxe /srv/tftp/prologin.kpxe
 
 Copying the kernel and initramfs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
