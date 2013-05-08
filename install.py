@@ -54,6 +54,9 @@ USERS = {
     'hfs': { 'uid': 20100, 'groups': ('hfs', 'hfs_public') },
     'homepage': { 'uid': 20110, 'groups': ('homepage',) },
     'redmine': { 'uid': 20120, 'groups': ('redmine',) },
+    'presencesync_usermap': { 'uid': 20130,
+                              'groups': ('presencesync_usermap',
+                                         'presencesync_public',) },
 }
 
 # Same with groups. *_public groups are used for services that need to access
@@ -78,6 +81,7 @@ GROUPS = {
     'hfs_public': 20101,
     'homepage': 20110,
     'redmine': 20120,
+    'presencesync_usermap': 20130,
 }
 
 
@@ -349,6 +353,45 @@ def install_presenced():
             print(cfg_line, file=f)
 
 
+def install_presencesync_usermap():
+    requires('libprologin')
+
+    install_cfg_profile('presencesync_usermap', group='presencesync_usermap')
+
+    mkdir(
+        '/var/prologin/presencesync_usermap',
+        mode=0o700, owner='presencesync_usermap:presencesync_usermap'
+    )
+    copy(
+        'presencesync_usermap/presencesync_usermap.py',
+        '/var/prologin/presencesync_usermap/presencesync_usermap.py',
+        mode=0o700, owner='presencesync_usermap:presencesync_usermap'
+    )
+    # The pattern map is still to be installed (in the same directory depending
+    # on the configuration), but it's not provided here.
+    install_systemd_unit('presencesync_usermap')
+
+
+def install_rfs():
+    rootfs = '/export/nfsroot'
+    subnet = '192.168.0.0/24'
+    with cwd('rfs'):
+        os.environ['ROOTFS'] = rootfs
+        os.environ['SUBNET'] = subnet
+        with open('packages_lists') as f:
+            packages_lists = f.read()
+        os.environ['PACKAGES'] = ' '.join(packages_lists.split())
+        os.system('./init.sh')
+
+
+def install_hfs():
+    requires('libprologin')
+
+    install_service_dir('hfs', owner='hfs:hfs', mode=0o700)
+    install_systemd_unit('hfs@')
+
+
+
 COMPONENTS = [
     'libprologin',
     'bindcfg',
@@ -365,6 +408,9 @@ COMPONENTS = [
     'netboot',
     'presencesync',
     'presenced',
+    'presencesync_usermap',
+    'rfs',
+    'hfs',
 ]
 
 

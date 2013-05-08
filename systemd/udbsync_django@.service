@@ -1,0 +1,12 @@
+[Unit]
+Description=UDBSync daemon for Django app %i
+After=network.target
+
+[Service]
+Type=simple
+User=%i
+WorkingDirectory=/var/prologin/%i
+ExecStart=/var/prologin/venv/bin/python /var/prologin/udbsync_django/udbsync_django.py
+
+[Install]
+WantedBy=multi-user.target

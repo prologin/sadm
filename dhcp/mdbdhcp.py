@@ -24,7 +24,7 @@ import prologin.log
 import prologin.mdbsync
 
 
-def update_dhcp_config(machines):
+def update_dhcp_config(machines, metadata):
     logging.warning("Received update, regenerating DHCP config")
     fragments = []
     for m in machines.values():

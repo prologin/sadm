@@ -1,0 +1,13 @@
+#!/usr/bin/ash
+
+run_latehook() {
+    find /new_root/var/log -type d > /var_log_list
+    mount -t tmpfs tmpfs /new_root/var/log
+    mount -t tmpfs tmpfs /new_root/var/tmp
+    mount -t tmpfs tmpfs /new_root/var/spool/mail
+    while read d; do
+      mkdir -p $d
+    done < /var_log_list
+}
+
+# vim: set ft=sh ts=4 sw=4 et:

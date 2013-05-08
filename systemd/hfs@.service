@@ -1,0 +1,12 @@
+[Unit]
+Description=HFS daemon for interface %i
+After=network.target
+
+[Service]
+Type=simple
+User=hfs
+WorkingDirectory=/var/prologin/hfs
+ExecStart=/var/prologin/venv/bin/python hfs.py %i
+
+[Install]
+WantedBy=multi-user.target
