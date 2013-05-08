@@ -174,6 +174,7 @@ def install_libprologin():
     install_cfg_profile('mdbsync-pub', group='mdbsync')
     install_cfg_profile('mdbsync-sub', group='mdbsync_public')
     install_cfg_profile('udb-client', group='udb_public')
+    install_cfg_profile('udb-client-auth', group='udb')
     install_cfg_profile('udbsync-pub', group='udbsync')
     install_cfg_profile('udbsync-sub', group='udbsync_public')
     install_cfg_profile('presencesync-pub', group='presencesync')
