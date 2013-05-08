@@ -20,16 +20,28 @@ based API for sync clients, a login request function and a heartbeat function.
 The sync clients use Tornado for async long polling.
 """
 
+import json
 import logging
 import prologin.config
 import prologin.synchronisation
 import urllib.parse
 
 SUB_CFG = prologin.config.load('presencesync-sub')
-PUB_CFG = prologin.config.load('presencesync-pub')
-
 
 class Client(prologin.synchronisation.Client):
+
+    def get_list(self):
+        """Return a mapping: login -> hostname for all logged in users."""
+        r = self.send_request(
+            '/get_list', self.sub_secret, {}, method='get'
+        )
+        if r.status_code != 200:
+            raise RuntimeError(
+                'Cannot get the list of logged in users: {}'.format(
+                    r.text
+            ))
+        else:
+            return json.loads(r.text)
 
     def request_login(self, login, hostname):
         """Try to register `login` as logged on `hostname` to the PresenceSync

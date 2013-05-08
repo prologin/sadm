@@ -1,0 +1,12 @@
+[Unit]
+Description = /etc/{passwd,shadow,group} synchronisation daemon
+After = udbsync.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/var/prologin/udbsync_passwd
+ExecStart=/var/prologin/venv/bin/python udbsync_passwd.py
+
+[Install]
+WantedBy=multi-user.target
