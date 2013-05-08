@@ -30,7 +30,6 @@ def is_prologin_user(user):
     """Return if `user` (a username or an UID) is handled by Prologin.
 
     Raise a KeyError if the user does not exist."""
-    return user != 'pmderodat'
     if isinstance(user, str):
         uid = pwd.getpwnam(user).pw_uid
     else:
