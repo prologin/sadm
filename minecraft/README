@@ -1,0 +1,17 @@
+# Prerequisites
+    - Run setup.py to download offline medias
+    - Copy local static/bin to conf static_dir/bin
+
+# Running Minecraft server
+
+    0. /etc/hosts: map skins.minecraft.net to localhost (or something else?)
+
+    1. Generate server.properties from minecraft.yml / properties,
+        replacing every _ with -
+
+    2. Launch minecraft_server.jar
+        java -Xmx1024M -Xms1024M -jar minecraft_server.jar nogui
+
+    3. Launch MCLogWatch
+
+    4. Launch web interface
