@@ -114,6 +114,20 @@ def copy(old, new, mode=0o600, owner='root:root'):
     shutil.chown(new, user, group)
 
 
+def copytree(old, new, dir_mode=0o700, file_mode=0o600, owner='root:root'):
+    shutil.copytree(old, new)
+    user, group = owner.split(':')
+    for root, dirs, files in os.walk(new):
+        for momo in dirs:
+            path = os.path.join(root, momo)
+            os.chmod(path, dir_mode)
+            shutil.chown(path, user, group)
+        for momo in files:
+            path = os.path.join(root, momo)
+            os.chmod(path, file_mode)
+            shutil.chown(path, user, group)
+
+
 CFG_TO_REVIEW = []
 def install_cfg(path, dest_dir, owner='root:root', mode=0o600):
     dest_path = os.path.join(dest_dir, os.path.basename(path))
@@ -424,26 +438,29 @@ def install_minecraft():
         mode=0o755, owner='minecraft:minecraft'
     )
 
-    copy(
+    copytree(
         'minecraft/static',
         '/var/prologin/minecraft/static',
-        mode=0o755, owner='minecraft:minecraft'
+        dir_mode=0o755, file_mode=0o644,
+        owner='minecraft:minecraft'
     )
+
     mkdir(
         '/var/prologin/minecraft/static/resources',
         mode=0o755, owner='minecraft:minecraft'
+    )
+
+    copytree(
+        'minecraft/server',
+        '/var/prologin/minecraft/server',
+        dir_mode=0o700, file_mode=0o600,
+        owner='minecraft:minecraft'
     )
 
     with cwd('/var/prologin/minecraft'):
         # download static resources once (this takes time!)
         # and create shared servers.dat
         os.system('python setup.py')
-
-    copy(
-        'minecraft/server',
-        '/var/prologin/minecraft/server',
-        mode=0o700, owner='minecraft:minecraft'
-    )
 
     install_nginx_service('minecraft-skins')
     install_nginx_service('minecraft')
