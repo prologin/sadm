@@ -318,6 +318,7 @@ def install_udbsync_django():
 
 def install_udbsync_passwd():
     requires('libprologin')
+
     mkdir('/var/prologin/udbsync_passwd', mode=0o700, owner='root:root')
     copy(
         'udbsync_passwd/udbsync_passwd.py',
@@ -325,6 +326,13 @@ def install_udbsync_passwd():
         mode=0o700, owner='root:root'
     )
     install_systemd_unit('udbsync_passwd')
+
+
+def install_udbsync_rootssh():
+    requires('libprologin')
+
+    install_service_dir('ssh', owner='root:root', mode=0o700)
+    install_systemd_unit('udbsync_rootssh')
 
 
 def install_presencesync():
@@ -412,6 +420,7 @@ COMPONENTS = [
     'udbsync',
     'udbsync_django',
     'udbsync_passwd',
+    'udbsync_rootssh'
     'webservices',
     'netboot',
     'presencesync',
