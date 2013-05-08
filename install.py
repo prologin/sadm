@@ -52,7 +52,7 @@ USERS = {
     'udbsync': { 'uid': 20090, 'groups': ('udbsync', 'udbsync_public',
                                           'udb', 'udb_public') },
     'hfs': { 'uid': 20100, 'groups': ('hfs', 'hfs_public') },
-    'homepage': { 'uid': 20110, 'groups': ('homepage',) },
+    'homepage': { 'uid': 20110, 'groups': ('homepage', 'udbsync_public') },
     'redmine': { 'uid': 20120, 'groups': ('redmine',) },
     'presencesync_usermap': { 'uid': 20130,
                               'groups': ('presencesync_usermap',
