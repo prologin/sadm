@@ -352,9 +352,17 @@ def install_rfs():
         os.environ['ROOTFS'] = rootfs
         os.environ['SUBNET'] = subnet
         with open('packages_lists') as f:
-          packages_lists = f.read()
+            packages_lists = f.read()
         os.environ['PACKAGES'] = ' '.join(packages_lists.split())
         os.system('./init.sh')
+
+
+def install_hfs():
+    requires('libprologin')
+
+    install_service_dir('hfs', owner='hfs:hfs', mode=0o700)
+    install_systemd_unit('hfs@')
+
 
 
 COMPONENTS = [
@@ -374,6 +382,7 @@ COMPONENTS = [
     'presencesync',
     'presenced',
     'rfs',
+    'hfs',
 ]
 
 # Runtime helpers: requires() function and user/groups handling
