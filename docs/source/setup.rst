@@ -273,6 +273,14 @@ We can then configure udbsync clients::
   systemctl enable udbsync_django@udb && systemctl start udbsync_django@udb
   systemctl enable udbsync_rootssh && systemctl start udbsync_rootssh
 
+presencesync
+~~~~~~~~~~~~
+
+And once again::
+
+  python install.py presencesync
+  systemctl enable presencesync && systemctl start presencesync
+
 Step 2: file storage
 --------------------
 
