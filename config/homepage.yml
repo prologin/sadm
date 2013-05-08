@@ -19,7 +19,7 @@
 db:
     default:
         ENGINE: django.db.backends.sqlite3
-        NAME: /var/prologin/home/home.db
+        NAME: /var/prologin/homepage/home.db
         USER:
         PASSWORD:
         HOST:
