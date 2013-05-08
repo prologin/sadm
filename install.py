@@ -219,6 +219,7 @@ def install_mdb():
     install_systemd_unit('mdb')
 
     install_cfg_profile('mdb-server', group='mdb')
+    install_cfg_profile('mdb-udbsync', group='mdb')
 
     if first_time:
         django_syncdb('mdb')
@@ -293,6 +294,7 @@ def install_udb():
     install_systemd_unit('udb')
 
     install_cfg_profile('udb-server', group='udb')
+    install_cfg_profile('udb-udbsync', group='udb')
 
     if first_time:
         django_syncdb('udb')
@@ -305,6 +307,13 @@ def install_udbsync():
     install_service_dir('udbsync', owner='udbsync:udbsync', mode=0o700)
     install_nginx_service('udbsync')
     install_systemd_unit('udbsync')
+
+
+def install_udbsync_django():
+    requires('libprologin')
+
+    install_service_dir('udbsync_django', owner='root:root', mode=0o755)
+    install_systemd_unit('udbsync_django@')
 
 
 def install_udbsync_passwd():
@@ -401,6 +410,7 @@ COMPONENTS = [
     'mdbdhcp',
     'udb',
     'udbsync',
+    'udbsync_django',
     'udbsync_passwd',
     'webservices',
     'netboot',
