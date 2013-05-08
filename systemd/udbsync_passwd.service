@@ -1,6 +1,6 @@
 [Unit]
 Description = /etc/{passwd,shadow,group} synchronisation daemon
-After = udbsync.service
+After = network.service
 
 [Service]
 Type=simple

@@ -1,0 +1,12 @@
+[Unit]
+Description = .ssh/authorized_keys synchronisation daemon
+After = network.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/var/prologin/ssh
+ExecStart=/var/prologin/venv/bin/python udbsync_rootssh.py
+
+[Install]
+WantedBy=multi-user.target

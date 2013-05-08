@@ -34,7 +34,7 @@ import sys
 # It's better to have a consistent user<->uid mapping. We keep it here.
 USERS = {
     'mdb': { 'uid': 20000, 'groups': ('mdb', 'mdb_public', 'mdbsync',
-                                      'mdbsync_public') },
+                                      'mdbsync_public', 'udbsync_public') },
     'mdbsync': { 'uid': 20010, 'groups': ('mdbsync', 'mdbsync_public',
                                           'mdb_public') },
     'netboot': { 'uid': 20020, 'groups': ('netboot', 'mdb_public') },
@@ -224,6 +224,7 @@ def install_mdb():
     install_systemd_unit('mdb')
 
     install_cfg_profile('mdb-server', group='mdb')
+    install_cfg_profile('mdb-udbsync', group='mdb')
 
     if first_time:
         django_syncdb('mdb')
@@ -298,6 +299,7 @@ def install_udb():
     install_systemd_unit('udb')
 
     install_cfg_profile('udb-server', group='udb')
+    install_cfg_profile('udb-udbsync', group='udb')
 
     if first_time:
         django_syncdb('udb')
@@ -312,8 +314,16 @@ def install_udbsync():
     install_systemd_unit('udbsync')
 
 
+def install_udbsync_django():
+    requires('libprologin')
+
+    install_service_dir('udbsync_django', owner='root:root', mode=0o755)
+    install_systemd_unit('udbsync_django@')
+
+
 def install_udbsync_passwd():
     requires('libprologin')
+
     mkdir('/var/prologin/udbsync_passwd', mode=0o700, owner='root:root')
     copy(
         'udbsync_passwd/udbsync_passwd.py',
@@ -321,6 +331,13 @@ def install_udbsync_passwd():
         mode=0o700, owner='root:root'
     )
     install_systemd_unit('udbsync_passwd')
+
+
+def install_udbsync_rootssh():
+    requires('libprologin')
+
+    install_service_dir('ssh', owner='root:root', mode=0o700)
+    install_systemd_unit('udbsync_rootssh')
 
 
 def install_presencesync():
@@ -454,7 +471,9 @@ COMPONENTS = [
     'mdbdhcp',
     'udb',
     'udbsync',
+    'udbsync_django',
     'udbsync_passwd',
+    'udbsync_rootssh',
     'webservices',
     'netboot',
     'presencesync',
