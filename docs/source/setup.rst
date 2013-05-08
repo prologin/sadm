@@ -57,7 +57,7 @@ readable name::
 Install a few packages we will need::
 
   pacman -S git dhcp bind python python-pip python-virtualenv libyaml nginx \
-            sqlite dnsutils rsync
+            sqlite dnsutils rsync postgresql-libs tcpdump base-devel
 
 Create the main Python ``virtualenv`` we'll use for all our Prologin apps::
 
@@ -136,7 +136,7 @@ config generation scripts use it to automatically update the configuration when
 To check if ``mdbsync`` is working, try to register for updates::
 
   python -c 'import prologin.mdbsync; prologin.mdbsync.connect().poll_updates(print)'
-  # Should print dictvalues([]) and wait for updates
+  # Should print {} {} and wait for updates
 
 mdbdns
 ~~~~~~
@@ -155,8 +155,8 @@ so that DNS configuration can be generated::
 
   cd /var/prologin/mdb
   python3 manage.py addmachine --hostname gw --mac 11:22:33:44:55:66 \
-      --ip 192.168.1.254 --rfs 0 --hfs 0 --aliases mdb,mdbsync,ns,netboot \
-      --mtype service --room pasteur
+      --ip 192.168.1.254 --rfs 0 --hfs 0 --mtype service --room pasteur \
+      --aliases mdb,mdbsync,ns,netboot,udb,udbsync,presencesync
 
 Once this is done, ``mdbdns`` should have automagically regenerated the DNS
 configuration::
@@ -195,6 +195,18 @@ setup::
   python3 install.py netboot
   systemctl enable netboot && systemctl start netboot
   systemctl restart nginx
+
+TFTP
+~~~~
+
+The TFTP server is used by the PXE clients to fetch the first stage of the boot
+chain: the iPXE binary (more on that in the next section). We simply setup
+``tftp-hpa``::
+
+  pacman -S tftp-hpa
+  systemctl enable tftpd.socket && systemctl start tftpd.socket
+
+The TFTP server will serve files from ``/srv/tftp``.
 
 udb
 ~~~

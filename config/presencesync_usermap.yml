@@ -1,0 +1,2 @@
+map_pattern: /var/prologin/presencesync_usermap/pattern.svg
+output: /tmp/usermap.svg

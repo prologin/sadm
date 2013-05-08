@@ -1,0 +1,5 @@
+mkinitcpio-nfs-utils
+nfs-utils
+openssh
+strace
+tcpdump
