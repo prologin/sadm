@@ -502,6 +502,17 @@ Then start the service::
 
   systemctl enable bugs && systemctl start bugs
 
+Homepage
+~~~~~~~~
+
+The homepage links to all our web services. It is a simple Django app that
+allows adding links easily. Setup it using ``install.py``::
+
+  python install.py homepage
+  systemctl enable homepage && systemctl start homepage
+  systemctl enable udbsync_django@homepage
+  systemctl start udbsync_django@homepage
+
 Step 5: the matches cluster
 ---------------------------
 
