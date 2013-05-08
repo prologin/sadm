@@ -420,7 +420,7 @@ COMPONENTS = [
     'udbsync',
     'udbsync_django',
     'udbsync_passwd',
-    'udbsync_rootssh'
+    'udbsync_rootssh',
     'webservices',
     'netboot',
     'presencesync',
