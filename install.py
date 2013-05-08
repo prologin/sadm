@@ -57,6 +57,7 @@ USERS = {
     'presencesync_usermap': { 'uid': 20130,
                               'groups': ('presencesync_usermap',
                                          'presencesync_public',) },
+    'minecraft': { 'uid': 20140, 'groups': ('minecraft',) },  # FIXME: needs presencesync?
 }
 
 # Same with groups. *_public groups are used for services that need to access
@@ -82,6 +83,7 @@ GROUPS = {
     'homepage': 20110,
     'redmine': 20120,
     'presencesync_usermap': 20130,
+    'minecraft': 20140,  # FIXME: needs _public?
 }
 
 
@@ -393,6 +395,53 @@ def install_hfs():
     install_systemd_unit('hfs@')
 
 
+def install_minecraft():
+    requires('libprologin')
+    requires('nginxcfg')
+    requires('presencesync')
+
+    install_cfg_profile('minecraft', group='minecraft')
+
+    mkdir(
+        '/var/prologin/minecraft',
+        mode=0o755, owner='minecraft:minecraft'
+    )
+
+    copy(
+        'minecraft/static',
+        '/var/prologin/minecraft/static',
+        mode=0o755, owner='minecraft:minecraft'
+    )
+    mkdir(
+        '/var/prologin/minecraft/static/resources',
+        mode=0o755, owner='minecraft:minecraft'
+    )
+
+    with cwd('/var/prologin/minecraft'):
+        # download static resources once (this takes time!)
+        # and create shared servers.dat
+        os.system('python setup.py')
+
+    copy(
+        'minecraft/server',
+        '/var/prologin/minecraft/server',
+        mode=0o700, owner='minecraft:minecraft'
+    )
+
+    install_nginx_service('minecraft-skins')
+    install_nginx_service('minecraft')
+
+    install_systemd_unit('minecraft-skins')
+    install_systemd_unit('minecraft')
+
+    # TODO:
+    # for each user machine:
+    #   mkdir ~/.minecraft
+    #   ln -s /var/prologin/minecraft/static/bin ~/.minecraft/bin
+    #   ln -s /var/prologin/minecraft/static/resources ~/.minecraft/resources
+    #   ln -s /var/prologin/minecraft/static/servers.dat ~/.minecraft/servers.dat
+    #   provide the minecraft/client/*.py tools for the user
+
 
 COMPONENTS = [
     'libprologin',
@@ -413,6 +462,7 @@ COMPONENTS = [
     'presencesync_usermap',
     'rfs',
     'hfs',
+    'minecraft',
 ]
 
 
