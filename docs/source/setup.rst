@@ -196,6 +196,18 @@ setup::
   systemctl enable netboot && systemctl start netboot
   systemctl restart nginx
 
+TFTP
+~~~~
+
+The TFTP server is used by the PXE clients to fetch the first stage of the boot
+chain: the iPXE binary (more on that in the next section). We simply setup
+``tftp-hpa``::
+
+  pacman -S tftp-hpa
+  systemctl enable tftpd.socket && systemctl start tftpd.socket
+
+The TFTP server will serve files from ``/srv/tftp``.
+
 udb
 ~~~
 
