@@ -65,7 +65,8 @@ if PAM_TYPE == 'open_session':
     # Request HOME directory migration and wait for it.
     hfs = prologin.hfs.connect()
     try:
-        host, port = hfs.get_hfs(login, socket.gethostname())
+        hostname = '.'.join(socket.gethostname().split('.')[:-1])
+        host, port = hfs.get_hfs(login, hostname)
     except RuntimeError as e:
         fail(str(e))
 
