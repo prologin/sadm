@@ -114,17 +114,16 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
     def get_argument(self, name):
         """Returns the value of the GET argument called <name>. If it does not
         exist, send an error page."""
-        qs = self.path.split('?', 1)
-        if len(qs) != 2:
+        qs = self.post_data.decode('utf-8')
+        args = urllib.parse.parse_qs(qs)
+        data = json.loads(args['data'][0])
+        if name not in data:
             raise ArgumentMissing(name)
-        else:
-            qs = qs[1]
-            args = urllib.parse.parse_qs(qs)
-            if name not in args:
-                raise ArgumentMissing(name)
-            return args[name][0]
+        return data[name]
 
-    def do_GET(self):
+    def do_POST(self):
+        rfile_len = int(self.headers['content-length'])
+        self.post_data = self.rfile.read(rfile_len)
         try:
             if self.path.startswith('/get_hfs'):
                 self.get_hfs()
@@ -200,7 +199,10 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
         if self.user in RUNNING_NBD:
             # To make sure we don't have two machines writing on the same NBD
             # (would be very, very troublesome).
-            os.kill(RUNNING_NBD[self.user]['pid'], signal.SIGKILL)
+            try:
+                os.kill(RUNNING_NBD[self.user]['pid'], signal.SIGKILL)
+            except Exception:
+                pass
             del RUNNING_NBD[self.user]
 
     def get_nbd_size(self):
