@@ -19,6 +19,7 @@ import prologin.presenced
 import socket
 import subprocess
 import sys
+import time
 
 
 sys.stderr = open('/tmp/pam_log', 'w')
@@ -90,6 +91,7 @@ if PAM_TYPE == 'open_session':
 elif PAM_TYPE == 'close_session':
     if is_prologin_user:
         subprocess.check_call(['/usr/bin/pkill', '-9', '-u', login])
+        time.sleep(2)
         subprocess.check_call(['/bin/umount', get_home_dir(login)])
         subprocess.check_call(['/usr/sbin/nbd-client', '-d', get_block_device(login)])
     sys.exit(0)
