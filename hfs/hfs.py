@@ -60,6 +60,8 @@ import sys
 import urllib.parse
 import urllib.request
 
+from socketserver import ThreadingMixIn
+
 CFG = prologin.config.load('hfs-server')
 CLT_CFG = prologin.config.load('hfs-client')
 
@@ -292,11 +294,14 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
                             break
                         fp.write(block)
 
+class ThHTTPServer(http.server.HTTPServer, ThreadingMixIn):
+    pass
+
 if __name__ == '__main__':
     prologin.log.setup_logging('hfs')
     if len(sys.argv) != 2:
         print('usage: %s <iface>' % sys.argv[0])
         sys.exit(1)
-    server = http.server.HTTPServer((get_iface_ip(sys.argv[1]), CFG['port']),
-                                    HFSRequestHandler)
+    server = ThHTTPServer((get_iface_ip(sys.argv[1]), CFG['port']),
+                          HFSRequestHandler)
     server.serve_forever()
