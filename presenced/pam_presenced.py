@@ -73,10 +73,11 @@ if PAM_TYPE == 'open_session':
     block_device = get_block_device(login)
     home_dir = get_home_dir(login)
 
-    # Create the HOME mount point if needed.
-    if not os.path.exists(home_dir):
-        # There is no need to fix permissions: this is only a mount point.
-        os.mkdir(home_dir)
+    # Delete and recreate the mount point if needed.
+    if os.path.exists(home_dir):
+        os.rmdir(home_dir)
+    # There is no need to fix permissions: this is only a mount point.
+    os.mkdir(home_dir)
 
     # Get a block device for the HOME mount point and mount it.
     if subprocess.check_call(['/usr/sbin/nbd-client', host, str(port),
