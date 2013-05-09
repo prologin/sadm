@@ -44,8 +44,8 @@ reboot
 
 BOOT_SCRIPT = """#!ipxe
 echo Booting the kernel on %(rfs_ip)s:/nfsroot
-initrd http://netboot/static/initrd
-boot http://netboot/static/kernel nfsroot=%(rfs_ip)s:/export/nfsroot %(options)s
+initrd http://netboot/static/initrd%(suffix)s
+boot http://netboot/static/kernel%(suffix)s nfsroot=%(rfs_ip)s:/export/nfsroot %(options)s
 """
 
 REGISTER_ERROR_SCRIPT = """#!ipxe
@@ -73,7 +73,11 @@ class BootHandler(tornado.web.RequestHandler):
         rfs_hostname = 'rfs%d' % machine['rfs']
         rfs = prologin.mdb.connect().query(aliases__contains=rfs_hostname)
         rfs_ip = rfs[0]['ip']
-        script = BOOT_SCRIPT % { 'rfs_ip': rfs_ip,
+        if machine['room'] == 'masters':
+            suffix = '-masters'
+        else:
+            suffix = ''
+        script = BOOT_SCRIPT % { 'rfs_ip': rfs_ip, 'suffix': suffix,
                                  'options': CFG['options'] }
         self.finish(script)
 
