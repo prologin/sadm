@@ -73,11 +73,10 @@ if PAM_TYPE == 'open_session':
     block_device = get_block_device(login)
     home_dir = get_home_dir(login)
 
-    # Delete and recreate the mount point if needed.
-    if os.path.exists(home_dir):
-        os.rmdir(home_dir)
-    # There is no need to fix permissions: this is only a mount point.
-    os.mkdir(home_dir)
+    # Create the HOME mount point if needed.
+    if not os.path.exists(home_dir):
+        # There is no need to fix permissions: this is only a mount point.
+        os.mkdir(home_dir)
 
     # Get a block device for the HOME mount point and mount it.
     if subprocess.check_call(['/usr/sbin/nbd-client', host, str(port),
@@ -90,7 +89,8 @@ if PAM_TYPE == 'open_session':
 
 elif PAM_TYPE == 'close_session':
     if is_prologin_user:
-        subprocess.check_call(['/bin/umount', '-l', get_home_dir(login)])
+        subprocess.check_call(['/usr/bin/pkill', '-9', '-u', login])
+        subprocess.check_call(['/bin/umount', get_home_dir(login)])
         subprocess.check_call(['/usr/sbin/nbd-client', '-d', get_block_device(login)])
     sys.exit(0)
 
