@@ -281,6 +281,7 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
         url = urllib.parse.urlunsplit(url)
         data = 'user=%s&hfs=%d' % (self.user, peer_id)
         data = 'data=%s' % (urllib.parse.quote(json.dumps(data)))
+        data = data.encode('utf-8')
 
         with open(self.nbd_filename(), 'wb') as fp:
             with urllib.request.urlopen(url, data=data) as rfp:
