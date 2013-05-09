@@ -495,7 +495,7 @@ Create the database structure and populate it with the default data::
 Set the FS permissions::
 
   mkdir -p tmp tmp/pdf public/plugin_assets
-  chown -R redmine:http files log tmp public/plugin_assets
+  chown -R redmine:redmine files log tmp public/plugin_assets
   chmod -R 775 files log tmp tmp/pdf public/plugin_assets
 
 Then start the service::
