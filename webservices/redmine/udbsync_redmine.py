@@ -4,6 +4,7 @@
 import os
 import subprocess
 import prologin.udbsync
+import sys
 
 runner = '/var/prologin/bugs/scripts/rails'
 
@@ -40,17 +41,17 @@ def callback(users, updates_metadata):
             subprocess.call([runner, 'runner',
                 create_command.format(
                     l=l, n=users[l]['realname'], p=users[l]['password'])
-            ], env=env)
+            ], env=env, stdout=sys.stdout, stderr=sys.stderr)
         elif status == 'deleted':
             subprocess.call([runner, 'runner',
                 delete_command.format(
                     l=l, p=users[l]['password'])
-            ], env=env)
+            ], env=env, stdout=sys.stdout, stderr=sys.stderr)
         elif status == 'updated':
             subprocess.call([runner, 'runner',
                 update_command.format(
                     l=l, p=users[l]['password'])
-            ], env=env)
+            ], env=env, stdout=sys.stdout, stderr=sys.stderr)
     
         
 c = prologin.udbsync.connect()
