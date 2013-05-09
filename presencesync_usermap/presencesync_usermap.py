@@ -60,7 +60,7 @@ def fill_machine(text, login=None):
         tspan.set('style', style)
 
 
-def generate(logins, map_pattern, output):
+def generate(host_to_login, map_pattern, output):
     """Write the SVG user map into the `output` using the `map_pattern`
     readable file and the `logins` -> hostname mapping.
     """
@@ -72,17 +72,21 @@ def generate(logins, map_pattern, output):
             text[1].tag == TSPAN_TAG
         ):
             machine_name = text[0].text
-            login = logins.get(machine_name, None)
+            login = host_to_login.get(machine_name, None)
             fill_machine(text, login)
 
     tree.write(output, encoding='utf-8', xml_declaration=True)
 
 def callback(logins, updates_metadata):
+    host_to_login = {
+        entry['hostname']: entry['login']
+        for entry in logins.values()
+    }
     logging.info('Upgrade using updates')
     try:
         with open(CFG['map_pattern'], 'rb') as map_pattern:
             with open(CFG['output'], 'wb') as output:
-                generate(logins, map_pattern, output)
+                generate(host_to_login, map_pattern, output)
     except IOError as e:
         logging.exception('Cannot open files')
     except ET.ParseError as e:
