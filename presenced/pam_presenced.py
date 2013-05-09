@@ -89,8 +89,8 @@ if PAM_TYPE == 'open_session':
 
 elif PAM_TYPE == 'close_session':
     if is_prologin_user:
-        subprocess.check_call(['/bin/umount', get_home_dir(login)])
-        subprocess.check_call(['/usr/sbin/ndb-client', '-d', get_block_device(login)])
+        subprocess.check_call(['/bin/umount', '-l', get_home_dir(login)])
+        subprocess.check_call(['/usr/sbin/nbd-client', '-d', get_block_device(login)])
     sys.exit(0)
 
 else:
