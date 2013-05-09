@@ -57,6 +57,7 @@ USERS = {
     'presencesync_usermap': { 'uid': 20130,
                               'groups': ('presencesync_usermap',
                                          'presencesync_public',) },
+    'minecraft': { 'uid': 20140, 'groups': ('minecraft',) },  # FIXME: needs presencesync?
 }
 
 # Same with groups. *_public groups are used for services that need to access
@@ -82,7 +83,9 @@ GROUPS = {
     'homepage': 20110,
     'redmine': 20120,
     'presencesync_usermap': 20130,
+    'minecraft': 20140,  # FIXME: needs _public?
 }
+
 
 # Helper functions for installation procedures.
 
@@ -109,6 +112,21 @@ def copy(old, new, mode=0o600, owner='root:root'):
     os.chmod(new, mode)
     user, group = owner.split(':')
     shutil.chown(new, user, group)
+
+
+def copytree(old, new, dir_mode=0o700, file_mode=0o600, owner='root:root'):
+    shutil.copytree(old, new)
+    user, group = owner.split(':')
+    for root, dirs, files in os.walk(new):
+        for momo in dirs:
+            path = os.path.join(root, momo)
+            os.chmod(path, dir_mode)
+            shutil.chown(path, user, group)
+        for momo in files:
+            path = os.path.join(root, momo)
+            os.chmod(path, file_mode)
+            shutil.chown(path, user, group)
+
 
 CFG_TO_REVIEW = []
 def install_cfg(path, dest_dir, owner='root:root', mode=0o600):
@@ -163,6 +181,7 @@ def django_syncdb(name, user=None):
         cmd = 'su -c "/var/prologin/venv/bin/python manage.py syncdb" '
         cmd += user
         os.system(cmd)
+
 
 # Component specific installation procedures
 
@@ -368,6 +387,7 @@ def install_presencesync():
     install_nginx_service('presencesync')
     install_systemd_unit('presencesync')
 
+
 def install_presenced():
     requires('libprologin')
     requires('nginxcfg')
@@ -429,6 +449,56 @@ def install_hfs():
     install_cfg_profile('hfs-server', group='hfs')
 
 
+def install_minecraft():
+    requires('libprologin')
+    requires('nginxcfg')
+    requires('presencesync')
+
+    install_cfg_profile('minecraft', group='minecraft')
+
+    mkdir(
+        '/var/prologin/minecraft',
+        mode=0o755, owner='minecraft:minecraft'
+    )
+
+    copytree(
+        'minecraft/static',
+        '/var/prologin/minecraft/static',
+        dir_mode=0o755, file_mode=0o644,
+        owner='minecraft:minecraft'
+    )
+
+    mkdir(
+        '/var/prologin/minecraft/static/resources',
+        mode=0o755, owner='minecraft:minecraft'
+    )
+
+    copytree(
+        'minecraft/server',
+        '/var/prologin/minecraft/server',
+        dir_mode=0o700, file_mode=0o600,
+        owner='minecraft:minecraft'
+    )
+
+    with cwd('/var/prologin/minecraft'):
+        # download static resources once (this takes time!)
+        # and create shared servers.dat
+        os.system('python setup.py')
+
+    install_nginx_service('minecraft-skins')
+    install_nginx_service('minecraft')
+
+    install_systemd_unit('minecraft-skins')
+    install_systemd_unit('minecraft')
+
+    # TODO:
+    # for each user machine:
+    #   mkdir ~/.minecraft
+    #   ln -s /var/prologin/minecraft/static/bin ~/.minecraft/bin
+    #   ln -s /var/prologin/minecraft/static/resources ~/.minecraft/resources
+    #   ln -s /var/prologin/minecraft/static/servers.dat ~/.minecraft/servers.dat
+    #   provide the minecraft/client/*.py tools for the user
+
 
 COMPONENTS = [
     'libprologin',
@@ -453,7 +523,9 @@ COMPONENTS = [
     'presencesync_usermap',
     'rfs',
     'hfs',
+    'minecraft',
 ]
+
 
 # Runtime helpers: requires() function and user/groups handling
 
@@ -501,6 +573,7 @@ def sync_users():
                 cmd += ' -G %s' % ','.join(other_grps)
             cmd += ' ' + user
             os.system(cmd)
+
 
 if __name__ == '__main__':
     os.umask(0)  # Trust our chmods.
