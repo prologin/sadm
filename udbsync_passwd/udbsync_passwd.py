@@ -16,6 +16,7 @@
 
 import collections
 import datetime
+import functools
 import logging
 import os
 import prologin.config
@@ -84,7 +85,7 @@ class BufferFile:
         self.f.close()
         shutil.move(self.temp_path, self.filepath)
 
-def callback(users, updates_metadata):
+def callback(root_path, users, updates_metadata):
     logging.info('New updates: {!r}'.format(updates_metadata))
 
     passwd_users = {}
@@ -92,7 +93,7 @@ def callback(users, updates_metadata):
     groups = {}
 
     # First, parse /etc/passwd to get users that are not handled by Prologin.
-    with open('/etc/passwd', 'r') as f:
+    with open(os.path.join(root_path, 'etc/passwd'), 'r') as f:
         for line in f:
             line = line.rstrip('\n')
             m = USER_PATTERN.match(line)
@@ -114,7 +115,7 @@ def callback(users, updates_metadata):
                 return
 
     # Then, parse /etc/shadow to get passwords.
-    with open('/etc/shadow', 'r') as f:
+    with open(os.path.join(root_path, 'etc/shadow'), 'r') as f:
         for line in f:
             line = line.rstrip('\n')
             m = SHADOW_PATTERN.match(line)
@@ -126,7 +127,7 @@ def callback(users, updates_metadata):
                 return
 
     # Parse /etc/group to get... groups!
-    with open('/etc/group', 'r') as f:
+    with open(os.path.join(root_path, 'etc/group'), 'r') as f:
         for line in f:
             line = line.rstrip('\n')
             m = GROUP_PATTERN.match(line)
@@ -218,7 +219,7 @@ def callback(users, updates_metadata):
     sorted_groups.sort(key=lambda g: g.gid)
 
     # Finally, output updated files.
-    with BufferFile('/etc/passwd', PASSWD_PERMS) as f:
+    with BufferFile(os.path.join(root_path, 'etc/passwd'), PASSWD_PERMS) as f:
         for user in sorted_users:
             print(
                 '{0.login}:{0.password}'
@@ -228,7 +229,7 @@ def callback(users, updates_metadata):
                 file=f
             )
 
-    with BufferFile('/etc/shadow', SHADOW_PERMS) as f:
+    with BufferFile(os.path.join(root_path, 'etc/shadow'), SHADOW_PERMS) as f:
         for user in sorted_users:
             try:
                 shadow = shadow_passwords[user.login]
@@ -237,7 +238,7 @@ def callback(users, updates_metadata):
             else:
                 print('{}:{}'.format(user.login, shadow), file=f)
 
-    with BufferFile('/etc/group', GROUP_PERMS) as f:
+    with BufferFile(os.path.join(root_path, 'etc/group'), GROUP_PERMS) as f:
         for group in sorted_groups:
             print(
                 '{0.name}:{0.password}:{0.gid}:{1}'.format(
@@ -250,5 +251,10 @@ def callback(users, updates_metadata):
 
 
 if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        root_path = '/'
+    else:
+        root_path = sys.argv[1]
     prologin.log.setup_logging('udbsync_passwd')
+    callback = functools.partial(callback, root_path)
     prologin.udbsync.connect().poll_updates(callback)
