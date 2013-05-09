@@ -1,0 +1,12 @@
+[Unit]
+Description = /etc/{passwd,shadow,group} synchronisation daemon for nfsroot
+After = network.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/var/prologin/udbsync_passwd
+ExecStart=/var/prologin/venv/bin/python udbsync_passwd.py /export/nfsroot
+
+[Install]
+WantedBy=multi-user.target

@@ -3,3 +3,10 @@ nfs-utils
 openssh
 strace
 tcpdump
+git
+dhcpcd
+devtools
+grub-bios
+mercurial
+parted
+ntp

@@ -14,17 +14,23 @@ close_session, try to unmount it.
 import os
 import os.path
 import prologin.hfs
+import prologin.log
 import prologin.presenced
 import socket
 import subprocess
 import sys
+import time
+
+
+sys.stderr = open('/tmp/pam_log', 'w')
+prologin.log.setup_logging('pam_presenced')
 
 
 def get_home_dir(login):
     return '/home/{}'.format(login)
 
 def get_block_device(login):
-    return '/dev/ndb{}'.format(login)
+    return '/dev/nbd0'
 
 def fail(reason):
     # TODO: be sure the user can see the reason.
@@ -49,18 +55,19 @@ if PAM_TYPE == 'open_session':
 
     # Prologin users must use a display manager (not a TTY, nor screen).
     if PAM_SERVICE not in ('gdm', 'kdm', 'slim', 'xdm'):
-        fail('Please log in the graphical display manager')
+        print('Please log in the graphical display manager')
 
     # Request the login to Presencd and PresenceSync.
     failure_reason = prologin.presenced.connect().request_login(login)
-    if failure_reason:
+    if failure_reason is not None:
         # Login is forbidden by presenced.
         fail('Login forbidden: {}'.format(failure_reason))
 
     # Request HOME directory migration and wait for it.
     hfs = prologin.hfs.connect()
     try:
-        host, port = hfs.get_hfs(login, socket.gethostname())
+        hostname = '.'.join(socket.gethostname().split('.')[:-1])
+        host, port = hfs.get_hfs(login, hostname)
     except RuntimeError as e:
         fail(str(e))
 
@@ -73,17 +80,20 @@ if PAM_TYPE == 'open_session':
         os.mkdir(home_dir)
 
     # Get a block device for the HOME mount point and mount it.
-    if subprocess.check_call(['nbd-client', '{}:{}', block_device]):
+    if subprocess.check_call(['/usr/sbin/nbd-client', host, str(port),
+                              block_device]):
         fail('Cannot get the home directory block device')
-    if subprocess.check_call(['mount', block_device, home_dir]):
+    if subprocess.check_call(['/bin/mount', block_device, home_dir]):
         fail('Cannot mount the home directory')
 
     sys.exit(0)
 
 elif PAM_TYPE == 'close_session':
     if is_prologin_user:
-        subprocess.check_call(['umount', get_home_dir(login)])
-        subprocess.check_call(['ndb-client', '-d', get_block_device(login)])
+        subprocess.check_call(['/usr/bin/pkill', '-9', '-u', login])
+        time.sleep(2)
+        subprocess.check_call(['/bin/umount', get_home_dir(login)])
+        subprocess.check_call(['/usr/sbin/nbd-client', '-d', get_block_device(login)])
     sys.exit(0)
 
 else:

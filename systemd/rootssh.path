@@ -1,0 +1,9 @@
+[Unit]
+Description=Copy ~root/.ssh/authorized_keys to NFS root
+
+[Path]
+PathChanged=/root/.ssh/authorized_keys
+Unit=rootssh-copy.service
+
+[Install]
+WantedBy=multi-user.target

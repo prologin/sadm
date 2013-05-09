@@ -52,8 +52,9 @@ class Client(prologin.webapi.Client):
             '/login', self.secret,
             {'login': login}
         )
+        logging.debug('Request login status code: {}'.format(r.status_code))
         if r.status_code != 200:
-            return r.text
+            return r.text or 'No reason given'
         else:
             return None
 

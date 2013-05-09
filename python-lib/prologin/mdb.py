@@ -57,13 +57,15 @@ class _MDBClient:
         are:
           hostname: the machine name and any of its aliases
           ip: the machine IP address
+          aliases: the machine aliases
           mac: the machine MAC address
           rfs: nearest root file server
           hfs: nearest home file server
           mtype: machine type, either user/orga/cluster/service
           room: physical room location, either pasteur/masters/cluster/other
         """
-        fields = { 'hostname', 'ip', 'mac', 'rfs', 'hfs', 'mtype', 'room' }
+        fields = { 'hostname', 'ip', 'aliases', 'mac', 'rfs', 'hfs', 'mtype',
+                   'room' }
         for q in kwargs:
             base = q.split('_')[0]
             if base not in fields:

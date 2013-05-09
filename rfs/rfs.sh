@@ -10,7 +10,7 @@ echo KEYMAP=us > /etc/vconsole.conf
 locale-gen
 ssh-keygen -A
 mkinitcpio -p linux
-for svc in sshd.service; do
+for svc in {sshd,ntpd}.service; do
   systemctl enable "$svc"
 done
 
