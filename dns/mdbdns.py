@@ -98,7 +98,8 @@ def build_alien_prolo_zone():
 def build_normal_prolo_zone(machines):
     records = []
     for m in machines:
-        names = [m['hostname']] + [s.strip() for s in m['aliases'].split(',')]
+        names = [m['hostname']] + [s.strip() for s in m['aliases'].split(',')
+                                             if s.strip()]
         for n in names:
             records.append((n, 'IN', 'A', m['ip']))
     build_zone('prolo_normal', records)
