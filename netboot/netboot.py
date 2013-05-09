@@ -43,7 +43,7 @@ reboot
 """
 
 BOOT_SCRIPT = """#!ipxe
-echo Booting the kernel on rfs%(rfs)d:/nfsroot
+echo Booting the kernel on %(rfs_ip)s:/nfsroot
 initrd http://netboot/static/initrd
 boot http://netboot/static/kernel nfsroot=%(rfs_ip)s:/export/nfsroot %(options)s
 """
