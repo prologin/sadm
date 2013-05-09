@@ -61,7 +61,7 @@ import urllib.parse
 import urllib.request
 
 CFG = prologin.config.load('hfs-server')
-CLT_CFG = prologin.config.loat('hfs-client')
+CLT_CFG = prologin.config.load('hfs-client')
 
 if 'shared_secret' not in CLT_CFG:
     raise RuntimeError('Missing shared_secret in the hfs-client YAML config')
