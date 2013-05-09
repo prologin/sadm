@@ -37,7 +37,7 @@ import tornado.web
 
 CLT_CFG = prologin.config.load('presenced-client')
 
-HOSTNAME = socket.gethostname().split('.')[:-1]  # Remove .prolo
+HOSTNAME = '.'.join(socket.gethostname().split('.')[:-1])  # Remove .prolo
 
 if 'shared_secret' not in CLT_CFG:
     raise RuntimeError(
