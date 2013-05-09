@@ -37,7 +37,7 @@ import tornado.web
 
 CLT_CFG = prologin.config.load('presenced-client')
 
-HOSTNAME = socket.gethostname()
+HOSTNAME = '.'.join(socket.gethostname().split('.')[:-1])  # Remove .prolo
 
 if 'shared_secret' not in CLT_CFG:
     raise RuntimeError(
@@ -88,7 +88,7 @@ class LoginHandler(tornado.web.RequestHandler):
         result = self.application.presencesync.request_login(
             login, HOSTNAME
         )
-        if result:
+        if result is not None:
             self.set_status(423, 'Login refused')
             self.write(result)
         else:

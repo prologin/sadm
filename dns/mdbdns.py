@@ -76,9 +76,7 @@ def build_alien_revdns_zone():
 
 
 def build_machines_revdns_zone(machines, mtype, ip):
-    machines = [m for m in machines if m['mtype'] == mtype]
-    if mtype == 'user':  # hack: orga machines are like user machines
-        machines.extend(m for m in machines if m['mtype'] == 'orga')
+    machines = [m for m in machines if m['mtype'] in mtype]
 
     records = [
         (m['ip'].split('.')[-1], 'IN', 'PTR', '%s.prolo.' % m['hostname'])
@@ -98,7 +96,8 @@ def build_alien_prolo_zone():
 def build_normal_prolo_zone(machines):
     records = []
     for m in machines:
-        names = [m['hostname']] + [s.strip() for s in m['aliases'].split(',')]
+        names = [m['hostname']] + [s.strip() for s in m['aliases'].split(',')
+                                             if s.strip()]
         for n in names:
             records.append((n, 'IN', 'A', m['ip']))
     build_zone('prolo_normal', records)
@@ -113,9 +112,9 @@ def update_dns_config(machines_map, metadata):
 
     logging.warning("MDB update received, generating zones")
     build_alien_revdns_zone()
-    build_machines_revdns_zone(machines, 'user', '0.168.192')
-    build_machines_revdns_zone(machines, 'service', '1.168.192')
-    build_machines_revdns_zone(machines, 'cluster', '2.168.192')
+    build_machines_revdns_zone(machines, {'user', 'orga'}, '0.168.192')
+    build_machines_revdns_zone(machines, {'service'}, '1.168.192')
+    build_machines_revdns_zone(machines, {'cluster'}, '2.168.192')
     build_alien_prolo_zone()
     build_normal_prolo_zone(machines)
 

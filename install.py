@@ -199,6 +199,7 @@ def install_libprologin():
     install_cfg_profile('presencesync-pub', group='presencesync')
     install_cfg_profile('presencesync-sub', group='presencesync_public')
     install_cfg_profile('presenced-client', group='presenced')
+    install_cfg_profile('hfs-client', group='hfs_public')
 
 
 def install_nginxcfg():
@@ -225,6 +226,10 @@ def install_bindcfg():
 def install_dhcpdcfg():
     install_cfg('dhcp/dhcpd.conf', '/etc', owner='root:root', mode=0o640)
     mkdir('/etc/dhcpd', mode=0o770, owner='root:mdbdhcp')
+
+
+def install_sshdcfg():
+    install_cfg('ssh/sshd_config', '/etc/ssh', owner='root:root', mode=0o644)
 
 
 def install_mdb():
@@ -441,6 +446,7 @@ def install_hfs():
 
     install_service_dir('hfs', owner='hfs:hfs', mode=0o700)
     install_systemd_unit('hfs@')
+    install_cfg_profile('hfs-server', group='hfs')
 
 
 def install_minecraft():
@@ -499,6 +505,7 @@ COMPONENTS = [
     'bindcfg',
     'nginxcfg',
     'dhcpdcfg',
+    'sshdcfg',
     'mdb',
     'mdbsync',
     'mdbdns',

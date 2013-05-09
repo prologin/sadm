@@ -1,2 +1,2 @@
 static_path: /srv/tftp
-options: init=/bin/sh
+options: root=/dev/nfs ip=:::::eth0:dhcp nosplash

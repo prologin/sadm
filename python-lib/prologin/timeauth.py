@@ -24,7 +24,7 @@ import time
 
 
 # Validity time (in seconds) of a generated token.
-TOKEN_TIMEOUT = 10
+TOKEN_TIMEOUT = 120
 
 
 def generate_token(secret, message=None):

@@ -52,8 +52,12 @@ class Client(prologin.synchronisation.Client):
             '/login', self.pub_secret,
             {'login': login, 'hostname': hostname}
         )
+        logging.debug(
+            'Request login:'
+            ' PresenceSync status code is {}'.format(r.status_code)
+        )
         if r.status_code != 200:
-            return r.text
+            return r.text or 'No reason given'
         else:
             return None
 
