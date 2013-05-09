@@ -279,7 +279,7 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
         url = ('http', 'hfs%d:%d' % (peer_id, CFG['port']), '/migrate_user',
                '', '')
         url = urllib.parse.urlunsplit(url)
-        data = 'user=%s&hfs=%d' % (self.user, peer_id)
+        data = { 'user': self.user, 'hfs': peer_id }
         data = 'data=%s' % (urllib.parse.quote(json.dumps(data)))
         data = data.encode('utf-8')
 
