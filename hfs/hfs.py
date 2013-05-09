@@ -133,6 +133,8 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
                 self.send_error(404)
         except ArgumentMissing as e:
             self.send_error(400, message=str(e))
+        except Exception:
+            logging.exception('Something wrong happened')
 
     def migrate_user(self):
         # If we have a nbd-server for that user, kill it.
