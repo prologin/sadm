@@ -43,6 +43,7 @@ def signature_checked(secret_name, check_msg=False):
             ):
                 logging.error('INVALID TOKEN!')
                 self.set_status(403, 'Invalid token')
+                self.write('Invalid token')
             else:
                 return func(self, self.get_argument('data'))
 
