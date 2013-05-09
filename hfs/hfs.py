@@ -274,12 +274,14 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
         # TODO(delroth): replace the wget by something using urllib
         self.check_available_space()
 
-        url = ('http', 'hfs%d:%d' % (peer_id, CFG['port']),
-               '/migrate_user', 'user=%s&hfs=%d' % (self.user, peer_id), '')
+        url = ('http', 'hfs%d:%d' % (peer_id, CFG['port']), '/migrate_user',
+               '', '')
         url = urllib.parse.urlunsplit(url)
+        data = 'user=%s&hfs=%d' % (self.user, peer_id)
+        data = 'data=%s' % (urllib.parse.quote(json.dumps(data)))
 
         with open(self.nbd_filename(), 'wb') as fp:
-            with urllib.request.urlopen(url) as rfp:
+            with urllib.request.urlopen(url, data=data) as rfp:
                 with gzip.GzipFile(fileobj=rfp, mode='rb') as zfp:
                     while True:
                         block = zfp.read(65536)
