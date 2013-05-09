@@ -1,0 +1,8 @@
++------ DISCLAIMER -------+
+|   Nothing was tested!   |
++-------------------------+
+
+- In install.py (see comments in install_minecraft):
+    - symbolic links in user homes
+    - create fake host from `skins.minecraft.net` to `minecraft-skins`
+    - provide minecraft/client/{skin,launch}.py to users in a way or another

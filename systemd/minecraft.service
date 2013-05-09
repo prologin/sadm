@@ -1,0 +1,12 @@
+[Unit]
+Description = Minecraft Server
+After = minecraft-skins.service
+
+[Service]
+Type=simple
+User=minecraft
+WorkingDirectory=/var/prologin/minecraft/server
+ExecStart=/var/prologin/venv/bin/python run.py
+
+[Install]
+WantedBy=multi-user.target
