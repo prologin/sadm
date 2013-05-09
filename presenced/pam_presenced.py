@@ -59,7 +59,7 @@ if PAM_TYPE == 'open_session':
 
     # Request the login to Presencd and PresenceSync.
     failure_reason = prologin.presenced.connect().request_login(login)
-    if failure_reason:
+    if failure_reason is not None:
         # Login is forbidden by presenced.
         fail('Login forbidden: {}'.format(failure_reason))
 

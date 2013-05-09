@@ -88,7 +88,7 @@ class LoginHandler(tornado.web.RequestHandler):
         result = self.application.presencesync.request_login(
             login, HOSTNAME
         )
-        if result:
+        if result is not None:
             self.set_status(423, 'Login refused')
             self.write(result)
         else:
