@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
-User=hfs
+User=root
 WorkingDirectory=/var/prologin/hfs
 ExecStart=/var/prologin/venv/bin/python hfs.py %i
 
