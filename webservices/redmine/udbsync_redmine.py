@@ -12,15 +12,11 @@ env = os.environ.copy()
 env['RAILSENV'] = 'production'
 
 create_command = '''
-begin
-    user = User.find_by_login('{l}')
-rescue
-    user = User.new({{:firstname => "{n}",:lastname=>"",:mail=>"{l}@example.com"}})
+    user = User.new({{:firstname => "{l}",:lastname=>"{l}",:mail=>"{l}@example.com"}})
     user.login = '{l}'
     user.password = '{p}'
     user.password_confirmation = '{p}'
     user.save
-end
 '''
 
 delete_command = '''
@@ -39,17 +35,17 @@ def callback(users, updates_metadata):
     commands = []
     for l, status in updates_metadata.items():
         if status == 'created':
-            commands.append(create_command.format(
-                l=l, n=users[l]['realname'], p=users[l]['password']))
+            commands.append(create_command.format(l=l, p=users[l]['password']))
         elif status == 'deleted':
             commands.append(delete_command.format(l=l, p=users[l]['password']))
         elif status == 'updated':
             commands.append(update_command.format(l=l, p=users[l]['password']))
 
-    print(commands)
+    with open('synctmp.rb', 'w', encoding='utf8') as f:
+        f.write('\n'.join(commands))
 
-    subprocess.call([runner, 'runner', '-e', 'production'
-        '\n'.join(commands)
+    print('Calling rails runner...')
+    subprocess.call([runner, 'runner', '-e', 'production', 'synctmp.rb'
     ], env=env, stdout=sys.stdout, stderr=sys.stderr)
 
 
