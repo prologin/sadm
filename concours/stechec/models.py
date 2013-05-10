@@ -71,7 +71,7 @@ class Champion(models.Model):
     def compilation_log(self):
         this_dir = self.directory
         try:
-            return open(os.path.join(this_dir, "compilation.log")).read().decode('iso-8859-15')
+            return open(os.path.join(this_dir, "compilation.log"), 'rb').read().decode('iso-8859-15')
         except Exception as e:
             return str(e)
 
