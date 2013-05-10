@@ -36,23 +36,22 @@ user.save!
 '''
 
 def callback(users, updates_metadata):
+    commands = []
     for l, status in updates_metadata.items():
         if status == 'created':
-            subprocess.call([runner, 'runner',
-                create_command.format(
-                    l=l, n=users[l]['realname'], p=users[l]['password'])
-            ], env=env, stdout=sys.stdout, stderr=sys.stderr)
+            commands.append(create_command.format(
+                l=l, n=users[l]['realname'], p=users[l]['password']))
         elif status == 'deleted':
-            subprocess.call([runner, 'runner',
-                delete_command.format(
-                    l=l, p=users[l]['password'])
-            ], env=env, stdout=sys.stdout, stderr=sys.stderr)
+            commands.append(delete_command.format(l=l, p=users[l]['password']))
         elif status == 'updated':
-            subprocess.call([runner, 'runner',
-                update_command.format(
-                    l=l, p=users[l]['password'])
-            ], env=env, stdout=sys.stdout, stderr=sys.stderr)
-    
-        
+            commands.append(update_command.format(l=l, p=users[l]['password']))
+
+    print(commands)
+
+    subprocess.call([runner, 'runner', '-e', 'production'
+        '\n'.join(commands)
+    ], env=env, stdout=sys.stdout, stderr=sys.stderr)
+
+
 c = prologin.udbsync.connect()
 c.poll_updates(callback, watch={'password'})
