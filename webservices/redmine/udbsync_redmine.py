@@ -6,7 +6,7 @@ import subprocess
 import prologin.udbsync
 import sys
 
-runner = '/var/prologin/bugs/scripts/rails'
+runner = '/var/prologin/bugs/script/rails'
 
 env = os.environ.copy()
 env['RAILSENV'] = 'production'
