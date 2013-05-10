@@ -13,7 +13,7 @@ env['RAILSENV'] = 'production'
 
 create_command = '''
 begin
-    user = User.find('{l}')
+    user = User.find_by_login('{l}')
 rescue
     user = User.new({{:firstname => "{n}",:lastname=>"",:mail=>"{l}@example.com"}})
     user.login = '{l}'
@@ -24,12 +24,12 @@ end
 '''
 
 delete_command = '''
-user = User.find('{l}')
+user = User.find_by_login('{l}')
 u.destroy
 '''
 
 update_command = '''
-user = User.find('{l}')
+user = User.find_by_login('{l}')
 user.password = '{p}'
 user.password_confirmation = '{p}'
 user.save!
