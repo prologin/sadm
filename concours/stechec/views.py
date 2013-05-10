@@ -114,7 +114,7 @@ def new_champion(request):
             champion.save()
 
             os.makedirs(champion.directory)
-            fp = open(os.path.join(champion.directory, 'champion.tgz'), 'w')
+            fp = open(os.path.join(champion.directory, 'champion.tgz'), 'wb')
             for chunk in form.cleaned_data['tarball'].chunks():
                 fp.write(chunk)
             fp.close()
