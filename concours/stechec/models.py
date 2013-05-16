@@ -71,7 +71,7 @@ class Champion(models.Model):
     def compilation_log(self):
         this_dir = self.directory
         try:
-            return open(os.path.join(this_dir, "compilation.log"), 'rb').read().decode('iso-8859-15')
+            return open(os.path.join(this_dir, "compilation.log"), 'rb').read()
         except Exception as e:
             return str(e)
 
@@ -160,7 +160,7 @@ class Match(models.Model):
     def log(self):
         log_path = os.path.join(self.directory, "server.log")
         try:
-            t = open(log_path).read().decode('iso-8859-15')
+            t = open(log_path).read()
             return strip_ansi_codes(t)
         except Exception as e:
             return str(e)
@@ -218,7 +218,7 @@ class MatchPlayer(models.Model):
     def log(self):
         filename = "log-champ-%d-%d.log" % (self.id, self.champion.id)
         try:
-            t = open(os.path.join(self.match.directory, filename)).read().decode('iso-8859-15')
+            t = open(os.path.join(self.match.directory, filename)).read()
             return strip_ansi_codes(t)
         except Exception as e:
             return str(e)
