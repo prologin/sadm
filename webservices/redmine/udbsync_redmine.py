@@ -21,7 +21,7 @@ create_command = '''
 
 delete_command = '''
 user = User.find_by_login('{l}')
-u.destroy
+user.destroy
 '''
 
 update_command = '''
