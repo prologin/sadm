@@ -22,6 +22,12 @@ def gen_nick():
         ''.join(random.choice(string.ascii_lowercase + string.digits) for x in
         range(5)))
 
+def notify(minutes, msg):
+    subprocess.call(
+        ['notify-send',
+         '--urgency', 'normal',
+         '--expire-time', str(minutes),
+         msg])
 
 class NotifierBot(IRC):
     def on_ready(self):
@@ -56,3 +62,6 @@ def run(callback):
     bot.connect(host, port)
     bot.ident(gen_nick())
     bot.run()
+
+if __name__ == '__main__':
+    notify_bot.run(notify)
