@@ -68,12 +68,6 @@ CLT_CFG = prologin.config.load('hfs-client')
 if 'shared_secret' not in CLT_CFG:
     raise RuntimeError('Missing shared_secret in the hfs-client YAML config')
 
-DB = postgresql.open(CFG['db'])
-
-get_user_hfs = DB.prepare('SELECT hfs FROM user_location WHERE username = $1')
-set_user_hfs = DB.prepare('UPDATE user_location SET hfs = $2 WHERE username = $1')
-add_user_hfs = DB.prepare('INSERT INTO user_location(username, hfs) VALUES ($1, $2)')
-
 # { 'user1': { 'pid': 4242, 'port': 1234 }, ... }
 RUNNING_NBD = {}
 
@@ -160,6 +154,8 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
         os.rename(fname, backup_fname)
 
     def get_hfs(self):
+        db = postgresql.open(CFG['db'])
+
         self.user = self.get_argument('user')
         self.user_type = self.get_argument('utype')
 
@@ -169,15 +165,18 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
         self.hfs = int(self.get_argument('hfs'))
 
         # TODO(delroth): potentially blocking, but fast
+        get_user_hfs = db.prepare('SELECT hfs FROM user_location WHERE username = $1')
         location = get_user_hfs(self.user)
 
         if location == []:  # first case: home nbd does not exist yet
             self.new_user_handler()
+            add_user_hfs = db.prepare('INSERT INTO user_location(username, hfs) VALUES ($1, $2)')
             add_user_hfs(self.user, self.hfs)
         else:
             location = location[0][0]
             if location != self.hfs:
                 self.remote_user_handler(location)
+                set_user_hfs = db.prepare('UPDATE user_location SET hfs = $2 WHERE username = $1')
                 set_user_hfs(self.user, self.hfs)
 
         filename = self.nbd_filename()
