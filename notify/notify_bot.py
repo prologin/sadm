@@ -12,9 +12,9 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 
-host = 'irc.freenode.net'
+host = 'irc'
 port = 6667
-chan, key = '#prologin-test', ''
+chan, key = '#notify', ''
 
 
 def gen_nick():
