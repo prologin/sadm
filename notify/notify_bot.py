@@ -8,26 +8,31 @@ import string
 import random
 import subprocess
 import logging
+import textwrap
 
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 host = 'irc'
 port = 6667
 chan, key = '#notify', ''
+login = getpass.getuser()
 
 
 def gen_nick():
-    return (getpass.getuser() + '_' +
+    return (login + '_' +
         ''.join(random.choice(string.ascii_lowercase + string.digits) for x in
         range(5)))
 
+
 def notify(minutes, msg):
+    msg = '<br/>'.join(textwrap.wrap(msg, 40))
     subprocess.call(
         ['notify-send',
          '--urgency', 'normal',
          '--expire-time', str(minutes),
          msg])
+
 
 class NotifierBot(IRC):
     def on_ready(self):
@@ -35,13 +40,18 @@ class NotifierBot(IRC):
 
     def on_channel_message(self, umask, target, msg):
         command, *l = msg.split()
-        if command == '!announce' and 'o' in umask.user.modes_in(chan):
+        if 'o' in umask.user.modes_in(chan):
+            if command != '!announce':
+                if command == '!query' and login == l[0]:
+                    l = l[1:]
+                else:
+                    return
             if l[0].isdigit():
                 time = int(l[0])
                 l = l[1:]
             else:
-                time = 2
-            self.notify_callback(time * 1000 * 60, ' '.join(msg.split()[2:]))
+                time = 10
+            self.notify_callback(time * 1000 * 60, ' '.join(l))
 
     def on_disconnected(self):
         logger.info('Disconnected. Trying to reconnect...')
@@ -64,4 +74,4 @@ def run(callback):
     bot.run()
 
 if __name__ == '__main__':
-    notify_bot.run(notify)
+    run(notify)
