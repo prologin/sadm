@@ -9,11 +9,8 @@
 
 * Syncing services
   * udb
-    * authorized_keys for root
-    * /etc/{passwd,shadow}
     * minecraft authdb
     * bug tracker
-    * mdb/udb/home web admin + concours (django generic)
 
 * [mareo] IRC server setup
 
