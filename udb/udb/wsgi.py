@@ -30,6 +30,9 @@ application = get_wsgi_application()
 from django.contrib.staticfiles.handlers import StaticFilesHandler
 application = StaticFilesHandler(application)
 
+from prologin.wsgi import ProloginWebApp
+application = ProloginWebApp(application, 'udb-server')
+
 # Apply WSGI middleware here.
 # from helloworld.wsgi import HelloWorldApplication
 # application = HelloWorldApplication(application)
