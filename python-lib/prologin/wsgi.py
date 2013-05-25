@@ -59,7 +59,7 @@ class ProloginWebApp:
     def threads_handler(self, environ, start_response):
         start_response('200 OK', [('Content-Type', 'text/plain')])
         frames = sys._current_frames()
-        yield '
+        yield ('%d threads found\n\n' % len(frames)).encode('utf-8')
         for i, frame in frames.items():
             s = 'Thread 0x%x:\n%s\n' % (i,
                                         ''.join(traceback.format_stack(frame)))
