@@ -54,6 +54,10 @@ class WebAppTest:
         text = requests.get(self.get_server_url() + '/__ping').text
         self.assertEqual(text, "pong")
 
+    def testThreadsHandler(self):
+        text = requests.get(self.get_server_url() + '/__threads').text
+        self.assertIn(' threads found', text)
+
 class WsgiAppTest(unittest.TestCase, WebAppTest):
     @classmethod
     def setUpClass(cls):
