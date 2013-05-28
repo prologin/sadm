@@ -16,6 +16,6 @@
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 from django.contrib import admin
-from homepage import models
+from prologin.homepage import models
 
 admin.site.register(models.Link)

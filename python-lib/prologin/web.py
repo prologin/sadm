@@ -14,11 +14,22 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Provides WSGI utilities for Prologin web applications. Everything should be
+"""Provides utilities for Prologin web applications. Everything should be
 prologinized like this:
 
-    import prologin.wsgi
-    application = prologin.wsgi.ProloginWebApp(application, 'app_name')
+    # WSGI application
+    import prologin.web
+    application = prologin.web.WsgiApp(application, 'app_name')
+
+    # Tornado application
+    import prologin.web
+    application = prologin.web.TornadoApp(handlers, 'app_name')
+
+    # BaseHTTPServer application
+    class MyRequestHandler(prologin.web.ProloginBaseHTTPRequestHandler):
+        ...
+
+If your application is an RPC server, this is handled automatically.
 
 This initializes logging using prologin.log, and maps some special URLs to
 useful pages:
@@ -33,7 +44,23 @@ useful pages:
 import sys
 import traceback
 
-class ProloginWebApp:
+def ping_handler():
+    return { 'Content-Type': 'text/plain' }, "pong"
+
+def threads_handler():
+    frames = sys._current_frames()
+    text = ['%d threads found\n\n' % len(frames)]
+    for i, frame in frames.items():
+        s = 'Thread 0x%x:\n%s\n' % (i, ''.join(traceback.format_stack(frame)))
+        text.append(s)
+    return { 'Content-Type': 'text/plain' }, ''.join(text)
+
+HANDLED_URLS = {
+    '/__ping': ping_handler,
+    '/__threads': threads_handler,
+}
+
+class WsgiApp:
     def __init__(self, app, app_name):
         self.app = app
         self.app_name = app_name
@@ -41,26 +68,16 @@ class ProloginWebApp:
         # TODO(delroth): initialize logging
 
     def __call__(self, environ, start_response):
-        HANDLED_URLS = {
-            '/__ping': self.ping_handler,
-            '/__threads': self.threads_handler,
-        }
         if environ['PATH_INFO'] in HANDLED_URLS:
             handler = HANDLED_URLS[environ['PATH_INFO']]
-            return handler(environ, start_response)
+            return self.call_handler(environ, start_response, handler)
         return self.app(environ, start_response)
 
-    def ping_handler(self, environ, start_response):
-        """Always returns "pong" to be able to easily check if an application
-        is up."""
-        start_response('200 OK', [('Content-Type', 'text/plain')])
-        return [b"pong"]
-
-    def threads_handler(self, environ, start_response):
-        start_response('200 OK', [('Content-Type', 'text/plain')])
-        frames = sys._current_frames()
-        yield ('%d threads found\n\n' % len(frames)).encode('utf-8')
-        for i, frame in frames.items():
-            s = 'Thread 0x%x:\n%s\n' % (i,
-                                        ''.join(traceback.format_stack(frame)))
-            yield s.encode('utf-8')
+    def call_handler(self, environ, start_response, handler):
+        try:
+            headers, text = handler()
+            start_response('200 OK', list(headers.items()))
+            return [text.encode('utf-8')]
+        except Exception:
+            start_response('500 Error', [('Content-Type', 'text/html')])
+            return [b'<h1>Onoes, internal server error.</h1>']

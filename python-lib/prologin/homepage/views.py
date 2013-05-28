@@ -17,7 +17,7 @@
 
 from django.conf import settings
 from django.shortcuts import render_to_response
-from homepage.models import Link
+from prologin.homepage.models import Link
 
 def home(request):
     links = Link.objects.filter(contest_only=settings.CONTEST_MODE)

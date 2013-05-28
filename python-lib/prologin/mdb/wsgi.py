@@ -19,7 +19,7 @@ import os
 # if running multiple sites in the same mod_wsgi process. To fix this, use
 # mod_wsgi daemon mode with each site in its own daemon process, or use
 # os.environ["DJANGO_SETTINGS_MODULE"] = "mdb.settings"
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "mdb.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "prologin.mdb.settings")
 
 # This application object is used by any WSGI server configured to use this
 # file. This includes Django's development server, if the WSGI_APPLICATION
@@ -30,8 +30,8 @@ application = get_wsgi_application()
 from django.contrib.staticfiles.handlers import StaticFilesHandler
 application = StaticFilesHandler(application)
 
-from prologin.wsgi import ProloginWebApp
-application = ProloginWebApp(application, 'mdb-server')
+import prologin.web
+application = prologin.web.WsgiApp(application, 'mdb-server')
 
 # Apply WSGI middleware here.
 # from helloworld.wsgi import HelloWorldApplication
