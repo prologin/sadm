@@ -25,4 +25,5 @@ setup(name='ProloginSADM',
       author_email='pierre.bourdon@prologin.org',
       url='http://bitbucket.org/prologin/sadm/',
       packages=['prologin'],
+      test_suite='nose.collector',
      )
