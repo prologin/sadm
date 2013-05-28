@@ -16,7 +16,7 @@
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 from django.contrib import admin
-from mdbapi import models
+from prologin.mdb import models
 
 
 class IPPoolAdmin(admin.ModelAdmin):

@@ -17,7 +17,7 @@
 
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
-from mdbapi import views
+from prologin.mdb import views
 
 admin.autodiscover()
 

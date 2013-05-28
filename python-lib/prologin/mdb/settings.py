@@ -95,10 +95,10 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
-ROOT_URLCONF = 'mdb.urls'
+ROOT_URLCONF = 'prologin.mdb.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'mdb.wsgi.application'
+WSGI_APPLICATION = 'prologin.mdb.wsgi.application'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
@@ -114,7 +114,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admin',
-    'mdbapi',
+    'prologin.mdb',
 )
 
 # A sample logging configuration. The only tangible logging

@@ -18,7 +18,7 @@
 import time
 
 from django.core.management.base import BaseCommand, CommandError
-from mdbapi.models import Machine
+from prologin.mdb.models import Machine
 from optparse import make_option
 
 class Command(BaseCommand):

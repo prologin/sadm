@@ -107,4 +107,4 @@ class VolatileSetting(models.Model):
 
 
 # Import the signal receivers so they are activated
-import mdbapi.receivers
+import prologin.mdb.receivers

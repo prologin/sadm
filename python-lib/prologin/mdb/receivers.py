@@ -23,7 +23,7 @@ import threading
 from django.conf import settings
 from django.dispatch import receiver
 from django.db.models.signals import post_save, pre_delete
-from mdbapi.models import Machine
+from prologin.mdb.models import Machine
 
 
 class UpdateSenderTask(threading.Thread):

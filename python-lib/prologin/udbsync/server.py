@@ -19,7 +19,7 @@
 
 import prologin.config
 import prologin.log
-import prologin.udb
+import prologin.udb.client
 import prologin.synchronisation
 import sys
 
@@ -41,7 +41,7 @@ class SyncServer(prologin.synchronisation.Server):
         )
 
     def get_initial_backlog(self):
-        return prologin.udb.connect(auth=True).query()
+        return prologin.udb.client.connect(auth=True).query()
 
 
 if __name__ == '__main__':

@@ -16,11 +16,11 @@
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
-import mdbapi.receivers  # To connect our receivers
+import prologin.mdb.receivers  # To connect our receivers
 
 from django.http import HttpResponse, HttpResponseForbidden
 from django.http import HttpResponseBadRequest, HttpResponseServerError
-from mdbapi.models import Machine, VolatileSetting
+from prologin.mdb.models import Machine, VolatileSetting
 
 
 def query(request):
