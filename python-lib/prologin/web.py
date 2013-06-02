@@ -29,8 +29,6 @@ prologinized like this:
     class MyRequestHandler(prologin.web.ProloginBaseHTTPRequestHandler):
         ...
 
-If your application is an RPC server, this is handled automatically.
-
 This initializes logging using prologin.log, and maps some special URLs to
 useful pages:
   * /__ping
@@ -42,11 +40,30 @@ useful pages:
 """
 
 import sys
+import tornado.web
 import traceback
 
+
+def exceptions_catched(func):
+    """Decorator for function handlers: return a HTTP 500 error when an
+    exception is raised.
+    """
+    def wrapper():
+        try:
+            return (200, 'OK') + func()
+        except Exception:
+            return (
+                500, 'Error',
+                {'Content-Type': 'text/html'},
+                '<h1>Onoes, internal server error</h1>'
+            )
+    return wrapper
+
+@exceptions_catched
 def ping_handler():
     return { 'Content-Type': 'text/plain' }, "pong"
 
+@exceptions_catched
 def threads_handler():
     frames = sys._current_frames()
     text = ['%d threads found\n\n' % len(frames)]
@@ -74,10 +91,40 @@ class WsgiApp:
         return self.app(environ, start_response)
 
     def call_handler(self, environ, start_response, handler):
-        try:
-            headers, text = handler()
-            start_response('200 OK', list(headers.items()))
-            return [text.encode('utf-8')]
-        except Exception:
-            start_response('500 Error', [('Content-Type', 'text/html')])
-            return [b'<h1>Onoes, internal server error.</h1>']
+        status_code, reason, headers, content = handler()
+        start_response(
+            '{} {}'.format(status_code, reason),
+            list(headers.items())
+        )
+        return [content.encode('utf-8')]
+
+
+class TornadoApp(tornado.web.Application):
+    def __init__(self, handlers, app_name):
+        # Prepend special handlers, taking care of the Tornado interfacing.
+        handlers = (
+            tuple(
+                (path, self.get_special_handler(handler))
+                for path, handler in HANDLED_URLS.items()
+            )
+            + tuple(handlers)
+        )
+        super(TornadoApp, self).__init__(handlers)
+        self.app_name = app_name
+
+        # TODO(delroth): initialize logging
+
+    def get_special_handler(self, handler_func):
+        """Wrap a special handler into a Tornado-compatible handler class."""
+
+        class SpecialHandler(tornado.web.RequestHandler):
+            """Wrapper handler for special resources.
+            """
+            def get(self):
+                status_code, reason, headers, content = handler_func()
+                self.set_status(status_code, reason)
+                for name, value in headers.items():
+                    self.set_header(name, value)
+                self.write(content.encode('utf-8'))
+
+        return SpecialHandler

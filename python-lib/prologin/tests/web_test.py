@@ -3,17 +3,19 @@ import prologin.web
 import multiprocessing
 import requests
 import time
+import tornado.ioloop
+import tornado.web
 import unittest
 import wsgiref.simple_server
 
 def test_ping_handler():
     """/__ping handler code returns pong"""
-    headers, text = prologin.web.ping_handler()
+    status_code, reason, headers, text = prologin.web.ping_handler()
     assert text == "pong"
 
 def test_threads_handler():
     """/__threads handler code returns threads info"""
-    headers, text = prologin.web.threads_handler()
+    status_code, reason, headers, text = prologin.web.threads_handler()
     assert ' threads found' in text
 
 class WebAppTest:
@@ -72,7 +74,7 @@ class WsgiAppTest(unittest.TestCase, WebAppTest):
         def application(environ, start_response):
             start_response('200 OK', [])
             return [b'Normal output']
-        application = prologin.web.WsgiApp(application, 'test-app')
+        application = prologin.web.WsgiApp(application, 'test-wsgi-app')
         server = wsgiref.simple_server.make_server('127.0.0.1', 42543,
                                                    application)
         return server.serve_forever
@@ -83,4 +85,33 @@ class WsgiAppTest(unittest.TestCase, WebAppTest):
 
     @classmethod
     def expected_normal_output(cls):
+        return 'Normal output'
+
+class TornadoAppTest(unittest.TestCase, WebAppTest):
+    @classmethod
+    def setUpClass(cls):
+        WebAppTest.setup_web_server(cls)
+
+    @classmethod
+    def tearDownClass(cls):
+        WebAppTest.tear_down_web_server(cls)
+
+    @classmethod
+    def make_web_server(cls):
+        class TestHandler(tornado.web.RequestHandler):
+            def get(self):
+                self.set_status(200)
+                self.write(b'Normal output')
+        application = prologin.web.TornadoApp([
+            ('/', TestHandler)
+        ], 'test-tornado-app')
+        application.listen(42544)
+        return tornado.ioloop.IOLoop.instance().start
+
+    @classmethod
+    def get_server_url(cls):
+        return 'http://localhost:42544'
+
+    @classmethod
+    def expect_normal_output(cls):
         return 'Normal output'
