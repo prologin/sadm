@@ -11,10 +11,11 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
-import http.server
 import json
-import re
+import tornado.web
 import types
+
+import prologin.web
 
 
 class MethodError(Exception):
@@ -35,7 +36,7 @@ def is_remote_method(obj):
 
 
 class MethodCollection(type):
-    """Metaclass for RPC servers: collect remote methods and store them in a
+    """Metaclass for RPC objects: collect remote methods and store them in a
     class-wide REMOTE_METHOD dictionnary.  Be careful: of course, stored
     methods are not bound to an instance.
     """
@@ -51,36 +52,69 @@ class MethodCollection(type):
         cls.REMOTE_METHODS = remote_methods
 
 
-class RequestHandler(http.server.BaseHTTPRequestHandler):
+class RemoteCallHandler(tornado.web.RequestHandler):
 
-    METHOD_CALL = re.compile(r'/call/([0-9a-zA-Z_]+)')
-    PING        = re.compile(r'/ping')
-    THREADS     = re.compile(r'/threads')
-    HELP        = re.compile(r'/help')
+    @property
+    def rpc_object(self):
+        """RPC object: contains method that can be called remotely."""
+        return self.application
 
-    def do_POST(self):
-        line = self.rfile.readline().strip().decode('ascii')
-        request = json.loads(line)
-        handlers = {
-            self.METHOD_CALL: self.handle_method_call,
-            self.PING:        self.handle_ping,
-            self.THREADS:     self.handle_threads,
-            self.HELP:        self.handle_help,
-        }
+    @tornado.web.asynchronous
+    def post(self, method_name):
+        # This is an asynchronous handler, since
+        request = json.loads(self.request.body.strip().decode('ascii'))
 
-        # Look for a specific handler for this request...
-        for pattern, handler in handlers.items():
-            m = pattern.match(self.path)
-            if m:
-                return handler(request, *m.groups())
+        # First get the method to call.
+        try:
+            method = self.rpc_object.REMOTE_METHODS[method_name]
+        except KeyError:
+            self.set_status(404)
+            return self._send_exception(MethodError(method_name))
 
-        # If no one was found, return an error.
-        self.send_error(404, 'Invalid resource')
+        self.set_status(200)
+
+        args = request['args']
+        kwargs = request['kwargs']
+
+        # Actually call it.
+        try:
+            result = method(self.rpc_object, *args, **kwargs)
+        except Exception as exn:
+            return self._send_exception(exn)
+
+        # The remote method can be a generator (returns a sequence of values),
+        # or just some regular function (returns only one value).
+        if isinstance(result, types.GeneratorType):
+            # If it is a generator, notice the client.
+            self._send_json_line({'type': 'generator'})
+
+            # Then yield successive values.
+            while True:
+                try:
+                    value = next(result)
+                except StopIteration:
+                    # The generator stopped: notice the client and stop, too.
+                    self._send_json_line({'type': 'stop'})
+                    return self.finish()
+                except Exception as exn:
+                    # The generator raised an error: transmit it to the client
+                    # and stop.
+                    return self._send_exception(exn)
+                else:
+                    # The generator simply yielded a value: transmit it to the
+                    # client, or stop there if this is some non-JSON data.
+                    if not self._send_result_data(value):
+                        return
+
+        else:
+            # Otherwise, just return the single value.
+            self._send_result_data(result)
+            self.finish()
 
     def _send_json_line(self, data):
-        self.wfile.write(json.dumps(data).encode('ascii'))
-        self.wfile.write(b'\n')
-        self.wfile.flush()
+        self.write(json.dumps(data).encode('ascii'))
+        self.write(b'\n')
+        self.flush()
 
     def _send_exception(self, exn):
         self._send_json_line({
@@ -88,6 +122,8 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
             'exn_type': type(exn).__name__,
             'exn_message': str(exn),
         })
+        # Exceptions always end the communication.
+        self.finish()
 
     def _send_result_data(self, data):
         success = True
@@ -104,69 +140,15 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
             success = False
         return success
 
-    def handle_method_call(self, request, method_name):
-        self.send_response(200)
-        self.end_headers()
 
-        # First get the method to call.
-        try:
-            method = self.server.REMOTE_METHODS[method_name]
-        except KeyError:
-            return self._send_exception(MethodError(method_name))
-
-        args = request['args']
-        kwargs = request['kwargs']
-
-        # Actually call it.
-        try:
-            result = method(self.server, *args, **kwargs)
-        except Exception as exn:
-            return self._send_exception(exn)
-
-        # The remote method can be a generator (returns a sequence of values),
-        # or just some regular function (returns only one value).
-        if isinstance(result, types.GeneratorType):
-            # If it is a generator, notice the client.
-            self._send_json_line({'type': 'generator'})
-
-            # Then yield successive values.
-            while True:
-                try:
-                    value = next(result)
-                except StopIteration:
-                    # The generator stopped: notice the client and stop, too.
-                    return self._send_json_line({'type': 'stop'})
-                except Exception as exn:
-                    # The generator raised an error: transmit it to the client
-                    # and stop.
-                    return self._send_exception(exn)
-                else:
-                    # The generator simply yielded a value: transmit it to the
-                    # client, or stop there if this is some non-JSON data.
-                    if not self._send_result_data(value):
-                        return
-
-        else:
-            # Otherwise, just return the single value.
-            self._send_result_data(result)
-
-
-    def handle_ping(self, request):
-        raise NotImplementedError()
-
-    def handle_threads(self, request):
-        raise NotImplementedError()
-
-    def handle_help(self, request):
-        raise NotImplementedError()
-
-
-class BaseServer(http.server.HTTPServer, metaclass=MethodCollection):
-    """RPC base server: let clients call remotely subclasses methods.
+class BaseRPCApp(prologin.web.TornadoApp, metaclass=MethodCollection):
+    """RPC base application: let clients call remotely subclasses methods.
 
     Just subclass me, add some remote methods using the `remote_method`
     decorator and instanciate me!
     """
 
-    def __init__(self, server_address):
-        super(BaseServer, self).__init__(server_address, RequestHandler)
+    def __init__(self, app_name):
+        super(prologin.web.TornadoApp, self).__init__([
+            (r'/call/([0-9a-zA-Z_]+)', RemoteCallHandler),
+        ], app_name)
