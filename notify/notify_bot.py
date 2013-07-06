@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 #-*- encoding: utf-8 -*-
 
+from gi.repository import Notify as libnotify
 from pypeul import IRC, logger
-import time
+
 import getpass
-import string
-import random
-import subprocess
 import logging
+import random
+import string
 import textwrap
+import time
 
 
 logging.basicConfig(level=logging.DEBUG)
+libnotify.init('notify_bot')
 
 host = 'irc'
 port = 6667
@@ -27,11 +29,9 @@ def gen_nick():
 
 def notify(minutes, msg):
     msg = '<br/>'.join(textwrap.wrap(msg, 40))
-    subprocess.call(
-        ['notify-send',
-         '--urgency', 'normal',
-         '--expire-time', str(minutes),
-         msg])
+    n = libnotify.Notification.new(msg, None, None)
+    n.set_timeout(1000 * 60 * minutes)
+    n.show()
 
 
 class NotifierBot(IRC):
@@ -50,8 +50,8 @@ class NotifierBot(IRC):
                 time = int(l[0])
                 l = l[1:]
             else:
-                time = 10
-            self.notify_callback(time * 1000 * 60, ' '.join(l))
+                time = 0
+            self.notify_callback(time, ' '.join(l))
 
     def on_disconnected(self):
         logger.info('Disconnected. Trying to reconnect...')
