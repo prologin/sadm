@@ -513,7 +513,31 @@ allows adding links easily. Setup it using ``install.py``::
   systemctl enable udbsync_django@homepage
   systemctl start udbsync_django@homepage
 
-Step 5: the matches cluster
+Contest website
+~~~~~~~~~~~~~~~
+
+TODO
+
+Step 5: Misc services
+---------------------
+
+IRC
+~~~
+
+TODO
+
+Notify bot
+~~~~~~~~~~
+
+You should install the ``pypeul`` python library and the ``python-gobject``
+archlinux package first on the RFS. Then, copy notify-bot.py to
+``/usr/share/notify-bot.py``.
+The notify bot must be started after being logged in KDM. Add this line to
+the ``.xsession`` of the users home skeleton::
+
+  python3 /usr/share/libnotify.py &
+
+Step 6: the matches cluster
 ---------------------------
 
 TODO
