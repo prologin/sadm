@@ -12,8 +12,7 @@
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
-import urllib.parse
-import urllib.request
+import requests
 
 
 class BaseError(Exception):
@@ -40,13 +39,13 @@ class Client:
     def __init__(self, base_url):
         self.base_url = base_url
 
-    def _extract_result(self, req):
+    def _extract_result(self, lines):
         """Get a response line from a request, parse it and return it.
         """
-        line = req.readline()
+        line = next(lines)
         return json.loads(line.strip().decode('ascii'))
 
-    def _handle_generator(self, req):
+    def _handle_generator(self, lines):
         """Handle a remote generator call, return a generator for its results.
 
         The first line for the remote call must have already been got and
@@ -54,7 +53,7 @@ class Client:
         an InternalError for anything else.
         """
         while True:
-            result = self._extract_result(req)
+            result = self._extract_result(lines)
 
             if result['type'] == 'result':
                 # There is nothing more to do than returning the actual
@@ -98,37 +97,35 @@ class Client:
         except (TypeError, ValueError):
             raise ValueError('non serializable argument types')
 
-        full_url = urllib.parse.urljoin(
-            self.base_url, 'call/{}'.format(method)
-        )
+        url = '{}/call/{}'.format(self.base_url, method)
         data = '{}\n'.format(req_data).encode('ascii')
-        req = urllib.request.urlopen(full_url, data)
+        req = requests.post(url, data=data, stream=True)
 
-        if req.getcode() == 200:
+        if req.status_code == 200:
             # The remote call returned: we can have a result, a generator or an
             # exception.
-            with req:
-                result = self._extract_result(req)
+            result_lines = req.iter_lines()
+            result = self._extract_result(result_lines)
 
-                if result['type'] == 'result':
-                    # There is nothing more to do than returning the actual
-                    # result.
-                    return result['data']
+            if result['type'] == 'result':
+                # There is nothing more to do than returning the actual
+                # result.
+                return result['data']
 
-                elif result['type'] == 'generator':
-                    # Returning a generator that do the work is not
-                    # straightforward: delegate it.
-                    return self._handle_generator(req)
+            elif result['type'] == 'generator':
+                # Returning a generator that do the work is not
+                # straightforward: delegate it.
+                return self._handle_generator(result_lines)
 
-                elif result['type'] == 'exception':
-                    # Just raise a RemoteError with interesting data.
-                    self._handle_exception(result)
+            elif result['type'] == 'exception':
+                # Just raise a RemoteError with interesting data.
+                self._handle_exception(result)
 
-                else:
-                    # There should not be any other possibility.
-                    raise InternalError(
-                        'Invalid result type: {}'.format(result['type'])
-                    )
+            else:
+                # There should not be any other possibility.
+                raise InternalError(
+                    'Invalid result type: {}'.format(result['type'])
+                )
         else:
             # Something went wrong before reaching the remote procedure...
             raise InternalError(req.text)
