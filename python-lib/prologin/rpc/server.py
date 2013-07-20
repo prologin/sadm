@@ -108,14 +108,15 @@ class RemoteCallHandler(tornado.web.RequestHandler):
 
         else:
             # Otherwise, just return the single value.
-            self._send_result_data(result)
-            self.finish()
+            if self._send_result_data(result):
+                self.finish()
 
     def _send_json_line(self, data):
         self.write(json.dumps(data).encode('ascii'))
         self.write(b'\n')
         self.flush()
 
+    @tornado.web.asynchronous
     def _send_exception(self, exn):
         self._send_json_line({
             'type': 'exception',
@@ -135,7 +136,6 @@ class RemoteCallHandler(tornado.web.RequestHandler):
         except (TypeError, ValueError):
             self._send_exception(
                 ValueError('The remote method returned something not JSON'),
-                False
             )
             success = False
         return success
