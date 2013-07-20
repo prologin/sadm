@@ -7,7 +7,7 @@ from django.db import models
 
 import os.path
 import re
-import xmlrpc.client
+import prologin.rpc.client
 
 stripper_re = re.compile(r'\033\[.*?m')
 def strip_ansi_codes(t):
@@ -232,5 +232,5 @@ class MatchPlayer(models.Model):
         verbose_name_plural = "participants à un match"
 
 def master_status():
-    rpc = xmlrpc.client.ServerProxy(settings.STECHEC_MASTER)
+    rpc = prologin.rpc.client(settings.STECHEC_MASTER)
     return rpc.status()
