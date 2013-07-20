@@ -13,7 +13,7 @@
 
 import json
 import requests
-from urllib.urlparse import urljoin
+from urllib.parse import urljoin
 
 
 class BaseError(Exception):
