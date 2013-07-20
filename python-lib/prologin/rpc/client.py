@@ -13,6 +13,7 @@
 
 import json
 import requests
+from urllib.urlparse import urljoin
 
 
 class BaseError(Exception):
@@ -97,7 +98,7 @@ class Client:
         except (TypeError, ValueError):
             raise ValueError('non serializable argument types')
 
-        url = '{}/call/{}'.format(self.base_url, method)
+        url = urljoin(self.base_url, 'call/{}'.format(method))
         data = '{}\n'.format(req_data).encode('ascii')
         req = requests.post(url, data=data, stream=True)
 
