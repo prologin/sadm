@@ -116,7 +116,6 @@ class RemoteCallHandler(tornado.web.RequestHandler):
         self.write(b'\n')
         self.flush()
 
-    @tornado.web.asynchronous
     def _send_exception(self, exn):
         self._send_json_line({
             'type': 'exception',
