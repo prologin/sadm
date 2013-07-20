@@ -18,20 +18,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Stechec.  If not, see <http://www.gnu.org/licenses/>.
 
-import gevent
-import gevent.monkey
-import gevent.socket
-
-# We do not use .patch_all() because .patch_os() must NOT be called.
-#
-# It overrides os.fork() which is used in subprocess.Popen and causes a
-# strange bug in libevent when the hub is reinitialized (infinite loop on ^C).
-gevent.monkey.patch_select()
-gevent.monkey.patch_socket()
-gevent.monkey.patch_ssl()
-gevent.monkey.patch_time()
-gevent.monkey.patch_thread()
-
 import logging
 import logging.handlers
 import os.path
@@ -42,6 +28,7 @@ import prologin.rpc.server
 import re
 import socket
 import tornado
+import tornado.gen
 import yaml
 
 class WorkerNode:
@@ -57,7 +44,7 @@ class WorkerNode:
         self.srv_port = self.min_srv_port
         self.matches = {}
 
-        self.heartbeat_greenlet = gevent.spawn(self.send_heartbeat)
+        yield tornado.gen.Task(self.send_heartbeat)
 
     def get_worker_infos(self):
         return (self.hostname, self.port, self.slots, self.max_slots)
@@ -82,6 +69,7 @@ class WorkerNode:
             self.srv_port = self.min_srv_port
         return port
 
+    @tornado.gen.coroutine
     def send_heartbeat(self):
         logging.info('sending heartbeat to the server, %d/%d slots' % (
                          self.slots, self.max_slots
@@ -92,11 +80,17 @@ class WorkerNode:
                 self.master.heartbeat(self.secret, self.get_worker_infos(),
                                       first_heartbeat)
                 first_heartbeat = False
-            except gevent.socket.error:
+            except socket.error:
                 msg = 'master down, retrying heartbeat in %ds' % self.interval
                 logging.warn(msg)
-            gevent.sleep(self.interval)
 
+            yield tornado.gen.Task(
+                    tornado.ioloop.IOLoop.instance().add_timeout,
+                    time.time() + sleep.interval
+            )
+
+
+    @tornado.gen.coroutine
     def start_work(self, work, slots, *args, **kwargs):
         if self.slots < slots:
             logging.warn('not enough slots to start the required job')
@@ -114,7 +108,7 @@ class WorkerNode:
                     self.slots += slots
             func(self.secret, self.get_worker_infos(), *args_li)
 
-        gevent.spawn(real_work)
+        yield tornado.gen.Task(real_work)
         return True, self.secret, self.get_worker_infos()
 
     def compile_champion(self, contest, user, champ_id):

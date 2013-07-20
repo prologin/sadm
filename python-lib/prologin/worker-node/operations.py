@@ -21,15 +21,17 @@ from subprocess import Popen, PIPE, STDOUT
 
 import errno
 import fcntl
-import gevent
-import gevent.socket
 import gzip
 import paths
 import os
 import os.path
 import sys
 import tempfile
+import tornado
+import tornado.gen
+import tornado.ioloop
 
+@tornado.gen.coroutine
 def communicate(cmdline, new_env=None, data=''):
     """
     Asynchronously communicate with an external process, sending data on its
@@ -51,7 +53,13 @@ def communicate(cmdline, new_env=None, data=''):
             if ex[0] != errno.EAGAIN:
                 raise
             sys.exc_clear()
-        gevent.socket.wait_write(p.stdin.fileno())
+        tornado.ioloop.IOLoop.instance().add_handler(
+                p.stdin.fileno(),
+                (yield gen.Callback('write_communicate')),
+                tornado.ioloop.IOLoop.WRITE
+        )
+        yield tornado.gen.Wait('write_communicate')
+
     p.stdin.close()
 
     # Read stdout data
@@ -70,16 +78,24 @@ def communicate(cmdline, new_env=None, data=''):
             if ex[0] != errno.EAGAIN:
                 raise
             sys.exc_clear()
-        gevent.socket.wait_read(p.stdout.fileno())
+        tornado.ioloop.IOLoop.instance().add_handler(
+                p.stdout.fileno(),
+                (yield gen.Callback('read_communicate')),
+                tornado.ioloop.IOLoop.READ
+        )
+        yield tornado.gen.Wait('read_communicate')
     p.stdout.close()
 
     if read_size >= 2**18:
         chunks.append("\n\nLog truncated to stay below 256K\n")
 
     # Wait for process completion
-    """while p.poll() is None:
-        gevent.sleep(0.05)"""
-    gevent.sleep(0.1)
+    # while p.poll() is None:
+    yield tornado.gen.Task(
+            tornado.ioloop.IOLoop.instance().add_timeout,
+            time.time() + 0.1
+    )
+
     try:
         p.kill()
     except OSError:
@@ -116,6 +132,8 @@ def spawn_server(cmd, path, match_id, callback):
     open(log_path, "w").write(stdout)
     callback(retcode, stdout, match_id)
 
+
+@tornado.gen.coroutine
 def spawn_dumper(cmd, path):
     dump_path = tempfile.mktemp()
     def set_path():
@@ -135,12 +153,20 @@ def spawn_dumper(cmd, path):
             if ex[0] != errno.EAGAIN:
                 raise
             sys.exc_clear()
-        gevent.socket.wait_read(p.stdout.fileno())
+        tornado.ioloop.IOLoop.instance().add_handler(
+                p.stdout.fileno(),
+                (yield gen.Callback('read_spawn_dumper')),
+                tornado.ioloop.IOLoop.READ
+        )
+        yield tornado.gen.Wait('read_communicate')
     p.stdout.close()
 
     # Wait for process completion
     while p.poll() is None:
-        gevent.sleep(0.05)
+        yield tornado.gen.Task(
+                tornado.ioloop.IOLoop.instance().add_timeout,
+                time.time() + 0.05
+        )
 
     # Compress the dump and place it to its final destination
     final_dump = os.path.join(path, "dump.json.gz")
@@ -152,6 +178,7 @@ def spawn_dumper(cmd, path):
     final_fp.close()
     os.unlink(dump_path)
 
+@tornado.gen.coroutine
 def run_server(config, server_done, rep_port, pub_port, contest, match_id, opts):
     """
     Runs the Stechec server and wait for client connections.
@@ -177,8 +204,11 @@ def run_server(config, server_done, rep_port, pub_port, contest, match_id, opts)
                 "--pub_addr", "tcp://*:%d" % pub_port,
                 "--nb_clients", "3",
                 "--verbose", "1"]
-    gevent.spawn(spawn_server, cmd, path, match_id, server_done)
-    gevent.sleep(0.5) # let it start
+    yield tornado.gen.Task(spawn_server, cmd, path, match_id, server_done)
+    yield tornado.gen.Task(
+            tornado.ioloop.IOLoop.instance().add_timeout,
+            time.time() + 0.1
+    )
     # XXX: for some reasons clients now have to be run after the server
     # otherwise they misbehave. Temporary fix.
     nb_spectator = 1 if dumper else 0
@@ -194,7 +224,7 @@ def run_server(config, server_done, rep_port, pub_port, contest, match_id, opts)
                "--time", "3000",
                "--spectator",
                "--verbose", "1"]
-        gevent.spawn(spawn_dumper, cmd, path)
+        yield tornado.gen.Task(spawn_dumper, cmd, path)
 
 def spawn_client(cmd, env, path, match_id, champ_id, tid, callback):
     retcode, stdout = communicate(cmd, env)
@@ -202,6 +232,7 @@ def spawn_client(cmd, env, path, match_id, champ_id, tid, callback):
     open(log_path, "w").write(stdout)
     callback(retcode, stdout, match_id, champ_id, tid)
 
+@tornado.gen.coroutine
 def run_client(config, ip, req_port, sub_port, contest, match_id, user, champ_id, tid, opts, cb):
     dir_path = champion_path(config, contest, user, champ_id)
     mp = match_path(config, contest, match_id)
@@ -226,4 +257,4 @@ def run_client(config, ip, req_port, sub_port, contest, match_id, user, champ_id
                 "--memory", "250000",
                 "--time", "1500"
           ]
-    gevent.spawn(spawn_client, cmd, env, mp, match_id, champ_id, tid, cb)
+    yield tornado.gen.Task(spawn_client, cmd, env, mp, match_id, champ_id, tid, cb)
