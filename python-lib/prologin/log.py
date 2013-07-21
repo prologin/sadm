@@ -27,7 +27,7 @@ def setup_logging(program, verbose=False, local=True):
     Args:
       program: Name of the program logging informations.
       verbose: If true, log more messages (DEBUG instead of INFO).
-      local: If true, log to stdout as well as syslog.
+      local: If true, log to stderr as well as syslog.
     """
     loggers = []
     loggers.append(logging.handlers.SysLogHandler('/dev/log'))

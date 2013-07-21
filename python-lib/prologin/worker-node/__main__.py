@@ -21,8 +21,10 @@
 import logging
 import logging.handlers
 import os.path
-from . import operations
+import operations
 import optparse
+import prologin.log
+import prologin.config
 import prologin.rpc.client
 import prologin.rpc.server
 import re
@@ -30,6 +32,8 @@ import socket
 import tornado
 import tornado.gen
 import yaml
+
+ioloop = tornado.ioloop.IOLoop.instance()
 
 class WorkerNode:
     def __init__(self, config):
@@ -44,7 +48,7 @@ class WorkerNode:
         self.srv_port = self.min_srv_port
         self.matches = {}
 
-        yield tornado.gen.Task(self.send_heartbeat)
+        ioloop.add_callback(self.send_heartbeat)
 
     def get_worker_infos(self):
         return (self.hostname, self.port, self.slots, self.max_slots)
@@ -84,13 +88,9 @@ class WorkerNode:
                 msg = 'master down, retrying heartbeat in %ds' % self.interval
                 logging.warn(msg)
 
-            yield tornado.gen.Task(
-                    tornado.ioloop.IOLoop.instance().add_timeout,
-                    time.time() + sleep.interval
-            )
+            yield tornado.gen.Task(ioloop.add_timeout, time.time() +
+                    sleep.interval)
 
-
-    @tornado.gen.coroutine
     def start_work(self, work, slots, *args, **kwargs):
         if self.slots < slots:
             logging.warn('not enough slots to start the required job')
@@ -99,6 +99,7 @@ class WorkerNode:
         logging.debug('starting a job for %d slots' % slots)
         self.slots -= slots
 
+        @tornado.gen.coroutine
         def real_work():
             job_done = True
             try:
@@ -108,7 +109,7 @@ class WorkerNode:
                     self.slots += slots
             func(self.secret, self.get_worker_infos(), *args_li)
 
-        yield tornado.gen.Task(real_work)
+        ioloop.add_callback(real_work)
         return True, self.secret, self.get_worker_infos()
 
     def compile_champion(self, contest, user, champ_id):
@@ -161,7 +162,7 @@ class WorkerNode:
         except socket.error:
             pass
 
-class WorkerNodeProxy(prologin.rpc.server):
+class WorkerNodeProxy(prologin.rpc.server.BaseRPCApp):
     """
     Proxies RPC requests to the WorkerNode.
     """
@@ -170,6 +171,7 @@ class WorkerNodeProxy(prologin.rpc.server):
         self.node = node
         super().__init__(*args, **kwargs)
 
+    # TODO (seirl) : check that the secret matches
     @prologin.rpc.server.remote_method
     def compile_champion(self, secret, *args, **kwargs):
         logging.debug('received a compile_champion request')
@@ -210,7 +212,7 @@ if __name__ == '__main__':
     config = prologin.config.load('worker-node')
 
     worker = WorkerNode(config)
-    s = WorkerNodeProxy(appname='worker-node', node=worker)
+    s = WorkerNodeProxy(app_name='worker-node', node=worker)
     s.listen(config['worker']['port'])
 
     try:
