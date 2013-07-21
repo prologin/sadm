@@ -18,13 +18,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Stechec.  If not, see <http://www.gnu.org/licenses/>.
 
-import gevent.monkey
-
-# We are not in the worker node and are not supposed to use subprocesses, so a
-# monkey.patch_all() should be safe. However, if this was to change, beware
-# that monkey_os() interacts badly with libevent2.
-gevent.monkey.patch_all()
-
 from .worker import Worker
 
 import copy
@@ -41,9 +34,13 @@ import psycopg2
 import psycopg2.extras
 import random
 from . import task
-from . import utils
+import tornado
+import tornado.ioloop
+import tornado.gen
+import utils
 
 utils.init_psycopg_gevent()
+ioloop = tornado.ioloop.IOLoop.instance()
 
 class MasterNode:
     def __init__(self, config):
@@ -55,12 +52,9 @@ class MasterNode:
         self.spawn_tasks()
 
     def spawn_tasks(self):
-        # Setup locks/events/queues
-        self.to_dispatch = gevent.event.Event()
-
-        self.janitor = gevent.spawn(self.janitor_task)
-        self.dbwatcher = gevent.spawn(self.dbwatcher_task)
-        self.dispatcher = gevent.spawn(self.dispatcher_task)
+        self.janitor = ioloop.add_callback(self.janitor_task)
+        self.dbwatcher = ioloop.add_callback(self.dbwatcher_task)
+        self.dispatcher = ioloop.add_callback(self.dispatcher_task)
 
     @property
     def status(self):
@@ -96,6 +90,7 @@ class MasterNode:
         w = self.workers[(hostname, port)]
         w.remove_compilation_task(champ_id)
         gevent.spawn(self.complete_compilation, champ_id, ret)
+        ioloop.add_callback(self.complete_compilation, champ_id, ret)
 
     def complete_compilation(self, champ_id, ret):
         if ret is True:
@@ -162,9 +157,10 @@ class MasterNode:
                              worker, tasks
                         ))
             self.worker_tasks = tasks + self.worker_tasks
-            self.to_dispatch.set()
+            ioloop.add_callback(dispatcher_task)
         del self.workers[(worker.hostname, worker.port)]
 
+    @tornado.gen.coroutine
     def janitor_task(self):
         while True:
             all_workers = copy.copy(self.workers)
@@ -173,7 +169,7 @@ class MasterNode:
                     logging.warn("timeout detected for worker %s" % worker)
                     self.redispatch_worker(worker)
 
-            gevent.sleep(1)
+            yield tornado.gen.Task(ioloop.add_timeout, time.time() + 1)
 
     def connect_to_db(self):
         return psycopg2.connect(
@@ -202,7 +198,7 @@ class MasterNode:
             self.worker_tasks.append(t)
 
         if to_set_pending:
-            self.to_dispatch.set()
+            ioloop.add_callback(dispatcher_task)
 
         cur.executemany(
             self.config['sql']['queries']['set_champion_status'],
@@ -232,7 +228,7 @@ class MasterNode:
             self.worker_tasks.append(t)
 
         if to_set_pending:
-            self.to_dispatch.set()
+            ioloop.add_callback(dispatcher_task)
 
         cur.executemany(
             self.config['sql']['queries']['set_match_status'],
@@ -240,6 +236,7 @@ class MasterNode:
         )
         self.db.commit()
 
+    @tornado.gen.coroutine
     def dbwatcher_task(self):
         self.db = self.connect_to_db()
         self.check_requested_compilations('pending')
@@ -247,7 +244,7 @@ class MasterNode:
         while True:
             self.check_requested_compilations()
             self.check_requested_matches()
-            gevent.sleep(1)
+            yield tornado.gen.Task(ioloop.add_timeout, time.time() + 1)
 
     def find_worker_for(self, task):
         available = list(self.workers.values())
@@ -259,21 +256,20 @@ class MasterNode:
         else:
             return available[0]
 
+    @tornado.gen.coroutine
     def dispatcher_task(self):
-        while True:
-            self.to_dispatch.wait()
-            if self.worker_tasks:
-                task = self.worker_tasks[0]
-                w = self.find_worker_for(task)
-                if w is None:
-                    logging.info("no worker available for task %s" % task)
-                else:
-                    w.add_task(self, task)
-                    logging.debug("task %s got to %s" % (task, w))
-                    self.worker_tasks = self.worker_tasks[1:]
-            if not self.worker_tasks:
-                self.to_dispatch.clear()
-            gevent.sleep(0.1) # avoid blocking everything with a lot to dispatch
+        if self.worker_tasks:
+            task = self.worker_tasks[0]
+            w = self.find_worker_for(task)
+            if w is None:
+                logging.info("no worker available for task %s" % task)
+            else:
+                w.add_task(self, task)
+                logging.debug("task %s got to %s" % (task, w))
+                self.worker_tasks = self.worker_tasks[1:]
+        yield tornado.gen.Task(ioloop.add_timeout, time.time() + 0.1)
+        if self.worker_tasks:
+            ioloop.add_callback(dispatcher_task)
 
 class MasterNodeProxy(prologin.rpc.server.BaseRPCApp):
     def __init__(self, *args, master=None **kwargs):
@@ -334,10 +330,10 @@ if __name__ == '__main__':
     config = prologin.config.load('master-node')
 
     master = MasterNode(config)
-    s = MasterNodeProxy(appname='master-node', master=master)
+    s = MasterNodeProxy(app_name='master-node', master=master)
     s.listen(config['master']['port'])
 
     try:
-        tornado.ioloop.IOLoop.instance().start()
+        ioloop.instance().start()
     except KeyboardInterrupt:
         pass

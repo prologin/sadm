@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 # This file is part of Stechec.
 #
+# Copyright (c) 2013 Antoine Pietri <antoine.pietri@prologin.org>
 # Copyright (c) 2011 Pierre Bourdon <pierre.bourdon@prologin.org>
 # Copyright (c) 2011 Association Prologin <info@prologin.org>
 #
@@ -19,7 +20,7 @@
 
 import gevent
 import prologin.rpc.client
-from . import task
+import task
 import time
 
 class Worker(object):
