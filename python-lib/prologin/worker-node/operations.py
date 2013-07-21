@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 # This file is part of Stechec.
 #
+# Copyright (c) 2013 Antoine Pietri <antoine.pietri@prologin.org>
 # Copyright (c) 2011 Pierre Bourdon <pierre.bourdon@prologin.org>
 # Copyright (c) 2011 Association Prologin <info@prologin.org>
 #
@@ -22,14 +23,16 @@ from subprocess import Popen, PIPE, STDOUT
 import errno
 import fcntl
 import gzip
-import paths
 import os
 import os.path
 import sys
 import tempfile
+import time
 import tornado
 import tornado.gen
 import tornado.ioloop
+
+ioloop = tornado.ioloop.IOLoop.instance()
 
 @tornado.gen.coroutine
 def communicate(cmdline, new_env=None, data=''):
@@ -39,6 +42,7 @@ def communicate(cmdline, new_env=None, data=''):
 
     Returns (retcode, stdout).
     """
+    logging.info(cmdline)
     p = Popen(cmdline, stdin=PIPE, stdout=PIPE, stderr=STDOUT, env=new_env)
     fcntl.fcntl(p.stdin, fcntl.F_SETFL, os.O_NONBLOCK)
     fcntl.fcntl(p.stdout, fcntl.F_SETFL, os.O_NONBLOCK)
@@ -68,10 +72,10 @@ def communicate(cmdline, new_env=None, data=''):
     while True:
         try:
             chunk = p.stdout.read(4096)
-            read_size += len(chunk)
             if not chunk:
                 break
 
+            read_size += len(chunk)
             if read_size < 2**32:
                 chunks.append(chunk)
         except IOError as ex:
@@ -91,10 +95,7 @@ def communicate(cmdline, new_env=None, data=''):
 
     # Wait for process completion
     # while p.poll() is None:
-    yield tornado.gen.Task(
-            tornado.ioloop.IOLoop.instance().add_timeout,
-            time.time() + 0.1
-    )
+    yield tornado.gen.Task(ioloop.add_timeout, time.time() + 0.1)
 
     try:
         p.kill()
@@ -121,7 +122,8 @@ def compile_champion(config, contest, user, champ_id):
     output of the compilation script.
     """
     dir_path = champion_path(config, contest, user, champ_id)
-    cmd = [paths.compile_script, config['contest']['directory'], dir_path]
+    cmd = [config['paths']['compile_script'],
+           config['contest']['directory'], dir_path]
     retcode, stdout = communicate(cmd)
     return retcode == 0 and os.path.exists(os.path.join(dir_path, 'champion.so'))
 
@@ -158,15 +160,12 @@ def spawn_dumper(cmd, path):
                 (yield gen.Callback('read_spawn_dumper')),
                 tornado.ioloop.IOLoop.READ
         )
-        yield tornado.gen.Wait('read_communicate')
+        yield tornado.gen.Wait('read_spawn_dumper')
     p.stdout.close()
 
     # Wait for process completion
     while p.poll() is None:
-        yield tornado.gen.Task(
-                tornado.ioloop.IOLoop.instance().add_timeout,
-                time.time() + 0.05
-        )
+        yield tornado.gen.Task(ioloop.add_timeout, time.time() + 0.05)
 
     # Compress the dump and place it to its final destination
     final_dump = os.path.join(path, "dump.json.gz")
@@ -197,26 +196,26 @@ def run_server(config, server_done, rep_port, pub_port, contest, match_id, opts)
         opts_dict[name.strip()] = value.strip()
 
     dumper = config['contest']['dumper']
-    cmd = [paths.stechec_server,
+    cmd = [config['paths']['stechec_server'],
                 "--map", opts_dict['map'],
-                "--rules", paths.libdir + "/lib" + contest + ".so",
+                "--rules", config['paths']['libdir'] + "/lib" + contest + ".so",
                 "--rep_addr", "tcp://*:%d" % rep_port,
                 "--pub_addr", "tcp://*:%d" % pub_port,
                 "--nb_clients", "3",
                 "--verbose", "1"]
-    yield tornado.gen.Task(spawn_server, cmd, path, match_id, server_done)
-    yield tornado.gen.Task(
-            tornado.ioloop.IOLoop.instance().add_timeout,
-            time.time() + 0.1
-    )
+    ioloop.add_callback(spawn_server, cmd, path, match_id, server_done)
+
+    # Let it start
+    yield tornado.gen.Task(ioloop.add_timeout, time.time() + 0.1)
+
     # XXX: for some reasons clients now have to be run after the server
     # otherwise they misbehave. Temporary fix.
     nb_spectator = 1 if dumper else 0
     if nb_spectator:
-        cmd = [paths.stechec_client, 
+        cmd = [config['paths']['stechec_client'],
                "--map", opts_dict['map'],
                "--name", "dumper",
-               "--rules", paths.libdir + "/lib" + contest + ".so",
+               "--rules", config['paths']['libdir'] + "/lib" + contest + ".so",
                "--champion", dumper,
                "--req_addr", "tcp://localhost:%d" % rep_port,
                "--sub_addr", "tcp://localhost:%d" % pub_port,
@@ -224,7 +223,7 @@ def run_server(config, server_done, rep_port, pub_port, contest, match_id, opts)
                "--time", "3000",
                "--spectator",
                "--verbose", "1"]
-        yield tornado.gen.Task(spawn_dumper, cmd, path)
+        ioloop.add_callback(spawn_dumper, cmd, path)
 
 def spawn_client(cmd, env, path, match_id, champ_id, tid, callback):
     retcode, stdout = communicate(cmd, env)
@@ -232,7 +231,6 @@ def spawn_client(cmd, env, path, match_id, champ_id, tid, callback):
     open(log_path, "w").write(stdout)
     callback(retcode, stdout, match_id, champ_id, tid)
 
-@tornado.gen.coroutine
 def run_client(config, ip, req_port, sub_port, contest, match_id, user, champ_id, tid, opts, cb):
     dir_path = champion_path(config, contest, user, champ_id)
     mp = match_path(config, contest, match_id)
@@ -247,14 +245,14 @@ def run_client(config, ip, req_port, sub_port, contest, match_id, user, champ_id
     env = os.environ.copy()
     env['CHAMPION_PATH'] = dir_path + '/'
 
-    cmd = [paths.stechec_client,
+    cmd = [config['paths']['stechec_client'],
                 "--map", opts_dict['map'],
                 "--name", str(tid),
-                "--rules", paths.libdir + "/lib" + contest + ".so",
+                "--rules", config['paths']['libdir'] + "/lib" + contest + ".so",
                 "--champion", dir_path + "/champion.so",
                 "--req_addr", "tcp://{ip}:{port}".format(ip=ip, port=req_port),
                 "--sub_addr", "tcp://{ip}:{port}".format(ip=ip, port=sub_port),
                 "--memory", "250000",
                 "--time", "1500"
           ]
-    yield tornado.gen.Task(spawn_client, cmd, env, mp, match_id, champ_id, tid, cb)
+    ioloop.add_callback(spawn_client, cmd, env, mp, match_id, champ_id, tid, cb)
