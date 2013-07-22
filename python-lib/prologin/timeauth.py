@@ -21,6 +21,7 @@ time synchronisation between endpoints.
 import hashlib
 import hmac
 import time
+import prologin.config
 
 
 # Validity time (in seconds) of a generated token.
@@ -38,6 +39,11 @@ def generate_token(secret, message=None):
 
 def check_token(token, secret, message=None):
     """Return if `token` is valid according to `secret` and current time."""
+
+    config = prologin.config.load('timeauth')
+
+    if not config['enabled']:
+        return True
 
     if token is None:
         return False
