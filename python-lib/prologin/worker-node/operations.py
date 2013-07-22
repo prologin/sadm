@@ -57,11 +57,9 @@ def communicate(cmdline, new_env=None, data=''):
             if ex[0] != errno.EAGAIN:
                 raise
             sys.exc_clear()
-        tornado.ioloop.IOLoop.instance().add_handler(
-                p.stdin.fileno(),
-                (yield gen.Callback('write_communicate')),
-                tornado.ioloop.IOLoop.WRITE
-        )
+        ioloop.add_handler(p.stdin.fileno(),
+                           (yield gen.Callback('write_communicate')),
+                           tornado.ioloop.IOLoop.WRITE)
         yield tornado.gen.Wait('write_communicate')
 
     p.stdin.close()
@@ -82,11 +80,9 @@ def communicate(cmdline, new_env=None, data=''):
             if ex[0] != errno.EAGAIN:
                 raise
             sys.exc_clear()
-        tornado.ioloop.IOLoop.instance().add_handler(
-                p.stdout.fileno(),
-                (yield gen.Callback('read_communicate')),
-                tornado.ioloop.IOLoop.READ
-        )
+        ioloop.add_handler(p.stdout.fileno(),
+                           (yield gen.Callback('read_communicate')),
+                           tornado.ioloop.IOLoop.READ)
         yield tornado.gen.Wait('read_communicate')
     p.stdout.close()
 
@@ -155,11 +151,9 @@ def spawn_dumper(cmd, path):
             if ex[0] != errno.EAGAIN:
                 raise
             sys.exc_clear()
-        tornado.ioloop.IOLoop.instance().add_handler(
-                p.stdout.fileno(),
-                (yield gen.Callback('read_spawn_dumper')),
-                tornado.ioloop.IOLoop.READ
-        )
+        ioloop.add_handler(p.stdout.fileno(),
+                           (yield gen.Callback('read_spawn_dumper')),
+                           tornado.ioloop.IOLoop.READ)
         yield tornado.gen.Wait('read_spawn_dumper')
     p.stdout.close()
 

@@ -42,7 +42,6 @@ class WorkerNode:
         self.hostname = socket.gethostname()
         self.port = config['worker']['port']
         self.slots = self.max_slots = config['worker']['available_slots']
-        self.secret = config['master']['shared_secret']
         self.min_srv_port = config['worker']['port_range_start']
         self.max_srv_port = config['worker']['port_range_end']
         self.srv_port = self.min_srv_port
@@ -58,7 +57,8 @@ class WorkerNode:
         config = self.config
         host, port = (config['master']['host'], config['master']['port'])
         url = "http://{}:{}/".format(host, port)
-        return prologin.rpc.client.Client(url)
+        return prologin.rpc.client.Client(url,
+                secret=config['master']['shared_secret'].encode('utf-8'))
 
     @property
     def available_server_port(self):
@@ -81,8 +81,7 @@ class WorkerNode:
         first_heartbeat = True
         while True:
             try:
-                self.master.heartbeat(self.secret, self.get_worker_infos(),
-                                      first_heartbeat)
+                self.master.heartbeat(self.get_worker_infos(), first_heartbeat)
                 first_heartbeat = False
             except socket.error:
                 msg = 'master down, retrying heartbeat in %ds' % self.interval
@@ -94,7 +93,7 @@ class WorkerNode:
     def start_work(self, work, slots, *args, **kwargs):
         if self.slots < slots:
             logging.warn('not enough slots to start the required job')
-            return False, self.secret, self.get_worker_infos()
+            return False, self.get_worker_infos()
 
         logging.debug('starting a job for %d slots' % slots)
         self.slots -= slots
@@ -107,10 +106,10 @@ class WorkerNode:
             finally:
                 if job_done:
                     self.slots += slots
-            func(self.secret, self.get_worker_infos(), *args_li)
+            func(self.get_worker_infos(), *args_li)
 
         ioloop.add_callback(real_work)
-        return True, self.secret, self.get_worker_infos()
+        return True, self.get_worker_infos()
 
     def compile_champion(self, contest, user, champ_id):
         ret = operations.compile_champion(self.config, contest, user, champ_id)
@@ -140,8 +139,7 @@ class WorkerNode:
             result.append((int(pid), int(score)))
 
         try:
-            self.master.match_done(self.secret, self.get_worker_infos(),
-                                   match_id, result)
+            self.master.match_done(self.get_worker_infos(), match_id, result)
         except socket.error:
             pass
 
@@ -157,7 +155,7 @@ class WorkerNode:
         self.slots += 2
         logging.info('champion %d for match %d done' % (champ_id, match_id))
         try:
-            self.master.client_done(self.secret, self.get_worker_infos(),
+            self.master.client_done(self.get_worker_infos(),
                                     match_id, pl_id, retcode)
         except socket.error:
             pass
@@ -171,23 +169,22 @@ class WorkerNodeProxy(prologin.rpc.server.BaseRPCApp):
         self.node = node
         super().__init__(*args, **kwargs)
 
-    # TODO (seirl) : check that the secret matches
     @prologin.rpc.server.remote_method
-    def compile_champion(self, secret, *args, **kwargs):
+    def compile_champion(self, *args, **kwargs):
         logging.debug('received a compile_champion request')
         return self.node.start_work(
             self.node.compile_champion, 1, *args, **kwargs
         )
 
     @prologin.rpc.server.remote_method
-    def run_server(self, secret, *args, **kwargs):
+    def run_server(self, *args, **kwargs):
         logging.debug('received a run_server request')
         return self.node.start_work(
             self.node.run_server, 1, *args, **kwargs
         )
 
     @prologin.rpc.server.remote_method
-    def run_client(self, secret, *args, **kwargs):
+    def run_client(self, *args, **kwargs):
         logging.debug('received a run_client request')
         return self.node.start_work(
             self.node.run_client, 2, *args, **kwargs
@@ -212,10 +209,11 @@ if __name__ == '__main__':
     config = prologin.config.load('worker-node')
 
     worker = WorkerNode(config)
-    s = WorkerNodeProxy(app_name='worker-node', node=worker)
+    s = WorkerNodeProxy(app_name='worker-node', node=worker,
+            secret=config['master']['shared_secret'].encode('utf-8'))
     s.listen(config['worker']['port'])
 
     try:
-        tornado.ioloop.IOLoop.instance().start()
+        ioloop.start()
     except KeyboardInterrupt:
         pass

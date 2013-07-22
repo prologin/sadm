@@ -39,7 +39,7 @@ import tornado.ioloop
 import tornado.gen
 import utils
 
-utils.init_psycopg_gevent()
+utils.init_psycopg_tornado()
 ioloop = tornado.ioloop.IOLoop.instance()
 
 class MasterNode:
@@ -68,7 +68,8 @@ class MasterNode:
         key = hostname, port
         if key not in self.workers:
             logging.warn("registered new worker: %s:%d" % (hostname, port))
-            self.workers[key] = Worker(hostname, port, slots, max_slots)
+            self.workers[key] = Worker(hostname, port, slots, max_slots,
+                    self.config)
         else:
             logging.debug("updating worker: %s:%d %d/%d" % (
                               hostname, port, slots, max_slots
@@ -277,35 +278,35 @@ class MasterNodeProxy(prologin.rpc.server.BaseRPCApp):
         self.master = master
 
     @prologin.rpc.server.remote_method
-    def heartbeat(self, secret, worker, first):
+    def heartbeat(self, worker, first):
         self.master.heartbeat(worker, first)
         return True
 
     @prologin.rpc.server.remote_method
-    def compilation_result(self, secret, worker, champ_id, ret):
+    def compilation_result(self, worker, champ_id, ret):
         self.master.update_worker(worker)
         self.master.compilation_result(worker, champ_id, ret)
         return True
 
     @prologin.rpc.server.remote_method
-    def match_ready(self, secret, worker, match_id, req_port, sub_port):
+    def match_ready(self, worker, match_id, req_port, sub_port):
         self.master.update_worker(worker)
         self.master.match_ready(worker, match_id, req_port, sub_port)
         return True
 
     @prologin.rpc.server.remote_method
-    def match_done(self, secret, worker, mid, result):
+    def match_done(self, worker, mid, result):
         self.master.update_worker(worker)
         self.master.match_done(worker, mid, result)
         return True
 
     @prologin.rpc.server.remote_method
-    def client_ready(self, secret, worker, mid, mpid):
+    def client_ready(self, worker, mid, mpid):
         self.master.update_worker(worker)
         return True
 
     @prologin.rpc.server.remote_method
-    def client_done(self, secret, worker, mid, mpid, retcode):
+    def client_done(self, worker, mid, mpid, retcode):
         self.master.update_worker(worker)
         self.master.client_done(worker, mpid)
         return True
@@ -330,7 +331,8 @@ if __name__ == '__main__':
     config = prologin.config.load('master-node')
 
     master = MasterNode(config)
-    s = MasterNodeProxy(app_name='master-node', master=master)
+    s = MasterNodeProxy(app_name='master-node', master=master,
+        secret=config['master']['shared_secret'].encode('utf-8'))
     s.listen(config['master']['port'])
 
     try:

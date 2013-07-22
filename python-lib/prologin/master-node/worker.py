@@ -24,13 +24,14 @@ import task
 import time
 
 class Worker(object):
-    def __init__(self, hostname, port, slots, max_slots):
+    def __init__(self, hostname, port, slots, max_slots, config):
         self.hostname = hostname
         self.port = port
         self.slots = slots
         self.max_slots = max_slots
         self.tasks = []
         self.keep_alive()
+        self.config = config
 
     @property
     def usage(self):
@@ -89,7 +90,8 @@ class Worker(object):
     @property
     def rpc(self):
         url = "http://%s:%d/" % (self.hostname, self.port)
-        return prologin.rpc.client.Client(url)
+        return prologin.rpc.client.Client(url,
+            secret=self.config['master']['shared_secret'].encode('utf-8'))
 
     def __repr__(self):
         return '<Worker: %s:%d>' % (self.hostname, self.port)
