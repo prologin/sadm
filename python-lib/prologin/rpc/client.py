@@ -14,6 +14,7 @@
 import json
 import requests
 from urllib.parse import urljoin
+import prologin.timeauth
 
 
 class BaseError(Exception):
@@ -35,10 +36,9 @@ class RemoteError(BaseError):
 class Client:
     """RPC client: connect to a server and perform remote calls."""
 
-    # TODO: add authentication support.
-
-    def __init__(self, base_url):
+    def __init__(self, base_url, secret=None):
         self.base_url = base_url
+        self.secret = secret
 
     def _extract_result(self, lines):
         """Get a response line from a request, parse it and return it.
@@ -88,10 +88,18 @@ class Client:
         generator or raise a RemoteError. Raise an InternalError for anything
         else.
         """
+
+        # Generate the timeauth token
+        if self.secret:
+            token = prologin.timeauth.generate_token(self.secret, method)
+        else:
+            token = ''
+
         # Serialize arguments and send the request...
         arguments = {
             'args': args,
             'kwargs': kwargs,
+            'token': token,
         }
         try:
             req_data = json.dumps(arguments)

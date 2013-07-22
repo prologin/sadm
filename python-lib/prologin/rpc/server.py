@@ -24,6 +24,12 @@ class MethodError(Exception):
     """
     pass
 
+class BadToken(Exception):
+    """Exception used to notice the remote callers that the timeauth token
+    is wrong or has expired.
+    """
+    pass
+
 
 def remote_method(func):
     """Decorator for methods to be callable remotely."""
@@ -54,6 +60,9 @@ class MethodCollection(type):
 
 class RemoteCallHandler(tornado.web.RequestHandler):
 
+    def initialize(self, secret=None):
+        self.secret = secret
+
     @property
     def rpc_object(self):
         """RPC object: contains method that can be called remotely."""
@@ -71,10 +80,17 @@ class RemoteCallHandler(tornado.web.RequestHandler):
             self.set_status(404)
             return self._send_exception(MethodError(method_name))
 
-        self.set_status(200)
-
         args = request['args']
         kwargs = request['kwargs']
+
+        if self.secret and 'token' in request:
+            token = request['token']
+            r = prologin.timeauth.check_token(token, self.secret, method_name)
+            if not r:
+                self.set_status(403)
+                return self._send_exception(BadToken(method_name))
+
+        self.set_status(200)
 
         # Actually call it.
         try:
@@ -147,7 +163,7 @@ class BaseRPCApp(prologin.web.TornadoApp, metaclass=MethodCollection):
     decorator and instanciate me!
     """
 
-    def __init__(self, app_name):
+    def __init__(self, app_name, secret=None):
         super(prologin.web.TornadoApp, self).__init__([
-            (r'/call/([0-9a-zA-Z_]+)', RemoteCallHandler),
+            (r'/call/([0-9a-zA-Z_]+)', RemoteCallHandler, {'secret': secret}),
         ], app_name)
