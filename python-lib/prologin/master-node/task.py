@@ -22,7 +22,6 @@ import gevent.queue
 class CompilationTask:
     def __init__(self, config, user, champ_id):
         self.contest = config['master']['contest']
-        self.secret = config['master']['shared_secret']
         self.user = user
         self.champ_id = champ_id
 
@@ -32,7 +31,7 @@ class CompilationTask:
 
     def execute(self, master, worker):
         worker.rpc.compile_champion(
-            self.secret, self.contest, self.user, self.champ_id
+            self.contest, self.user, self.champ_id
         )
 
     def __repr__(self):
@@ -41,7 +40,6 @@ class CompilationTask:
 class PlayerTask:
     def __init__(self, config, mid, hostname, req_port, sub_port, cid, mpid, user, opts):
         self.contest = config['master']['contest']
-        self.secret = config['master']['shared_secret']
         self.mid = mid
         self.hostname = hostname
         self.req_port = req_port
@@ -57,7 +55,7 @@ class PlayerTask:
 
     def execute(self, master, worker):
         worker.rpc.run_client(
-            self.secret, self.contest, self.mid, self.hostname, self.req_port,
+            self.contest, self.mid, self.hostname, self.req_port,
             self.sub_port, self.user, self.cid, self.mpid, self.opts
         )
 
@@ -65,7 +63,6 @@ class MatchTask:
     def __init__(self, config, mid, players, opts):
         self.config = config
         self.contest = config['master']['contest']
-        self.secret = config['master']['shared_secret']
         self.mid = mid
         self.players = players
         self.opts = opts
@@ -79,7 +76,7 @@ class MatchTask:
     def execute(self, master, worker):
         master.matches[self.mid] = self
         worker.rpc.run_server(
-            self.secret, self.contest, self.mid, self.opts
+            self.contest, self.mid, self.opts
         )
         req_port = self.server_port.get()
         sub_port = self.server_port.get()
