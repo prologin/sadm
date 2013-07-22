@@ -1,0 +1,27 @@
+#!/usr/bin/env python3
+# -*- encoding: utf-8 -*-
+
+import prologin.rpc.client
+import argparse
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='CLI interface for prolorpc')
+    parser.add_argument('--secret', dest='secret', action='store', default='',
+                        help='shared secret')
+    parser.add_argument('--args', dest='args', action='store', default='',
+                        help="method args: 'arg1=val1&arg2=val2'")
+    parser.add_argument('url', action='store',
+                        help="RPC url (http://127.0.0.1:8086/")
+    parser.add_argument('method', action='store',
+                        help='name of the remote method')
+    opts = parser.parse_args()
+
+    args = {}
+    for a in opts.args.split('&'):
+        if a and '=' in a:
+            name, value = a.split('=', maxsplit=1)
+            args[name] = value
+
+    c = prologin.rpc.client.Client(opts.url, opts.secret.encode('utf-8'))
+    if hasattr(c, opts.method):
+        print(getattr(c, opts.method)(**args))
