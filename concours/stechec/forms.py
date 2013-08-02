@@ -8,9 +8,17 @@ from django.utils.html import escape, conditional_escape
 from itertools import chain, groupby
 
 class ChampionUploadForm(forms.Form):
-    name = forms.CharField(max_length=64, required=True, label="Nom du champion")
+    name = forms.CharField(max_length=25, required=True, label="Nom du champion")
     tarball = forms.FileField(required=True, label="Archive des sources (.tgz)")
     comment = forms.CharField(required=True, widget=forms.widgets.Textarea(), label="Commentaire")
+
+    def clean_name(self):
+        name = self.cleaned_data['name']
+        try:
+            models.Champion.objects.get(name=name)
+        except models.Champion.DoesNotExist:
+            return name
+        raise forms.ValidationError("Nom déjà utilisé")
 
 class ChampionField(forms.Field):
     def clean(self, value):
