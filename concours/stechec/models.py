@@ -27,11 +27,11 @@ class Map(models.Model):
 
     @property
     def contents(self):
-        return open(self.path).read()
+        return open(self.path, encoding='utf-8').read()
 
     @contents.setter
     def contents(self, value):
-        open(self.path, 'w').write(value)
+        open(self.path, 'w', encoding='utf-8').write(value)
 
     def get_absolute_url(self):
         return reverse("map-detail", kwargs={"pk": self.id})
@@ -70,10 +70,14 @@ class Champion(models.Model):
     @property
     def compilation_log(self):
         this_dir = self.directory
-        try:
-            return open(os.path.join(this_dir, "compilation.log"), 'rb').read()
-        except Exception as e:
-            return str(e)
+        log_path = os.path.join(this_dir, "compilation.log")
+        if os.path.exists(log_path):
+            try:
+                return open(log_path, encoding='utf-8').read()
+            except Exception as e:
+                return str(e)
+        else:
+            return "Log de compilation introuvable."
 
     def get_absolute_url(self):
         return reverse('champion-detail', kwargs={'pk': self.id})
@@ -159,11 +163,14 @@ class Match(models.Model):
     @property
     def log(self):
         log_path = os.path.join(self.directory, "server.log")
-        try:
-            t = open(log_path).read()
-            return strip_ansi_codes(t)
-        except Exception as e:
-            return str(e)
+        if os.path.exists(log_path):
+            try:
+                t = open(log_path, encoding='utf-8').read()
+                return strip_ansi_codes(t)
+            except Exception as e:
+                return str(e)
+        else:
+            return "Log de match introuvable."
 
     @property
     def dump(self):
@@ -217,11 +224,14 @@ class MatchPlayer(models.Model):
     @property
     def log(self):
         filename = "log-champ-%d-%d.log" % (self.id, self.champion.id)
-        try:
-            t = open(os.path.join(self.match.directory, filename)).read()
-            return strip_ansi_codes(t)
-        except Exception as e:
-            return str(e)
+        log_path = os.path.join(self.match.directory, filename)
+        if os.path.exists(log_path):
+            try:
+                t = open(log_path, encoding='utf-8').read()
+                return strip_ansi_codes(t)
+            except Exception as e:
+                return str(e)
+        return "Log de match introuvable."
 
     def __unicode__(self):
         return "%s pour match %s" % (self.champion, self.match)
