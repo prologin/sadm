@@ -36,7 +36,7 @@ class Map(models.Model):
     def get_absolute_url(self):
         return reverse("map-detail", kwargs={"pk": self.id})
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s, de %s%s" % (self.name, self.author,
                                  " (officielle)" if self.official else "")
 
@@ -85,7 +85,7 @@ class Champion(models.Model):
     def get_delete_url(self):
         return reverse('champion-delete', kwargs={'pk': self.id})
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s, de %s" % (self.name, self.author)
 
     class Meta:
@@ -101,7 +101,7 @@ class Tournament(models.Model):
     maps = models.ManyToManyField(Map, verbose_name="maps",
                                      through="TournamentMap")
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s, %s" % (self.name, self.ts)
 
     class Meta:
@@ -114,7 +114,7 @@ class TournamentPlayer(models.Model):
     tournament = models.ForeignKey(Tournament, verbose_name="tournoi")
     score = models.IntegerField("score", default=0)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s pour tournoi %s" % (self.champion, self.tournament)
 
     class Meta:
@@ -126,7 +126,7 @@ class TournamentMap(models.Model):
     map = models.ForeignKey(Map, verbose_name="map")
     tournament = models.ForeignKey(Tournament, verbose_name="tournoi")
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s pour tournoi %s" % (self.map, self.tournament)
 
     class Meta:
@@ -208,7 +208,7 @@ class Match(models.Model):
     def get_absolute_url(self):
         return reverse('match-detail', kwargs={'pk': self.id})
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s (par %s)" % (self.ts, self.author)
 
     class Meta:
@@ -233,7 +233,7 @@ class MatchPlayer(models.Model):
                 return str(e)
         return "Log de match introuvable."
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s pour match %s" % (self.champion, self.match)
 
     class Meta:
