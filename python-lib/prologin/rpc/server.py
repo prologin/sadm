@@ -30,6 +30,12 @@ class BadToken(Exception):
     """
     pass
 
+class MissingToken(Exception):
+    """Exception used to notice the remote callers that the timeauth token
+    cannot be found in the request.
+    """
+    pass
+
 
 def remote_method(func):
     """Decorator for methods to be callable remotely."""
@@ -83,7 +89,10 @@ class RemoteCallHandler(tornado.web.RequestHandler):
         args = request['args']
         kwargs = request['kwargs']
 
-        if self.secret and 'token' in request:
+        if self.secret:
+            if 'token' not in request:
+                self.set_status(400)
+                return self._send_exception(MissingToken(method_name))
             token = request['token']
             r = prologin.timeauth.check_token(token, self.secret, method_name)
             if not r:
