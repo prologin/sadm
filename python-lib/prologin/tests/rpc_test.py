@@ -29,6 +29,17 @@ class RpcServer(prologin.rpc.server.BaseRPCApp):
             yield i
 
     @prologin.rpc.server.remote_method
+    def long_generator(self):
+        yield True
+        time.sleep(15)
+        yield True
+
+    @prologin.rpc.server.remote_method
+    def instant_generator(self):
+        yield True
+        yield True
+
+    @prologin.rpc.server.remote_method
     def long_polling(self):
         time.sleep(15)
         return 42
@@ -49,6 +60,7 @@ class RpcTest(unittest.TestCase):
     def setUpClass(cls):
         cls.s = RpcServerInstance()
         cls.s.start()
+        time.sleep(1)
         cls.c = prologin.rpc.client.Client('http://127.0.0.1:42545')
 
     @classmethod
@@ -66,6 +78,14 @@ class RpcTest(unittest.TestCase):
 
     def test_generator(self):
         self.assertEqual(list(self.c.generate_numbers()), list(range(10)))
+
+    def test_parallel_generators(self):
+        g1 = self.c.long_generator()
+        g2 = self.c.instant_generator()
+        before = time.time()
+        next(g1)
+        next(g2)
+        self.assertTrue(time.time() - before < 10)
 
     def test_long_polling(self):
         self.assertEqual(self.c.long_polling(), 42)
