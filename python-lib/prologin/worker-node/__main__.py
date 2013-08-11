@@ -60,7 +60,6 @@ class WorkerNode:
         return prologin.rpc.client.Client(url,
                 secret=config['master']['shared_secret'].encode('utf-8'))
 
-    @property
     def available_server_port(self):
         """
         Be optimistic and hope that:
@@ -117,8 +116,8 @@ class WorkerNode:
 
     def run_server(self, contest, match_id, opts=''):
         logging.info('starting server for match %d' % match_id)
-        rep_port = self.available_server_port
-        pub_port = self.available_server_port
+        rep_port = self.available_server_port()
+        pub_port = self.available_server_port()
         operations.run_server(self.config, worker.server_done, rep_port,
                             pub_port, contest, match_id, opts)
         return False, self.master.match_ready, (match_id, rep_port, pub_port)
