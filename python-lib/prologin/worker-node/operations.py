@@ -171,6 +171,17 @@ def spawn_dumper(cmd, path):
     final_fp.close()
     os.unlink(dump_path)
 
+
+def parse_opts(opts):
+    opts_dict = {}
+    for line in opts.split('\n'):
+        if '=' not in line:
+            continue
+        name, value = line.split('=', 1)
+        opts_dict[name.strip()] = value.strip()
+    return opts_dict
+
+
 @tornado.gen.coroutine
 def run_server(config, server_done, rep_port, pub_port, contest, match_id, opts):
     """
@@ -182,21 +193,18 @@ def run_server(config, server_done, rep_port, pub_port, contest, match_id, opts)
     except OSError:
         pass
 
-    opts_dict = {}
-    for line in opts.split('\n'):
-        if '=' not in line:
-            continue
-        name, value = line.split('=', 1)
-        opts_dict[name.strip()] = value.strip()
-
     dumper = config['contest']['dumper']
     cmd = [config['paths']['stechec_server'],
-                "--map", opts_dict['map'],
                 "--rules", config['paths']['libdir'] + "/lib" + contest + ".so",
                 "--rep_addr", "tcp://0.0.0.0:%d" % rep_port,
                 "--pub_addr", "tcp://0.0.0.0:%d" % pub_port,
                 "--nb_clients", "3",
                 "--verbose", "1"]
+
+    for opt, value in parse_opts(opts).items():
+        cmd.append('--' + opt)
+        cmd.append(value)
+
     ioloop.add_callback(spawn_server, cmd, path, match_id, server_done)
 
     # Let it start
@@ -207,7 +215,6 @@ def run_server(config, server_done, rep_port, pub_port, contest, match_id, opts)
     nb_spectator = 1 if dumper else 0
     if nb_spectator:
         cmd = [config['paths']['stechec_client'],
-               "--map", opts_dict['map'],
                "--name", "dumper",
                "--rules", config['paths']['libdir'] + "/lib" + contest + ".so",
                "--champion", dumper,
@@ -217,6 +224,11 @@ def run_server(config, server_done, rep_port, pub_port, contest, match_id, opts)
                "--time", "3000",
                "--spectator",
                "--verbose", "1"]
+
+        for opt, value in parse_opts(opts).items():
+            cmd.append('--' + opt)
+            cmd.append(value)
+
         ioloop.add_callback(spawn_dumper, cmd, path)
 
 def spawn_client(cmd, env, path, match_id, champ_id, tid, callback):
@@ -229,18 +241,10 @@ def run_client(config, ip, req_port, sub_port, contest, match_id, user, champ_id
     dir_path = champion_path(config, contest, user, champ_id)
     mp = match_path(config, contest, match_id)
 
-    opts_dict = {}
-    for line in opts.split('\n'):
-        if '=' not in line:
-            continue
-        name, value = line.split('=', 1)
-        opts_dict[name.strip()] = value.strip()
-
     env = os.environ.copy()
     env['CHAMPION_PATH'] = dir_path + '/'
 
     cmd = [config['paths']['stechec_client'],
-                "--map", opts_dict['map'],
                 "--name", str(tid),
                 "--rules", config['paths']['libdir'] + "/lib" + contest + ".so",
                 "--champion", dir_path + "/champion.so",
@@ -249,4 +253,9 @@ def run_client(config, ip, req_port, sub_port, contest, match_id, user, champ_id
                 "--memory", "250000",
                 "--time", "1500"
           ]
+
+    for opt, value in parse_opts(opts).items():
+        cmd.append('--' + opt)
+        cmd.append(value)
+
     ioloop.add_callback(spawn_client, cmd, env, mp, match_id, champ_id, tid, cb)
