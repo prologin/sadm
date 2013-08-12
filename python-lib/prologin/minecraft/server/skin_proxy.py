@@ -25,13 +25,14 @@
 
 import os
 import prologin.config
+import prologin.web
 import tornado.ioloop
 import tornado.web
 
 SERVER_CFG = prologin.config.load('minecraft')
 
 
-application = tornado.web.Application([
+application = prologin.web.TornadoApp([
     (r'/MinecraftSkins/(.+?\.png)', tornado.Web.StaticFileHandler,
         {'path': SERVER_CFG['resources']['skin_dir']}),
     (r'/MinecraftCloaks/.+?\.png', tornado.Web.StaticFileHandler,

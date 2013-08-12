@@ -26,6 +26,7 @@ import prologin.log
 import prologin.presenced
 import prologin.presencesync
 import prologin.synchronisation
+import prologin.web
 import socket
 import subprocess
 import sys
@@ -95,7 +96,7 @@ class LoginHandler(tornado.web.RequestHandler):
             self.set_status(200, 'OK')
 
 
-class PresencedServer(tornado.web.Application):
+class PresencedServer(prologin.web.TornadoApp):
     def __init__(self, secret, port):
         super(PresencedServer, self).__init__([
             (r'/send_heartbeat', SendHeartbeatHandler),

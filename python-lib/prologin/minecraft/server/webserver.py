@@ -24,6 +24,7 @@ import os
 import prologin.config
 import prologin.log
 import prologin.presencesync
+import prologin.web
 import tornado.ioloop
 import tornado.web
 from utils import login_from_host
@@ -95,7 +96,7 @@ class SkinUploadHandler(tornado.web.RequestHandler):
                 "Impossible de supprimer le skin (il n'existait sûrement pas)")
 
 
-application = tornado.web.Application([
+application = prologin.web.TornadoApp([
     (r'/mylogin', GetLoginHandler),
     (r'/skin', SkinUploadHandler),
 ])

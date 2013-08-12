@@ -24,6 +24,7 @@ import json
 import logging
 import prologin.timeauth
 import prologin.tornadauth
+import prologin.web
 import prologin.webapi
 import time
 import tornado.ioloop
@@ -189,7 +190,7 @@ class UpdateHandler(tornado.web.RequestHandler):
         self.application.pubsub_queue.apply_updates(json.loads(msg))
 
 
-class Server(tornado.web.Application):
+class Server(prologin.web.TornadoApp):
     """Synchronisation server. Users must derive from this class and implement
     required methods.
     """
