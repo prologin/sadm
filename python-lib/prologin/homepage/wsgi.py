@@ -30,6 +30,9 @@ application = get_wsgi_application()
 from django.contrib.staticfiles.handlers import StaticFilesHandler
 application = StaticFilesHandler(application)
 
+import prologin.web
+application = prologin.web.WsgiApp(application, 'mdb-server')
+
 # Apply WSGI middleware here.
 # from helloworld.wsgi import HelloWorldApplication
 # application = HelloWorldApplication(application)
