@@ -193,8 +193,8 @@ def run_server(config, server_done, rep_port, pub_port, contest, match_id, opts)
     cmd = [config['paths']['stechec_server'],
                 "--map", opts_dict['map'],
                 "--rules", config['paths']['libdir'] + "/lib" + contest + ".so",
-                "--rep_addr", "tcp://*:%d" % rep_port,
-                "--pub_addr", "tcp://*:%d" % pub_port,
+                "--rep_addr", "tcp://0.0.0.0:%d" % rep_port,
+                "--pub_addr", "tcp://0.0.0.0:%d" % pub_port,
                 "--nb_clients", "3",
                 "--verbose", "1"]
     ioloop.add_callback(spawn_server, cmd, path, match_id, server_done)
@@ -211,8 +211,8 @@ def run_server(config, server_done, rep_port, pub_port, contest, match_id, opts)
                "--name", "dumper",
                "--rules", config['paths']['libdir'] + "/lib" + contest + ".so",
                "--champion", dumper,
-               "--req_addr", "tcp://localhost:%d" % rep_port,
-               "--sub_addr", "tcp://localhost:%d" % pub_port,
+               "--req_addr", "tcp://127.0.0.1:%d" % rep_port,
+               "--sub_addr", "tcp://127.0.0.1:%d" % pub_port,
                "--memory", "250000",
                "--time", "3000",
                "--spectator",
