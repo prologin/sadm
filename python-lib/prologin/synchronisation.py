@@ -218,7 +218,7 @@ class Server(tornado.web.Application):
         ]
 
     def create_pubsub_queue(self):
-        """Create and return a brand new pupsub queue, taking care of filling
+        """Create and return a brand new pubsub queue, taking care of filling
         it with an initial backlog.
 
         Override this method if you want to have a custom pubsub queue.

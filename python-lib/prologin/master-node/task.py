@@ -1,23 +1,22 @@
 # -*- encoding: utf-8 -*-
-# This file is part of Stechec.
+# This file is part of Prologin-SADM.
 #
+# Copyright (c) 2013 Antoine Pietri <antoine.pietri@prologin.org>
 # Copyright (c) 2011 Pierre Bourdon <pierre.bourdon@prologin.org>
 # Copyright (c) 2011 Association Prologin <info@prologin.org>
 #
-# Stechec is free software: you can redistribute it and/or modify
+# Prologin-SADM is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# Stechec is distributed in the hope that it will be useful,
+# Prologin-SADM is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with Stechec.  If not, see <http://www.gnu.org/licenses/>.
-
-import gevent.queue
+# along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 class CompilationTask:
     def __init__(self, config, user, champ_id):
@@ -66,7 +65,6 @@ class MatchTask:
         self.mid = mid
         self.players = players
         self.opts = opts
-        self.server_port = gevent.queue.Queue()
         self.player_tasks = set()
 
     @property
@@ -75,11 +73,11 @@ class MatchTask:
 
     def execute(self, master, worker):
         master.matches[self.mid] = self
+        req_port = worker.rpc.available_port()
+        sub_port = worker.rpc.available_port()
         worker.rpc.run_server(
             self.contest, self.mid, self.opts
         )
-        req_port = self.server_port.get()
-        sub_port = self.server_port.get()
         for (cid, mpid, user) in self.players:
             # on error, prevent launching several times the players
             if mpid in self.player_tasks:

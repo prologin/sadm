@@ -1,24 +1,24 @@
 # -*- encoding: utf-8 -*-
-# This file is part of Stechec.
+# This file is part of Prologin-SADM.
 #
 # Copyright (c) 2013 Antoine Pietri <antoine.pietri@prologin.org>
 # Copyright (c) 2011 Pierre Bourdon <pierre.bourdon@prologin.org>
 # Copyright (c) 2011 Association Prologin <info@prologin.org>
 #
-# Stechec is free software: you can redistribute it and/or modify
+# Prologin-SADM is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# Stechec is distributed in the hope that it will be useful,
+# Prologin-SADM is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with Stechec.  If not, see <http://www.gnu.org/licenses/>.
+# along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
-import gevent
+import tornado.gen
 import prologin.rpc.client
 import task
 import time
@@ -51,40 +51,41 @@ class Worker(object):
     def can_add_task(self, task):
         return self.slots >= task.slots_taken
 
+    @tornado.gen.coroutine
     def add_task(self, master, task):
         self.slots -= task.slots_taken
-        greenlet = gevent.spawn(task.execute, master, self)
-        self.tasks.append((task, greenlet))
+        future = tornado.gen.Task(task.execute, master, self)
+        self.tasks.append((task, future))
 
     def kill_tasks(self):
-        for (t, g) in self.tasks:
-            g.kill()
+        for (t, f) in self.tasks:
+            f.cancel()
 
     def remove_compilation_task(self, champ_id):
         new = []
-        for (t, g) in self.tasks:
+        for (t, f) in self.tasks:
             if isinstance(t, task.CompilationTask):
                 if t.champ_id == champ_id:
                     continue
-            new.append((t, g))
+            new.append((t, f))
         self.tasks = new
 
     def remove_match_task(self, mid):
         new = []
-        for (t, g) in self.tasks:
+        for (t, f) in self.tasks:
             if isinstance(t, task.MatchTask):
                 if t.mid == mid:
                     continue
-            new.append((t, g))
+            new.append((t, f))
         self.tasks = new
 
     def remove_player_task(self, mpid):
         new = []
-        for (t, g) in self.tasks:
+        for (t, f) in self.tasks:
             if isinstance(t, task.PlayerTask):
                 if t.mpid == mpid:
                     continue
-            new.append((t, g))
+            new.append((t, f))
         self.tasks = new
 
     @property

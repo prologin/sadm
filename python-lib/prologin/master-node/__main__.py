@@ -1,28 +1,26 @@
 # -*- encoding: utf-8 -*-
-# This file is part of Stechec.
+# This file is part of Prologin-SADM.
 #
 # Copyright (c) 2013 Antoine Pietri <antoine.pietri@prologin.org>
 # Copyright (c) 2011 Pierre Bourdon <pierre.bourdon@prologin.org>
 # Copyright (c) 2011 Association Prologin <info@prologin.org>
 #
-# Stechec is free software: you can redistribute it and/or modify
+# Prologin-SADM is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# Stechec is distributed in the hope that it will be useful,
+# Prologin-SADM is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with Stechec.  If not, see <http://www.gnu.org/licenses/>.
+# along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 from .worker import Worker
 
 import copy
-import gevent
-import gevent.event
 import logging
 import logging.handlers
 import optparse
@@ -90,7 +88,6 @@ class MasterNode:
         hostname, port, slots, max_slots = worker
         w = self.workers[(hostname, port)]
         w.remove_compilation_task(champ_id)
-        gevent.spawn(self.complete_compilation, champ_id, ret)
         ioloop.add_callback(self.complete_compilation, champ_id, ret)
 
     def complete_compilation(self, champ_id, ret):
@@ -112,8 +109,6 @@ class MasterNode:
     def match_ready(self, worker, match_id, req_port, sub_port):
         logging.debug('match %(match_id)d ready on %(worker)s port %(req_port)d %(sub_port)d'
                           % locals())
-        self.matches[match_id].server_port.put(req_port)
-        self.matches[match_id].server_port.put(sub_port)
 
     def match_done(self, worker, mid, result):
         db = self.connect_to_db()

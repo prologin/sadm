@@ -1,22 +1,22 @@
 # -*- encoding: utf-8 -*-
-# This file is part of Stechec.
+# This file is part of Prologin-SADM.
 #
 # Copyright (c) 2013 Antoine Pietri <antoine.pietri@prologin.org>
 # Copyright (c) 2011 Pierre Bourdon <pierre.bourdon@prologin.org>
 # Copyright (c) 2011 Association Prologin <info@prologin.org>
 #
-# Stechec is free software: you can redistribute it and/or modify
+# Prologin-SADM is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# Stechec is distributed in the hope that it will be useful,
+# Prologin-SADM is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with Stechec.  If not, see <http://www.gnu.org/licenses/>.
+# along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
 import logging.handlers
@@ -114,10 +114,8 @@ class WorkerNode:
         ret = operations.compile_champion(self.config, contest, user, champ_id)
         return True, self.master.compilation_result, (champ_id, ret)
 
-    def run_server(self, contest, match_id, opts=''):
+    def run_server(self, rep_port, pub_port, contest, match_id, opts=''):
         logging.info('starting server for match %d' % match_id)
-        rep_port = self.available_server_port()
-        pub_port = self.available_server_port()
         operations.run_server(self.config, worker.server_done, rep_port,
                             pub_port, contest, match_id, opts)
         return False, self.master.match_ready, (match_id, rep_port, pub_port)
@@ -167,6 +165,10 @@ class WorkerNodeProxy(prologin.rpc.server.BaseRPCApp):
     def __init__(self, *args, node=None, **kwargs):
         self.node = node
         super().__init__(*args, **kwargs)
+
+    @prologin.rpc.server.remote_method
+    def available_server_port(self):
+        return self.node.available_server_port()
 
     @prologin.rpc.server.remote_method
     def compile_champion(self, *args, **kwargs):
