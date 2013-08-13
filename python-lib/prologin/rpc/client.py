@@ -99,7 +99,7 @@ class Client:
         arguments = {
             'args': args,
             'kwargs': kwargs,
-            'token': token,
+            'hmac': token,
         }
         try:
             req_data = json.dumps(arguments)
