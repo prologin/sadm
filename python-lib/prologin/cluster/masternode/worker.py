@@ -20,7 +20,7 @@
 
 import tornado.gen
 import prologin.rpc.client
-import task
+from . import task
 import time
 
 class Worker(object):
