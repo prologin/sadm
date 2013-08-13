@@ -90,10 +90,10 @@ class RemoteCallHandler(tornado.web.RequestHandler):
         kwargs = request['kwargs']
 
         if self.secret:
-            if 'token' not in request:
+            if 'hmac' not in request:
                 self.set_status(400)
                 return self._send_exception(MissingToken(method_name))
-            token = request['token']
+            token = request['hmac']
             r = prologin.timeauth.check_token(token, self.secret, method_name)
             if not r:
                 self.set_status(403)
