@@ -18,8 +18,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
-from .worker import Worker
-
 import copy
 import logging
 import logging.handlers
@@ -31,13 +29,17 @@ import prologin.rpc.server
 import psycopg2
 import psycopg2.extras
 import random
-from . import task
 import tornado
 import tornado.ioloop
 import tornado.gen
-import utils
+import time
+
+from .worker import Worker
+from . import task
+from . import utils
 
 utils.init_psycopg_tornado()
+
 ioloop = tornado.ioloop.IOLoop.instance()
 
 class MasterNode:
@@ -156,7 +158,7 @@ class MasterNode:
             ioloop.add_callback(dispatcher_task)
         del self.workers[(worker.hostname, worker.port)]
 
-    @tornado.gen.coroutine
+    @tornado.gen.engine
     def janitor_task(self):
         while True:
             all_workers = copy.copy(self.workers)
@@ -232,7 +234,7 @@ class MasterNode:
         )
         self.db.commit()
 
-    @tornado.gen.coroutine
+    @tornado.gen.engine
     def dbwatcher_task(self):
         self.db = self.connect_to_db()
         self.check_requested_compilations('pending')
@@ -252,7 +254,7 @@ class MasterNode:
         else:
             return available[0]
 
-    @tornado.gen.coroutine
+    @tornado.gen.engine
     def dispatcher_task(self):
         if self.worker_tasks:
             task = self.worker_tasks[0]
@@ -268,7 +270,7 @@ class MasterNode:
             ioloop.add_callback(dispatcher_task)
 
 class MasterNodeProxy(prologin.rpc.server.BaseRPCApp):
-    def __init__(self, *args, master=None **kwargs):
+    def __init__(self, *args, master=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.master = master
 

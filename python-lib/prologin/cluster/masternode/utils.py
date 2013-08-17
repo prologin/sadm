@@ -35,7 +35,7 @@ ioloop = tornado.ioloop.IOLoop.instance()
 
 def init_psycopg_tornado():
 
-    @tornado.gen
+    @tornado.gen.coroutine
     def wait(conn, timeout=None):
         while True:
             state = conn.poll()

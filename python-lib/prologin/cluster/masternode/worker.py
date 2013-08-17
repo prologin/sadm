@@ -18,10 +18,11 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
-import tornado.gen
 import prologin.rpc.client
-from . import task
 import time
+import tornado.gen
+
+from . import task
 
 class Worker(object):
     def __init__(self, hostname, port, slots, max_slots, config):

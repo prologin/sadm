@@ -21,7 +21,6 @@
 import logging
 import logging.handlers
 import os.path
-import operations
 import optparse
 import prologin.log
 import prologin.config
@@ -29,9 +28,13 @@ import prologin.rpc.client
 import prologin.rpc.server
 import re
 import socket
+import time
 import tornado
 import tornado.gen
+import tornado.ioloop
 import yaml
+
+from . import operations
 
 ioloop = tornado.ioloop.IOLoop.instance()
 
@@ -72,7 +75,7 @@ class WorkerNode:
             self.srv_port = self.min_srv_port
         return port
 
-    @tornado.gen.coroutine
+    @tornado.gen.engine
     def send_heartbeat(self):
         logging.info('sending heartbeat to the server, %d/%d slots' % (
                          self.slots, self.max_slots
@@ -87,7 +90,7 @@ class WorkerNode:
                 logging.warn(msg)
 
             yield tornado.gen.Task(ioloop.add_timeout, time.time() +
-                    sleep.interval)
+                    self.interval)
 
     def start_work(self, work, slots, *args, **kwargs):
         if self.slots < slots:
@@ -97,7 +100,6 @@ class WorkerNode:
         logging.debug('starting a job for %d slots' % slots)
         self.slots -= slots
 
-        @tornado.gen.coroutine
         def real_work():
             job_done = True
             try:
