@@ -58,10 +58,10 @@ class RpcTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        cls.c = prologin.rpc.client.Client('http://127.0.0.1:42545')
         cls.s = RpcServerInstance()
         cls.s.start()
         time.sleep(1)
-        cls.c = prologin.rpc.client.Client('http://127.0.0.1:42545')
 
     @classmethod
     def tearDownClass(cls):
@@ -80,9 +80,9 @@ class RpcTest(unittest.TestCase):
         self.assertEqual(list(self.c.generate_numbers()), list(range(10)))
 
     def test_parallel_generators(self):
+        before = time.time()
         g1 = self.c.long_generator()
         g2 = self.c.instant_generator()
-        before = time.time()
         next(g1)
         next(g2)
         self.assertTrue(time.time() - before < 10)
