@@ -13,6 +13,8 @@
 
 import json
 import tornado.web
+import sys
+import traceback
 import types
 
 import prologin.web
@@ -105,7 +107,7 @@ class RemoteCallHandler(tornado.web.RequestHandler):
         try:
             result = method(self.rpc_object, *args, **kwargs)
         except Exception as exn:
-            return self._send_exception(exn)
+            return self._send_exception(exn, sys.exc_info()[2])
 
         # The remote method can be a generator (returns a sequence of values),
         # or just some regular function (returns only one value).
@@ -124,7 +126,7 @@ class RemoteCallHandler(tornado.web.RequestHandler):
                 except Exception as exn:
                     # The generator raised an error: transmit it to the client
                     # and stop.
-                    return self._send_exception(exn)
+                    return self._send_exception(exn, sys.last_traceback)
                 else:
                     # The generator simply yielded a value: transmit it to the
                     # client, or stop there if this is some non-JSON data.
@@ -141,11 +143,12 @@ class RemoteCallHandler(tornado.web.RequestHandler):
         self.write(b'\n')
         self.flush()
 
-    def _send_exception(self, exn):
+    def _send_exception(self, exn, tb=None):
         self._send_json_line({
             'type': 'exception',
             'exn_type': type(exn).__name__,
             'exn_message': str(exn),
+            'exn_traceback': traceback.format_tb(tb),
         })
         # Exceptions always end the communication.
         self.finish()
