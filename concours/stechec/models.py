@@ -232,5 +232,6 @@ class MatchPlayer(models.Model):
         verbose_name_plural = "participants à un match"
 
 def master_status():
-    rpc = prologin.rpc.client.Client(settings.STECHEC_MASTER)
+    rpc = prologin.rpc.client.Client(settings.STECHEC_MASTER,
+                                     secret=settings.STECHEC_MASTER_SECRET)
     return rpc.status()

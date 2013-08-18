@@ -147,4 +147,5 @@ LOGGING = {
 STECHEC_ROOT = cfg["contest"]["directory"]
 STECHEC_CONTEST = cfg["contest"]["game"]
 STECHEC_MASTER = cfg["master"]["url"]
+STECHEC_MASTER_SECRET = cfg["master"]["shared_secret"].encode('utf-8')
 STECHEC_NPLAYERS = cfg["contest"]["nb_players"]
