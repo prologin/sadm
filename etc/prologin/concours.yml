@@ -19,16 +19,17 @@
 # The same informations must be used in the master node configuration file.
 db:
     default:
-        ENGINE: django.db.backends.postgresql_psycopg2
-        NAME: concours
+        HOST: db
+        PORT: 5432
         USER: concours
         PASSWORD: DEFAULT_PASSWORD
-        HOST: db
-        PORT:
+        NAME: concours
+        ENGINE: django.db.backends.postgresql_psycopg2
 
 # Informations on where the master node is located.
 master:
   url: http://master.cl:8067/   # URL to connect to the master node RPC.
+  shared_secret: CHANGEME
 
 # What game is currently being played.
 contest:

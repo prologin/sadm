@@ -7,7 +7,7 @@ master:
   shared_secret: CHANGEME       # A shared secret used to avoid malicious
                                 # requests impersonating a worker node.
 
-  game: CHANGEME                # One of this list: [@available_games@].
+  game: CHANGEME                # The stechec2 game.
 
 worker:
   timeout_secs: 12      # After this number of seconds has elapsed, if a worker
@@ -18,11 +18,11 @@ worker:
 # SQL connection informations and queries. If you are using the standard
 # stechec website, do not change the queries!
 sql:
-  host: localhost
+  host: db
   port: 5432
-  user: stechec
-  password: pass
-  database: stechec
+  user: concours
+  password: DEFAULT_PASSWORD
+  database: concours
   queries:
     get_champions:
       select
