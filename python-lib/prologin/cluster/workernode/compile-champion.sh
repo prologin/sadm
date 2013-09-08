@@ -29,6 +29,7 @@ makefile_dir=$stechec_root/makefile
 compil_dir=`mktemp -d /tmp/stechec_compil_XXXXXX`
 champion_tarball=$champion_dir/champion.tgz
 compil_log=$champion_dir/compilation.log
+lang_file=_lang
 
 (
     # We should not preempt the contestant tasks
@@ -51,19 +52,7 @@ compil_log=$champion_dir/compilation.log
 
     #cp "$makefile_dir/stechec_main.cc" .
 
-    has_ext() {
-        ext=$1
-        [ "`echo *.$ext`" != "*.$ext" ]
-    }
-
-    makefile=Makefile-cxx
-    has_ext c && makefile=Makefile-c
-    has_ext pas && makefile=Makefile-pascal
-    has_ext java && makefile=Makefile-java
-    has_ext ml && makefile=Makefile-caml
-    has_ext cs && makefile=Makefile-cs
-    has_ext py && makefile=Makefile-python
-    has_ext php && makefile=Makefile-php
+    makefile=Makefile-"$(cat ${lang_file})"
 
     lang=${makefile##Makefile-}
     echo "Compiling the champion (detected language: $lang)."
