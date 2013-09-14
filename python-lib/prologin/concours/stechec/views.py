@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 
-from stechec import forms
-from concours.stechec import models
+from prologin.concours.stechec import forms
+from prologin.concours.stechec import models
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db.models import Max, Min

@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-from concours.stechec import models
+from prologin.concours.stechec import models
 from django import forms
 from django.conf import settings
 from django.forms import widgets
