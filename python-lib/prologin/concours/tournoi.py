@@ -4,10 +4,10 @@ import os
 import sys
 import time
 sys.path.insert(0, '/home/davyg/prologin/srv/www')
-os.environ['DJANGO_SETTINGS_MODULE'] = 'concours.settings'
+os.environ['DJANGO_SETTINGS_MODULE'] = 'prologin.concours.settings'
 
 from django.contrib.auth.models import User
-from concours.stechec.models import Tournament, Match, MatchPlayer, Champion, TournamentPlayer
+from prologin.concours.stechec.models import Tournament, Match, MatchPlayer, Champion, TournamentPlayer
 
 prologin = User.objects.get(username="stechec")
 tournoi = Tournament.objects.create()
