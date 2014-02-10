@@ -305,16 +305,16 @@ below with a more up to date technique.
 After installing the base system with at least base package, you have to
 install the base system for diskless client system::
 
-  export ROOTFS=/exports/nfsroot
-  export SUBNET=192.168.70.0/24
-  pacman -Sy devtools nfs-utils sshd
+  export ROOTFS=/export/nfsroot
+  export SUBNET=192.168.0.0/24
+  pacman -Sy devtools nfs-utils openssh
   mkdir -p $ROOTFS
   for svc in {sshd,nfsd,rpc-{idmapd,gssd,mountd,statd}}.service; do
     systemctl enable $svc
     systemctl start  $svc
   done
-  mkarchroot $ROOTFS base mkinitcpio-nfs-utils nfs-utils openssh strace tcpdump
-  mkarchroot -r bash $ROOTFS
+  mkarchroot $ROOTFS base mkinitcpio-nfs-utils nfs-utils openssh strace tcpdump bash
+  arch-chroot $ROOTFS bash
   ln -s /usr/share/zoneinfo/Europe/Paris /etc/localtime
   sed -e 's:^#en_US:en_US:g' -e 's:^#fr_FR:fr_FR:g' -i /etc/locale.gen
   sed -e 's:^HOOKS.*:HOOKS="base udev autodetect modconf net block filesystems keyboard fsck":g' \
