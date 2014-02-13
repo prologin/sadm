@@ -9,5 +9,6 @@ server {
         proxy_buffering off;
         proxy_read_timeout 3600000;
         proxy_send_timeout 3600000;
+        include proxy_params;
     }
 }

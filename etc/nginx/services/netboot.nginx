@@ -6,5 +6,6 @@ server {
 
     location / {
         proxy_pass http://localhost:20020;
+        include proxy_params;
     }
 }
