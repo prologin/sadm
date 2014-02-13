@@ -8,10 +8,20 @@ from django.utils.html import escape, conditional_escape
 from itertools import chain, groupby
 
 class ChampionUploadForm(forms.Form):
-    name = forms.CharField(max_length=64, required=True, label="Nom du champion")
+    name = forms.CharField(max_length=25, required=True, label="Nom du champion")
     tarball = forms.FileField(required=True, label="Archive des sources (.tgz)")
     comment = forms.CharField(required=True, widget=forms.widgets.Textarea(), label="Commentaire")
 
+    def clean_name(self):
+        name = self.cleaned_data['name']
+        try:
+            models.Champion.objects.get(name=name)
+        except models.Champion.DoesNotExist:
+            return name
+        raise forms.ValidationError("Nom déjà utilisé")
+
+# Unused since we use a ModelChoiceField to create a match, but could still be
+# useful in some way ?
 class ChampionField(forms.Field):
     def clean(self, value):
         super(ChampionField, self).clean(value)
@@ -54,11 +64,14 @@ class MatchCreationForm(forms.Form):
 
         self.champions = []
         for i in range(1, settings.STECHEC_NPLAYERS + 1):
-            f = ChampionField(label="Champion %d" % i)
+            f = forms.ModelChoiceField(label="Champion %d" % i,
+                    queryset=models.Champion.objects.all())
             self.fields['champion_%d' % i] = f
             self.champions.append(f)
 
-        self.fields['map'] = forms.ChoiceField(required=True, widget=MapSelect(attrs={'class': 'mapselect'}), label="Map utilisée")
+        self.fields['map'] = forms.ChoiceField(required=True,
+                widget=MapSelect(attrs={'class': 'mapselect'}),
+                label="Map utilisée")
         self.fields['map'].choices = [
             (author, [(map.id, map) for map in maps])
             for author, maps in groupby(
@@ -74,6 +87,7 @@ class MatchCreationForm(forms.Form):
             raise ValidationError("Cette carte n'existe pas")
         return value
 
+
 class MapCreationForm(forms.Form):
-    name = forms.CharField(max_length=64, required=True, label="Nom de la map")
+    name = forms.CharField(max_length=25, required=True, label="Nom de la map")
     contents = forms.CharField(required=True, widget=forms.widgets.Textarea(), label="Contenu")
