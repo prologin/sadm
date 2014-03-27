@@ -18,6 +18,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
+import asyncio
+import functools
 import logging
 import logging.handlers
 import os.path
@@ -30,13 +32,13 @@ import re
 import socket
 import time
 import tornado
-import tornado.gen
-import tornado.ioloop
+import tornado.platform.asyncio
 import yaml
 
 from . import operations
 
-ioloop = tornado.ioloop.IOLoop.instance()
+ioloop = asyncio.get_event_loop()
+tornado.platform.asyncio.AsyncIOMainLoop().install()
 
 class WorkerNode:
     def __init__(self, config):
@@ -49,8 +51,7 @@ class WorkerNode:
         self.max_srv_port = config['worker']['port_range_end']
         self.srv_port = self.min_srv_port
         self.matches = {}
-
-        ioloop.add_callback(self.send_heartbeat)
+        asyncio.Task(self.send_heartbeat)
 
     def get_worker_infos(self):
         return (self.hostname, self.port, self.slots, self.max_slots)
@@ -75,7 +76,7 @@ class WorkerNode:
             self.srv_port = self.min_srv_port
         return port
 
-    @tornado.gen.engine
+    @asyncio.coroutine
     def send_heartbeat(self):
         logging.info('sending heartbeat to the server, %d/%d slots' % (
                          self.slots, self.max_slots
@@ -89,8 +90,7 @@ class WorkerNode:
                 msg = 'master down, retrying heartbeat in %ds' % self.interval
                 logging.warn(msg)
 
-            yield tornado.gen.Task(ioloop.add_timeout, time.time() +
-                    self.interval)
+            yield from asyncio.sleep(self.interval)
 
     def start_work(self, work, slots, *args, **kwargs):
         if self.slots < slots:
@@ -111,6 +111,24 @@ class WorkerNode:
 
         ioloop.add_callback(real_work)
         return True, self.get_worker_infos()
+
+    def task(func=None, slots=0, callback=None):
+        if func is None:
+            return functools.partial(task, slots=slots, callback=callback)
+
+        @functools.wrap(func)
+        def wrapper(self, *args, **kwargs):
+            if self.slots < slots:
+                logging.warn('not enough slots to start the required job')
+                return False
+            self.slots -= slots
+            try:
+                yield from func(self, *args, **kwargs)
+            finally:
+                self.slots += slots
+
+        return wrapper
+
 
     def compile_champion(self, contest, user, champ_id):
         ret = operations.compile_champion(self.config, contest, user, champ_id)
@@ -217,6 +235,6 @@ if __name__ == '__main__':
     s.listen(config['worker']['port'])
 
     try:
-        ioloop.start()
+        ioloop.run_forever()
     except KeyboardInterrupt:
         pass
