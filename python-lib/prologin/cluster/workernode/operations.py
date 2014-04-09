@@ -1,9 +1,9 @@
 # -*- encoding: utf-8 -*-
 # This file is part of Prologin-SADM.
 #
-# Copyright (c) 2013 Antoine Pietri <antoine.pietri@prologin.org>
+# Copyright (c) 2013-2014 Antoine Pietri <antoine.pietri@prologin.org>
 # Copyright (c) 2011 Pierre Bourdon <pierre.bourdon@prologin.org>
-# Copyright (c) 2011 Association Prologin <info@prologin.org>
+# Copyright (c) 2011-2014 Association Prologin <info@prologin.org>
 #
 # Prologin-SADM is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -43,13 +43,21 @@ def parse_opts(opts):
     return opts_dict
 
 
-def targz(path):
+def tar(path, compression='gz'):
     with tempfile.NamedTemporaryFile() as temp:
-        with tarfile.open(fileobj=temp, mode='w:gz') as tar:
+        with tarfile.open(fileobj=temp, mode='w:' + compression) as tar:
             tar.add(path)
         temp.flush()
         temp.seek(0)
         return temp.read()
+
+
+def untar(content, path, compression='gz'):
+    with tempfile.NamedTemporaryFile() as temp:
+        temp.write(content)
+        temp.seek(0)
+        with tarfile.open(fileobj=temp, mode='r:' + compression) as tar:
+            tar.extractall(path)
 
 
 @asyncio.coroutine

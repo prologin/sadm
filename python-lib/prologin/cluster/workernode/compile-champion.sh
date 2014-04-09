@@ -1,8 +1,9 @@
 #! /usr/bin/env bash
 # This file is part of Prologin-SADM.
 #
+# Copyright (c) 2013-2014 Antoine Pietri <antoine.pietri@prologin.org>
 # Copyright (c) 2011 Pierre Bourdon <pierre.bourdon@prologin.org>
-# Copyright (c) 2011 Association Prologin <info@prologin.org>
+# Copyright (c) 2011-2014 Association Prologin <info@prologin.org>
 #
 # Prologin-SADM is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -50,8 +51,6 @@ lang_file=_lang
         exit 1
     fi
 
-    #cp "$makefile_dir/stechec_main.cc" .
-
     makefile=Makefile-"$(cat ${lang_file})"
 
     lang=${makefile##Makefile-}
@@ -78,10 +77,13 @@ lang_file=_lang
     reqs=$(make -f "$makefile_dir/$makefile" MFPATH="$makefile_dir" \
                list-run-reqs)
     echo "Copying the champion files."
+    mkdir "$champion_dir/compiled"
     for f in $reqs; do
-        cp -v "$f" "$champion_dir/$f"
+        cp -v "$f" "$champion_dir/compiled/$f"
     done 2>&1 | sed 's/^.*$/    &/'
-    echo
+    echo "Making tarball."
+    tar czvf compiled.tar.gz compiled -C "$champion_dir" \
+        | sed 's/^.*$/    &/'
 
     echo 'Success!'
 ) 2>&1 | tee "$compil_log"

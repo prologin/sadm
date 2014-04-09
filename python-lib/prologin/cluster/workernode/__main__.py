@@ -1,9 +1,9 @@
 # -*- encoding: utf-8 -*-
 # This file is part of Prologin-SADM.
 #
-# Copyright (c) 2013 Antoine Pietri <antoine.pietri@prologin.org>
+# Copyright (c) 2013-2014 Antoine Pietri <antoine.pietri@prologin.org>
 # Copyright (c) 2011 Pierre Bourdon <pierre.bourdon@prologin.org>
-# Copyright (c) 2011 Association Prologin <info@prologin.org>
+# Copyright (c) 2011-2014 Association Prologin <info@prologin.org>
 #
 # Prologin-SADM is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -40,8 +40,30 @@ from . import operations
 ioloop = asyncio.get_event_loop()
 tornado.platform.asyncio.AsyncIOMainLoop().install()
 
-class WorkerNode:
-    def __init__(self, config):
+
+def task(func=None, slots=0):
+    if func is None:
+        return functools.partial(task, slots=slots, callback=callback)
+    @functools.wrap(func)
+    def mktask(self, *args, **kwargs):
+        @asyncio.coroutine
+        def wrapper(self, *wargs, **wkwargs):
+            if self.slots < slots:
+                logging.warn('not enough slots to start the required job')
+            logging.debug('starting a job for %d slots' % slots)
+            self.slots -= slots
+            try:
+                r = yield from func(self, *wargs, **wkwargs)
+            finally:
+                self.slots += slots
+        asyncio.Task(wrapper(self, *args, **kwargs))
+        return slots
+    return mktask
+
+
+class WorkerNode(prologin.rpc.server.BaseRPCApp):
+    def __init__(self, *args, config=None, **kwargs):
+        super().__init__(*args, **kwargs)
         self.config = config
         self.interval = config['master']['heartbeat_secs']
         self.hostname = socket.gethostname()
@@ -52,34 +74,22 @@ class WorkerNode:
         self.srv_port = self.min_srv_port
         self.matches = {}
         asyncio.Task(self.send_heartbeat)
+        self.master = self.get_master()
 
     def get_worker_infos(self):
         return (self.hostname, self.port, self.slots, self.max_slots)
 
-    @property
-    def master(self):
+    def get_master(self):
         config = self.config
         host, port = (config['master']['host'], config['master']['port'])
         url = "http://{}:{}/".format(host, port)
         return prologin.rpc.client.Client(url,
                 secret=config['master']['shared_secret'].encode('utf-8'))
 
-    def available_server_port(self):
-        """
-        Be optimistic and hope that:
-        - nobody will use the ports in the port range but us
-        - there will never be more servers than ports in the range
-        """
-        port = self.srv_port
-        self.srv_port += 1
-        if self.srv_port > self.max_srv_port:
-            self.srv_port = self.min_srv_port
-        return port
-
     @asyncio.coroutine
     def send_heartbeat(self):
         logging.info('sending heartbeat to the server, %d/%d slots' % (
-                         self.slots, self.max_slots
+            self.slots, self.max_slots
         ))
         first_heartbeat = True
         while True:
@@ -92,57 +102,34 @@ class WorkerNode:
 
             yield from asyncio.sleep(self.interval)
 
-    def start_work(self, work, slots, *args, **kwargs):
-        if self.slots < slots:
-            logging.warn('not enough slots to start the required job')
-            return False, self.get_worker_infos()
+    @prologin.rpc.server.remote_method
+    def available_server_port(self):
+        """
+        Be optimistic and hope that:
+        - nobody will use the ports in the port range but us
+        - there will never be more servers than ports in the range
+        """
+        port = self.srv_port
+        self.srv_port += 1
+        if self.srv_port > self.max_srv_port:
+            self.srv_port = self.min_srv_port
+        return port
 
-        logging.debug('starting a job for %d slots' % slots)
-        self.slots -= slots
+    @task(slots=1)
+    @asyncio.coroutine
+    @prologin.rpc.server.remote_method
+    def compile_champion(self, cid, champion_tgz):
+        yield from loop.run_in_executor(untar, champion_tgz, )
+        ret = yield from operations.compile_champion(self.config, contest, user, champ_id)
 
-        def real_work():
-            job_done = True
-            try:
-                job_done, func, args_li = work(*args, **kwargs)
-            finally:
-                if job_done:
-                    self.slots += slots
-            func(self.get_worker_infos(), *args_li)
-
-        ioloop.add_callback(real_work)
-        return True, self.get_worker_infos()
-
-    def task(func=None, slots=0, callback=None):
-        if func is None:
-            return functools.partial(task, slots=slots, callback=callback)
-
-        @functools.wrap(func)
-        def wrapper(self, *args, **kwargs):
-            if self.slots < slots:
-                logging.warn('not enough slots to start the required job')
-                return False
-            self.slots -= slots
-            try:
-                yield from func(self, *args, **kwargs)
-            finally:
-                self.slots += slots
-
-        return wrapper
-
-
-    def compile_champion(self, contest, user, champ_id):
-        ret = operations.compile_champion(self.config, contest, user, champ_id)
-        return True, self.master.compilation_result, (champ_id, ret)
-
+    @task(slots=1)
+    @asyncio.coroutine
+    @prologin.rpc.server.remote_method
     def run_server(self, rep_port, pub_port, contest, match_id, opts=''):
         logging.info('starting server for match %d' % match_id)
-        operations.run_server(self.config, worker.server_done, rep_port,
-                            pub_port, contest, match_id, opts)
-        return False, self.master.match_ready, (match_id, rep_port, pub_port)
-
-    def server_done(self, retcode, stdout, match_id):
-        self.slots += 1
-
+        yield from operations.run_server(self.config, worker.server_done,
+                                         rep_port, pub_port, contest, match_id,
+                                         opts)
         logging.info('match %d done' % match_id)
 
         lines = stdout.split('\n')
@@ -160,16 +147,15 @@ class WorkerNode:
         except socket.error:
             pass
 
+    @task(slots=2)
+    @asyncio.coroutine
+    @prologin.rpc.server.remote_method
     def run_client(self, contest, match_id, ip, req_port, sub_port, user, champ_id, pl_id, opts):
         logging.info('running champion %d from %s for match %d' % (
                          champ_id, user, match_id
         ))
         operations.run_client(self.config, ip, req_port, sub_port, contest, match_id, user,
                               champ_id, pl_id, opts, self.client_done)
-        return False, self.master.client_ready, (match_id, pl_id)
-
-    def client_done(self, retcode, stdout, match_id, champ_id, pl_id):
-        self.slots += 2
         logging.info('champion %d for match %d done' % (champ_id, match_id))
         try:
             self.master.client_done(self.get_worker_infos(),
@@ -177,42 +163,6 @@ class WorkerNode:
         except socket.error:
             pass
 
-class WorkerNodeProxy(prologin.rpc.server.BaseRPCApp):
-    """
-    Proxies RPC requests to the WorkerNode.
-    """
-
-    def __init__(self, *args, node=None, **kwargs):
-        self.node = node
-        super().__init__(*args, **kwargs)
-
-    @prologin.rpc.server.remote_method
-    def available_server_port(self):
-        return self.node.available_server_port()
-
-    @prologin.rpc.server.remote_method
-    def compile_champion(self, *args, **kwargs):
-        logging.debug('received a compile_champion request')
-        return self.node.start_work(
-            self.node.compile_champion, 1, *args, **kwargs
-        )
-
-    @prologin.rpc.server.remote_method
-    def run_server(self, *args, **kwargs):
-        logging.debug('received a run_server request')
-        return self.node.start_work(
-            self.node.run_server, 1, *args, **kwargs
-        )
-
-    @prologin.rpc.server.remote_method
-    def run_client(self, *args, **kwargs):
-        logging.debug('received a run_client request')
-        return self.node.start_work(
-            self.node.run_client, 2, *args, **kwargs
-        )
-
-def read_config(filename):
-    return yaml.load(open(filename))
 
 if __name__ == '__main__':
     parser = optparse.OptionParser()
@@ -229,8 +179,7 @@ if __name__ == '__main__':
 
     config = prologin.config.load('worker-node')
 
-    worker = WorkerNode(config)
-    s = WorkerNodeProxy(app_name='worker-node', node=worker,
+    s = WorkerNode(app_name='worker-node', config=config,
             secret=config['master']['shared_secret'].encode('utf-8'))
     s.listen(config['worker']['port'])
 
