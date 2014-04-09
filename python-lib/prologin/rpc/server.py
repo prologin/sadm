@@ -16,6 +16,7 @@ import tornado.web
 import sys
 import traceback
 import types
+import logging
 
 import prologin.web
 
@@ -80,6 +81,11 @@ class RemoteCallHandler(tornado.web.RequestHandler):
     def post(self, method_name):
         # This is an asynchronous handler, since
         request = json.loads(self.request.body.strip().decode('ascii'))
+
+        # Log the call
+        logging.info('RPC request from %r for method %r with args=%s kwargs=%s'
+                % (self.request.host, method_name, request['args'],
+                   request['kwargs']))
 
         # First get the method to call.
         try:
