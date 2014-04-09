@@ -20,7 +20,7 @@ class RpcServer(prologin.rpc.server.BaseRPCApp):
 
     @prologin.rpc.server.remote_method
     def return_list(self):
-        return list(range(10)) 
+        return list(range(10))
 
     @prologin.rpc.server.remote_method
     def generate_numbers(self):
@@ -50,7 +50,7 @@ class RpcServerInstance(threading.Thread):
         self.app.listen(42545)
         self.ioloop = tornado.ioloop.IOLoop.instance()
         self.ioloop.start()
-    
+
     def stop(self):
         self.ioloop.stop()
 
