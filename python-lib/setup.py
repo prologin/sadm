@@ -25,5 +25,7 @@ setup(name='ProloginSADM',
       author_email='pierre.bourdon@prologin.org',
       url='http://bitbucket.org/prologin/sadm/',
       packages=['prologin'],
+      scripts=['prologin/cluster/workernode/compile-champion.sh',
+               'prologin/rpc/prolorpc'],
       test_suite='nose.collector',
      )
