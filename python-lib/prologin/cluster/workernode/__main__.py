@@ -41,9 +41,9 @@ ioloop = asyncio.get_event_loop()
 tornado.platform.asyncio.AsyncIOMainLoop().install()
 
 
-def task(func=None, slots=0):
+def async_work(func=None, slots=0):
     if func is None:
-        return functools.partial(task, slots=slots, callback=callback)
+        return functools.partial(async_work, slots=slots, callback=callback)
     @functools.wrap(func)
     def mktask(self, *args, **kwargs):
         @asyncio.coroutine
@@ -52,10 +52,12 @@ def task(func=None, slots=0):
                 logging.warn('not enough slots to start the required job')
             logging.debug('starting a job for %d slots' % slots)
             self.slots -= slots
+            yield from self.update_master()
             try:
                 r = yield from func(self, *wargs, **wkwargs)
             finally:
                 self.slots += slots
+                yield from self.update_master()
         asyncio.Task(wrapper(self, *args, **kwargs))
         return slots
     return mktask
@@ -87,6 +89,10 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
                 secret=config['master']['shared_secret'].encode('utf-8'))
 
     @asyncio.coroutine
+    def update_master(self):
+        yield from loop.run_in_executor(self.master.update, get_worker_infos())
+
+    @asyncio.coroutine
     def send_heartbeat(self):
         logging.info('sending heartbeat to the server, %d/%d slots' % (
             self.slots, self.max_slots
@@ -115,22 +121,35 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
             self.srv_port = self.min_srv_port
         return port
 
-    @task(slots=1)
-    @asyncio.coroutine
+    @async_work(slots=1)
     @prologin.rpc.server.remote_method
     def compile_champion(self, cid, champion_tgz):
-        yield from loop.run_in_executor(untar, champion_tgz, )
-        ret = yield from operations.compile_champion(self.config, contest, user, champ_id)
+        cpath = os.path.join(self.config['path']['champion'], str(cid))
+        compiled_path = os.path.join(cpath, 'champion-compiled.tar.gz')
+        log_path = os.path.join(cpath, 'compilation.log')
 
-    @task(slots=1)
-    @asyncio.coroutine
+        yield from loop.run_in_executor(operations.untar, champion_tgz, cpath)
+        ret = yield from operations.compile_champion(self.config, cpath)
+
+        if not ret:
+            compilation_content = b''
+        else:
+            with open(compiled_path, 'rb') as f:
+                compilation_content = f.read()
+        with open(log_path, 'r') as f:
+            log_content = f.read()
+
+        yield from loop.run_in_executor(self.master.compilation_result, cid,
+                compilation_content, log_content)
+
+    @async_work(slots=1)
     @prologin.rpc.server.remote_method
     def run_server(self, rep_port, pub_port, contest, match_id, opts=''):
-        logging.info('starting server for match %d' % match_id)
+        logging.info('starting server for match {}'.format(match_id))
         yield from operations.run_server(self.config, worker.server_done,
                                          rep_port, pub_port, contest, match_id,
                                          opts)
-        logging.info('match %d done' % match_id)
+        logging.info('match {} done'.format(match_id))
 
         lines = stdout.split('\n')
         result = []
@@ -147,10 +166,9 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         except socket.error:
             pass
 
-    @task(slots=2)
-    @asyncio.coroutine
+    @async_work(slots=2)
     @prologin.rpc.server.remote_method
-    def run_client(self, contest, match_id, ip, req_port, sub_port, user, champ_id, pl_id, opts):
+    def run_client(self, match_id, ip, req_port, sub_port, user, pl_id, opts):
         logging.info('running champion %d from %s for match %d' % (
                          champ_id, user, match_id
         ))

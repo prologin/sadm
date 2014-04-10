@@ -59,7 +59,6 @@ def untar(content, path, compression='gz'):
         with tarfile.open(fileobj=temp, mode='r:' + compression) as tar:
             tar.extractall(path)
 
-
 @asyncio.coroutine
 def communicate(cmdline, env=None, data=None, **kwargs):
     proc = yield from asyncio.create_subprocess_exec(cmdline,
@@ -81,21 +80,22 @@ def communicate(cmdline, env=None, data=None, **kwargs):
 @asyncio.coroutine
 def compile_champion(config, champion_path):
     """
-    Compiles the champion at $dir_path/champion.tgz to $dir_path/champion.so.
+    Compiles the champion at $champion_path/champion.tgz to
+    $champion_path/champion-compiled.tar.gz
 
     Returns a tuple (ok, output), with ok = True/False and output being the
     output of the compilation script.
     """
-    cmd = [config['paths']['compile_script'],
-           config['contest']['directory'], champion_path]
+    cmd = [config['path']['compile_script'], config['path']['makefile'],
+           champion_path]
     retcode, stdout = yield from communicate(cmd)
     return retcode == 0 and os.path.exists(os.path.join(dir_path, 'champion.so'))
 
 
 @asyncio.coroutine
 def spawn_server(config, rep_port, pub_port, opts):
-    cmd = [config['paths']['stechec_server'],
-           "--rules", config['paths']['librules'],
+    cmd = [config['path']['stechec_server'],
+           "--rules", config['path']['librules'],
            "--rep_addr", "tcp://0.0.0.0:%d" % rep_port,
            "--pub_addr", "tcp://0.0.0.0:%d" % pub_port,
            "--nb_clients", "3",
@@ -114,9 +114,9 @@ def spawn_dumper(config, rep_port, pub_port, opts):
     if not config['contest']['dumper']:
         return
 
-    cmd = [config['paths']['stechec_client'],
+    cmd = [config['path']['stechec_client'],
            "--name", "dumper",
-           "--rules", config['paths']['librules'],
+           "--rules", config['path']['librules'],
            "--champion", dumper,
            "--req_addr", "tcp://127.0.0.1:%d" % rep_port,
            "--sub_addr", "tcp://127.0.0.1:%d" % pub_port,
@@ -140,13 +140,13 @@ def spawn_dumper(config, rep_port, pub_port, opts):
 
 
 @asyncio.coroutine
-def spawn_client(config, ip, req_port, sub_port, tid, champion_path, opts):
+def spawn_client(config, ip, req_port, sub_port, pl_id, champion_path, opts):
     env = os.environ.copy()
     env['CHAMPION_PATH'] = champion_path + '/'
 
-    cmd = [config['paths']['stechec_client'],
-                "--name", str(tid),
-                "--rules", config['paths']['librules'],
+    cmd = [config['path']['stechec_client'],
+                "--name", str(pl_id),
+                "--rules", config['path']['librules'],
                 "--champion", champion_path + '/champion.so',
                 "--req_addr", "tcp://{ip}:{port}".format(ip=ip, port=req_port),
                 "--sub_addr", "tcp://{ip}:{port}".format(ip=ip, port=sub_port),
@@ -174,6 +174,6 @@ def run_server(config, rep_port, pub_port, opts):
 
 
 @asyncio.coroutine
-def run_client(config, ip, req_port, sub_port, user, champ_id, tid, opts):
-    return (yield from spawn_client(config, ip, req_port, sub_port, user,
-            champ_id, tid, opts))
+def run_client(config, ip, req_port, sub_port, pl_id, opts):
+    return (yield from spawn_client(config, ip, req_port, sub_port, pl_id,
+                                    champion_path, opts))
