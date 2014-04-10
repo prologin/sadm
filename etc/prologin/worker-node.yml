@@ -14,15 +14,13 @@ worker:
                                   # listen on ports (match server for example).
     port_range_end: 41000
 
-# Contest specific informations.
-contest:
-    dumper: /usr/lib/CHANGEME.so  # Library to be used to dump replays.
-    directory: CHANGEME           # Shared directory. Must point to the same
-                                  # data for all workers and the website.
-
 # Paths of some needed tools
-paths:
+path:
     compile_script: /usr/bin/compile-champion.sh
     stechec_server: /usr/bin/stechec2-server
     stechec_client: /usr/bin/stechec2-client
     libdir: /usr/lib              # Must contain ${contest}.so rules
+    dumper: /usr/lib/CHANGEME.so  # Library to be used to dump replays.
+    makefile: CHANGEME           # Directory containing the makefiles
+
+    champion: CHANGEME           # Download champions here (work directory)

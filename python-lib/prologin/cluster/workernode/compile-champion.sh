@@ -23,10 +23,9 @@ if [ "$#" -ne 2 ]; then
     exit 1
 fi
 
-stechec_root=$1
+makefile_dir=$1
 champion_dir=$2
 
-makefile_dir=$stechec_root/makefile
 compil_dir=`mktemp -d /tmp/stechec_compil_XXXXXX`
 champion_tarball=$champion_dir/champion.tgz
 compil_log=$champion_dir/compilation.log
@@ -77,14 +76,15 @@ lang_file=_lang
     reqs=$(make -f "$makefile_dir/$makefile" MFPATH="$makefile_dir" \
                list-run-reqs)
     echo "Copying the champion files."
-    mkdir "$champion_dir/compiled"
+    mkdir "$champion_dir/champion-compiled"
     for f in $reqs; do
-        cp -v "$f" "$champion_dir/compiled/$f"
+        cp -v "$f" "$champion_dir/champion-compiled/$f"
     done 2>&1 | sed 's/^.*$/    &/'
     echo "Making tarball."
-    tar czvf compiled.tar.gz compiled -C "$champion_dir" \
+    tar czvf champion-compiled.tar.gz champion-compiled/* -C "$champion_dir" \
         | sed 's/^.*$/    &/'
 
+    rm -rf "$champion_dir/champion-compiled/"
     echo 'Success!'
 ) 2>&1 | tee "$compil_log"
 
