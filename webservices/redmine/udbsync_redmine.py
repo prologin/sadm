@@ -1,53 +1,38 @@
 #!/usr/bin/env python3
-# -*- encoding: utf-8 -*-
 
+import json
 import os
-import subprocess
 import prologin.udbsync
+import subprocess
 import sys
 
-runner = '/var/prologin/bugs/script/rails'
+SCRIPT_PATH = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    'user_update.rb',
+)
 
-env = os.environ.copy()
-env['RAILSENV'] = 'production'
+RUNNER = '/var/prologin/bugs/script/rails'
 
-create_command = '''
-    user = User.new({{:firstname => "{l}",:lastname=>"{l}",:mail=>"{l}@example.com"}})
-    user.login = '{l}'
-    user.password = '{p}'
-    user.password_confirmation = '{p}'
-    user.save
-'''
-
-delete_command = '''
-user = User.find_by_login('{l}')
-user.destroy
-'''
-
-update_command = '''
-user = User.find_by_login('{l}')
-user.password = '{p}'
-user.password_confirmation = '{p}'
-user.save!
-'''
 
 def callback(users, updates_metadata):
     commands = []
-    for l, status in updates_metadata.items():
-        if status == 'created':
-            commands.append(create_command.format(l=l, p=users[l]['password']))
-        elif status == 'deleted':
-            commands.append(delete_command.format(l=l, p=users[l]['password']))
-        elif status == 'updated':
-            commands.append(update_command.format(l=l, p=users[l]['password']))
-
-    with open('synctmp.rb', 'w', encoding='utf8') as f:
-        f.write('\n'.join(commands))
+    give_users = {}
+    for login, status in updates_metadata.items():
+        give_users[login] = users[login]
+        commands.append((login, status))
 
     print('Calling rails runner...')
-    subprocess.call([runner, 'runner', '-e', 'production', 'synctmp.rb'
-    ], env=env, stdout=sys.stdout, stderr=sys.stderr)
+    proc = subprocess.Popen([
+        RUNNER, 'runner', '-e', 'production', SCRIPT_PATH,
+    ], env=ENV, stdin=subprocess.PIPE, stdout=sys.stdout, stderr=sys.stderr)
+
+    proc.communicate(
+        json.dumps({'users': give_users, 'commands': commands}).encode('ascii')
+    )
 
 
-c = prologin.udbsync.connect()
-c.poll_updates(callback, watch={'password'})
+if __name__ == '__main__':
+    ENV = os.environ.copy()
+    ENV['RAILSENV'] = 'production'
+    c = prologin.udbsync.connect()
+    c.poll_updates(callback, watch={'password'})
