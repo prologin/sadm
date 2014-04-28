@@ -11,6 +11,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
+import asyncio
 import json
 import requests
 from urllib.parse import urljoin
@@ -36,9 +37,13 @@ class RemoteError(BaseError):
 class Client:
     """RPC client: connect to a server and perform remote calls."""
 
-    def __init__(self, base_url, secret=None):
+    def __init__(self, base_url, secret=None, async=False, ioloop=None):
         self.base_url = base_url
         self.secret = secret
+        if async:
+            self.async = async
+            self.ioloop = (ioloop if ioloop is not None else
+                           asyncio.get_event_loop())
 
     def _extract_result(self, lines):
         """Get a response line from a request, parse it and return it.
@@ -142,9 +147,16 @@ class Client:
     def __getattr__(self, method):
         """Return a callable to invoke a remote procedure."""
 
-        def proxy(*args, **kwargs):
-            return self._call_method(method, args, kwargs)
-
+        if self.async:
+            @asyncio.coroutine
+            def proxy(*args, **kwargs):
+                # TODO: use a requests-like library that supports asyncio
+                # instead of run_in_executor?
+                return (yield from self.ioloop.run_in_executor(
+                    self._call_method, method, args, kwargs))
+        else:
+            def proxy(*args, **kwargs):
+                return self._call_method(method, args, kwargs)
         return proxy
 
 
