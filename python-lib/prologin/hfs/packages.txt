@@ -1,45 +1,74 @@
+Generate the installation command
+=================================
+
+    echo -n "yaourt -S --needed" `sed '/^\* /!d' packages.txt | tr -d '\n*'`
+
+
 List of packages for contestants' environment
 =============================================
+
+# Shells
+
+* zsh
 
 
 # Editors & IDE
 
 * nano
-* vim
+* gvim
 * emacs
 * qtcreator
 * gedit
-* sublimetext2
+* sublime-text
 
 
-# WM
+# Graphic env
 
-* i3
+* xorg-server
+* xorg-server-utils
+* gdm
+* i3-wm
+* i3status
 * awesome
 * gnome
+* xfce4
 * kde
 * dwm
+* i3lock
 
 
 # Browsers
 
 * firefox
 * google-chrome
-* chromium
+
+
+# Tools
+
+* most
+* htop
+* git
+* mercurial
+* evince
+* zathura
 
 
 # Compilers & interpreters
 
 * make
 * gcc
-* g++
 * clang
 * ocaml
 * python
 * python2
-* java
+* jdk7-openjdk
+* jre7-openjdk
+* apache-ant
+* eclipse
+* intellij-idea-community-edition
 * mono
 * php
+* codeblocks
 
 
 # Games
