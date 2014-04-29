@@ -50,7 +50,7 @@ def async_work(func=None, slots=0):
         def wrapper(self, *wargs, **wkwargs):
             if self.slots < slots:
                 logging.warn('not enough slots to start the required job')
-            logging.debug('starting a job for %d slots' % slots)
+            logging.debug('starting a job for {} slots'.format(slots))
             self.slots -= slots
             yield from self.update_master()
             try:
@@ -90,20 +90,21 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
 
     @asyncio.coroutine
     def update_master(self):
-        yield from loop.run_in_executor(self.master.update, get_worker_infos())
+        yield from self.master.update(get_worker_infos())
 
     @asyncio.coroutine
     def send_heartbeat(self):
-        logging.info('sending heartbeat to the server, %d/%d slots' % (
-            self.slots, self.max_slots
-        ))
+        logging.info('sending heartbeat to the server, {}/{} slots'.format(
+            self.slots, self.max_slots))
         first_heartbeat = True
         while True:
             try:
-                self.master.heartbeat(self.get_worker_infos(), first_heartbeat)
+                yield from self.master.heartbeat(self.get_worker_infos(),
+                                                 first_heartbeat)
                 first_heartbeat = False
-            except socket.error:
-                msg = 'master down, retrying heartbeat in %ds' % self.interval
+            except socket.error: # TODO: what's the actual rpc exception
+                msg = 'master down, retrying heartbeat in {}s'.format(
+                        self.interval)
                 logging.warn(msg)
 
             yield from asyncio.sleep(self.interval)
@@ -121,10 +122,11 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
             self.srv_port = self.min_srv_port
         return port
 
-    @async_work(slots=1)
     @prologin.rpc.server.remote_method
+    @async_work(slots=1)
     def compile_champion(self, cid, champion_tgz):
-        cpath = os.path.join(self.config['path']['champion'], str(cid))
+        cpath = os.path.join(self.config['path']['champion'], 'compilation',
+                             str(cid))
         compiled_path = os.path.join(cpath, 'champion-compiled.tar.gz')
         log_path = os.path.join(cpath, 'compilation.log')
 
@@ -139,47 +141,50 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         with open(log_path, 'r') as f:
             log_content = f.read()
 
-        yield from loop.run_in_executor(self.master.compilation_result, cid,
-                compilation_content, log_content)
+        yield from self.master.compilation_result(cid, compilation_content,
+                                                  log_content)
 
-    @async_work(slots=1)
     @prologin.rpc.server.remote_method
-    def run_server(self, rep_port, pub_port, contest, match_id, opts=''):
+    @async_work(slots=1)
+    def run_server(self, rep_port, pub_port, match_id, opts=''):
         logging.info('starting server for match {}'.format(match_id))
-        yield from operations.run_server(self.config, worker.server_done,
-                                         rep_port, pub_port, contest, match_id,
-                                         opts)
+
+        task_server = asyncio.Task(operations.spawn_server(self.config,
+            rep_port, pub_port, opts))
+        task_dumper = asyncio.Task(operations.spawn_dumper(self.config,
+            rep_port, pub_port, opts))
+
+        yield from asyncio.wait([task_server, task_dumper])
         logging.info('match {} done'.format(match_id))
+
+        server_stdout = task_server.result()
+        dumper_stdout = task_dumper.result()
 
         lines = stdout.split('\n')
         result = []
         score_re = re.compile(r'^(\d+) (-?\d+) (-?\d+)$')
         for line in lines:
             m = score_re.match(line)
-            if m is None:
-                continue
-            pid, score, stat = m.groups()
-            result.append((int(pid), int(score)))
+            if m is not None:
+                pid, score, stat = m.groups()
+                result.append((int(pid), int(score)))
 
-        try:
-            self.master.match_done(self.get_worker_infos(), match_id, result)
-        except socket.error:
-            pass
+        logging.info('match {} done'.format(match_id))
+        yield from self.master.match_done(match_id, result, dumper_stdout)
 
-    @async_work(slots=2)
     @prologin.rpc.server.remote_method
-    def run_client(self, match_id, ip, req_port, sub_port, user, pl_id, opts):
-        logging.info('running champion %d from %s for match %d' % (
-                         champ_id, user, match_id
-        ))
-        operations.run_client(self.config, ip, req_port, sub_port, contest, match_id, user,
-                              champ_id, pl_id, opts, self.client_done)
-        logging.info('champion %d for match %d done' % (champ_id, match_id))
-        try:
-            self.master.client_done(self.get_worker_infos(),
-                                    match_id, pl_id, retcode)
-        except socket.error:
-            pass
+    @async_work(slots=2)
+    def run_client(self, match_id, pl_id, ip, req_port, sub_port, ctgz, opts):
+        logging.info('running player {} for match {}'.format(pl_id, match_id))
+
+        cpath = os.path.join(self.config['path']['champion'], 'exec', str(cid))
+
+        yield from loop.run_in_executor(operations.untar, tgz, cpath)
+        result = yield from operations.spawn_client(self.config, ip, req_port,
+                    sub_port, pl_id, champion_path, opts)
+
+        logging.info('player {} for match {} done'.format(pl_id, match_id))
+        yield from self.master.client_done(match_id, pl_id, retcode)
 
 
 if __name__ == '__main__':
