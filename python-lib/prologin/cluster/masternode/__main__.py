@@ -36,9 +36,6 @@ import time
 
 from .worker import Worker
 from . import task
-from . import utils
-
-utils.init_psycopg_tornado()
 
 ioloop = tornado.ioloop.IOLoop.instance()
 
