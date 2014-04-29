@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(name='ProloginSADM',
       version='1.0',
@@ -24,7 +24,7 @@ setup(name='ProloginSADM',
       author='Pierre Bourdon',
       author_email='pierre.bourdon@prologin.org',
       url='http://bitbucket.org/prologin/sadm/',
-      packages=['prologin'],
+      packages=find_packages(),
       scripts=['prologin/cluster/workernode/compile-champion.sh',
                'prologin/rpc/prolorpc'],
       test_suite='nose.collector',
