@@ -57,7 +57,8 @@ readable name::
 Install a few packages we will need::
 
   pacman -S git dhcp bind python python-pip python-virtualenv libyaml nginx \
-            sqlite dnsutils rsync postgresql-libs tcpdump base-devel pwgen
+            sqlite dnsutils rsync postgresql-libs tcpdump base-devel pwgen \
+            libxslt
 
 Create the main Python ``virtualenv`` we'll use for all our Prologin apps::
 
@@ -75,6 +76,7 @@ Clone the ``sadm`` repository, which contains everything we'll need to setup::
 
 Install the required Python packages::
 
+  export C_INCLUDE_PATH=/usr/include/libxml2 # fix for archlinux
   pip install -r requirements.txt
 
 mdb
@@ -85,7 +87,7 @@ server. We're going to start by installing ``mdb`` and configuring ``nginx`` as
 a reverse proxy for this application. Fortunately, a very simple script is
 provided with the application in order to setup what it requires::
 
-  python3 install.py mdb
+  python install.py mdb
   # Type 'no' when Django asks you to create a superuser.
   mv /etc/nginx/nginx.conf{.new,}
   # ^ To replace the default configuration by our own.
@@ -127,7 +129,7 @@ used for applications that need to react on ``mdb`` updates. The DHCP and DNS
 config generation scripts use it to automatically update the configuration when
 ``mdb`` changes. Once again, setting up ``mdbsync`` is pretty easy::
 
-  python3 install.py mdbsync
+  python install.py mdbsync
 
   systemctl enable mdbsync && systemctl start mdbsync
   systemctl reload nginx
@@ -144,7 +146,7 @@ mdbdns
 ``mdbdns`` gets updates from ``mdbsync`` and regenerates the DNS configuration.
 Once again, an installation script is provided::
 
-  python3 install.py mdbdns
+  python install.py mdbdns
   mv /etc/named.conf{.new,}
   # ^ To replace the default configuration by our own.
   systemctl enable mdbdns && systemctl start mdbdns
@@ -154,7 +156,7 @@ We now need to add a record in ``mdb`` for our current machine, ``gw.prolo``,
 so that DNS configuration can be generated::
 
   cd /var/prologin/mdb
-  python3 manage.py addmachine --hostname gw --mac 11:22:33:44:55:66 \
+  python manage.py addmachine --hostname gw --mac 11:22:33:44:55:66 \
       --ip 192.168.1.254 --rfs 0 --hfs 0 --mtype service --room pasteur \
       --aliases mdb,mdbsync,ns,netboot,udb,udbsync,presencesync
 
@@ -179,7 +181,7 @@ mdbdhcp
 ``mdbdhcp`` works just like ``mdbdns``, but for DHCP. The installation steps
 are as usual::
 
-  python3 install.py mdbdhcp
+  python install.py mdbdhcp
   mv /etc/dhcpd.conf{.new,}
   # ^ To replace the default configuration by our own.
   systemctl enable mdbdhcp && systemctl start mdbdhcp
@@ -192,7 +194,7 @@ Netboot is a small HTTP service used to handle interactions with the PXE boot
 script: machine registration and serving kernel files. Once again, very simple
 setup::
 
-  python3 install.py netboot
+  python install.py netboot
   systemctl enable netboot && systemctl start netboot
   systemctl reload nginx
 
@@ -228,7 +230,7 @@ Then compile time settings need to be modified. Uncomment the following lines::
 You can now build iPXE: go to ``src/`` and build the bootrom using our script
 provided in ``sadm/netboot``::
 
-  make bin/undionly.kpxe EMBED=/root/sadm/netboot/script.ipxe
+  make bin/undionly.kpxe EMBED=/root/sadm/python-lib/prologin/netboot/script.ipxe
   cp bin/undionly.kpxe /srv/tftp/prologin.kpxe
 
 udb
@@ -352,7 +354,7 @@ web interface, or using::
 
   source /var/prologin/venv/bin/activate
   cd /var/prologin/mdb
-  python3 manage.py addmachine --hostname web --mac 11:22:33:44:55:66 \
+  python manage.py addmachine --hostname web --mac 11:22:33:44:55:66 \
       --ip 192.168.1.100 --rfs 0 --hfs 0 \
       --aliases concours,wiki,bugs,docs,home,paste,map \
       --mtype service --room pasteur
@@ -364,7 +366,7 @@ the same instructions given for ``gw`` ("Basic system" part).
 
 Then, install the ``nginx`` configuration from the repository::
 
-  python3 install.py nginxcfg
+  python install.py nginxcfg
   mv /etc/nginx/nginx.conf{.new,}
   systemctl enable nginx && systemctl start nginx
 
@@ -373,7 +375,7 @@ Autoinstall
 
 You can autoinstall some services and configuration files::
 
-  python3 install.py webservices
+  python install.py webservices
   systemctl reload nginx
 
 doc
@@ -536,7 +538,7 @@ You should install the ``pypeul`` python library and the ``python-gobject`` and
 The notify bot must be started after being logged in KDM. Add this line to
 the ``.xsession`` of the users home skeleton::
 
-  python3 /usr/share/libnotify.py &
+  python /usr/share/libnotify.py &
 
 Step 6: the matches cluster
 ---------------------------
