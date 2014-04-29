@@ -328,7 +328,6 @@ install the base system for diskless client system::
   mkinitcpio -p linux
   for svc in {sshd}.service; do
     systemctl enable $svc
-    systemctl start  $svc
   done
   echo "$ROOTFS $SUBNET(ro,no_root_squash,subtree_check,async)" > /etc/exports.d/rootfs.exports
 
