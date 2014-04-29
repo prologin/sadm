@@ -332,8 +332,14 @@ install the base system for diskless client system::
   exit
   echo "$ROOTFS $SUBNET(ro,no_root_squash,subtree_check,async)" > /etc/exports.d/rootfs.exports
 
-TODO: How to install new package, sync, hook to generate /var... and more
-documentation to the above commands.
+To install a new package::
+
+  arch-chroot /export/nfsroot bash
+  pacman -Sy package
+  exit
+
+TODO: How to sync, hook to generate /var... and more documentation to the above
+commands.
 
 Copying the kernel and initramfs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
