@@ -60,6 +60,7 @@ List of packages for contestants' environment
 * feh
 * vlc
 * moreutils
+* netcat
 
 
 # Compilers & interpreters
