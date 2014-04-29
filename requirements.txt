@@ -9,3 +9,4 @@ py-postgresql==1.1.0
 requests==1.2.0
 lxml
 tornado==3.0.1
+aiopg==0.1.2
