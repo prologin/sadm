@@ -59,6 +59,7 @@ def untar(content, path, compression='gz'):
         with tarfile.open(fileobj=temp, mode='r:' + compression) as tar:
             tar.extractall(path)
 
+
 @asyncio.coroutine
 def communicate(cmdline, env=None, data=None, **kwargs):
     proc = yield from asyncio.create_subprocess_exec(cmdline,
@@ -96,8 +97,8 @@ def compile_champion(config, champion_path):
 def spawn_server(config, rep_port, pub_port, opts):
     cmd = [config['path']['stechec_server'],
            "--rules", config['path']['librules'],
-           "--rep_addr", "tcp://0.0.0.0:%d" % rep_port,
-           "--pub_addr", "tcp://0.0.0.0:%d" % pub_port,
+           "--rep_addr", "tcp://0.0.0.0:{}".format(rep_port),
+           "--pub_addr", "tcp://0.0.0.0:{}".format(pub_port),
            "--nb_clients", "3",
            "--verbose", "1"]
 
@@ -118,8 +119,8 @@ def spawn_dumper(config, rep_port, pub_port, opts):
            "--name", "dumper",
            "--rules", config['path']['librules'],
            "--champion", dumper,
-           "--req_addr", "tcp://127.0.0.1:%d" % rep_port,
-           "--sub_addr", "tcp://127.0.0.1:%d" % pub_port,
+           "--req_addr", "tcp://127.0.0.1:{}".format(rep_port),
+           "--sub_addr", "tcp://127.0.0.1:{}".format(pub_port),
            "--memory", "250000",
            "--time", "3000",
            "--spectator",
@@ -159,21 +160,3 @@ def spawn_client(config, ip, req_port, sub_port, pl_id, champion_path, opts):
         cmd.append(value)
     retcode, stdout = yield from communicate(cmd, env)
     return retcode, stdout
-
-
-@asyncio.coroutine
-def run_server(config, rep_port, pub_port, opts):
-    """
-    Runs the Stechec server and wait for client connections.
-    """
-    task_server = asyncio.Task(spawn_server(config, rep_port, pub_port, opts))
-    task_dumper = asyncio.Task(spawn_dumper(config, rep_port, pub_port, opts))
-
-    yield from asyncio.wait([task_server, task_dumper])
-    return task_server.result(), task_dumper.result()
-
-
-@asyncio.coroutine
-def run_client(config, ip, req_port, sub_port, pl_id, opts):
-    return (yield from spawn_client(config, ip, req_port, sub_port, pl_id,
-                                    champion_path, opts))
