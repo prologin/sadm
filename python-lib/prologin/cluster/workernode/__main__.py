@@ -86,7 +86,8 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         host, port = (config['master']['host'], config['master']['port'])
         url = "http://{}:{}/".format(host, port)
         return prologin.rpc.client.Client(url,
-                secret=config['master']['shared_secret'].encode('utf-8'))
+                secret=config['master']['shared_secret'].encode('utf-8'),
+                async=True)
 
     @asyncio.coroutine
     def update_master(self):
