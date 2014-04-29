@@ -309,13 +309,13 @@ install the base system for diskless client system::
 
   export ROOTFS=/export/nfsroot
   export SUBNET=192.168.0.0/24
-  pacman -Sy devtools nfs-utils openssh
+  pacman -Sy archlinux-install-scripts nfs-utils openssh
   mkdir -p $ROOTFS
   for svc in {sshd,nfsd,rpc-{idmapd,gssd,mountd,statd}}.service; do
     systemctl enable $svc
     systemctl start  $svc
   done
-  mkarchroot $ROOTFS base mkinitcpio-nfs-utils nfs-utils openssh strace tcpdump bash
+  pacstrap -d $ROOTFS base mkinitcpio-nfs-utils nfs-utils openssh strace tcpdump bash
   arch-chroot $ROOTFS bash
   ln -s /usr/share/zoneinfo/Europe/Paris /etc/localtime
   sed -e 's:^#en_US:en_US:g' -e 's:^#fr_FR:fr_FR:g' -i /etc/locale.gen
@@ -326,9 +326,10 @@ install the base system for diskless client system::
   echo KEYMAP=us > /etc/vconsole.conf
   locale-gen
   mkinitcpio -p linux
-  for svc in {sshd}.service; do
+  for svc in {sshd,rpc-gssd}.service; do
     systemctl enable $svc
   done
+  exit
   echo "$ROOTFS $SUBNET(ro,no_root_squash,subtree_check,async)" > /etc/exports.d/rootfs.exports
 
 TODO: How to install new package, sync, hook to generate /var... and more
