@@ -6,7 +6,7 @@ After = network.service
 Type=simple
 User=root
 WorkingDirectory=/var/prologin/udbsync_passwd
-ExecStart=/var/prologin/venv/bin/python udbsync_passwd.py /export/nfsroot
+ExecStart=/var/prologin/venv/bin/python passwd.py /export/nfsroot
 
 [Install]
 WantedBy=multi-user.target

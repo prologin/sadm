@@ -16,7 +16,7 @@
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 from django.contrib import admin
-from udb import models
+from prologin.udb import models
 
 
 def root(request):

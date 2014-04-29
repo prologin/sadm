@@ -3,7 +3,7 @@
 import logging
 import prologin.config
 import prologin.log
-import prologin.presencesync
+import prologin.presencesync.client
 import xml.etree.ElementTree as ET
 
 """Generate a map of connected contestants
@@ -95,7 +95,7 @@ def callback(logins, updates_metadata):
 
 if __name__ == '__main__':
     prologin.log.setup_logging('presencesync_usermap')
-    prologin.presencesync.connect().poll_updates(callback)
+    prologin.presencesync.client.connect().poll_updates(callback)
     args = parser.parse_args()
     try:
         generate(args)

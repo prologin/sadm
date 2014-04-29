@@ -18,10 +18,10 @@
 import json
 import prologin.config
 import prologin.timeauth
-import udb.receivers  # To connect our receivers
+import prologin.udb.receivers  # To connect our receivers
 
 from django.http import HttpResponse, HttpResponseForbidden
-from udb.models import User
+from prologin.udb.models import User
 
 CFG = prologin.config.load('udb-client-auth')
 
