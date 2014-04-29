@@ -20,9 +20,12 @@ List of packages for contestants' environment
 * qtcreator
 * gedit
 * sublime-text
+* codeblocks
+* eclipse
+* intellij-idea-community-edition
 
 
-# Graphic env
+# Graphical environments
 
 * xorg-server
 * xorg-server-utils
@@ -51,6 +54,12 @@ List of packages for contestants' environment
 * mercurial
 * evince
 * zathura
+* screen
+* tmux
+* eog
+* feh
+* vlc
+* moreutils
 
 
 # Compilers & interpreters
@@ -60,15 +69,13 @@ List of packages for contestants' environment
 * clang
 * ocaml
 * python
+* ipython
 * python2
+* ipython2
 * jdk7-openjdk
 * jre7-openjdk
-* apache-ant
-* eclipse
-* intellij-idea-community-edition
 * mono
 * php
-* codeblocks
 
 
 # Games
@@ -79,3 +86,12 @@ List of packages for contestants' environment
 * tuxracer
 * quake3
 * minecraft
+
+
+# Stechec2 additional dependencies
+
+* zeromq
+* google-gflags
+* googletest-svn
+* ruby
+* python-yaml
