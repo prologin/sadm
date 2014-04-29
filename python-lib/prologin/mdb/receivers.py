@@ -16,7 +16,7 @@
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-import prologin.mdbsync
+import prologin.mdbsync.client
 import queue
 import threading
 
@@ -46,7 +46,7 @@ class UpdateSenderTask(threading.Thread):
                 pass
 
             try:
-                cl = prologin.mdbsync.connect(pub=True)
+                cl = prologin.mdbsync.client.connect(pub=True)
                 cl.send_updates(updates)
             except Exception:
                 logging.exception("unable to send updates to mdbsync")

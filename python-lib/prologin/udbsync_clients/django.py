@@ -20,7 +20,7 @@ import logging
 import os
 import prologin.config
 import prologin.log
-import prologin.udbsync
+import prologin.udbsync.client
 import sys
 
 
@@ -72,6 +72,6 @@ if __name__ == '__main__':
     prologin.log.setup_logging('udbsync_django.%s' % app_name)
     cfg = prologin.config.load('%s-udbsync' % app_name)
     sys.path.insert(0, '.')
-    os.environ['DJANGO_SETTINGS_MODULE'] = '%s.settings' % app_name
+    os.environ['DJANGO_SETTINGS_MODULE'] = 'prologin.%s.settings' % app_name
     callback = functools.partial(callback, cfg)
-    prologin.udbsync.connect().poll_updates(callback)
+    prologin.udbsync.client.connect().poll_updates(callback)

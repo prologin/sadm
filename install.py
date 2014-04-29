@@ -131,24 +131,25 @@ def copytree(old, new, dir_mode=0o700, file_mode=0o600, owner='root:root'):
 CFG_TO_REVIEW = []
 def install_cfg(path, dest_dir, owner='root:root', mode=0o600):
     dest_path = os.path.join(dest_dir, os.path.basename(path))
+    src_path = os.path.join('etc', path)
 
     if os.path.exists(dest_path):
         old_contents = open(dest_path).read()
-        new_contents = open(path).read()
+        new_contents = open(src_path).read()
         if old_contents == new_contents:
             return
         CFG_TO_REVIEW.append(dest_path)
         dest_path += '.new'
 
-    print('Copying configuration %r -> %r' % (path, dest_path))
-    copy(path, dest_path, mode=0o640, owner=owner)
+    print('Copying configuration %r -> %r' % (src_path, dest_path))
+    copy(src_path, dest_path, mode=0o640, owner=owner)
     os.chmod(dest_path, mode)
 
 
 def install_cfg_profile(name, group):
     mkdir('/etc/prologin', mode=0o755, owner='root:root')
-    install_cfg(os.path.join('config', name + '.yml'), '/etc/prologin',
-                owner='root:%s' % group, mode=0o640)
+    install_cfg(os.path.join('prologin', name + '.yml'),
+            '/etc/prologin', owner='root:%s' % group, mode=0o640)
 
 
 def install_nginx_service(name):
@@ -156,18 +157,19 @@ def install_nginx_service(name):
                 '/etc/nginx/services', owner='root:root', mode=0o644)
 
 
-def install_systemd_unit(name):
-    install_cfg(os.path.join('systemd', name + '.service'),
-                '/etc/systemd/system', owner='root:root', mode=0o644)
+def install_systemd_unit(name, instance='system'):
+    install_cfg(os.path.join('systemd', instance, name + '.service'),
+                '/etc/systemd/' + instance , owner='root:root', mode=0o644)
 
 
-def install_service_dir(name, owner, mode):
+def install_service_dir(path, owner, mode):
     if not os.path.exists('/var/prologin'):
         mkdir('/var/prologin', mode=0o755, owner='root:root')
+    name = os.path.basename(path)  # strip service kind from path (eg. django)
     # Nothing in Python allows merging two directories together...
     # Be careful with rsync(1) arguments: to merge two directories, trailing
     # slash are meaningful.
-    os.system('rsync -rv %s/ /var/prologin/%s' % (name, name))
+    os.system('rsync -rv %s/ /var/prologin/%s' % (path, name))
     user, group = owner.split(':')
     shutil.chown('/var/prologin/%s' % name, user, group)
     os.chmod('/var/prologin/%s' % name, mode)
@@ -189,21 +191,25 @@ def install_libprologin():
     with cwd('python-lib'):
         os.system('python setup.py install')
 
+    install_cfg_profile('hfs-client', group='hfs_public')
     install_cfg_profile('mdb-client', group='mdb_public')
     install_cfg_profile('mdbsync-pub', group='mdbsync')
     install_cfg_profile('mdbsync-sub', group='mdbsync_public')
+    install_cfg_profile('presenced-client', group='presenced')
+    install_cfg_profile('presencesync-pub', group='presencesync')
+    install_cfg_profile('presencesync-sub', group='presencesync_public')
+    # FIXME(halfr) which group to use?
+    install_cfg_profile('timeauth', group='mdb')
     install_cfg_profile('udb-client', group='udb_public')
     install_cfg_profile('udb-client-auth', group='udb')
     install_cfg_profile('udbsync-pub', group='udbsync')
     install_cfg_profile('udbsync-sub', group='udbsync_public')
-    install_cfg_profile('presencesync-pub', group='presencesync')
-    install_cfg_profile('presencesync-sub', group='presencesync_public')
-    install_cfg_profile('presenced-client', group='presenced')
-    install_cfg_profile('hfs-client', group='hfs_public')
 
 
 def install_nginxcfg():
     install_cfg('nginx/nginx.conf', '/etc/nginx', owner='root:root',
+                mode=0o644)
+    install_cfg('nginx/proxy_params', '/etc/nginx', owner='root:root',
                 mode=0o644)
     mkdir('/etc/nginx/services', mode=0o755, owner='root:root')
     if not os.path.exists('/etc/nginx/logs'):
@@ -212,19 +218,19 @@ def install_nginxcfg():
 
 
 def install_bindcfg():
-    install_cfg('dns/named.conf', '/etc', owner='root:named', mode=0o640)
+    install_cfg('named.conf', '/etc', owner='root:named', mode=0o640)
     mkdir('/etc/named', mode=0o770, owner='named:mdbdns')
     for zone in ('0.in-addr.arpa', '127.in-addr.arpa', '255.in-addr.arpa',
                  'localhost'):
-        install_cfg('dns/named/%s.zone' % zone, '/etc/named',
+        install_cfg('named/%s.zone' % zone, '/etc/named',
                     owner='named:named', mode=0o640)
-    install_cfg('dns/named/root.hint', '/etc/named', owner='named:named',
+    install_cfg('named/root.hint', '/etc/named', owner='named:named',
                 mode=0o640)
     shutil.chown('/etc/rndc.key', 'named', 'mdbdns')
 
 
 def install_dhcpdcfg():
-    install_cfg('dhcp/dhcpd.conf', '/etc', owner='root:root', mode=0o640)
+    install_cfg('dhcpd.conf', '/etc', owner='root:root', mode=0o640)
     mkdir('/etc/dhcpd', mode=0o770, owner='root:mdbdhcp')
 
 
@@ -238,7 +244,7 @@ def install_mdb():
 
     first_time = not os.path.exists('/var/prologin/mdb')
 
-    install_service_dir('mdb', owner='mdb:mdb', mode=0o700)
+    install_service_dir('django/mdb', owner='mdb:mdb', mode=0o700)
     install_nginx_service('mdb')
     install_systemd_unit('mdb')
 
@@ -253,7 +259,8 @@ def install_mdbsync():
     requires('libprologin')
     requires('nginxcfg')
 
-    install_service_dir('mdbsync', owner='mdbsync:mdbsync', mode=0o700)
+    install_service_dir('python-lib/prologin/mdbsync', owner='mdbsync:mdbsync',
+                        mode=0o700)
     install_nginx_service('mdbsync')
     install_systemd_unit('mdbsync')
 
@@ -263,8 +270,8 @@ def install_mdbdns():
     requires('bindcfg')
 
     mkdir('/var/prologin/dns', mode=0o700, owner='mdbdns:mdbdns')
-    copy('dns/mdbdns.py', '/var/prologin/dns/mdbdns.py', mode=0o750,
-         owner='mdbdns:mdbdns')
+    copy('python-lib/prologin/mdbsync_clients/dns.py',
+         '/var/prologin/dns/mdbdns.py', mode=0o750, owner='mdbdns:mdbdns')
 
     install_systemd_unit('mdbdns')
 
@@ -274,7 +281,8 @@ def install_mdbdhcp():
     requires('dhcpdcfg')
 
     mkdir('/var/prologin/dhcp', mode=0o700, owner='mdbdhcp:mdbdhcp')
-    copy('dhcp/mdbdhcp.py', '/var/prologin/dhcp/mdbdhcp.py', mode=0o750,
+    copy('python-lib/prologin/mdbsync_clients/dhcp.py',
+         '/var/prologin/dhcp/mdbdhcp.py', mode=0o750,
          owner='mdbdhcp:mdbdhcp')
 
     install_systemd_unit('mdbdhcp')
@@ -317,7 +325,8 @@ def install_netboot():
     requires('nginxcfg')
 
     mkdir('/var/prologin/netboot', mode=0o700, owner='netboot:netboot')
-    copy('netboot/netboot.py', '/var/prologin/netboot/netboot.py', mode=0o750,
+    copy('python-lib/prologin/netboot/netboot.py',
+         '/var/prologin/netboot/netboot.py', mode=0o750,
          owner='netboot:netboot')
     install_nginx_service('netboot')
     install_systemd_unit('netboot')
@@ -330,7 +339,7 @@ def install_udb():
 
     first_time = not os.path.exists('/var/prologin/udb')
 
-    install_service_dir('udb', owner='udb:udb', mode=0o700)
+    install_service_dir('django/udb', owner='udb:udb', mode=0o700)
     install_nginx_service('udb')
     install_systemd_unit('udb')
 
@@ -345,7 +354,7 @@ def install_udbsync():
     requires('libprologin')
     requires('nginxcfg')
 
-    install_service_dir('udbsync', owner='udbsync:udbsync', mode=0o700)
+    install_service_dir('python-lib/prologin/udbsync', owner='udbsync:udbsync', mode=0o700)
     install_nginx_service('udbsync')
     install_systemd_unit('udbsync')
 
@@ -353,7 +362,10 @@ def install_udbsync():
 def install_udbsync_django():
     requires('libprologin')
 
-    install_service_dir('udbsync_django', owner='root:root', mode=0o755)
+    mkdir('/var/prologin/udbsync_django', mode=0o755, owner='root:root')
+    copy('python-lib/prologin/udbsync_clients/django.py',
+         '/var/prologin/udbsync_django/udbsync_django.py',
+         mode=0o744, owner='root:root')
     install_systemd_unit('udbsync_django@')
 
 
@@ -361,18 +373,19 @@ def install_udbsync_passwd():
     requires('libprologin')
 
     mkdir('/var/prologin/udbsync_passwd', mode=0o700, owner='root:root')
-    copy(
-        'udbsync_passwd/udbsync_passwd.py',
-        '/var/prologin/udbsync_passwd/udbsync_passwd.py',
-        mode=0o700, owner='root:root'
-    )
+    copy('python-lib/prologin/udbsync_clients/passwd.py',
+         '/var/prologin/udbsync_passwd/passwd.py',
+         mode=0o700, owner='root:root')
     install_systemd_unit('udbsync_passwd')
 
 
 def install_udbsync_rootssh():
     requires('libprologin')
 
-    install_service_dir('ssh', owner='root:root', mode=0o700)
+    mkdir('/var/prologin/udbsync_rootssh', mode=0o700, owner='root:root')
+    copy('python-lib/prologin/udbsync_clients/rootssh.py',
+         '/var/prologin/udbsync_rootssh/rootssh.py',
+         mode=0o700, owner='root:root')
     install_systemd_unit('udbsync_rootssh')
 
 
@@ -380,10 +393,9 @@ def install_presencesync():
     requires('libprologin')
     requires('nginxcfg')
 
-    install_service_dir(
-        'presencesync', owner='presencesync:presencesync',
-        mode=0o700
-    )
+    install_service_dir('python-lib/prologin/presencesync',
+                        owner='presencesync:presencesync',
+                        mode=0o700)
     install_nginx_service('presencesync')
     install_systemd_unit('presencesync')
 
@@ -392,10 +404,7 @@ def install_presenced():
     requires('libprologin')
     requires('nginxcfg')
 
-    install_service_dir(
-        'presenced', owner='presenced:presenced',
-        mode=0o700
-    )
+    install_service_dir('presenced', owner='presenced:presenced', mode=0o700)
     install_systemd_unit('presenced')
 
     cfg = '/etc/pam.d/system-login'
