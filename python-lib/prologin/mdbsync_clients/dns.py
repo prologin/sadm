@@ -21,7 +21,7 @@
 import logging
 import os.path
 import prologin.log
-import prologin.mdbsync
+import prologin.mdbsync.client
 
 
 def build_zone(name, records):
@@ -123,4 +123,4 @@ def update_dns_config(machines_map, metadata):
 
 if __name__ == '__main__':
     prologin.log.setup_logging('mdbdns')
-    prologin.mdbsync.connect().poll_updates(update_dns_config)
+    prologin.mdbsync.client.connect().poll_updates(update_dns_config)

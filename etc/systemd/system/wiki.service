@@ -1,6 +1,6 @@
 [Unit]
-Description = Wiki
-After = network.target
+Description=Wiki
+After=network.target
 
 [Service]
 Type=simple

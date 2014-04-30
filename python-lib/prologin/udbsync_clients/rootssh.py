@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 
 import os
-import prologin.udbsync
+import prologin.udbsync.client
 
 
 def callback(users, updates_metadata):
@@ -12,5 +12,6 @@ def callback(users, updates_metadata):
         l = [k for k in l if k] + ['']
         f.write('\n'.join(l))
 
-c = prologin.udbsync.connect()
-c.poll_updates(callback, watch={'ssh_key'})
+if __name__ == '__main__':
+    c = prologin.udbsync.client.connect()
+    c.poll_updates(callback, watch={'ssh_key'})

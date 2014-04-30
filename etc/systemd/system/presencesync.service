@@ -1,12 +1,11 @@
 [Unit]
-Description = PresenceSync pubsub service
-After = mdb.service
+Description=PresenceSync pubsub service
+After=mdb.service
 
 [Service]
 Type=simple
 User=presencesync
-WorkingDirectory=/var/prologin/presencesync
-ExecStart=/var/prologin/venv/bin/python presencesync.py 20060
+ExecStart=/var/prologin/venv/bin/python -m prologin.presencesync.server 20060
 
 [Install]
 WantedBy=multi-user.target

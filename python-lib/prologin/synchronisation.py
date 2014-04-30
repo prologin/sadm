@@ -195,11 +195,11 @@ class Server(prologin.web.TornadoApp):
     required methods.
     """
 
-    def __init__(self, pk, pub_secret, sub_secret, port):
+    def __init__(self, pk, pub_secret, sub_secret, port, app_name):
         """The `shared_secret` is used to restrict clients that can add
         updates.
         """
-        super(Server, self).__init__(self.get_handlers())
+        super().__init__(self.get_handlers(), app_name)
         self.pk = pk
         self.port = port
         self.pub_secret = pub_secret.encode('utf-8')

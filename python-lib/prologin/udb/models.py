@@ -53,4 +53,4 @@ class User(models.Model):
 
 
 # Import the signal receivers so they are activated
-import udb.receivers
+import prologin.udb.receivers

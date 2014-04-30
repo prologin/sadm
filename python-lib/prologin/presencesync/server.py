@@ -24,11 +24,11 @@ import json
 import logging
 import prologin.config
 import prologin.log
-import prologin.mdb
-import prologin.presencesync
+import prologin.mdb.client
+import prologin.presencesync.client
 import prologin.synchronisation
 import prologin.tornadauth
-import prologin.udb
+import prologin.udb.client
 import sys
 import threading
 import time
@@ -70,8 +70,8 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
         # Mapping hostname -> user login or None.
         self.reverse_backlog = collections.defaultdict(lambda: None)
 
-        self.udb = prologin.udb.connect()
-        self.mdb = prologin.mdb.connect()
+        self.udb = prologin.udb.client.connect()
+        self.mdb = prologin.mdb.client.connect()
 
     def item_to_update(self, update_type, login, hostname):
         return {
@@ -312,7 +312,7 @@ class RemoveExpiredHandler(tornado.web.RequestHandler):
 class SyncServer(prologin.synchronisation.Server):
     def __init__(self, pub_secret, sub_secret, port):
         super(SyncServer, self).__init__(
-            'login', pub_secret, sub_secret, port
+            'login', pub_secret, sub_secret, port, 'presencesync'
         )
         self.start_ts = None
 
@@ -329,7 +329,7 @@ class SyncServer(prologin.synchronisation.Server):
         """Loop forever, asking the PrecenceSync server to remove expired
         logins periodically.
         """
-        conn = prologin.presencesync.connect(pub=True)
+        conn = prologin.presencesync.client.connect(pub=True)
         while True:
             # Communicate with the PresenceSync server just like any other
             # client in order to handle concurrent accesses nicely.
