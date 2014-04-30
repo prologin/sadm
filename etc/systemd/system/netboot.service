@@ -1,6 +1,6 @@
 [Unit]
-Description = Netboot HTTP server
-After = mdb.service
+Description=Netboot HTTP server
+After=mdb.service
 
 [Service]
 Type=simple

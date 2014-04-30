@@ -1,6 +1,6 @@
 [Unit]
-Description = Minecraft Server
-After = minecraft-skins.service
+Description=Minecraft Server
+After=minecraft-skins.service
 
 [Service]
 Type=simple

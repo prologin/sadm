@@ -1,6 +1,6 @@
 [Unit]
-Description = UDBSync pubsub service
-After = udb.service
+Description=UDBSync pubsub service
+After=udb.service
 
 [Service]
 Type=simple

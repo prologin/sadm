@@ -1,6 +1,6 @@
 [Unit]
-Description = MDB DNS synchronization daemon
-After = mdbsync.service
+Description=MDB DNS synchronization daemon
+After=mdbsync.service
 
 [Service]
 Type=simple

@@ -1,6 +1,6 @@
 [Unit]
-Description = Minecraft Skin and Login
-After = network.target
+Description=Minecraft Skin and Login
+After=network.target
 
 [Service]
 Type=simple

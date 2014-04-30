@@ -1,6 +1,6 @@
 [Unit]
-Description = Local Presencd daemon
-After = network.target
+Description=Local Presencd daemon
+After=network.target
 
 [Service]
 Type=simple
