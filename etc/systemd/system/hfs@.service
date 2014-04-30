@@ -5,8 +5,7 @@ After=network.target
 [Service]
 Type=simple
 User=root
-WorkingDirectory=/var/prologin/hfs
-ExecStart=/var/prologin/venv/bin/python hfs.py %i
+ExecStart=/var/prologin/venv/bin/python -m prologin.hfs.server %i
 
 [Install]
 WantedBy=multi-user.target

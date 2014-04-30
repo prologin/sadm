@@ -5,8 +5,7 @@ After=udb.service
 [Service]
 Type=simple
 User=udbsync
-WorkingDirectory=/var/prologin/udbsync
-ExecStart=/var/prologin/venv/bin/python server.py 20090
+ExecStart=/var/prologin/venv/bin/python -m prologin.udbsync.server 20090
 
 [Install]
 WantedBy=multi-user.target
