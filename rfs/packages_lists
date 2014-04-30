@@ -1,12 +1,11 @@
 mkinitcpio-nfs-utils
 nfs-utils
 openssh
+bash
+dhcpcd
+ntp
 strace
 tcpdump
-git
-dhcpcd
 devtools
 grub-bios
-mercurial
 parted
-ntp
