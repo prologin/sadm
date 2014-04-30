@@ -22,7 +22,7 @@ import os
 import prologin.config
 import prologin.log
 import prologin.presenced
-import prologin.udbsync
+import prologin.udbsync.client
 import re
 import shutil
 import subprocess
@@ -257,4 +257,4 @@ if __name__ == '__main__':
         root_path = sys.argv[1]
     prologin.log.setup_logging('udbsync_passwd')
     callback = functools.partial(callback, root_path)
-    prologin.udbsync.connect().poll_updates(callback)
+    prologin.udbsync.client.connect().poll_updates(callback)

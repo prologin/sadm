@@ -21,7 +21,7 @@
 import logging
 import os
 import prologin.log
-import prologin.mdbsync
+import prologin.mdbsync.client
 
 
 def update_dhcp_config(machines, metadata):
@@ -44,4 +44,4 @@ def update_dhcp_config(machines, metadata):
 
 if __name__ == '__main__':
     prologin.log.setup_logging('mdbdhcp')
-    prologin.mdbsync.connect().poll_updates(update_dhcp_config)
+    prologin.mdbsync.client.connect().poll_updates(update_dhcp_config)
