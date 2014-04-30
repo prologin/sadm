@@ -205,8 +205,7 @@ def install_libprologin():
     install_cfg_profile('presenced-client', group='presenced')
     install_cfg_profile('presencesync-pub', group='presencesync')
     install_cfg_profile('presencesync-sub', group='presencesync_public')
-    # FIXME(halfr) which group to use?
-    install_cfg_profile('timeauth', group='mdb')
+    install_cfg_profile('timeauth', group='root', mode=0o644)
     install_cfg_profile('udb-client', group='udb_public')
     install_cfg_profile('udb-client-auth', group='udb')
     install_cfg_profile('udbsync-pub', group='udbsync')
