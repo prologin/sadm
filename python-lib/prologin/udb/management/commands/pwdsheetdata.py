@@ -19,7 +19,7 @@
 
 from django.core.management import BaseCommand, CommandError
 from optparse import make_option
-from udb.models import User
+from prologin.udb.models import User
 
 
 class Command(BaseCommand):

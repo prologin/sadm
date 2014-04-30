@@ -28,6 +28,7 @@ import urllib.parse
 
 SUB_CFG = prologin.config.load('presencesync-sub')
 
+
 class Client(prologin.synchronisation.Client):
 
     def get_list(self):

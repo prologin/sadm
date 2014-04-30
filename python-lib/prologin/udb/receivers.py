@@ -22,7 +22,7 @@ import threading
 from django.conf import settings
 from django.dispatch import receiver
 from django.db.models.signals import post_save, pre_delete
-from udb.models import User
+from prologin.udb.models import User
 
 
 class UpdateSenderTask(threading.Thread):

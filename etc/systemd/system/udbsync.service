@@ -1,12 +1,11 @@
 [Unit]
-Description = UDBSync pubsub service
-After = udb.service
+Description=UDBSync pubsub service
+After=udb.service
 
 [Service]
 Type=simple
 User=udbsync
-WorkingDirectory=/var/prologin/udbsync
-ExecStart=/var/prologin/venv/bin/python udbsync.py 20090
+ExecStart=/var/prologin/venv/bin/python -m prologin.udbsync.server 20090
 
 [Install]
 WantedBy=multi-user.target
