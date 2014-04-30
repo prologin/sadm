@@ -28,13 +28,13 @@ setup(name='ProloginSADM',
       scripts=['prologin/cluster/workernode/compile-champion.sh',
                'prologin/rpc/prolorpc'],
       package_data={
-          'prologin.homepage': ['static/*', 'templates/*'],
           'prologin.concours': ['static/**/*.*',
                                 'stechec/templates/*'],
+          'prologin.homepage': ['static/*', 'templates/*'],
           'prologin.minecraft': ['static/*.png',
                                  'static/bin/*.jar',
                                  'static/bin/md5s',
-                                 'static/bin/natives/*']
+                                 'static/bin/natives/*'],
       },
       test_suite='nose.collector',
      )
