@@ -5,8 +5,7 @@ After=network.service
 [Service]
 Type=simple
 User=root
-WorkingDirectory=/var/prologin/udbsync_passwd
-ExecStart=/var/prologin/venv/bin/python passwd.py
+ExecStart=/var/prologin/venv/bin/python -m prologin.udbsync_clients.passwd
 
 [Install]
 WantedBy=multi-user.target

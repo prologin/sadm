@@ -5,8 +5,7 @@ After=mdb.service
 [Service]
 Type=simple
 User=mdbsync
-WorkingDirectory=/var/prologin/mdbsync
-ExecStart=/var/prologin/venv/bin/python server.py 20010
+ExecStart=/var/prologin/venv/bin/python -m prologin.mdbsync.server 20010
 
 [Install]
 WantedBy=multi-user.target

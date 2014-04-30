@@ -146,10 +146,10 @@ def install_cfg(path, dest_dir, owner='root:root', mode=0o600):
     os.chmod(dest_path, mode)
 
 
-def install_cfg_profile(name, group):
+def install_cfg_profile(name, group, mode=0o640):
     mkdir('/etc/prologin', mode=0o755, owner='root:root')
     install_cfg(os.path.join('prologin', name + '.yml'),
-            '/etc/prologin', owner='root:%s' % group, mode=0o640)
+            '/etc/prologin', owner='root:%s' % group, mode=mode)
 
 
 def install_nginx_service(name):
@@ -259,8 +259,6 @@ def install_mdbsync():
     requires('libprologin')
     requires('nginxcfg')
 
-    install_service_dir('python-lib/prologin/mdbsync', owner='mdbsync:mdbsync',
-                        mode=0o700)
     install_nginx_service('mdbsync')
     install_systemd_unit('mdbsync')
 
@@ -269,21 +267,12 @@ def install_mdbdns():
     requires('libprologin')
     requires('bindcfg')
 
-    mkdir('/var/prologin/dns', mode=0o700, owner='mdbdns:mdbdns')
-    copy('python-lib/prologin/mdbsync_clients/dns.py',
-         '/var/prologin/dns/mdbdns.py', mode=0o750, owner='mdbdns:mdbdns')
-
     install_systemd_unit('mdbdns')
 
 
 def install_mdbdhcp():
     requires('libprologin')
     requires('dhcpdcfg')
-
-    mkdir('/var/prologin/dhcp', mode=0o700, owner='mdbdhcp:mdbdhcp')
-    copy('python-lib/prologin/mdbsync_clients/dhcp.py',
-         '/var/prologin/dhcp/mdbdhcp.py', mode=0o750,
-         owner='mdbdhcp:mdbdhcp')
 
     install_systemd_unit('mdbdhcp')
 
@@ -309,7 +298,8 @@ def install_homepage():
 
     first_time = not os.path.exists('/var/prologin/homepage')
 
-    install_service_dir('homepage', owner='homepage:homepage', mode=0o700)
+    install_service_dir('django/homepage', owner='homepage:homepage',
+                        mode=0o700)
     install_nginx_service('homepage')
     install_systemd_unit('homepage')
 
@@ -324,10 +314,6 @@ def install_netboot():
     requires('libprologin')
     requires('nginxcfg')
 
-    mkdir('/var/prologin/netboot', mode=0o700, owner='netboot:netboot')
-    copy('python-lib/prologin/netboot/netboot.py',
-         '/var/prologin/netboot/netboot.py', mode=0o750,
-         owner='netboot:netboot')
     install_nginx_service('netboot')
     install_systemd_unit('netboot')
     install_cfg_profile('netboot', group='netboot')
@@ -354,7 +340,6 @@ def install_udbsync():
     requires('libprologin')
     requires('nginxcfg')
 
-    install_service_dir('python-lib/prologin/udbsync', owner='udbsync:udbsync', mode=0o700)
     install_nginx_service('udbsync')
     install_systemd_unit('udbsync')
 
@@ -362,30 +347,18 @@ def install_udbsync():
 def install_udbsync_django():
     requires('libprologin')
 
-    mkdir('/var/prologin/udbsync_django', mode=0o755, owner='root:root')
-    copy('python-lib/prologin/udbsync_clients/django.py',
-         '/var/prologin/udbsync_django/udbsync_django.py',
-         mode=0o744, owner='root:root')
     install_systemd_unit('udbsync_django@')
 
 
 def install_udbsync_passwd():
     requires('libprologin')
 
-    mkdir('/var/prologin/udbsync_passwd', mode=0o700, owner='root:root')
-    copy('python-lib/prologin/udbsync_clients/passwd.py',
-         '/var/prologin/udbsync_passwd/passwd.py',
-         mode=0o700, owner='root:root')
     install_systemd_unit('udbsync_passwd')
 
 
 def install_udbsync_rootssh():
     requires('libprologin')
 
-    mkdir('/var/prologin/udbsync_rootssh', mode=0o700, owner='root:root')
-    copy('python-lib/prologin/udbsync_clients/rootssh.py',
-         '/var/prologin/udbsync_rootssh/rootssh.py',
-         mode=0o700, owner='root:root')
     install_systemd_unit('udbsync_rootssh')
 
 
@@ -453,7 +426,6 @@ def install_rfs():
 def install_hfs():
     requires('libprologin')
 
-    install_service_dir('hfs', owner='hfs:hfs', mode=0o700)
     install_systemd_unit('hfs@')
     install_cfg_profile('hfs-server', group='hfs')
 

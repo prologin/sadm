@@ -6,7 +6,7 @@ After=network.target
 Type=simple
 User=%i
 WorkingDirectory=/var/prologin/%i
-ExecStart=/var/prologin/venv/bin/python /var/prologin/udbsync_django/udbsync_django.py %i
+ExecStart=/var/prologin/venv/bin/python -m prologin.udbsync_clients.django %i
 
 [Install]
 WantedBy=multi-user.target

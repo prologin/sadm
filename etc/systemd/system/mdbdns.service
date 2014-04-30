@@ -5,8 +5,7 @@ After=mdbsync.service
 [Service]
 Type=simple
 User=mdbdns
-WorkingDirectory=/var/prologin/dns
-ExecStart=/var/prologin/venv/bin/python mdbdns.py
+ExecStart=/var/prologin/venv/bin/python -m prologin.mdbsync_clients.dns
 
 [Install]
 WantedBy=multi-user.target

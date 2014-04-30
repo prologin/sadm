@@ -5,8 +5,7 @@ After=network.service
 [Service]
 Type=simple
 User=root
-WorkingDirectory=/var/prologin/udbsync_rootssh
-ExecStart=/var/prologin/venv/bin/python rootssh.py
+ExecStart=/var/prologin/venv/bin/python -m prologin.udbsync_clients.rootssh
 
 [Install]
 WantedBy=multi-user.target

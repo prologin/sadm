@@ -5,8 +5,7 @@ After=mdbsync.service
 [Service]
 Type=simple
 User=root
-WorkingDirectory=/var/prologin/dhcp
-ExecStart=/var/prologin/venv/bin/python mdbdhcp.py
+ExecStart=/var/prologin/venv/bin/python -m prologin.mdbsync_clients.dhcp
 
 [Install]
 WantedBy=multi-user.target
