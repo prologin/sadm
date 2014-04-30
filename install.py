@@ -184,6 +184,13 @@ def django_syncdb(name, user=None):
         cmd += user
         os.system(cmd)
 
+def django_initial_data(name, user=None):
+    if user is None:
+        user = name
+
+    copy('python-lib/prologin/%s/fixtures/initial_data.yaml' % name,
+         '/var/prologin/%s/initial_data.yaml' % name, owner=user+':'+user,
+         mode=0o400)
 
 # Component specific installation procedures
 
@@ -252,6 +259,7 @@ def install_mdb():
     install_cfg_profile('mdb-udbsync', group='mdb')
 
     if first_time:
+        django_initial_data('mdb')
         django_syncdb('mdb')
 
 
@@ -333,6 +341,7 @@ def install_udb():
     install_cfg_profile('udb-udbsync', group='udb')
 
     if first_time:
+        django_initial_data('udb')
         django_syncdb('udb')
 
 
