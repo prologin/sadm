@@ -1,6 +1,6 @@
 [Unit]
-Description = /etc/{passwd,shadow,group} synchronisation daemon
-After = network.service
+Description=/etc/{passwd,shadow,group} synchronisation daemon
+After=network.service
 
 [Service]
 Type=simple

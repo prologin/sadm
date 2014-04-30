@@ -1,6 +1,6 @@
 [Unit]
-Description = Machine Database
-After = network.target
+Description=Machine Database
+After=network.target
 
 [Service]
 Type=simple

@@ -1,6 +1,6 @@
 [Unit]
-Description = User Database
-After = network.target
+Description=User Database
+After=network.target
 
 [Service]
 Type=simple

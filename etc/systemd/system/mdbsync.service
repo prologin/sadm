@@ -1,6 +1,6 @@
 [Unit]
-Description = MDBSync pubsub service
-After = mdb.service
+Description=MDBSync pubsub service
+After=mdb.service
 
 [Service]
 Type=simple

@@ -1,6 +1,6 @@
 [Unit]
-Description = /etc/{passwd,shadow,group} synchronisation daemon for nfsroot
-After = network.service
+Description=/etc/{passwd,shadow,group} synchronisation daemon for nfsroot
+After=network.service
 
 [Service]
 Type=simple
