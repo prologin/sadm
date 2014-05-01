@@ -1,23 +1,27 @@
 #!ipxe
 
+:start
 echo =============================================================
 echo Prologin netboot environment
 echo =============================================================
 
 echo Getting our IP from DHCP
-dhcp
+dhcp || goto reboot
 iseq ${scriptlet} alien && goto alien ||
 
 echo Machine known by MDB, chainloading to the MDB provided configuration
-chain http://netboot/boot/${mac}/
+chain http://netboot/boot/${mac}/ ||
+goto reboot
 
 :alien
 menu Machine not known by MDB. Do you want to register this machine?
-item y Yes
-item n No
-choose choice && goto alien_register_${choice}
+item alien_register Yes
+item reboot No
+item --gap
+item shell Drop to an iPXE shell
+choose choice && goto ${choice}
 
-:alien_register_y
+:alien_register
 echo Current MAC address: ${mac}
 echo -n Hostname (usually pas-r0Xp0Y or alt-r0Xp0Y): && read hostname
 echo -n Nearest RFS id: && read rfs_id
@@ -44,11 +48,17 @@ echo  Machine type ${mtype}
 echo =============================================================
 echo -n Is this correct? (Y/n) && read choice2
 
-iseq ${choice2} n && goto alien_register_y ||
+iseq ${choice2} n && goto alien_register ||
+iseq ${choice2} N && goto alien_register ||
 
-chain http://netboot/register?hostname=${hostname}&mac=${mac}&rfs=${rfs_id}&hfs=${hfs_id}&room=${room}&mtype=${mtype}
+chain http://netboot/register?hostname=${hostname}&mac=${mac}&rfs=${rfs_id}&hfs=${hfs_id}&room=${room}&mtype=${mtype} ||
+goto reboot
 
-:alien_register_n
+:shell
+shell ||
+goto start
+
+:reboot
 echo Waiting 10 seconds before rebooting...
-sleep 10
+prompt --key 0x02 --timeout 10000 Press Ctrl-B for the iPXE command line... && goto shell ||
 reboot
