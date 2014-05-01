@@ -226,6 +226,7 @@ Then compile time settings need to be modified. Uncomment the following lines::
 
   // in src/config/general.h
   #define REBOOT_CMD
+  #define PING_CMD
 
 You can now build iPXE: go to ``src/`` and build the bootrom using our script
 provided in ``sadm/netboot``::
