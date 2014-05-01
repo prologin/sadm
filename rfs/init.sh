@@ -18,7 +18,7 @@ fi
 mkdir -p "$ROOTFS"
 
 # Install the tools needed to install and serve the rfs
-pacman -Sy --needed arch-install-scripts nfs-utils openssh
+pacman -Sy --needed --noconfirm arch-install-scripts nfs-utils openssh
 
 # Enable and start the services need to serve the rfs
 for svc in {sshd,nfsd,rpc-{idmapd,gssd,mountd,statd}}.service; do
@@ -44,3 +44,6 @@ rm -rf "$ROOTFS/sadm"
 # And finally export the rfs via nfs
 echo "$ROOTFS $SUBNET(ro,no_root_squash,subtree_check,async)" > /etc/exports.d/rootfs.exports
 exportfs -arv
+echo "--------------"
+echo "WARNING: Do not forget to copy the initrd and the kernel ($ROOTFS/boot/initramfs-linux.img and $ROOTFS/boot/vmlinuz-linux) to the directory specified in ./etc/prologin/netboot.yml (likely /srv/tftp/) and name them respectively 'initrd' and 'kernel'"
+echo "--------------"
