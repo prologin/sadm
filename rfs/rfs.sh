@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# This script is executed *chrooted in an nfsroot* during the 'install.py rfs'
+# process.
+
 set -e
 
 # Usual basic setup
