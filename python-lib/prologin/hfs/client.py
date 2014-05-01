@@ -19,8 +19,8 @@
 import json
 import logging
 import prologin.config
-import prologin.mdb
-import prologin.udb
+import prologin.mdb.client
+import prologin.udb.client
 import prologin.webapi
 
 
@@ -50,11 +50,11 @@ class Client(prologin.webapi.Client):
             login, hostname
         ))
 
-        match = prologin.udb.connect().query(login=login)
+        match = prologin.udb.client.connect().query(login=login)
         if len(match) != 1:
             self._log_and_raise('No such user: {}'.format(login))
         user = match[0]
-        match = prologin.mdb.connect().query(hostname=hostname)
+        match = prologin.mdb.client.connect().query(hostname=hostname)
         if len(match) != 1:
             self._log_and_raise('No such machine: {}'.format(hostname))
         machine = match[0]

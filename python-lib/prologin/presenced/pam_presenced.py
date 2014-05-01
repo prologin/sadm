@@ -13,9 +13,9 @@ close_session, try to unmount it.
 
 import os
 import os.path
-import prologin.hfs
+import prologin.hfs.client
 import prologin.log
-import prologin.presenced
+import prologin.presenced.client
 import socket
 import subprocess
 import sys
@@ -42,7 +42,7 @@ PAM_SERVICE = os.environ['PAM_SERVICE']
 login = os.environ['PAM_USER']
 
 try:
-    is_prologin_user = prologin.presenced.is_prologin_user(login)
+    is_prologin_user = prologin.presenced.client.is_prologin_user(login)
 except KeyError:
     # The login/password was accepted by pam_unix.so, but user does not exist:
     # should not happen, but forbid anyway.  TODO: notify sysadmins...
@@ -64,7 +64,7 @@ if PAM_TYPE == 'open_session':
         fail('Login forbidden: {}'.format(failure_reason))
 
     # Request HOME directory migration and wait for it.
-    hfs = prologin.hfs.connect()
+    hfs = prologin.hfs.client.connect()
     try:
         hostname = '.'.join(socket.gethostname().split('.')[:-1])
         host, port = hfs.get_hfs(login, hostname)
