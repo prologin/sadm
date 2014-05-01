@@ -2,7 +2,7 @@ bash
 devtools
 dhcpcd
 gcc
-slim
+kdm
 grub-bios
 libxml2
 libxslt
