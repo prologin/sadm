@@ -4,6 +4,7 @@ openssh
 bash
 dhcpcd
 ntp
+gdm
 strace
 tcpdump
 python-setuptools
