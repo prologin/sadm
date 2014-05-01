@@ -15,7 +15,7 @@
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-import prologin.udbsync
+import prologin.udbsync.client
 import queue
 import threading
 
@@ -45,7 +45,7 @@ class UpdateSenderTask(threading.Thread):
                 pass
 
             try:
-                cl = prologin.udbsync.connect(pub=True)
+                cl = prologin.udbsync.client.connect(pub=True)
                 cl.send_updates(updates)
             except Exception:
                 logging.exception("unable to send updates to udbsync")
