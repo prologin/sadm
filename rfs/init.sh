@@ -20,12 +20,6 @@ mkdir -p "$ROOTFS"
 # Install the tools needed to install and serve the rfs
 pacman -Sy --needed --noconfirm arch-install-scripts nfs-utils openssh
 
-# Enable and start the services need to serve the rfs
-for svc in {sshd,nfsd,rpc-{idmapd,gssd,mountd,statd}}.service; do
-  systemctl enable "$svc"
-  systemctl start  "$svc"
-done
-
 # Install the base system (in rfs)
 pacstrap -d "$ROOTFS" base $PACKAGES
 
@@ -40,6 +34,12 @@ arch-chroot "$ROOTFS" bash /rfs.sh
 # Clean the rfs by removing our installation tools
 rm -f "$ROOTFS/rfs.sh"
 rm -rf "$ROOTFS/sadm"
+
+# Enable and start the services need to serve the rfs
+for svc in {sshd,nfsd,rpc-{idmapd,gssd,mountd,statd}}.service; do
+  systemctl enable "$svc"
+  systemctl start  "$svc"
+done
 
 # And finally export the rfs via nfs
 echo "$ROOTFS $SUBNET(ro,no_root_squash,subtree_check,async)" > /etc/exports.d/rootfs.exports
