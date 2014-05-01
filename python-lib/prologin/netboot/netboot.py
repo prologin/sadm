@@ -69,10 +69,17 @@ class BootHandler(tornado.web.RequestHandler):
         machine = prologin.mdb.client.connect().query(mac=mac)
         if len(machine) != 1:
             self.finish(BOOT_UNKNOWN_SCRIPT)
+
         machine = machine[0]
         rfs_hostname = 'rfs%d' % machine['rfs']
         rfs = prologin.mdb.client.connect().query(aliases__contains=rfs_hostname)
-        rfs_ip = rfs[0]['ip']
+        try:
+            rfs_ip = rfs[0]['ip']
+        except IndexError:
+            script = REGISTER_ERROR_SCRIPT % {
+                    'err': 'No such RFS: %s' % rfs_hostname }
+            self.finish(script)
+
         if machine['room'] == 'masters':
             suffix = '-masters'
         else:
