@@ -358,11 +358,9 @@ The installation script will bootstrap a basic archlinux system in
 You should then install some useful packages for the contestants (see
 ``rfs/contestants_package_list`` file).
 
-To install a new package::
+To install a new package (*never* use arch-chroot)::
 
-  arch-chroot /export/nfsroot bash
-  pacman -Sy package
-  exit
+  pacman --root /export/nfsroot -Sy package
 
 TODO: How to sync, hook to generate /var...
 
