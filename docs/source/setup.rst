@@ -283,6 +283,7 @@ And once again::
 
   python install.py presencesync
   systemctl enable presencesync && systemctl start presencesync
+  systemctl reload nginx
 
 Step 2: file storage
 --------------------
@@ -478,7 +479,7 @@ Create the database structure and populate it with the default data::
 
   RAILS_ENV=production rake db:migrate
   RAILS_ENV=production REDMINE_LANG=fr-FR rake redmine:load_default_data
-  
+
 Set the FS permissions::
 
   mkdir -p tmp tmp/pdf public/plugin_assets
