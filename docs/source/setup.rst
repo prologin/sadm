@@ -313,7 +313,7 @@ The installation script will bootstrap a basic archlinux system in
 (udbsync_passwd, udbsync_rootssh and presenced)
 
 You should then install some useful packages for the contestants (see
-``python-lib/prologin/hfs/packages.txt``).
+``rfs/contestants_package_list`` file).
 
 To install a new package::
 
