@@ -385,7 +385,7 @@ def install_presenced():
     requires('libprologin')
     requires('nginxcfg')
 
-    install_service_dir('presenced', owner='presenced:presenced', mode=0o700)
+    install_service_dir('python-lib/prologin/presenced', owner='presenced:presenced', mode=0o700)
     install_systemd_unit('presenced')
 
     cfg = '/etc/pam.d/system-login'
