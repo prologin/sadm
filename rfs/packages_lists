@@ -6,6 +6,9 @@ dhcpcd
 ntp
 strace
 tcpdump
+python-setuptools
+python-virtualenv
+nginx
 devtools
 grub-bios
 parted

@@ -307,8 +307,9 @@ The basic install process is already documented through the
 rfs``
 
 The installation script will bootstrap a basic archlinux system in
-/export/nfsroot with a few packages and a prologin hook that creates tmpfs at
-``/var/{log,tmp,spool/mail}``.
+/export/nfsroot with a few packages, a prologin hook that creates tmpfs at
+``/var/{log,tmp,spool/mail}``, libprologin and some sadm services
+(udbsync_passwd, udbsync_rootssh and presenced)
 
 You should then install some useful packages for the contestants (see
 ``python-lib/prologin/hfs/packages.txt``).
