@@ -27,7 +27,7 @@ def callback(users, updates_metadata):
     ], env=ENV, stdin=subprocess.PIPE, stdout=sys.stdout, stderr=sys.stderr)
 
     proc.communicate(
-        json.dumps({'users': give_users, 'commands': commands}).encode('ascii')
+        json.dumps({'users': give_users, 'commands': commands}).encode('utf-8')
     )
 
 
