@@ -377,17 +377,6 @@ def install_udbsync_rootssh():
     install_systemd_unit('udbsync_rootssh')
 
 
-def install_presencesync():
-    requires('libprologin')
-    requires('nginxcfg')
-
-    install_service_dir('python-lib/prologin/presencesync',
-                        owner='presencesync:presencesync',
-                        mode=0o700)
-    install_nginx_service('presencesync')
-    install_systemd_unit('presencesync')
-
-
 def install_presenced():
     requires('libprologin')
     requires('nginxcfg')
@@ -405,6 +394,17 @@ def install_presenced():
     if to_append:
         with open(cfg, 'a') as f:
             print(cfg_line, file=f)
+
+
+def install_presencesync():
+    requires('libprologin')
+    requires('nginxcfg')
+
+    install_service_dir('python-lib/prologin/presencesync',
+                        owner='presencesync:presencesync',
+                        mode=0o700)
+    install_nginx_service('presencesync')
+    install_systemd_unit('presencesync')
 
 
 def install_presencesync_usermap():
@@ -426,6 +426,13 @@ def install_presencesync_usermap():
     install_systemd_unit('presencesync_usermap')
 
 
+def install_presencesync_firewall():
+    requires('libprologin')
+
+    install_cfg_profile('presencesync_firewall', group='root')
+    install_systemd_unit('presencesync_firewall')
+
+
 def install_rfs():
     rootfs = '/export/nfsroot'
     subnet = '192.168.0.0/24'
@@ -443,6 +450,12 @@ def install_hfs():
 
     install_systemd_unit('hfs@')
     install_cfg_profile('hfs-server', group='hfs')
+
+
+def install_firewall():
+
+    install_systemd_unit('firewall')
+    install_cfg('iptables.save', '/etc/prologin/')
 
 
 def install_minecraft():
@@ -497,15 +510,25 @@ def install_minecraft():
 
 
 COMPONENTS = [
-    'libprologin',
     'bindcfg',
-    'nginxcfg',
     'dhcpdcfg',
-    'sshdcfg',
+    'firewall',
+    'hfs',
+    'homepage',
+    'libprologin',
     'mdb',
-    'mdbsync',
-    'mdbdns',
     'mdbdhcp',
+    'mdbdns',
+    'mdbsync',
+    'minecraft',
+    'netboot',
+    'nginxcfg',
+    'presenced',
+    'presencesync',
+    'presencesync_usermap',
+    'presencesync_firewall',
+    'rfs',
+    'sshdcfg',
     'udb',
     'udbsync',
     'udbsync_django',
@@ -513,14 +536,6 @@ COMPONENTS = [
     'udbsync_rfs',
     'udbsync_rootssh',
     'webservices',
-    'homepage',
-    'netboot',
-    'presencesync',
-    'presenced',
-    'presencesync_usermap',
-    'rfs',
-    'hfs',
-    'minecraft',
 ]
 
 

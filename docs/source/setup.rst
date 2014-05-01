@@ -8,7 +8,7 @@ the documentation explain everything you need to do to set up the
 infrastructure for the finals, assuming all the machines are already physically
 present. Just follow the guide!
 
-Last update: 2013.
+Last update: 2014.
 
 Step 0: hardware and network setup
 ----------------------------------
@@ -29,6 +29,20 @@ these 2 switches). Please be careful out the disk space: assume that each RHFS
 has about 100GB usable for HFS storage. That means at most 50 contestants (2GB
 quota) or 20 organizers (5GB quota) per RHFS. With contestants that should not
 be a problem, but try to balance organizers machines as much as possible.
+
+Network setup
+~~~~~~~~~~~~~
+
+Uplink is given to organizers and services, but not to contestants and aliens.
+
+:Contestants and organizers: 192.168.0.0/23
+:Services: 192.168.1.0/23
+:Alien: 192.168.250.0/24
+
+.. note::
+
+    Contestants and organizers must be on the same subnet in order to play
+    together.
 
 Step 1: setting up the core services: MDB, DNS, DHCP
 ----------------------------------------------------
@@ -55,21 +69,11 @@ readable name::
   NAME="lan"' >> /etc/udev/rules.d/10-network.rules
 
 
-.. todo::
-
-    halfr: setup network in install.py?
-
-Setup the network interfaces, a sample netctl config file is located in
-``etc/netctl/gw``::
-
-  cp sadm/netctl/gw /etc/netctl/gw
-  netctl enable gw && netctl start gw
-
 Install a few packages we will need::
 
   pacman -S git dhcp bind python python-pip python-virtualenv libyaml nginx \
             sqlite dnsutils rsync postgresql-libs tcpdump base-devel pwgen \
-            libxslt
+            libxslt ipset
 
 Create the main Python ``virtualenv`` we'll use for all our Prologin apps::
 
@@ -295,6 +299,34 @@ And once again::
   python install.py presencesync
   systemctl enable presencesync && systemctl start presencesync
   systemctl reload nginx
+
+Gateway network configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*gw* has two ips:
+
+- 192.168.1.254/23 used to communicate with both the services and the users
+- 192.168.250.254/24 used to communicate with aliens (aka. machines not in mdb)
+
+.. todo::
+
+    halfr: setup network in install.py?
+
+Setup the network interfaces, a sample netctl config file is located in
+``etc/netctl/gw``::
+
+  cp sadm/netctl/gw /etc/netctl/gw
+  netctl enable gw && netctl start gw
+
+Setup iptables rules and ipset creation for users allowed internet acces::
+
+  python install.py firewall
+  systemctl enable firewall && systemctl start firewall
+
+And the service that updates these rules::
+
+  python install.py presencesync_firewall
+  systemctl enable presencesync_firewall && systemctl start presencesync_firewall
 
 Step 2: file storage
 --------------------
