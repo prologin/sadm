@@ -14,15 +14,31 @@ if [ x"$PACKAGES" == "x" ]; then
 fi
 
 mkdir -p "$ROOTFS"
-pacman -Sy archlinux-install-scripts nfs-utils openssh
+
+# Install the tools needed to install and serve the rfs
+pacman -Sy --needed archlinux-install-scripts nfs-utils openssh
+
+# Enable and start the services need to serve the rfs
 for svc in {sshd,nfsd,rpc-{idmapd,gssd,mountd,statd}}.service; do
   systemctl enable "$svc"
   systemctl start  "$svc"
 done
+
+# Install the base system (in rfs)
 pacstrap -d "$ROOTFS" base $PACKAGES
-cp -rv initcpio $ROOTFS/lib/
-cp rfs.sh "$ROOTFS/"
+
+# Copy some tools we will use in chroot
+cp -rv initcpio $ROOTFS/lib/    # initramfs hook
+cp -rv .. "$ROOTFS/sadm"        # sadm (we'll need some of it's services)
+cp rfs.sh "$ROOTFS/"            # the script executed by chroot below
+
+# Chroot to continue work
 arch-chroot "$ROOTFS" bash /rfs.sh
+
+# Clean the rfs by removing our installation tools
 rm -f "$ROOTFS/rfs.sh"
+rm -rf "$ROOTFS/sadm"
+
+# And finally export the rfs via nfs
 echo "$ROOTFS $SUBNET(ro,no_root_squash,subtree_check,async)" > /etc/exports.d/rootfs.exports
 exportfs -arv
