@@ -24,7 +24,7 @@ import os
 import prologin.config
 import prologin.log
 import prologin.presenced
-import prologin.presencesync
+import prologin.presencesync.client
 import prologin.synchronisation
 import prologin.web
 import socket
@@ -101,8 +101,8 @@ class PresencedServer(prologin.web.TornadoApp):
         super(PresencedServer, self).__init__([
             (r'/send_heartbeat', SendHeartbeatHandler),
             (r'/login', LoginHandler),
-        ])
-        self.presencesync = prologin.presencesync.connect(pub=True)
+        ], 'presenced')
+        self.presencesync = prologin.presencesync.client.connect(pub=True)
         self.secret = secret.encode('ascii')
         self.port = port
 

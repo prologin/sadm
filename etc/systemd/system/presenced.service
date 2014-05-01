@@ -6,7 +6,7 @@ After=network.target
 Type=simple
 User=presenced
 WorkingDirectory=/var/prologin/presenced
-ExecStart=/var/prologin/venv/bin/python presenced.py 20070
+ExecStart=/var/prologin/venv/bin/python server.py 20070
 
 [Install]
 WantedBy=multi-user.target
