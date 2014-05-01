@@ -510,7 +510,7 @@ COMPONENTS = [
     'udbsync',
     'udbsync_django',
     'udbsync_passwd',
-    'install_udbsync_rfs',
+    'udbsync_rfs',
     'udbsync_rootssh',
     'webservices',
     'homepage',
