@@ -17,3 +17,6 @@ python-setuptools
 python-virtualenv
 strace
 tcpdump
+xorg-drivers
+xorg-server
+xorg-server-utils
