@@ -54,6 +54,17 @@ readable name::
   echo 'SUBSYSTEM=="net", ACTION=="add", ATTR{address}=="aa:bb:cc:dd:ee:ff",
   NAME="lan"' >> /etc/udev/rules.d/10-network.rules
 
+
+.. todo::
+
+    halfr: setup network in install.py?
+
+Setup the network interfaces, a sample netctl config file is located in
+``etc/netctl/gw``::
+
+  cp sadm/netctl/gw /etc/netctl/gw
+  netctl enable gw && netctl start gw
+
 Install a few packages we will need::
 
   pacman -S git dhcp bind python python-pip python-virtualenv libyaml nginx \
