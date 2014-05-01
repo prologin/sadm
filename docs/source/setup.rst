@@ -148,7 +148,7 @@ config generation scripts use it to automatically update the configuration when
 
 To check if ``mdbsync`` is working, try to register for updates::
 
-  python -c 'import prologin.mdbsync; prologin.mdbsync.connect().poll_updates(print)'
+  python -c 'import prologin.mdbsync.client; prologin.mdbsync.client.connect().poll_updates(print)'
   # Should print {} {} and wait for updates
 
 mdbdns
