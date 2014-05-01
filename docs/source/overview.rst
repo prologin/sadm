@@ -64,7 +64,7 @@ It stores the following information for each machine:
 - Nearest root NFS server
 - Nearest home NFS server
 - Machine type (user, orga, cluster, service)
-- Room id (pasteur, ip12a, cluster, other)
+- Room id (pasteur, alt, cluster, other)
 
 It is the main data source for DHCP, DNS, monitoring and other stuff.
 
