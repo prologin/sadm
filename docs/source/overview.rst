@@ -30,7 +30,7 @@ Network infrastructure
 
 We basically have two local networks:
 
-- User LAN, containing every user machine (Pasteur + Masters) and all servers.
+- User LAN, containing every user machine (Pasteur + IP12A) and all servers.
 - Matches LAN, containing the cluster master and all the cluster slaves.
 
 The User LAN uses 192.168.0.0/24, and the gateway (named ``gw``) is
@@ -64,7 +64,7 @@ It stores the following information for each machine:
 - Nearest root NFS server
 - Nearest home NFS server
 - Machine type (user, orga, cluster, service)
-- Room id (pasteur, masters, cluster, other)
+- Room id (pasteur, ip12a, cluster, other)
 
 It is the main data source for DHCP, DNS, monitoring and other stuff.
 

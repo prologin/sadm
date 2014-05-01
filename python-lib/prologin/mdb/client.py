@@ -62,7 +62,7 @@ class _MDBClient:
           rfs: nearest root file server
           hfs: nearest home file server
           mtype: machine type, either user/orga/cluster/service
-          room: physical room location, either pasteur/masters/cluster/other
+          room: physical room location, either pasteur/ip12a/cluster/other
         """
         fields = { 'hostname', 'ip', 'aliases', 'mac', 'rfs', 'hfs', 'mtype',
                    'room' }
