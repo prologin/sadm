@@ -26,7 +26,7 @@ variable.
 import os
 import prologin.config
 import prologin.log
-import prologin.mdb
+import prologin.mdb.client
 import requests
 import tornado.ioloop
 import tornado.web
@@ -66,12 +66,12 @@ class BootHandler(tornado.web.RequestHandler):
         self.content_type = 'text/plain; charset=utf-8'
         # TODO(delroth): This is blocking - not perfect... should be fast
         # though.
-        machine = prologin.mdb.connect().query(mac=mac)
+        machine = prologin.mdb.client.connect().query(mac=mac)
         if len(machine) != 1:
             self.finish(BOOT_UNKNOWN_SCRIPT)
         machine = machine[0]
         rfs_hostname = 'rfs%d' % machine['rfs']
-        rfs = prologin.mdb.connect().query(aliases__contains=rfs_hostname)
+        rfs = prologin.mdb.client.connect().query(aliases__contains=rfs_hostname)
         rfs_ip = rfs[0]['ip']
         if machine['room'] == 'masters':
             suffix = '-masters'
@@ -87,8 +87,8 @@ class RegisterHandler(tornado.web.RequestHandler):
         self.content_type = 'text/plain; charset=utf-8'
         qs = self.request.query
         try:
-            prologin.mdb.connect().register(qs)
-        except prologin.mdb.RegistrationError as e:
+            prologin.mdb.client.connect().register(qs)
+        except prologin.mdb.client.RegistrationError as e:
             self.finish(REGISTER_ERROR_SCRIPT % { 'err': e.message })
         else:
             self.finish(REGISTER_DONE_SCRIPT)
