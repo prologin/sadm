@@ -21,6 +21,7 @@ mkdir /var/prologin
 virtualenv3 --no-site-packages /var/prologin/venv
 source /var/prologin/venv/bin/activate
 cd /sadm
+pip install -r requirements.txt
 python install.py libprologin
 # And some sadm services
 python install.py udbsync_passwd
