@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 if [ x"$ROOTFS" == "x" ]; then
   echo "ROOTFS not specified... aborting"
   exit 1
@@ -16,7 +18,7 @@ fi
 mkdir -p "$ROOTFS"
 
 # Install the tools needed to install and serve the rfs
-pacman -Sy --needed archlinux-install-scripts nfs-utils openssh
+pacman -Sy --needed arch-install-scripts nfs-utils openssh
 
 # Enable and start the services need to serve the rfs
 for svc in {sshd,nfsd,rpc-{idmapd,gssd,mountd,statd}}.service; do

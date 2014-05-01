@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 # Usual basic setup
 ln -s /usr/share/zoneinfo/Europe/Paris /etc/localtime
 sed -e 's:^#en_US:en_US:g' -e 's:^#fr_FR:fr_FR:g' -i /etc/locale.gen
