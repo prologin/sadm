@@ -29,7 +29,6 @@ List of packages for contestants' environment
 
 * xorg-server
 * xorg-server-utils
-* gdm
 * i3-wm
 * i3status
 * awesome
