@@ -364,6 +364,13 @@ def install_udbsync_passwd():
     install_systemd_unit('udbsync_passwd')
 
 
+def install_udbsync_rfs():
+    requires('libprologin')
+
+    install_systemd_unit('udbsync_passwd_nfsroot')
+    install_systemd_unit('rootssh-copy')
+
+
 def install_udbsync_rootssh():
     requires('libprologin')
 
@@ -503,6 +510,7 @@ COMPONENTS = [
     'udbsync',
     'udbsync_django',
     'udbsync_passwd',
+    'install_udbsync_rfs',
     'udbsync_rootssh',
     'webservices',
     'homepage',
