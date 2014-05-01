@@ -80,8 +80,8 @@ class BootHandler(tornado.web.RequestHandler):
                     'err': 'No such RFS: %s' % rfs_hostname }
             self.finish(script)
 
-        if machine['room'] == 'masters':
-            suffix = '-masters'
+        if machine['room'] == 'ip12a':
+            suffix = '-ip12a'
         else:
             suffix = ''
         script = BOOT_SCRIPT % { 'rfs_ip': rfs_ip, 'suffix': suffix,

@@ -19,13 +19,13 @@ choose choice && goto alien_register_${choice}
 
 :alien_register_y
 echo Current MAC address: ${mac}
-echo -n Hostname (usually pas-r0Xp0Y or mas-r0Xp0Y): && read hostname
+echo -n Hostname (usually pas-r0Xp0Y or ip12a-r0Xp0Y): && read hostname
 echo -n Nearest RFS id: && read rfs_id
 echo -n Nearest HFS id: && read hfs_id
 
 menu Room hosting this machine
 item pasteur Lab pasteur
-item masters Amphi masters
+item ip12a IP12A
 item lse LSE (cluster)
 item other Other
 choose room

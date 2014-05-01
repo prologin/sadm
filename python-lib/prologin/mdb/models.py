@@ -30,7 +30,7 @@ class Machine(models.Model):
 
     ROOMS = (
         ('pasteur', 'Pasteur'),
-        ('masters', 'Masters'),
+        ('ip12a', 'IP12A'),
         ('cluster', 'Cluster (LSE)'),
         ('other', 'Other/Unknown'),
     )
