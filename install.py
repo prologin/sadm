@@ -390,7 +390,7 @@ def install_presenced():
 
     cfg = '/etc/pam.d/system-login'
     cfg_line = (
-        'session requisite pam_exec.so'
+        'session requisite pam_exec.so stdout'
         ' /var/prologin/presenced/pam_presenced.py'
     )
     with open(cfg, 'r') as f:
