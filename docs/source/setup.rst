@@ -303,8 +303,9 @@ Installing the base user system
 .. _ArchLinux Diskless Installation: https://wiki.archlinux.org/index.php/Diskless_network_boot_NFS_root#Bootstrapping_installation
 
 The basic install process is already documented through the
-`ArchLinux Diskless Installation`_. For conveniance, use ``python install.py
-rfs``
+`ArchLinux Diskless Installation`_. For conveniance, use::
+
+  python install.py rfs
 
 The installation script will bootstrap a basic archlinux system in
 /export/nfsroot with a few packages, a prologin hook that creates tmpfs at
