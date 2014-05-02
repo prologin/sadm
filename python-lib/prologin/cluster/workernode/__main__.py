@@ -127,23 +127,23 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
 
     @prologin.rpc.server.remote_method
     @async_work(slots=1)
-    def compile_champion(self, cid, champion_tgz):
-        champion_tgz = yield from loop.run_in_executor(b64decode, champion_tgz)
-        cpath = tempfile.TemporaryDirectory()
-        compiled_path = os.path.join(cpath, 'champion-compiled.tar.gz')
-        log_path = os.path.join(cpath, 'compilation.log')
+    def compile_champion(self, cid, ctgz):
+        ctgz = yield from loop.run_in_executor(b64decode, ctgz)
 
-        yield from loop.run_in_executor(operations.untar, champion_tgz, cpath)
-        ret = yield from operations.compile_champion(self.config, cpath)
+        with tempfile.TemporaryDirectory() as cpath:
+            compiled_path = os.path.join(cpath, 'champion-compiled.tar.gz')
+            log_path = os.path.join(cpath, 'compilation.log')
 
-        if not ret:
-            compilation_content = b''
-        else:
-            with open(compiled_path, 'rb') as f:
-                compilation_content = f.read()
-        with open(log_path, 'r') as f:
-            log_content = f.read()
-        cpath.cleanup()
+            yield from loop.run_in_executor(operations.untar, ctgz, cpath)
+            ret = yield from operations.compile_champion(self.config, cpath)
+
+            if not ret:
+                compilation_content = b''
+            else:
+                with open(compiled_path, 'rb') as f:
+                    compilation_content = f.read()
+            with open(log_path, 'r') as f:
+                log_content = f.read()
 
         b64co = yield from loop.run_in_executor(b64encode, compilation_content)
         b64log = yield from loop.run_in_executor(b64encode, log_content)
@@ -185,11 +185,10 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         ctgz = yield from loop.run_in_executor(b64decode, ctgz)
         logging.info('running player {} for match {}'.format(pl_id, match_id))
 
-        cpath = tempfile.TemporaryDirectory()
-        yield from loop.run_in_executor(operations.untar, tgz, cpath)
-        result = yield from operations.spawn_client(self.config, ip, req_port,
-                    sub_port, pl_id, champion_path, opts)
-        cpath.cleanup()
+        with tempfile.TemporaryDirectory() as cpath:
+            yield from loop.run_in_executor(operations.untar, tgz, cpath)
+            result = yield from operations.spawn_client(self.config, ip,
+                    req_port, sub_port, pl_id, champion_path, opts)
 
         logging.info('player {} for match {} done'.format(pl_id, match_id))
         yield from self.master.client_done(match_id, pl_id, retcode)
