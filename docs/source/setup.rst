@@ -30,19 +30,25 @@ has about 100GB usable for HFS storage. That means at most 50 contestants (2GB
 quota) or 20 organizers (5GB quota) per RHFS. With contestants that should not
 be a problem, but try to balance organizers machines as much as possible.
 
-Network setup
-~~~~~~~~~~~~~
+You also need one gateway/router machine, which will have 3 different IP
+addresses for the 3 logical subnets used during the finals:
 
-:Contestants and organizers: 192.168.0.0/23
-:Services: 192.168.1.0/23
-:Alien: 192.168.250.0/24
+:Users and services: 192.168.0.0/23
+:Alien (unknown): 192.168.250.0/24
+:Upstream: Based on the IP used by the bocal internet gateway.
 
-.. note::
+Contestants and organizers must be on the same subnet in order for UDP
+broadcasting to work between them. This is required for most video games played
+during the finals: server browsers work by sending UDP broadcast announcements.
 
-    Contestants and organizers must be on the same subnet in order for UDP
-    broadcasting to work between them. This is required for most video games
-    played during the finals: server browsers work by sending UDP broadcast
-    announcements.
+Having services and users on the same logical network avoids all the traffic
+from users to services going through the gateway. Since this includes all RHFS
+traffic, we need to make sure this is local to the switch and not being routed
+via the gateway. However, for clarity reasons, we allocate IP addresses in the
+users and services subnet like this:
+
+:Users: 192.168.0.0 - 192.168.0.253
+:Services: 192.168.1.0 - 192.168.1.253
 
 Step 1: setting up the core services: MDB, DNS, DHCP
 ----------------------------------------------------
