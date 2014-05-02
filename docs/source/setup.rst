@@ -33,16 +33,16 @@ be a problem, but try to balance organizers machines as much as possible.
 Network setup
 ~~~~~~~~~~~~~
 
-Uplink is given to organizers and services, but not to contestants and aliens.
-
 :Contestants and organizers: 192.168.0.0/23
 :Services: 192.168.1.0/23
 :Alien: 192.168.250.0/24
 
 .. note::
 
-    Contestants and organizers must be on the same subnet in order to play
-    together.
+    Contestants and organizers must be on the same subnet in order for UDP
+    broadcasting to work between them. This is required for most video games
+    played during the finals: server browsers work by sending UDP broadcast
+    announcements.
 
 Step 1: setting up the core services: MDB, DNS, DHCP
 ----------------------------------------------------
