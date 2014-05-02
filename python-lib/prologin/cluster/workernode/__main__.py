@@ -205,10 +205,10 @@ if __name__ == '__main__':
                       help='Verbose mode.')
     options, args = parser.parse_args()
 
-    prologin.log.setup_logging('worker-node', verbose=options.verbose,
+    prologin.log.setup_logging('workernode', verbose=options.verbose,
                                local=options.local_logging)
 
-    config = prologin.config.load('worker-node')
+    config = prologin.config.load('workernode')
 
     s = WorkerNode(app_name='workernode', config=config,
                    secret=config['master']['shared_secret'].encode('utf-8'))

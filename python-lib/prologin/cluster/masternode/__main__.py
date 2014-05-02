@@ -279,10 +279,10 @@ if __name__ == '__main__':
                       help='Verbose mode.')
     options, args = parser.parse_args()
 
-    prologin.log.setup_logging('master-node', verbose=options.verbose,
+    prologin.log.setup_logging('masternode', verbose=options.verbose,
                                local=options.local_logging)
 
-    config = prologin.config.load('master-node')
+    config = prologin.config.load('masternode')
 
     s = MasterNode(config=config, app_name='masternode',
                    secret=config['master']['shared_secret'].encode('utf-8'))
