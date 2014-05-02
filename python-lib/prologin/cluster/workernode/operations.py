@@ -147,7 +147,7 @@ def spawn_client(config, ip, req_port, sub_port, pl_id, champion_path, opts):
 
     cmd = [config['path']['stechec_client'],
                 "--name", str(pl_id),
-                "--rules", config['path']['librules'],
+                "--rules", config['path']['rules'],
                 "--champion", champion_path + '/champion.so',
                 "--req_addr", "tcp://{ip}:{port}".format(ip=ip, port=req_port),
                 "--sub_addr", "tcp://{ip}:{port}".format(ip=ip, port=sub_port),
