@@ -9,7 +9,17 @@ List of packages for contestants' environment
 
 # Shells
 
+* bash
+* fish
 * zsh
+* grml-zsh-config
+
+
+# Terminal emulators
+
+* urxvt
+* xterm
+* gnome-terminal
 
 
 # Editors & IDE
@@ -23,18 +33,22 @@ List of packages for contestants' environment
 * codeblocks
 * eclipse
 * intellij-idea-community-edition
+* kdesdk-kate
+* geany
+* scribes
+* mg
 
 
 # Graphical environments
 
 * i3-wm
 * i3status
+* i3lock
 * awesome
 * gnome
 * xfce4
 * kde
 * dwm
-* i3lock
 
 
 # Browsers
@@ -49,15 +63,23 @@ List of packages for contestants' environment
 * htop
 * git
 * mercurial
+* subversion
 * evince
 * zathura
 * screen
 * tmux
+* byobu
+* terminator-bzr
 * eog
 * feh
 * vlc
 * moreutils
 * netcat
+* rlwrap
+* valgrind
+* gdb
+* ddd
+* gnuplot
 
 
 # Compilers & interpreters
@@ -84,6 +106,8 @@ List of packages for contestants' environment
 * tuxracer
 * quake3
 * minecraft
+* armagetronad
+* 0ad
 
 
 # Stechec2 additional dependencies
