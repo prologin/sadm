@@ -144,3 +144,12 @@ List of packages for contestants' environment
 * gtest
 * ruby
 * python-yaml
+
+
+# Stechec2 language dependancies
+
+* php
+* php-embed
+* ocaml
+* mono
+* jdk-java
