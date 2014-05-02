@@ -136,7 +136,7 @@ def spawn_dumper(config, rep_port, pub_port, opts):
         new_env = os.environ.copy()
         new_env['DUMP_PATH'] = dump.name
         retcode, stdout = yield from communicate(cmd, env=new_env)
-        gzdump = gzip.compress(dump.read())
+        gzdump = yield from loop.run_in_executor(gzip.compress, dump.read())
     return gzdump
 
 
