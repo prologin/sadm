@@ -12,7 +12,6 @@ List of packages for contestants' environment
 * bash
 * fish
 * zsh
-* grml-zsh-config
 
 
 # Terminal emulators
@@ -37,6 +36,14 @@ List of packages for contestants' environment
 * geany
 * scribes
 * mg
+* monodevelop
+
+
+# Additional config
+
+* emacs-tuareg-mode
+* grml-zsh-config
+* ocaml-merlin-git
 
 
 # Graphical environments
@@ -80,6 +87,11 @@ List of packages for contestants' environment
 * gdb
 * ddd
 * gnuplot
+* tig
+* xorg-xrandr
+* python-pylint
+* python2-pylint
+* tree
 
 
 # Compilers & interpreters
@@ -98,6 +110,13 @@ List of packages for contestants' environment
 * php
 
 
+# IRC clients
+
+* irssi
+* weechat
+* xchat
+
+
 # Games
 
 * tetrinet
@@ -108,6 +127,14 @@ List of packages for contestants' environment
 * minecraft
 * armagetronad
 * 0ad
+* openttd-beta
+
+
+# Other additional dependancies
+
+* tcl
+* tk
+* gsfonts
 
 
 # Stechec2 additional dependencies
