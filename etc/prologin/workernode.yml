@@ -1,0 +1,24 @@
+# Informations to connect to the master server.
+master:
+    host: master-node
+    port: 8067
+    heartbeat_secs: 5             # Must be < to the master timeout.
+    shared_secret: CHANGEME       # Must match the one in the master config.
+
+# Configuration of this worker.
+worker:
+    port: 8068                    # Port used for RPC communication.
+    available_slots: 20           # Number of parallel tasks that can be
+                                  # executed on this worker.
+    port_range_start: 40000       # Port range used for tasks that need to
+                                  # listen on ports (match server for example).
+    port_range_end: 41000
+
+# Paths of some needed tools
+path:
+    compile_script: /usr/bin/compile-champion.sh
+    stechec_server: /usr/bin/stechec2-server
+    stechec_client: /usr/bin/stechec2-client
+    rules: /usr/lib/CHANGEME.so       # Must contain ${contest}.so rules
+    dumper: /usr/lib/CHANGEME.so      # Library to be used to dump replays.
+    makefiles: CHANGEME               # Directory containing the makefiles
