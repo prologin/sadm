@@ -419,7 +419,7 @@ doc
 You have to retrieve the documentations of each language::
 
   pacman -S wget unzip
-  cd /var/prologin/webservices/docs
+  cd /var/prologin/webservices/docs/languages
   su webservices # So we don't have to change permissions afterwards
   ./get_docs.sh
 

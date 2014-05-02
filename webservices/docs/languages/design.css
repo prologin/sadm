@@ -1,4 +1,5 @@
 body{
+    padding-top: 20px;
     margin: auto;
     background: #fbfbfb;
     font-family: Arial,sans-serif;
@@ -21,6 +22,6 @@ img{
 
 ul{
     margin: auto;
-    width: 100px;
+    width: 200px;
     margin-top: 20px;
 }
