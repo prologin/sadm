@@ -2,8 +2,8 @@ bash
 devtools
 dhcpcd
 gcc
-kdm
 grub-bios
+kdebase-workspace
 libxml2
 libxslt
 mkinitcpio-nfs-utils
