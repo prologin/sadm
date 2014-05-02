@@ -140,7 +140,7 @@ List of packages for contestants' environment
 # Stechec2 additional dependencies
 
 * zeromq
-* google-gflags
-* googletest-svn
+* google-gflags (AUR)
+* gtest
 * ruby
 * python-yaml
