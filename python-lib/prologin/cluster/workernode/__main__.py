@@ -35,6 +35,7 @@ import tornado
 import tornado.platform.asyncio
 import yaml
 
+from base64 import b64decode, b64encode
 from . import operations
 
 ioloop = asyncio.get_event_loop()
@@ -126,6 +127,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
     @prologin.rpc.server.remote_method
     @async_work(slots=1)
     def compile_champion(self, cid, champion_tgz):
+        champion_tgz = yield from loop.run_in_executor(b64decode, champion_tgz)
         cpath = os.path.join(self.config['path']['champion'], 'compilation',
                              str(cid))
         compiled_path = os.path.join(cpath, 'champion-compiled.tar.gz')
@@ -142,8 +144,9 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         with open(log_path, 'r') as f:
             log_content = f.read()
 
-        yield from self.master.compilation_result(cid, compilation_content,
-                                                  log_content)
+        b64co = yield from loop.run_in_executor(b64encode, compilation_content)
+        b64log = yield from loop.run_in_executor(b64encode, log_content)
+        yield from self.master.compilation_result(cid, b64co, b64log)
 
     @prologin.rpc.server.remote_method
     @async_work(slots=1)
@@ -171,11 +174,14 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
                 result.append((int(pid), int(score)))
 
         logging.info('match {} done'.format(match_id))
-        yield from self.master.match_done(match_id, result, dumper_stdout)
+
+        b64dump = yield from loop.run_in_executor(b64encode, dumper_stdout)
+        yield from self.master.match_done(match_id, result, b64dump)
 
     @prologin.rpc.server.remote_method
     @async_work(slots=2)
     def run_client(self, match_id, pl_id, ip, req_port, sub_port, ctgz, opts):
+        ctgz = yield from loop.run_in_executor(b64decode, ctgz)
         logging.info('running player {} for match {}'.format(pl_id, match_id))
 
         cpath = os.path.join(self.config['path']['champion'], 'exec', str(cid))
