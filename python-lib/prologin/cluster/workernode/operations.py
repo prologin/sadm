@@ -90,7 +90,7 @@ def compile_champion(config, champion_path):
     cmd = [config['path']['compile_script'], config['path']['makefile'],
            champion_path]
     retcode, stdout = yield from communicate(cmd)
-    return retcode == 0 and os.path.exists(os.path.join(dir_path, 'champion.so'))
+    return retcode == 0
 
 
 @asyncio.coroutine
