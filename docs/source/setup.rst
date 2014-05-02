@@ -79,7 +79,7 @@ Install a few packages we will need::
 
   pacman -S git dhcp bind python python-pip python-virtualenv libyaml nginx \
             sqlite dnsutils rsync postgresql-libs tcpdump base-devel pwgen \
-            libxslt ipset pssh
+            libxslt ipset pssh postgresql
 
 Create the main Python ``virtualenv`` we'll use for all our Prologin apps::
 
@@ -375,6 +375,14 @@ Copying the kernel and initramfs
 
 TODO: basically, take the kernel+initrd from the nfsroot and put it in
 ``/srv/tftp`` on ``gw``.
+
+Setting up hfs
+~~~~~~~~~~~~~~
+
+Setup postgresql on ``gw``. It is used by all the hfs::
+
+  su - postgres -c "initdb --locale en_US.UTF-8 -D '/var/lib/postgres/data'"
+  systemctl enable postgresql && systemctl start postgresql
 
 Step 4: setting up the web services
 -----------------------------------
