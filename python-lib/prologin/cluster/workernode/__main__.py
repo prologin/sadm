@@ -30,6 +30,7 @@ import prologin.rpc.client
 import prologin.rpc.server
 import re
 import socket
+import tempfile
 import time
 import tornado
 import tornado.platform.asyncio
@@ -128,8 +129,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
     @async_work(slots=1)
     def compile_champion(self, cid, champion_tgz):
         champion_tgz = yield from loop.run_in_executor(b64decode, champion_tgz)
-        cpath = os.path.join(self.config['path']['champion'], 'compilation',
-                             str(cid))
+        cpath = tempfile.TemporaryDirectory()
         compiled_path = os.path.join(cpath, 'champion-compiled.tar.gz')
         log_path = os.path.join(cpath, 'compilation.log')
 
@@ -143,6 +143,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
                 compilation_content = f.read()
         with open(log_path, 'r') as f:
             log_content = f.read()
+        cpath.cleanup()
 
         b64co = yield from loop.run_in_executor(b64encode, compilation_content)
         b64log = yield from loop.run_in_executor(b64encode, log_content)
@@ -184,11 +185,11 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         ctgz = yield from loop.run_in_executor(b64decode, ctgz)
         logging.info('running player {} for match {}'.format(pl_id, match_id))
 
-        cpath = os.path.join(self.config['path']['champion'], 'exec', str(cid))
-
+        cpath = tempfile.TemporaryDirectory()
         yield from loop.run_in_executor(operations.untar, tgz, cpath)
         result = yield from operations.spawn_client(self.config, ip, req_port,
                     sub_port, pl_id, champion_path, opts)
+        cpath.cleanup()
 
         logging.info('player {} for match {} done'.format(pl_id, match_id))
         yield from self.master.client_done(match_id, pl_id, retcode)
