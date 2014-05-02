@@ -39,8 +39,10 @@ from . import task
 
 ioloop = tornado.ioloop.IOLoop.instance()
 
-class MasterNode:
-    def __init__(self, config):
+
+class MasterNode(prologin.rpc.server.BaseRPCApp):
+    def __init__(self, *args, config=None, **kwargs):
+        super().__init__(*args, **kwargs)
         self.config = config
         self.workers = {}
         self.worker_tasks = []
@@ -53,7 +55,7 @@ class MasterNode:
         self.dbwatcher = ioloop.add_callback(self.dbwatcher_task)
         self.dispatcher = ioloop.add_callback(self.dispatcher_task)
 
-    @property
+    @prologin.rpc.server.remote_method
     def status(self):
         d = []
         for (host, port), w in self.workers.items():
@@ -73,6 +75,7 @@ class MasterNode:
                          ))
             self.workers[key].update(slots, max_slots)
 
+    @prologin.rpc.server.remote_method
     def heartbeat(self, worker, first):
         hostname, port, slots, max_slots = worker
         usage = (1.0 - float(slots) / max_slots) * 100
@@ -83,6 +86,7 @@ class MasterNode:
             self.redispatch_worker(self.workers[(hostname, port)])
         self.update_worker(worker)
 
+    @prologin.rpc.server.remote_method
     def compilation_result(self, worker, champ_id, ret):
         hostname, port, slots, max_slots = worker
         w = self.workers[(hostname, port)]
@@ -105,10 +109,7 @@ class MasterNode:
         )
         db.commit()
 
-    def match_ready(self, worker, match_id, req_port, sub_port):
-        logging.debug('match %(match_id)d ready on %(worker)s port %(req_port)d %(sub_port)d'
-                          % locals())
-
+    @prologin.rpc.server.remote_method
     def match_done(self, worker, mid, result):
         db = self.connect_to_db()
         cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
@@ -141,6 +142,7 @@ class MasterNode:
         db.commit()
         self.workers[(worker[0], worker[1])].remove_match_task(mid)
 
+    @prologin.rpc.server.remote_method
     def client_done(self, worker, mpid):
         self.workers[(worker[0], worker[1])].remove_player_task(mpid)
 
@@ -266,48 +268,6 @@ class MasterNode:
         if self.worker_tasks:
             ioloop.add_callback(dispatcher_task)
 
-class MasterNodeProxy(prologin.rpc.server.BaseRPCApp):
-    def __init__(self, *args, master=None, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.master = master
-
-    @prologin.rpc.server.remote_method
-    def heartbeat(self, worker, first):
-        self.master.heartbeat(worker, first)
-        return True
-
-    @prologin.rpc.server.remote_method
-    def compilation_result(self, worker, champ_id, ret):
-        self.master.update_worker(worker)
-        self.master.compilation_result(worker, champ_id, ret)
-        return True
-
-    @prologin.rpc.server.remote_method
-    def match_ready(self, worker, match_id, req_port, sub_port):
-        self.master.update_worker(worker)
-        self.master.match_ready(worker, match_id, req_port, sub_port)
-        return True
-
-    @prologin.rpc.server.remote_method
-    def match_done(self, worker, mid, result):
-        self.master.update_worker(worker)
-        self.master.match_done(worker, mid, result)
-        return True
-
-    @prologin.rpc.server.remote_method
-    def client_ready(self, worker, mid, mpid):
-        self.master.update_worker(worker)
-        return True
-
-    @prologin.rpc.server.remote_method
-    def client_done(self, worker, mid, mpid, retcode):
-        self.master.update_worker(worker)
-        self.master.client_done(worker, mpid)
-        return True
-
-    @prologin.rpc.server.remote_method
-    def status(self):
-        return self.master.status
 
 if __name__ == '__main__':
     parser = optparse.OptionParser()
@@ -324,9 +284,8 @@ if __name__ == '__main__':
 
     config = prologin.config.load('master-node')
 
-    master = MasterNode(config)
-    s = MasterNodeProxy(app_name='master-node', master=master,
-        secret=config['master']['shared_secret'].encode('utf-8'))
+    s = MasterNode(config=config, app_name='masternode',
+                   secret=config['master']['shared_secret'].encode('utf-8'))
     s.listen(config['master']['port'])
 
     try:

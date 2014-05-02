@@ -203,8 +203,8 @@ if __name__ == '__main__':
 
     config = prologin.config.load('worker-node')
 
-    s = WorkerNode(app_name='worker-node', config=config,
-            secret=config['master']['shared_secret'].encode('utf-8'))
+    s = WorkerNode(app_name='workernode', config=config,
+                   secret=config['master']['shared_secret'].encode('utf-8'))
     s.listen(config['worker']['port'])
 
     try:
