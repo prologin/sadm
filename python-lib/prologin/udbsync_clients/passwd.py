@@ -255,6 +255,6 @@ if __name__ == '__main__':
         root_path = '/'
     else:
         root_path = sys.argv[1]
-    prologin.log.setup_logging('udbsync_passwd')
+    prologin.log.setup_logging('udbsync_passwd({})'.format(root_path))
     callback = functools.partial(callback, root_path)
     prologin.udbsync.client.connect().poll_updates(callback)
