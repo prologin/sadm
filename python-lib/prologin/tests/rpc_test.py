@@ -10,36 +10,36 @@ import tornado
 
 class RpcServer(prologin.rpc.server.BaseRPCApp):
 
-    @prologin.rpc.server.remote_method
+    @prologin.rpc.remote_method
     def return_number(self):
         return 42
 
-    @prologin.rpc.server.remote_method
+    @prologin.rpc.remote_method
     def return_string(self):
         return 'prologin'
 
-    @prologin.rpc.server.remote_method
+    @prologin.rpc.remote_method
     def return_list(self):
         return list(range(10))
 
-    @prologin.rpc.server.remote_method
+    @prologin.rpc.remote_method
     def generate_numbers(self):
         for i in range(10):
             time.sleep(1)
             yield i
 
-    @prologin.rpc.server.remote_method
+    @prologin.rpc.remote_method
     def long_generator(self):
         yield True
         time.sleep(15)
         yield True
 
-    @prologin.rpc.server.remote_method
+    @prologin.rpc.remote_method
     def instant_generator(self):
         yield True
         yield True
 
-    @prologin.rpc.server.remote_method
+    @prologin.rpc.remote_method
     def long_polling(self):
         time.sleep(15)
         return 42

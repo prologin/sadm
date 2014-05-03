@@ -52,14 +52,14 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         self.dbwatcher = asyncio.Task(self.dbwatcher_task())
         self.dispatcher = asyncio.Task(self.dispatcher_task())
 
-    @prologin.rpc.server.remote_method
+    @prologin.rpc.remote_method
     def status(self):
         d = []
         for (host, port), w in self.workers.items():
             d.append((host, port, w.slots, w.max_slots))
         return d
 
-    @prologin.rpc.server.remote_method
+    @prologin.rpc.remote_method
     def update_worker(self, worker):
         hostname, port, slots, max_slots = worker
         key = hostname, port
@@ -73,7 +73,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                          ))
             self.workers[key].update(slots, max_slots)
 
-    @prologin.rpc.server.remote_method
+    @prologin.rpc.remote_method
     def heartbeat(self, worker, first):
         hostname, port, slots, max_slots = worker
         usage = (1.0 - float(slots) / max_slots) * 100
@@ -84,7 +84,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             self.redispatch_worker(self.workers[(hostname, port)])
         self.update_worker(worker)
 
-    @prologin.rpc.server.remote_method
+    @prologin.rpc.remote_method
     def compilation_result(self, worker, champ_id, ret):
         hostname, port, slots, max_slots = worker
         w = self.workers[(hostname, port)]
@@ -107,7 +107,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         )
         db.commit()
 
-    @prologin.rpc.server.remote_method
+    @prologin.rpc.remote_method
     def match_done(self, worker, mid, result):
         db = self.connect_to_db()
         cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
@@ -140,7 +140,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         db.commit()
         self.workers[(worker[0], worker[1])].remove_match_task(mid)
 
-    @prologin.rpc.server.remote_method
+    @prologin.rpc.remote_method
     def client_done(self, worker, mpid):
         self.workers[(worker[0], worker[1])].remove_player_task(mpid)
 
