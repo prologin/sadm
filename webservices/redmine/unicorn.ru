@@ -1,4 +1,4 @@
-working_directory "/var/prologin/bugs"
+working_directory "/var/prologin/redmine"
 pid "/tmp/redmine.pid"
 
 preload_app true
