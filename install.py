@@ -233,6 +233,7 @@ def install_bindcfg():
     install_cfg('named/root.hint', '/etc/named', owner='named:named',
                 mode=0o640)
     shutil.chown('/etc/rndc.key', 'named', 'mdbdns')
+    install_systemd_unit('named')
 
 
 def install_dhcpdcfg():
