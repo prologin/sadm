@@ -13,10 +13,11 @@
 
 import asyncio
 import json
-import requests
-from urllib.parse import urljoin
 import prologin.timeauth
+import urllib.request
 
+from contextlib import closing
+from urllib.parse import urljoin
 
 class BaseError(Exception):
     """Base class for all exceptions here."""
@@ -45,13 +46,13 @@ class Client:
             self.ioloop = (ioloop if ioloop is not None else
                            asyncio.get_event_loop())
 
-    def _extract_result(self, lines):
+    def _extract_result(self, req):
         """Get a response line from a request, parse it and return it.
         """
-        line = next(lines)
+        line = req.readline()
         return json.loads(line.strip().decode('ascii'))
 
-    def _handle_generator(self, lines):
+    def _handle_generator(self, req):
         """Handle a remote generator call, return a generator for its results.
 
         The first line for the remote call must have already been got and
@@ -59,7 +60,7 @@ class Client:
         an InternalError for anything else.
         """
         while True:
-            result = self._extract_result(lines)
+            result = self._extract_result(req)
 
             if result['type'] == 'result':
                 # There is nothing more to do than returning the actual
@@ -87,7 +88,7 @@ class Client:
         """Call the remote `method` passing `args` and `kwargs` to it.
 
         `args` must be a JSON-serializable list of positional arguments while
-        `kwargs` must be a JSON-serializable dictionarry of keyword arguments.
+        `kwargs` must be a JSON-serializable dictionary of keyword arguments.
 
         Depending on what happens in the remote method, return a result, a
         generator or raise a RemoteError. Raise an InternalError for anything
@@ -113,13 +114,15 @@ class Client:
 
         url = urljoin(self.base_url, 'call/{}'.format(method))
         data = '{}\n'.format(req_data).encode('ascii')
-        req = requests.post(url, data=data, stream=True)
 
-        if req.status_code == 200:
-            # The remote call returned: we can have a result, a generator or an
-            # exception.
-            result_lines = req.iter_lines()
-            result = self._extract_result(result_lines)
+        with urllib.request.urlopen(url, data) as req:
+            return self._request_work(req)
+
+    def _request_work(self, req):
+        if req.getcode() == 200:
+            # The remote call returned: we can have a result, a generator
+            # or an exception.
+            result = self._extract_result(req)
 
             if result['type'] == 'result':
                 # There is nothing more to do than returning the actual
@@ -129,7 +132,7 @@ class Client:
             elif result['type'] == 'generator':
                 # Returning a generator that do the work is not
                 # straightforward: delegate it.
-                return self._handle_generator(result_lines)
+                return self._handle_generator(req)
 
             elif result['type'] == 'exception':
                 # Just raise a RemoteError with interesting data.
