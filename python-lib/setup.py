@@ -35,6 +35,7 @@ setup(name='ProloginSADM',
                                  'static/bin/*.jar',
                                  'static/bin/md5s',
                                  'static/bin/natives/*'],
+          'prologin.hfs': ['create_nbd.sh'],
       },
       test_suite='nose.collector',
      )
