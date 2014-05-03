@@ -27,11 +27,9 @@ cd /sadm
 pip install -r requirements.txt
 python install.py libprologin
 # And some sadm services
-python install.py udbsync_passwd
-python install.py udbsync_rootssh
 python install.py presenced
 
 # Enable some services
-for svc in {sshd,ntpd,presenced,kdm}.service; do
+for svc in {sshd,ntpd,presenced,set_hostname,kdm}.service; do
   systemctl enable "$svc"
 done
