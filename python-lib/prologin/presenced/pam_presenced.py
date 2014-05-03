@@ -79,14 +79,15 @@ if PAM_TYPE == 'open_session':
         # There is no need to fix permissions: this is only a mount point.
         os.mkdir(home_dir)
 
-    # Get a block device for the HOME mount point and mount it.
-    if subprocess.check_call(['/usr/sbin/nbd-client', host, str(port),
+    if not os.path.ismount(home_dir):
+        # Get a block device for the HOME mount point and mount it.
+        if subprocess.check_call(['/usr/sbin/nbd-client', host, str(port),
                               block_device], stdout=sys.stderr,
                              stderr=sys.stderr):
-        fail('Cannot get the home directory block device')
-    if subprocess.check_call(['/bin/mount', block_device, home_dir],
+            fail('Cannot get the home directory block device')
+        if subprocess.check_call(['/bin/mount', block_device, home_dir],
                              stdout=sys.stderr, stderr=sys.stderr):
-        fail('Cannot mount the home directory')
+            fail('Cannot mount the home directory')
 
     sys.exit(0)
 
