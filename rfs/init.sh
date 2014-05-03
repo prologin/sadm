@@ -34,6 +34,9 @@ arch-chroot "$ROOTFS" bash /rfs.sh
 # Give the new system a nameserver (the gateway)
 sed -e 's:^#nameserver.*:domain prolo\nnameserver 192.168.1.254:g' -i /export/nfsroot/etc/resolv.conf
 
+# Load nbd driver at startup
+echo nbd > /export/nfsroot/etc/modules-load.d/nbd.conf
+
 # Clean the rfs by removing our installation tools
 rm -f "$ROOTFS/rfs.sh"
 rm -rf "$ROOTFS/sadm"
