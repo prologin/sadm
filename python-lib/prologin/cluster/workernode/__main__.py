@@ -136,7 +136,9 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
             compiled_path = os.path.join(cpath, 'champion-compiled.tar.gz')
             log_path = os.path.join(cpath, 'compilation.log')
 
-            yield from loop.run_in_executor(None, operations.untar, ctgz, cpath)
+            with open(os.path.join(cpath, 'champion.tgz'), 'wb') as f:
+                f.write(ctgz)
+
             ret = yield from operations.compile_champion(self.config, cpath)
 
             if not ret:
