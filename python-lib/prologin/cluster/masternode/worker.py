@@ -90,9 +90,9 @@ class Worker(object):
 
     @property
     def rpc(self):
-        url = "http://%s:%d/" % (self.hostname, self.port)
+        url = "http://{}:{}/".format(self.hostname, self.port)
         return prologin.rpc.client.Client(url,
             secret=self.config['master']['shared_secret'].encode('utf-8'))
 
     def __repr__(self):
-        return '<Worker: %s:%d>' % (self.hostname, self.port)
+        return '<Worker: {}:{}>'.format(self.hostname, self.port)
