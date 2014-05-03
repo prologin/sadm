@@ -179,7 +179,7 @@ so that DNS configuration can be generated::
   cd /var/prologin/mdb
   python manage.py addmachine --hostname gw --mac 11:22:33:44:55:66 \
       --ip 192.168.1.254 --rfs 0 --hfs 0 --mtype service --room pasteur \
-      --aliases mdb,mdbsync,ns,netboot,udb,udbsync,presencesync
+      --aliases mdb,mdbsync,ns,netboot,udb,udbsync,presencesync,db
 
 Once this is done, ``mdbdns`` should have automagically regenerated the DNS
 configuration::
@@ -384,7 +384,23 @@ Setup postgresql on ``gw``. It is used by all the hfs::
   su - postgres -c "initdb --locale en_US.UTF-8 -D '/var/lib/postgres/data'"
   su - postgres -c "createdb hfs"
   systemctl enable postgresql && systemctl start postgresql
+
+.. note::
+
+    You must change the password in ``./sql/hfs.sql`` to match
+    ``./etc/prologin/hfs-server.yml``.
+
+::
+
   su - postgres -c "psql hfs" < ./sql/hfs.sql
+
+On every ``rhfs`` machine, install the hfs server::
+
+  python install.py hfs
+
+.. todo::
+
+    Add enable service
 
 Step 4: setting up the web services
 -----------------------------------
