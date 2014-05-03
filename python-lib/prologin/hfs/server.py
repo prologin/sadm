@@ -42,6 +42,7 @@ files, buffering in RAM is just not a good idea.
 # TODO(delroth): authentify all the request handlers with HMAC
 
 import gzip
+import time
 import http.server
 import json
 import logging
@@ -248,6 +249,7 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
         proc = subprocess.Popen(cmd)
         if proc.wait() != 0:
             raise RuntimeError('Unable to start the nbd server')
+        time.sleep(1)
         with open('/tmp/nbd.%s.pid' % self.user) as fp:
             pid = int(fp.read().strip())
             RUNNING_NBD[self.user] = { 'pid': pid, 'port': port }
