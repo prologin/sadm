@@ -22,6 +22,7 @@ import asyncio
 import errno
 import fcntl
 import gzip
+import logging
 import os
 import os.path
 import subprocess
@@ -106,6 +107,10 @@ def spawn_server(config, rep_port, pub_port, opts):
         cmd.append(value)
 
     retcode, stdout = yield from communicate(cmd)
+    if not (retcode == 0):
+        logging.error(stdout.decode('utf-8').strip())
+        return
+
     return stdout.decode('utf-8')
 
 
