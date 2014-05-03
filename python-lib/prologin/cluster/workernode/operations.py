@@ -99,7 +99,7 @@ def spawn_server(config, rep_port, pub_port, opts):
            "--rules", config['path']['rules'],
            "--rep_addr", "tcp://0.0.0.0:{}".format(rep_port),
            "--pub_addr", "tcp://0.0.0.0:{}".format(pub_port),
-           "--nb_clients", "3",
+           "--nb_clients", str(config['nb_clients'] + 1),
            "--verbose", "1"]
 
     for opt, value in parse_opts(opts).items():
@@ -158,6 +158,7 @@ def spawn_client(config, ip, req_port, sub_port, pl_id, champion_path, opts):
                 "--sub_addr", "tcp://{ip}:{port}".format(ip=ip, port=sub_port),
                 "--memory", "250000",
                 "--time", "1500",
+                "--verbose", "1",
           ]
 
     for opt, value in parse_opts(opts).items():

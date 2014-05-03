@@ -52,6 +52,7 @@ def async_work(func=None, slots=0):
         def wrapper(self, *wargs, **wkwargs):
             if self.slots < slots:
                 logging.warn('not enough slots to start the required job')
+                return
             logging.debug('starting a job for {} slots'.format(slots))
             self.slots -= slots
             yield from self.update_master()
@@ -188,7 +189,6 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
             return
 
         b64dump = b64encode(dumper_stdout).decode()
-
         try:
             yield from self.master.match_done(match_id, result, b64dump)
         except socket.error:
@@ -197,14 +197,15 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
 
     @prologin.rpc.remote_method
     @async_work(slots=2)
-    def run_client(self, match_id, pl_id, ip, req_port, sub_port, ctgz, opts):
+    def run_client(self, match_id, pl_id, ip, req_port, sub_port, ctgz,
+            opts=''):
         ctgz = b64decode(ctgz)
         logging.info('running player {} for match {}'.format(pl_id, match_id))
 
         with tempfile.TemporaryDirectory() as cpath:
-            yield from loop.run_in_executor(None, operations.untar, tgz, cpath)
-            result = yield from operations.spawn_client(self.config, ip,
-                    req_port, sub_port, pl_id, champion_path, opts)
+            yield from loop.run_in_executor(None, operations.untar, ctgz, cpath)
+            retcode, stdout = yield from operations.spawn_client(self.config,
+                    ip, req_port, sub_port, pl_id, cpath, opts)
 
         logging.info('player {} for match {} done'.format(pl_id, match_id))
 

@@ -22,3 +22,5 @@ path:
     rules: /usr/lib/CHANGEME.so       # Must contain ${contest}.so rules
     dumper: /usr/lib/CHANGEME.so      # Library to be used to dump replays.
     makefiles: CHANGEME               # Directory containing the makefiles
+
+nb_clients: 2
