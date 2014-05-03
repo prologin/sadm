@@ -413,6 +413,16 @@ Create user ``hfs``, database ``hfs``, and associated tables:
 
   su - postgres -c "psql" < ./sql/hfs.sql
 
+Change ``/var/lib/postgres/data/postgresql.conf`` to make postgresql listen on
+every interface::
+
+  listen_addresses = '*'
+
+And change ``/var/lib/postgres/data/pg_hba.conf`` in order to allow ``hfs`` user
+to connect with password::
+
+  host     hfs             hfs             0.0.0.0/0              password
+
 On every ``rhfs`` machine, install the hfs server::
 
   python install.py hfs
