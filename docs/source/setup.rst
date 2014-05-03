@@ -382,7 +382,9 @@ Setting up hfs
 Setup postgresql on ``gw``. It is used by all the hfs::
 
   su - postgres -c "initdb --locale en_US.UTF-8 -D '/var/lib/postgres/data'"
+  su - postgres -c "createdb hfs"
   systemctl enable postgresql && systemctl start postgresql
+  su - postgres -c "psql hfs" < ./sql/hfs.sql
 
 Step 4: setting up the web services
 -----------------------------------
