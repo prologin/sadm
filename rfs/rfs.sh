@@ -32,6 +32,6 @@ python install.py udbsync_rootssh
 python install.py presenced
 
 # Enable some services
-for svc in {sshd,ntpd,presenced,gdm}.service; do
+for svc in {sshd,ntpd,presenced,kdm}.service; do
   systemctl enable "$svc"
 done
