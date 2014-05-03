@@ -1,0 +1,12 @@
+[Unit]
+Description=UDBSync daemon for Redmine app a.k.a. "bugs"
+After=network.target
+
+[Service]
+Type=simple
+User=redmine
+WorkingDirectory=/var/prologin/redmine
+ExecStart=/var/prologin/venv/bin/python -m prologin.udbsync_clients.redmine
+
+[Install]
+WantedBy=multi-user.target

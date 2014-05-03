@@ -180,7 +180,7 @@ def django_syncdb(name, user=None):
         user = name
 
     with cwd('/var/prologin/%s' % name):
-        cmd = 'su -c "/var/prologin/venv/bin/python manage.py syncdb" '
+        cmd = 'su -c "/var/prologin/venv/bin/python manage.py syncdb --noinput" '
         cmd += user
         os.system(cmd)
 
@@ -300,6 +300,25 @@ def install_webservices():
     install_nginx_service('docs')
 
 
+def install_redmine():
+    requires('libprologin')
+    requires('nginxcfg')
+
+    copy(
+        'webservices/redmine/unicorn.ru',
+        '/var/prologin/redmine/script/unicorn.ru',
+        owner='redmine:redmine', mode=0o640
+    )
+    copy(
+        'webservices/redmine/user_update.rb',
+        '/var/prologin/redmine/script/user_update.rb',
+        owner='redmine:redmine', mode=0o640
+    )
+
+    install_nginx_service('redmine')
+    install_systemd_unit('redmine')
+
+
 def install_homepage():
     requires('libprologin')
     requires('nginxcfg')
@@ -363,6 +382,12 @@ def install_udbsync_passwd():
     requires('libprologin')
 
     install_systemd_unit('udbsync_passwd')
+
+
+def install_udbsync_redmine():
+    requires('libprologin')
+
+    install_systemd_unit('udbsync_redmine')
 
 
 def install_udbsync_rfs():
@@ -529,19 +554,21 @@ COMPONENTS = [
     'mdbdns',
     'mdbsync',
     'minecraft',
-    'set_hostname',
     'netboot',
     'nginxcfg',
     'presenced',
     'presencesync',
-    'presencesync_usermap',
     'presencesync_firewall',
+    'presencesync_usermap',
+    'redmine',
     'rfs',
+    'set_hostname',
     'sshdcfg',
     'udb',
     'udbsync',
     'udbsync_django',
     'udbsync_passwd',
+    'udbsync_redmine',
     'udbsync_rfs',
     'udbsync_rootssh',
     'webservices',
