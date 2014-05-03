@@ -21,7 +21,6 @@
 import asyncio
 import copy
 import logging
-import logging.handlers
 import optparse
 import os.path
 import prologin.config
@@ -275,6 +274,7 @@ if __name__ == '__main__':
 
     prologin.log.setup_logging('masternode', verbose=options.verbose,
                                local=options.local_logging)
+    logging.getLogger('asyncio').setLevel(logging.WARNING)
 
     config = prologin.config.load('masternode')
 
