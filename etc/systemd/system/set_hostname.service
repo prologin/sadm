@@ -1,0 +1,10 @@
+[Unit]
+Description=Set hostname from reverse dns
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/var/prologin/venv/bin/set_hostname.py
+
+[Install]
+WantedBy=multi-user.target
