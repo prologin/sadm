@@ -304,9 +304,10 @@ class Client(prologin.webapi.Client):
                         )
                         try:
                             callback(state, updates_metadata)
-                        except Exception:
+                        except Exception as e:
                             logging.exception(
-                                'error in the synchorisation client callback'
+                                'error in the synchorisation client '
+                                'callback: %s' % e
                             )
             except Exception as e:
                 logging.exception('connection lost to synchronisation server, '
