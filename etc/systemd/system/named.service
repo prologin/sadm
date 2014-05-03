@@ -1,0 +1,12 @@
+[Unit]
+Description=Internet domain name server
+After=netctl@gw.service
+Before=network.target
+
+[Service]
+ExecStart=/usr/bin/named -f -u named
+ExecReload=/usr/bin/rndc reload
+ExecStop=/usr/bin/rndc stop
+
+[Install]
+WantedBy=multi-user.target
