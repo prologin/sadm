@@ -93,7 +93,10 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
 
     @asyncio.coroutine
     def update_master(self):
-        yield from self.master.update_worker(get_worker_infos())
+        try:
+            yield from self.master.update_worker(self.get_worker_infos())
+        except socket.error:
+            logging.warn('master down, cannot update it')
 
     @asyncio.coroutine
     def send_heartbeat(self):
@@ -105,10 +108,9 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
                 yield from self.master.heartbeat(self.get_worker_infos(),
                                                  first_heartbeat)
                 first_heartbeat = False
-            except socket.error: # TODO: what's the actual rpc exception
-                msg = 'master down, retrying heartbeat in {}s'.format(
-                        self.interval)
-                logging.warn(msg)
+            except socket.error:
+                logging.warn('master down, retrying heartbeat in {}s'.format(
+                        self.interval))
 
             yield from asyncio.sleep(self.interval)
 
@@ -128,7 +130,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
     @prologin.rpc.remote_method
     @async_work(slots=1)
     def compile_champion(self, cid, ctgz):
-        ctgz = yield from loop.run_in_executor(b64decode, ctgz)
+        ctgz = b64decode(ctgz)
 
         with tempfile.TemporaryDirectory() as cpath:
             compiled_path = os.path.join(cpath, 'champion-compiled.tar.gz')
@@ -145,9 +147,14 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
             with open(log_path, 'r') as f:
                 log_content = f.read()
 
-        b64co = yield from loop.run_in_executor(b64encode, compilation_content)
-        b64log = yield from loop.run_in_executor(b64encode, log_content)
-        yield from self.master.compilation_result(cid, b64co, b64log)
+        b64compiled = b64encode(compilation_content).decode('ascii')
+        b64log = b64encode(log_content).decode('ascii')
+
+        try:
+            yield from self.master.compilation_result(cid, b64compiled, b64log)
+        except socket.error:
+            logging.warning('master down, cannot send compiled {}'.format(
+                cid))
 
     @prologin.rpc.remote_method
     @async_work(slots=1)
@@ -165,7 +172,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         server_stdout = task_server.result()
         dumper_stdout = task_dumper.result()
 
-        lines = stdout.split('\n')
+        lines = server_stdout.split('\n')
         result = []
         score_re = re.compile(r'^(\d+) (-?\d+) (-?\d+)$')
         for line in lines:
@@ -174,15 +181,18 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
                 pid, score, stat = m.groups()
                 result.append((int(pid), int(score)))
 
-        logging.info('match {} done'.format(match_id))
+        b64dump = b64encode(dumper_stdout).decode('ascii')
 
-        b64dump = yield from loop.run_in_executor(b64encode, dumper_stdout)
-        yield from self.master.match_done(match_id, result, b64dump)
+        try:
+            yield from self.master.match_done(match_id, result, b64dump)
+        except socket.error:
+            logging.warning('master down, cannot send match {} result'.format(
+                match_id))
 
     @prologin.rpc.remote_method
     @async_work(slots=2)
     def run_client(self, match_id, pl_id, ip, req_port, sub_port, ctgz, opts):
-        ctgz = yield from loop.run_in_executor(b64decode, ctgz)
+        ctgz = b64decode(ctgz)
         logging.info('running player {} for match {}'.format(pl_id, match_id))
 
         with tempfile.TemporaryDirectory() as cpath:
@@ -191,7 +201,12 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
                     req_port, sub_port, pl_id, champion_path, opts)
 
         logging.info('player {} for match {} done'.format(pl_id, match_id))
-        yield from self.master.client_done(match_id, pl_id, retcode)
+
+        try:
+            yield from self.master.client_done(match_id, pl_id, retcode)
+        except socket.error:
+            logging.warning('master down, cannot send client {} result '
+                            'for match {}'.format(pl_id, match_id))
 
 
 if __name__ == '__main__':
@@ -206,6 +221,7 @@ if __name__ == '__main__':
 
     prologin.log.setup_logging('workernode', verbose=options.verbose,
                                local=options.local_logging)
+    logging.getLogger('asyncio').setLevel(logging.WARNING)
 
     config = prologin.config.load('workernode')
 

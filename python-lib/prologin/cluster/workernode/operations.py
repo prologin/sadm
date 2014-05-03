@@ -32,7 +32,6 @@ import time
 
 ioloop = asyncio.get_event_loop()
 
-
 def parse_opts(opts):
     opts_dict = {}
     for line in opts.split('\n'):
@@ -62,7 +61,7 @@ def untar(content, path, compression='gz'):
 
 @asyncio.coroutine
 def communicate(cmdline, env=None, data=None, **kwargs):
-    proc = yield from asyncio.create_subprocess_exec(cmdline,
+    proc = yield from asyncio.create_subprocess_exec(*cmdline,
                                                      env=env,
                                                      stdout=subprocess.PIPE,
                                                      stderr=subprocess.STDOUT,
@@ -96,7 +95,7 @@ def compile_champion(config, champion_path):
 @asyncio.coroutine
 def spawn_server(config, rep_port, pub_port, opts):
     cmd = [config['path']['stechec_server'],
-           "--rules", config['path']['librules'],
+           "--rules", config['path']['rules'],
            "--rep_addr", "tcp://0.0.0.0:{}".format(rep_port),
            "--pub_addr", "tcp://0.0.0.0:{}".format(pub_port),
            "--nb_clients", "3",
@@ -107,18 +106,18 @@ def spawn_server(config, rep_port, pub_port, opts):
         cmd.append(value)
 
     retcode, stdout = yield from communicate(cmd)
-    return retcode, stdout
+    return stdout.decode('utf-8')
 
 
 @asyncio.coroutine
 def spawn_dumper(config, rep_port, pub_port, opts):
-    if not config['contest']['dumper']:
+    if not config['path']['dumper']:
         return
 
     cmd = [config['path']['stechec_client'],
            "--name", "dumper",
-           "--rules", config['path']['librules'],
-           "--champion", dumper,
+           "--rules", config['path']['rules'],
+           "--champion", config['path']['dumper'],
            "--req_addr", "tcp://127.0.0.1:{}".format(rep_port),
            "--sub_addr", "tcp://127.0.0.1:{}".format(pub_port),
            "--memory", "250000",
@@ -136,7 +135,8 @@ def spawn_dumper(config, rep_port, pub_port, opts):
         new_env = os.environ.copy()
         new_env['DUMP_PATH'] = dump.name
         retcode, stdout = yield from communicate(cmd, env=new_env)
-        gzdump = yield from loop.run_in_executor(gzip.compress, dump.read())
+        gzdump = yield from ioloop.run_in_executor(None,
+                gzip.compress, dump.read())
     return gzdump
 
 
