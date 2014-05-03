@@ -1,5 +1,5 @@
 [Unit]
-Description=HFS daemon for interface %i
+Description=HFS daemon for HFS id %i
 After=network.target
 
 [Service]
