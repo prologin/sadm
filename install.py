@@ -567,6 +567,7 @@ COMPONENTS = [
     'presencesync_firewall',
     'presencesync_usermap',
     'presencesync_firewall',
+    'redmine',
     'rfs',
     'set_hostname',
     'sshdcfg',
