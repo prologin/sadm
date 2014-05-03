@@ -21,7 +21,7 @@ def set_hostname():
     hostname = fqdn_hostname.split('.')[0]
 
     # Set his machine hostname
-    subprocess.call('hostnamectl set-hostname {}'.format(hostname), shell=True)
+    subprocess.call('hostnamectl set-hostname {}.prolo'.format(hostname), shell=True)
 
 if __name__ == '__main__':
     set_hostname()
