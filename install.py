@@ -491,6 +491,11 @@ def install_firewall():
     install_cfg('iptables.save', '/etc/prologin/')
 
 
+def install_netctl_gw():
+
+    copy('etc/netctl/gw', '/etc/netctl/gw')
+
+
 def install_minecraft():
     requires('libprologin')
     requires('nginxcfg')
@@ -555,12 +560,13 @@ COMPONENTS = [
     'mdbsync',
     'minecraft',
     'netboot',
+    'netctl_gw',
     'nginxcfg',
     'presenced',
     'presencesync',
     'presencesync_firewall',
     'presencesync_usermap',
-    'redmine',
+    'presencesync_firewall',
     'rfs',
     'set_hostname',
     'sshdcfg',
