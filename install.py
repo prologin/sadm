@@ -454,6 +454,12 @@ def install_hfs():
     install_cfg_profile('hfs-server', group='hfs')
 
 
+def install_set_hostname():
+    requires('libprologin')
+
+    install_systemd_unit('set_hostname')
+
+
 def install_firewall():
 
     install_systemd_unit('firewall')
@@ -523,6 +529,7 @@ COMPONENTS = [
     'mdbdns',
     'mdbsync',
     'minecraft',
+    'set_hostname',
     'netboot',
     'nginxcfg',
     'presenced',
