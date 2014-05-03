@@ -181,6 +181,14 @@ so that DNS configuration can be generated::
       --ip 192.168.1.254 --rfs 0 --hfs 0 --mtype service --room pasteur \
       --aliases mdb,mdbsync,ns,netboot,udb,udbsync,presencesync
 
+.. note::
+
+  If the gw does not have IP ``192.168.1.254``, use the following command to
+  add it::
+
+    ip link set dev <INTERACE> up
+    ip addr add 192.168.1.254/23 dev <INTERFACE>
+
 Once this is done, ``mdbdns`` should have automagically regenerated the DNS
 configuration::
 
@@ -249,8 +257,8 @@ Then compile time settings need to be modified. Uncomment the following lines::
   #define REBOOT_CMD
   #define PING_CMD
 
-You can now build iPXE: go to ``src/`` and build the bootrom using our script
-provided in ``sadm/netboot``::
+You can now build iPXE: go to ``src/`` and build the bootrom, embedding our
+script::
 
   make bin/undionly.kpxe EMBED=/root/sadm/python-lib/prologin/netboot/script.ipxe
   cp bin/undionly.kpxe /srv/tftp/prologin.kpxe
@@ -314,17 +322,13 @@ Gateway network configuration
 - 192.168.1.254/23 used to communicate with both the services and the users
 - 192.168.250.254/24 used to communicate with aliens (aka. machines not in mdb)
 
-.. todo::
-
-    halfr: setup network in install.py?
-
-Setup the network interfaces, a sample netctl config file is located in
+Srretup the network interfaces, a sample netctl config file is located in
 ``etc/netctl/gw``::
 
-  cp sadm/netctl/gw /etc/netctl/gw
+  python install.py netctl_gw
   netctl enable gw && netctl start gw
 
-Setup iptables rules and ipset creation for users allowed internet acces::
+Setup the iptables rules and ipset creation for users allowed internet acces::
 
   python install.py firewall
   systemctl enable firewall && systemctl start firewall
