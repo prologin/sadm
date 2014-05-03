@@ -120,7 +120,7 @@ class PresencedServer(prologin.web.TornadoApp):
         """Loop forever, asking the Precenced server to send a heartbeat
         periodically.
         """
-        conn = prologin.presenced.connect()
+        conn = prologin.presenced.client.connect()
         delay = prologin.presencesync.SUB_CFG['timeout'] / 2
         while True:
             # Communicate with the Presenced server just like any other client

@@ -54,11 +54,11 @@ if PAM_TYPE == 'open_session':
         sys.exit(0)
 
     # Prologin users must use a display manager (not a TTY, nor screen).
-    if PAM_SERVICE not in ('gdm', 'kdm', 'slim', 'xdm'):
+    if PAM_SERVICE not in ('gdm', 'kde', 'slim', 'xdm'):
         print('Please log in the graphical display manager')
 
     # Request the login to Presencd and PresenceSync.
-    failure_reason = prologin.presenced.connect().request_login(login)
+    failure_reason = prologin.presenced.client.connect().request_login(login)
     if failure_reason is not None:
         # Login is forbidden by presenced.
         fail('Login forbidden: {}'.format(failure_reason))
