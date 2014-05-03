@@ -45,8 +45,8 @@ tornado.platform.asyncio.AsyncIOMainLoop().install()
 
 def async_work(func=None, slots=0):
     if func is None:
-        return functools.partial(async_work, slots=slots, callback=callback)
-    @functools.wrap(func)
+        return functools.partial(async_work, slots=slots)
+    @functools.wraps(func)
     def mktask(self, *args, **kwargs):
         @asyncio.coroutine
         def wrapper(self, *wargs, **wkwargs):
@@ -77,7 +77,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         self.max_srv_port = config['worker']['port_range_end']
         self.srv_port = self.min_srv_port
         self.matches = {}
-        asyncio.Task(self.send_heartbeat)
+        asyncio.Task(self.send_heartbeat())
         self.master = self.get_master()
 
     def get_worker_infos(self):
@@ -211,6 +211,8 @@ if __name__ == '__main__':
 
     s = WorkerNode(app_name='workernode', config=config,
                    secret=config['master']['shared_secret'].encode('utf-8'))
+
+    logging.info('worker listening on {}'.format(config['worker']['port']))
     s.listen(config['worker']['port'])
 
     try:
