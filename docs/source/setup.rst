@@ -337,6 +337,14 @@ And the service that updates these rules::
 Step 2: file storage
 --------------------
 
+.. sidebar:: rhfs naming scheme
+
+    A rhfs has two NIC and is connected to two switches, there is therefore two
+    ``hfs-server`` running on one rhfs machine, each with a different id. The
+    hostname of the rhfs that hosts hfs ``0`` and hfs ``1`` will have the
+    following hostname: ``rhfs01``.
+
+
 TODO: setting up ``rhfs0`` + instructions to setup other ``rhfs`` machines and
 sync them.
 
