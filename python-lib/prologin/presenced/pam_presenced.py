@@ -81,19 +81,25 @@ if PAM_TYPE == 'open_session':
 
     # Get a block device for the HOME mount point and mount it.
     if subprocess.check_call(['/usr/sbin/nbd-client', host, str(port),
-                              block_device]):
+                              block_device], stdout=sys.stderr,
+                             stderr=sys.stderr):
         fail('Cannot get the home directory block device')
-    if subprocess.check_call(['/bin/mount', block_device, home_dir]):
+    if subprocess.check_call(['/bin/mount', block_device, home_dir],
+                             stdout=sys.stderr, stderr=sys.stderr):
         fail('Cannot mount the home directory')
 
     sys.exit(0)
 
 elif PAM_TYPE == 'close_session':
     if is_prologin_user:
-        subprocess.check_call(['/usr/bin/pkill', '-9', '-u', login])
+        subprocess.check_call(['/usr/bin/pkill', '-9', '-u', login],
+                              stdout=sys.stderr, stderr=sys.stderr)
         time.sleep(2)
-        subprocess.check_call(['/bin/umount', get_home_dir(login)])
-        subprocess.check_call(['/usr/sbin/nbd-client', '-d', get_block_device(login)])
+        subprocess.check_call(['/bin/umount', get_home_dir(login)],
+                              stdout=sys.stderr, stderr=sys.stderr)
+        subprocess.check_call(['/usr/sbin/nbd-client', '-d',
+                               get_block_device(login)],
+                              stdout=sys.stderr, stderr=sys.stderr)
     sys.exit(0)
 
 else:
