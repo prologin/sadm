@@ -40,8 +40,8 @@ class Client:
     def __init__(self, base_url, secret=None, async=False, ioloop=None):
         self.base_url = base_url
         self.secret = secret
+        self.async = async
         if async:
-            self.async = async
             self.ioloop = (ioloop if ioloop is not None else
                            asyncio.get_event_loop())
 

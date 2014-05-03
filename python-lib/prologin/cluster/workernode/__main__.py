@@ -112,7 +112,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
 
             yield from asyncio.sleep(self.interval)
 
-    @prologin.rpc.server.remote_method
+    @prologin.rpc.remote_method
     def available_server_port(self):
         """
         Be optimistic and hope that:
@@ -125,7 +125,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
             self.srv_port = self.min_srv_port
         return port
 
-    @prologin.rpc.server.remote_method
+    @prologin.rpc.remote_method
     @async_work(slots=1)
     def compile_champion(self, cid, ctgz):
         ctgz = yield from loop.run_in_executor(b64decode, ctgz)
@@ -149,7 +149,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         b64log = yield from loop.run_in_executor(b64encode, log_content)
         yield from self.master.compilation_result(cid, b64co, b64log)
 
-    @prologin.rpc.server.remote_method
+    @prologin.rpc.remote_method
     @async_work(slots=1)
     def run_server(self, rep_port, pub_port, match_id, opts=''):
         logging.info('starting server for match {}'.format(match_id))
@@ -179,7 +179,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         b64dump = yield from loop.run_in_executor(b64encode, dumper_stdout)
         yield from self.master.match_done(match_id, result, b64dump)
 
-    @prologin.rpc.server.remote_method
+    @prologin.rpc.remote_method
     @async_work(slots=2)
     def run_client(self, match_id, pl_id, ip, req_port, sub_port, ctgz, opts):
         ctgz = yield from loop.run_in_executor(b64decode, ctgz)
