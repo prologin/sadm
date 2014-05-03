@@ -18,7 +18,7 @@ fi
 mkdir -p "$ROOTFS"
 
 # Install the tools needed to install and serve the rfs
-pacman -Sy --needed --noconfirm arch-install-scripts nfs-utils openssh
+pacman -Sy --needed --noconfirm arch-install-scripts nfs-utils openssh dnsutils
 
 # Install the base system (in rfs)
 pacstrap -d "$ROOTFS" base $PACKAGES
