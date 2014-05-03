@@ -7,6 +7,7 @@ kdebase-workspace
 libxml2
 libxslt
 mkinitcpio-nfs-utils
+nbd
 nfs-utils
 nginx
 ntp
