@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
+import asyncio
 import copy
 import logging
 import logging.handlers
@@ -29,16 +30,12 @@ import prologin.rpc.server
 import psycopg2
 import psycopg2.extras
 import random
-import tornado
-import tornado.ioloop
-import tornado.gen
 import time
 
 from .worker import Worker
 from . import task
 
-ioloop = tornado.ioloop.IOLoop.instance()
-
+ioloop = asyncio.get_event_loop()
 
 class MasterNode(prologin.rpc.server.BaseRPCApp):
     def __init__(self, *args, config=None, **kwargs):
@@ -51,9 +48,9 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         self.spawn_tasks()
 
     def spawn_tasks(self):
-        self.janitor = ioloop.add_callback(self.janitor_task)
-        self.dbwatcher = ioloop.add_callback(self.dbwatcher_task)
-        self.dispatcher = ioloop.add_callback(self.dispatcher_task)
+        self.janitor = asyncio.Task(self.janitor_task())
+        self.dbwatcher = asyncio.Task(self.dbwatcher_task())
+        self.dispatcher = asyncio.Task(self.dispatcher_task())
 
     @prologin.rpc.server.remote_method
     def status(self):
@@ -62,6 +59,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             d.append((host, port, w.slots, w.max_slots))
         return d
 
+    @prologin.rpc.server.remote_method
     def update_worker(self, worker):
         hostname, port, slots, max_slots = worker
         key = hostname, port
@@ -157,7 +155,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             ioloop.add_callback(dispatcher_task)
         del self.workers[(worker.hostname, worker.port)]
 
-    @tornado.gen.engine
+    @asyncio.coroutine
     def janitor_task(self):
         while True:
             all_workers = copy.copy(self.workers)
@@ -165,8 +163,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                 if not worker.is_alive(self.config['worker']['timeout_secs']):
                     logging.warn("timeout detected for worker %s" % worker)
                     self.redispatch_worker(worker)
-
-            yield tornado.gen.Task(ioloop.add_timeout, time.time() + 1)
+            yield from asyncio.sleep(1)
 
     def connect_to_db(self):
         return psycopg2.connect(
@@ -233,7 +230,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         )
         self.db.commit()
 
-    @tornado.gen.engine
+    @asyncio.coroutine
     def dbwatcher_task(self):
         self.db = self.connect_to_db()
         self.check_requested_compilations('pending')
@@ -241,7 +238,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         while True:
             self.check_requested_compilations()
             self.check_requested_matches()
-            yield tornado.gen.Task(ioloop.add_timeout, time.time() + 1)
+            yield from asyncio.sleep(1)
 
     def find_worker_for(self, task):
         available = list(self.workers.values())
@@ -253,9 +250,9 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         else:
             return available[0]
 
-    @tornado.gen.engine
+    @asyncio.coroutine
     def dispatcher_task(self):
-        if self.worker_tasks:
+        while self.worker_tasks:
             task = self.worker_tasks[0]
             w = self.find_worker_for(task)
             if w is None:
@@ -264,9 +261,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                 w.add_task(self, task)
                 logging.debug("task %s got to %s" % (task, w))
                 self.worker_tasks = self.worker_tasks[1:]
-        yield tornado.gen.Task(ioloop.add_timeout, time.time() + 0.1)
-        if self.worker_tasks:
-            ioloop.add_callback(dispatcher_task)
+            yield from asyncio.sleep(0.2)
 
 
 if __name__ == '__main__':

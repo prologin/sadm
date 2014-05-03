@@ -41,7 +41,7 @@ REQUESTS = {
             status = {champion_status}
           WHERE
             stechec_champion.id = {champion_id}
-    '''
+    ''',
 
     'get_matches': '''
           SELECT
@@ -63,7 +63,7 @@ REQUESTS = {
           GROUP BY
             stechec_match.id,
             stechec_match.options
-    '''
+    ''',
 
 
     'set_match_status': '''
@@ -73,7 +73,7 @@ REQUESTS = {
             status = {match_status}
           WHERE
             stechec_match.id = {match_id}
-    '''
+    ''',
 
     'set_player_score': '''
           UPDATE
@@ -82,7 +82,7 @@ REQUESTS = {
             score = {player_score}
           WHERE
             stechec_matchplayer.id = {player_id}
-    '''
+    ''',
 
     'update_tournament_score': '''
           UPDATE
@@ -108,7 +108,7 @@ REQUESTS = {
               WHERE
                 stechec_matchplayer.id = {player_id}
             )
-    '''
+    ''',
 }
 
 class ConcoursQuery:
@@ -118,26 +118,28 @@ class ConcoursQuery:
         self.user = config['sql']['user']
         self.password = config['sql']['password']
         self.database = config['sql']['database']
-        self.conn = None
 
     @asyncio.coroutine
     def connect(self):
-        self.conn = yield from aiopg.connect(
+        conn = yield from aiopg.connect(
                 database=self.database,
                 user=self.user,
                 password=self.password,
                 host=self.host,
                 port=self.port)
-        self.cursor = yield from self.conn.cursor()
+        return (yield from conn.cursor())
 
+    # Each time we want to make a request, we establish a new connection, to
+    # prevent issues if DB reboots
     def __getattr__(self, name):
         if name not in REQUESTS:
             raise AttributeError('No such request')
 
         @asyncio.coroutine
         def proxy(*args, **kwargs):
+            cursor = yield from self.connect()
             request = REQUESTS[name].format(*args, **kwargs)
-            response = yield from self.cursor.execute(request)
-            return yield from self.cursor.fetchall()
+            response = yield from cursor.execute(request)
+            return (yield from self.cursor.fetchall())
 
         return proxy

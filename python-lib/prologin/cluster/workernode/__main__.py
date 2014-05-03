@@ -93,7 +93,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
 
     @asyncio.coroutine
     def update_master(self):
-        yield from self.master.update(get_worker_infos())
+        yield from self.master.update_worker(get_worker_infos())
 
     @asyncio.coroutine
     def send_heartbeat(self):
