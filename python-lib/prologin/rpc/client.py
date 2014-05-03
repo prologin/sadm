@@ -155,7 +155,7 @@ class Client:
             def proxy(*args, **kwargs):
                 # TODO: use a requests-like library that supports asyncio
                 # instead of run_in_executor?
-                return (yield from self.ioloop.run_in_executor(
+                return (yield from self.ioloop.run_in_executor(None,
                     self._call_method, method, args, kwargs))
         else:
             def proxy(*args, **kwargs):
