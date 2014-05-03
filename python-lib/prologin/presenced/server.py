@@ -23,7 +23,7 @@ import logging
 import os
 import prologin.config
 import prologin.log
-import prologin.presenced
+import prologin.presenced.client
 import prologin.presencesync.client
 import prologin.synchronisation
 import prologin.web
@@ -59,7 +59,7 @@ def get_logged_prologin_users():
         if not line.strip():
             continue
         login = line.split()[0].decode('ascii')
-        if prologin.presenced.is_prologin_user(login):
+        if prologin.presenced.client.is_prologin_user(login):
             result.add(login)
 
     return result
