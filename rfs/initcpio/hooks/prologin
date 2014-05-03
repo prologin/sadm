@@ -6,6 +6,7 @@ run_latehook() {
     mount -t tmpfs tmpfs /new_root/var/tmp
     mount -t tmpfs tmpfs /new_root/var/spool/mail
     mount -t tmpfs tmpfs /new_root/var/kdm
+    mount -t tmpfs tmpfs /new_root/home
     while read d; do
       mkdir -p $d
     done < /var_log_list
