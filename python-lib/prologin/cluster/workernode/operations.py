@@ -87,7 +87,7 @@ def compile_champion(config, champion_path):
     Returns a tuple (ok, output), with ok = True/False and output being the
     output of the compilation script.
     """
-    cmd = [config['path']['compile_script'], config['path']['makefile'],
+    cmd = [config['path']['compile_script'], config['path']['makefiles'],
            champion_path]
     retcode, stdout = yield from communicate(cmd)
     return retcode == 0
@@ -108,10 +108,10 @@ def spawn_server(config, rep_port, pub_port, opts):
 
     retcode, stdout = yield from communicate(cmd)
     if not (retcode == 0):
-        logging.error(stdout.decode('utf-8').strip())
+        logging.error(stdout.decode().strip())
         return
 
-    return stdout.decode('utf-8')
+    return stdout.decode()
 
 
 @asyncio.coroutine

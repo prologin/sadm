@@ -39,7 +39,7 @@ import yaml
 from base64 import b64decode, b64encode
 from . import operations
 
-ioloop = asyncio.get_event_loop()
+loop = asyncio.get_event_loop()
 tornado.platform.asyncio.AsyncIOMainLoop().install()
 
 
@@ -136,7 +136,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
             compiled_path = os.path.join(cpath, 'champion-compiled.tar.gz')
             log_path = os.path.join(cpath, 'compilation.log')
 
-            yield from loop.run_in_executor(operations.untar, ctgz, cpath)
+            yield from loop.run_in_executor(None, operations.untar, ctgz, cpath)
             ret = yield from operations.compile_champion(self.config, cpath)
 
             if not ret:
@@ -145,13 +145,11 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
                 with open(compiled_path, 'rb') as f:
                     compilation_content = f.read()
             with open(log_path, 'r') as f:
-                log_content = f.read()
+                log = f.read()
 
-        b64compiled = b64encode(compilation_content).decode('ascii')
-        b64log = b64encode(log_content).decode('ascii')
-
+        b64compiled = b64encode(compilation_content).decode()
         try:
-            yield from self.master.compilation_result(cid, b64compiled, b64log)
+            yield from self.master.compilation_result(cid, b64compiled, log)
         except socket.error:
             logging.warning('master down, cannot send compiled {}'.format(
                 cid))
@@ -187,7 +185,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         if not result:
             return
 
-        b64dump = b64encode(dumper_stdout).decode('ascii')
+        b64dump = b64encode(dumper_stdout).decode()
 
         try:
             yield from self.master.match_done(match_id, result, b64dump)
@@ -202,7 +200,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         logging.info('running player {} for match {}'.format(pl_id, match_id))
 
         with tempfile.TemporaryDirectory() as cpath:
-            yield from loop.run_in_executor(operations.untar, tgz, cpath)
+            yield from loop.run_in_executor(None, operations.untar, tgz, cpath)
             result = yield from operations.spawn_client(self.config, ip,
                     req_port, sub_port, pl_id, champion_path, opts)
 
@@ -238,6 +236,6 @@ if __name__ == '__main__':
     s.listen(config['worker']['port'])
 
     try:
-        ioloop.run_forever()
+        loop.run_forever()
     except KeyboardInterrupt:
         pass
