@@ -83,9 +83,10 @@ class RemoteCallHandler(tornado.web.RequestHandler):
         request = json.loads(self.request.body.strip().decode('ascii'))
 
         # Log the call
-        logging.info('RPC request from %r for method %r with args=%s kwargs=%s'
-                % (self.request.host, method_name, request['args'],
-                   request['kwargs']))
+        logging.info('RPC <{}> {}({}{})'.format(self.request.host, method_name,
+            ', '.join([str(a) for a in request['args']]),
+            ', '.join([str(a) + '=' + str(b)
+                       for a, b in request['kwargs'].items()])))
 
         # First get the method to call.
         try:
