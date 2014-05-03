@@ -81,7 +81,8 @@ lang_file=_lang
         cp -v "$f" "$champion_dir/champion-compiled/$f"
     done 2>&1 | sed 's/^.*$/    &/'
     echo "Making tarball."
-    tar czvf champion-compiled.tar.gz champion-compiled/* -C "$champion_dir" \
+    tar czvf "$champion_dir"/champion-compiled.tar.gz \
+        -C "$champion_dir"/champion-compiled/ . \
         | sed 's/^.*$/    &/'
 
     rm -rf "$champion_dir/champion-compiled/"
