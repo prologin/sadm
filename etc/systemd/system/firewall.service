@@ -3,8 +3,8 @@ Description=Firewall intial setup
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/ipset create allowed-internet-access bitmap:ip range 192.168.0.0/23
-ExecStart=/usr/bin/ipset create tmp-allowed-internet-access bitmap:ip range 192.168.0.0/23
+ExecStart=/usr/bin/ipset -! create allowed-internet-access bitmap:ip range 192.168.0.0/23
+ExecStart=/usr/bin/ipset -! create tmp-allowed-internet-access bitmap:ip range 192.168.0.0/23
 ExecStart=/usr/bin/iptables-restore /etc/prologin/iptables.save
 
 [Install]
