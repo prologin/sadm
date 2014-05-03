@@ -179,7 +179,7 @@ so that DNS configuration can be generated::
   cd /var/prologin/mdb
   python manage.py addmachine --hostname gw --mac 11:22:33:44:55:66 \
       --ip 192.168.1.254 --rfs 0 --hfs 0 --mtype service --room pasteur \
-      --aliases mdb,mdbsync,ns,netboot,udb,udbsync,presencesync,db
+      --aliases mdb,mdbsync,ns,netboot,udb,udbsync,presencesync
 
 Once this is done, ``mdbdns`` should have automagically regenerated the DNS
 configuration::
@@ -379,15 +379,27 @@ TODO: basically, take the kernel+initrd from the nfsroot and put it in
 Setting up hfs
 ~~~~~~~~~~~~~~
 
-Setup postgresql on ``gw``. It is used by all the hfs::
+Setup postgresql on ``web``. It is used by all the hfs.
+
+.. note::
+
+  If you just want to test the ``hfs`` and have not yet setup ``web``, install
+  the database on ``gw`` and add ``db`` to the list of aliases of ``gw``.
+
+  The database should be on ``web`` because most of its consumers are
+  webservices: redmine, concours, masterworker, etc.
+
+::
 
   su - postgres -c "initdb --locale en_US.UTF-8 -D '/var/lib/postgres/data'"
   systemctl enable postgresql && systemctl start postgresql
 
+Create user ``hfs``, database ``hfs``, and associated tables:
+
 .. note::
 
-    You must change the password in ``./sql/hfs.sql`` to match
-    ``./etc/prologin/hfs-server.yml``.
+    You must change the password of user ``hfs`` in ``./sql/hfs.sql`` to match
+    the one in ``./etc/prologin/hfs-server.yml``.
 
 ::
 
@@ -429,7 +441,7 @@ web interface, or using::
   cd /var/prologin/mdb
   python manage.py addmachine --hostname web --mac 11:22:33:44:55:66 \
       --ip 192.168.1.100 --rfs 0 --hfs 0 \
-      --aliases concours,wiki,bugs,docs,home,paste,map \
+      --aliases db,concours,wiki,bugs,redmine,docs,home,paste,map \
       --mtype service --room pasteur
 
 When this is done, reboot ``web``: it should get the correct IP address from
