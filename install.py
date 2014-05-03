@@ -157,8 +157,8 @@ def install_nginx_service(name):
                 '/etc/nginx/services', owner='root:root', mode=0o644)
 
 
-def install_systemd_unit(name, instance='system'):
-    install_cfg(os.path.join('systemd', instance, name + '.service'),
+def install_systemd_unit(name, instance='system', kind='service'):
+    install_cfg(os.path.join('systemd', instance, name + '.' + kind),
                 '/etc/systemd/' + instance , owner='root:root', mode=0o644)
 
 
@@ -369,6 +369,7 @@ def install_udbsync_rfs():
 
     install_systemd_unit('udbsync_passwd_nfsroot')
     install_systemd_unit('rootssh-copy')
+    install_systemd_unit('rootssh', kind='path')
 
 
 def install_udbsync_rootssh():
