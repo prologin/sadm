@@ -27,7 +27,7 @@ setup(name='ProloginSADM',
       packages=find_packages(),
       scripts=['prologin/cluster/workernode/compile-champion.sh',
                'prologin/rpc/prolorpc',
-               'prologin/set_hostname',
+               'prologin/set_hostname.py',
                ],
       package_data={
           'prologin.concours': ['static/**/*.*',
