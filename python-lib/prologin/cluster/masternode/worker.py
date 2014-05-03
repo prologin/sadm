@@ -18,9 +18,9 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
+import asyncio
 import prologin.rpc.client
 import time
-import tornado.gen
 
 from . import task
 
@@ -52,10 +52,9 @@ class Worker(object):
     def can_add_task(self, task):
         return self.slots >= task.slots_taken
 
-    @tornado.gen.coroutine
     def add_task(self, master, task):
         self.slots -= task.slots_taken
-        future = tornado.gen.Task(task.execute, master, self)
+        future = asyncio.Task(task.execute(master, self))
         self.tasks.append((task, future))
 
     def kill_tasks(self):
