@@ -82,10 +82,15 @@ class RemoteCallHandler(tornado.web.RequestHandler):
         # This is an asynchronous handler, since
         request = json.loads(self.request.body.strip().decode('ascii'))
 
+        def farg(a):
+            if isinstance(a, (bytes, str)) and len(a) > 10:
+                a = a[:10] + '…'
+            return repr(a)
+
         # Log the call
         logging.info('RPC <{}> {}({}{})'.format(self.request.host, method_name,
-            ', '.join([str(a) for a in request['args']]),
-            ', '.join([str(a) + '=' + str(b)
+            ', '.join([farg(a) for a in request['args']]),
+            ', '.join([farg(a) + '=' + farg(b)
                        for a, b in request['kwargs'].items()])))
 
         # First get the method to call.
