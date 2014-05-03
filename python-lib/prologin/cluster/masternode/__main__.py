@@ -64,22 +64,20 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         hostname, port, slots, max_slots = worker
         key = hostname, port
         if key not in self.workers:
-            logging.warn("registered new worker: %s:%d" % (hostname, port))
+            logging.warn("registered new worker: {}:{}".format(hostname, port))
             self.workers[key] = Worker(hostname, port, slots, max_slots,
                     self.config)
         else:
-            logging.debug("updating worker: %s:%d %d/%d" % (
-                              hostname, port, slots, max_slots
-                         ))
+            logging.debug("updating worker: {}:{} {}/{}".format(
+                              hostname, port, slots, max_slots))
             self.workers[key].update(slots, max_slots)
 
     @prologin.rpc.remote_method
     def heartbeat(self, worker, first):
         hostname, port, slots, max_slots = worker
         usage = (1.0 - float(slots) / max_slots) * 100
-        logging.info('received heartbeat from %s:%d, usage is %.2f%%' % (
-                         hostname, port, usage
-                    ))
+        logging.info('received heartbeat from {}:{}, usage is {:.2%}'.format(
+                         hostname, port, usage))
         if first and (hostname, port) in self.workers:
             self.redispatch_worker(self.workers[(hostname, port)])
         self.update_worker(worker)
@@ -97,7 +95,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         else:
             status = 'error'
 
-        logging.info('compilation of champion %d: %s' % (champ_id, status))
+        logging.info('compilation of champion {}: {}'.format(champ_id, status))
 
         db = self.connect_to_db()
         cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
@@ -112,7 +110,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         db = self.connect_to_db()
         cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-        logging.info('match %(mid)d ended' % locals())
+        logging.info('match {} ended'.format(mid))
 
         to_update = [
             { 'player_id': r[0], 'player_score': r[1] }
@@ -148,9 +146,8 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         worker.kill_tasks()
         tasks = [t for (t, g) in worker.tasks]
         if tasks:
-            logging.info("redispatching tasks for %s: %s" % (
-                             worker, tasks
-                        ))
+            logging.info("redispatching tasks for {}: {}".format(
+                             worker, tasks))
             self.worker_tasks = tasks + self.worker_tasks
             ioloop.add_callback(dispatcher_task)
         del self.workers[(worker.hostname, worker.port)]
@@ -161,7 +158,8 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             all_workers = copy.copy(self.workers)
             for worker in all_workers.values():
                 if not worker.is_alive(self.config['worker']['timeout_secs']):
-                    logging.warn("timeout detected for worker %s" % worker)
+                    logging.warn("timeout detected for worker {}".format(
+                                worker))
                     self.redispatch_worker(worker)
             yield from asyncio.sleep(1)
 
@@ -183,7 +181,8 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
 
         to_set_pending = []
         for r in cur:
-            logging.info('requested compilation for %(name)s / %(id)d' % r)
+            logging.info('requested compilation for {} / {}'.format(
+                              r['name'], r['id']))
             to_set_pending.append({
                 'champion_id': r['id'],
                 'champion_status': 'pending'
@@ -209,7 +208,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
 
         to_set_pending = []
         for r in cur:
-            logging.info('request match id %(match_id)d launch' % r)
+            logging.info('request match id {} launch'.format(r['match_id']))
             mid = r['match_id']
             opts = r['match_options']
             players = list(zip(r['champion_ids'], r['match_player_ids'],
@@ -256,10 +255,10 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             task = self.worker_tasks[0]
             w = self.find_worker_for(task)
             if w is None:
-                logging.info("no worker available for task %s" % task)
+                logging.info("no worker available for task {}".format(task))
             else:
                 w.add_task(self, task)
-                logging.debug("task %s got to %s" % (task, w))
+                logging.debug("task {} got to {}".format(task, w))
                 self.worker_tasks = self.worker_tasks[1:]
             yield from asyncio.sleep(0.2)
 

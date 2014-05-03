@@ -34,7 +34,7 @@ class CompilationTask:
         )
 
     def __repr__(self):
-        return "<Compilation: %s/%d>" % (self.user, self.champ_id)
+        return "<Compilation: {}/{}>".format(self.user, self.champ_id)
 
 class PlayerTask:
     def __init__(self, config, mid, hostname, req_port, sub_port, cid, mpid, user, opts):
