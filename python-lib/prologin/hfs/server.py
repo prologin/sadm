@@ -41,7 +41,6 @@ files, buffering in RAM is just not a good idea.
 
 # TODO(delroth): authentify all the request handlers with HMAC
 
-import fcntl
 import gzip
 import http.server
 import json
@@ -51,6 +50,7 @@ import os.path
 import postgresql
 import prologin.config
 import prologin.log
+import prologin.mdb.client
 import random
 import signal
 import socket
@@ -85,15 +85,21 @@ def find_free_port(start, end):
             continue
 
 
-def get_iface_ip(iface):
-    """Returns the first IPv4 address assigned to an interface.
-
-    Warning: black magic.
+def get_hfs_ip(hfs_id):
+    """Returns the IPv4 address associated to an HFS. Assumes the HFS will have
+    an alias "hfs%d" on it.
     """
-    iface = iface.encode('ascii')
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    return socket.inet_ntoa(fcntl.ioctl(s.fileno(), 0x8915,  # SIOCGIFADDR
-                                        struct.pack('256s', iface))[20:24])
+    hfs_alias = 'hfs%d' % hfs_id
+    potential_hfs = prologin.mdb.client.connect().query(
+            aliases__contains=hfs_alias)
+
+    # We need to loop over the results to avoid hfs1 matching hfs10.
+    for server in potential_hfs:
+        aliases = server['aliases'].split(',')
+        if hfs_alias in aliases:
+            return server['ip']
+
+    raise ValueError("Unable to find HFS %d in MDB" % hfs_id)
 
 
 def get_available_space(path):
@@ -129,7 +135,8 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
                 self.send_error(404)
         except ArgumentMissing as e:
             self.send_error(400, message=str(e))
-        except Exception:
+        except Exception as e:
+            self.send_error(501, message=str(e))
             logging.exception('Something wrong happened')
 
     def migrate_user(self):
@@ -297,10 +304,12 @@ class ThHTTPServer(http.server.HTTPServer, ThreadingMixIn):
     pass
 
 if __name__ == '__main__':
-    prologin.log.setup_logging('hfs')
-    if len(sys.argv) != 2:
-        print('usage: %s <iface>' % sys.argv[0])
+    if len(sys.argv) != 2 or not sys.argv[1].isdigit():
+        print('usage: %s <hfs-number>' % sys.argv[0])
         sys.exit(1)
-    server = ThHTTPServer((get_iface_ip(sys.argv[1]), CFG['port']),
+
+    hfs_id = int(sys.argv[1])
+    prologin.log.setup_logging('hfs-%d' % hfs_id)
+    server = ThHTTPServer((get_hfs_ip(hfs_id), CFG['port']),
                           HFSRequestHandler)
     server.serve_forever()
