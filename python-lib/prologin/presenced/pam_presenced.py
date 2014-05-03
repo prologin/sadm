@@ -22,7 +22,7 @@ import sys
 import time
 
 
-sys.stderr = open('/tmp/pam_log', 'w')
+sys.stderr = open('/tmp/pam_log', 'a')
 prologin.log.setup_logging('pam_presenced')
 
 
@@ -82,11 +82,11 @@ if PAM_TYPE == 'open_session':
     if not os.path.ismount(home_dir):
         # Get a block device for the HOME mount point and mount it.
         if subprocess.check_call(['/usr/sbin/nbd-client', host, str(port),
-                              block_device], stdout=sys.stderr,
-                             stderr=sys.stderr):
+                                  block_device], stdout=sys.stderr,
+                                 stderr=sys.stderr):
             fail('Cannot get the home directory block device')
         if subprocess.check_call(['/bin/mount', block_device, home_dir],
-                             stdout=sys.stderr, stderr=sys.stderr):
+                                 stdout=sys.stderr, stderr=sys.stderr):
             fail('Cannot mount the home directory')
 
     sys.exit(0)
