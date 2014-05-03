@@ -2,8 +2,8 @@ bash
 devtools
 dhcpcd
 gcc
+gdm
 grub-bios
-kdebase-workspace
 libxml2
 libxslt
 mkinitcpio-nfs-utils
@@ -18,6 +18,7 @@ python-setuptools
 python-virtualenv
 strace
 tcpdump
+xorg
 xorg-drivers
 xorg-server
 xorg-server-utils
