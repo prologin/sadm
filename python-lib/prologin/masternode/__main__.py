@@ -190,7 +190,6 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
 
     @asyncio.coroutine
     def dbwatcher_task(self):
-        self.db = self.connect_to_db()
         self.check_requested_compilations('pending')
         self.check_requested_matches('pending')
         while True:
