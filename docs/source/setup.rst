@@ -622,6 +622,7 @@ Enable and start the services::
   systemctl enable udbsync_redmine && systemctl start udbsync_redmine
 
 You should be able to access the brand new Redmine.
+
   - Login at http://redmine/login with ``admin`` / ``admin``
   - Change password at http://redmine/my/password
   - Configure a new project at http://redmine/projects/new    
