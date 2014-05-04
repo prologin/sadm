@@ -693,7 +693,12 @@ the ``.xsession`` of the users home skeleton::
 
   python /usr/share/libnotify.py &
 
-Step 6: the matches cluster
----------------------------
+Step 6: Switching to contest mode
+---------------------------------
 
-TODO
+By default, most of the web services are hidden from the contestants. In order
+to show them, you must activate the "contest mode" in some service.
+
+Edit ``/etc/nginx/nginx.conf``, uncomment the following line::
+
+  # include services_contest/*.nginx;

@@ -1,0 +1,11 @@
+server {
+    listen 80;
+    server_name concours;
+
+    access_log logs/concours.access.log main;
+
+    location / {
+        proxy_pass http://localhost:20150;
+        include proxy_params;
+    }
+}
