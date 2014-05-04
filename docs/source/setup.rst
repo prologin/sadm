@@ -386,8 +386,13 @@ TODO: How to sync, hook to generate /var...
 Copying the kernel and initramfs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-TODO: basically, take the kernel+initrd from the nfsroot and put it in
-``/srv/tftp`` on ``gw``.
+You might have to build another kernel if the contestants machines are not the
+same.
+
+::
+
+  scp rhfs:/export/nfsroot/boot/vmlinuz-linux /srv/tftp/kernel
+  scp rhfs:/export/nfsroot/boot/initramfs-linux.img /srv/tftp/initrd
 
 Setting up hfs
 ~~~~~~~~~~~~~~
