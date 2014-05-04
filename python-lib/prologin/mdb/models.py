@@ -45,6 +45,12 @@ class Machine(models.Model):
     mtype = models.CharField(max_length=20, choices=TYPES, verbose_name='Type')
     room = models.CharField(max_length=20, choices=ROOMS)
 
+    def save(self, *args, **kwargs):
+        # Normalize list of aliases to "alias0,alias1,etc."
+        self.aliases = self.aliases.replace(' ', '')
+
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.hostname
 
