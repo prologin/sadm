@@ -5,11 +5,11 @@ server {
     access_log logs/paste.access.log main;
 
     location ~ ^(.*)/(.*).css {
-        root /var/prologin/webservices/paste/;
+        root /var/prologin/paste/;
     }
 
     location ~ ^(.*)/(.*).png {
-        root /var/prologin/webservices/paste/;
+        root /var/prologin/paste/;
     }
 
     location / {

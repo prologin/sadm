@@ -477,6 +477,10 @@ the ssh public keys of roots to ``/root/.ssh/authorized_keys``. The unit
 Step 4: setting up the web services
 -----------------------------------
 
+Requirements::
+
+  pacman -S nginx
+
 The web services will usually be set up on a separate machine from the ``gw``,
 for availability and performance reasons (all services on ``gw`` are critical,
 so you wouldn't want to mount a NFS on it for example). This machine is usually
@@ -517,7 +521,7 @@ doc
 You have to retrieve the documentations of each language::
 
   pacman -S wget unzip
-  cd /var/prologin/webservices/docs/languages
+  cd /var/prologin/docs/languages
   su webservices # So we don't have to change permissions afterwards
   ./get_docs.sh
 
