@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+#!/usr/local/rvm/wrappers/redmine/ruby
 
 require 'json'
 
@@ -10,20 +10,22 @@ commands = conf['commands']
 commands.each do |login, cmd|
 	user = users[login]
 
-	puts login, cmd
-	puts user
-
 	case cmd
 	when 'created'
+		# FIXME: use firstname/lastname instead
 		u = User.new(
-			:firstname => user['firstname'],
-			:lastname => user['lastname'],
+			:firstname => login,
+			:lastname => user['realname'],
 			:mail => login + '@finale.prologin'
 		)
 		u.login = login
 		u.password = user['password']
 		u.password_confirmation = user['password']
-		u.save
+		if u.valid?
+			u.save
+		else
+			$stderr.puts "invalid created user #{login}"
+		end
 
 	when 'deleted'
 		u = User.find_by_login(login)
@@ -33,7 +35,11 @@ commands.each do |login, cmd|
 		u = User.find_by_login(login)
 		u.password = user['password']
 		u.password_confirmation = user['password']
-		u.save!
+		if u.valid? then
+			u.save
+		else
+			$stderr.puts "invalid updated user #{login}"
+		end
 
 	end
 end

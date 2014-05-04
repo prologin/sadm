@@ -8,10 +8,9 @@ Type=simple
 User=redmine
 Group=redmine
 TimeoutSec=300
-ExecStart=/usr/local/rvm/gems/ruby-2.0.0-p451/bin/unicorn \
-    -D -E production \
-    -c /var/prologin/redmine/script/unicorn.ru /var/prologin/redmine/script/rails \
-    server webrick -e production
+WorkingDirectory=/var/prologin/redmine
+ExecStart=/usr/local/rvm/wrappers/redmine/unicorn_rails -E production \
+    -c /var/prologin/redmine/script/unicorn.ru
 
 [Install]
 WantedBy=multi-user.target

@@ -24,3 +24,16 @@ server {
         include proxy_params;
     }
 }
+
+# Some vhosts for easy access
+server {
+    listen 80;
+    server_name bug bugs;
+    return 302 http://redmine/projects/prologin/issues;
+}
+
+server {
+    listen 80;
+    server_name wiki;
+    return 302 http://redmine/projects/prologin/wiki;
+}

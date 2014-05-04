@@ -79,7 +79,7 @@ Install a few packages we will need::
 
   pacman -S git dhcp bind python python-pip python-virtualenv libyaml nginx \
             sqlite dnsutils rsync postgresql-libs tcpdump base-devel pwgen \
-            libxslt ipset pssh postgresql nbd
+            libxslt ipset pssh postgresql nbd wget
 
 Create the main Python ``virtualenv`` we'll use for all our Prologin apps::
 
@@ -546,70 +546,86 @@ Then you can just start the service::
 
   systemctl enable wiki && systemctl start wiki
 
-bugs
+Redmine (a.k.a. "bugs")
 ~~~~
 
-Install redmine and its dependancies::
+First, export some useful variables. Change them if needed::
 
-  pacman -S ruby ruby-bundler redmine
-  gem install unicorn
+  export PHOME=/var/prologin
+  export PGHOST=db  # postgres host
+  export RUBYV=2.0.0-p451
+  export RAILS_ENV=production
+  export REDMINE_LANG=fr
+  read -esp "Enter redmine db password (no ' please): " RMPSWD
 
-Move the redmine folder to /var/prologin, and the configuration to /etc::
+Download and extract Redmine::
 
-  cp -r /usr/share/webapps/redmine /var/prologin/bugs
-  cp webservices/redmine/redmine.ru /etc/unicorn/
-  cd /var/prologin/bugs
+  cd /tmp
+  wget http://www.redmine.org/releases/redmine-2.5.1.tar.gz
+  tar -xvz -C $PHOME -f redmine-2.5.1.tar.gz
+  mv $PHOME/{redmine*,redmine}
 
-Then execute these PostgreSQL queries to create the redmine DB::
+Using RVM, let's install dependencies::
 
-  CREATE ROLE redmine LOGIN ENCRYPTED PASSWORD '**CHANGEME**' NOINHERIT VALID
-  UNTIL 'infinity';
-  CREATE DATABASE redmine WITH ENCODING='UTF8' OWNER=redmine;
+  curl -L http://get.rvm.io | bash -s stable
+  source /etc/profile.d/rvm.sh
+  echo "gem: --no-document" >>$HOME/.gemrc
+  rvm install $RUBYV  # can be rather long
+  rvm alias create redmine $RUBYV
+  gem install -v 1.4.5 rack  # unicorn installs a newer version Redmine doesn't like
+  gem install bundler unicorn
 
-Edit the configuration::
+Create the Redmine user and database (user may not be postgres)::
 
-  cp database.yml.example database.yml
-  $EDITOR database.yml
+  sed -e s/%pwd%/$RMPSWD/ $PHOME/sadm/sql/redmine.sql | psql -U postgres -h $PGHOST
 
-A configuration example::
+Configure the Redmine database::
 
+  cat >$PHOME/redmine/config/database.yml <<EOF
+  # prologin redmine database
   production:
     adapter: postgresql
     database: redmine
-    host: localhost
+    host: $PGHOST
     username: redmine
-    password: **CHANGEME**
+    password: $RMPSWD
     encoding: utf8
-    schema_search_path: public
+  EOF
 
-Install required gems::
+We can now install Redmine::
 
-  bundle install --without development test
+  cd $PHOME/redmine
+  bundle install --without development test rmagick
 
-Generate the secret token::
+Some fixtures (these commands require the above env vars)::
 
   rake generate_secret_token
+  rake db:migrate
+  rake redmine:load_default_data
 
-Fix permissions::
+Create some dirs and fix permissions::
 
-  chown -R redmine:redmine /var/prologin/bugs
-  chmod o-rwx -R /var/prologin/bugs
-  su redmine
+  mkdir -p $PHOME/redmine/{tmp,tmp/pdf,public/plugin_assets}
+  chown -R redmine:redmine $PHOME/redmine
+  chmod -R o-rwx $PHOME/redmine
+  chmod -R 755 $PHOME/redmine/{files,log,tmp,public/plugin_assets}
 
-Create the database structure and populate it with the default data::
+Now it's time to install Redmine system configuration files. Ensure you are
+within the prologin virtualenv (``source /var/prologin/venv/bin/activate``), then::
 
-  RAILS_ENV=production rake db:migrate
-  RAILS_ENV=production REDMINE_LANG=fr-FR rake redmine:load_default_data
+  cd $PHOME/sadm
+  python install.py redmine udbsync_redmine
 
-Set the FS permissions::
+Enable and start the services::
 
-  mkdir -p tmp tmp/pdf public/plugin_assets
-  chown -R redmine:redmine files log tmp public/plugin_assets
-  chmod -R 775 files log tmp tmp/pdf public/plugin_assets
+  systemctl enable redmine && systemctl start redmine
+  systemctl enable udbsync_redmine && systemctl start udbsync_redmine
 
-Then start the service::
-
-  systemctl enable bugs && systemctl start bugs
+You should be able to access the brand new Redmine.
+  - Login at http://redmine/login with ``admin`` / ``admin``
+  - Change password at http://redmine/my/password
+  - Configure a new project at http://redmine/projects/new    
+    The ``Identifiant`` **has to be prologin** in order to vhost to work.
 
 Homepage
 ~~~~~~~~
