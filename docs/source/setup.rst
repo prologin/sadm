@@ -450,6 +450,11 @@ On every ``rhfs`` machine, install the hfs server::
 
   delete from user_location;
 
+And finally, empty the nbd's configuration so it can take it's arguments only
+from the command line::
+
+  mv /etc/nbd-server/config /etc/nbd-server/config.save
+
 
 Enable forwarding of authorized_keys
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
