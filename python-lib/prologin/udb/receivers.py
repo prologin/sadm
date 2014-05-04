@@ -15,6 +15,7 @@
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
+import prologin.log
 import prologin.udbsync.client
 import queue
 import threading
@@ -23,6 +24,8 @@ from django.conf import settings
 from django.dispatch import receiver
 from django.db.models.signals import post_save, pre_delete
 from prologin.udb.models import User
+
+prologin.log.setup_logging('udb')
 
 
 class UpdateSenderTask(threading.Thread):
