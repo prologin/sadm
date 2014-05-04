@@ -91,7 +91,7 @@ pacstrap /mnt base
 
 echo 'Installing system and prologin-sadm dependencies'
 pacstrap /mnt git python python-pip python-virtualenv libyaml dnsutils rsync \
-    tcpdump base-devel libxslt ipset pssh syslinux
+    tcpdump base-devel libxslt ipset pssh syslinux ntp strace wget postgresql
 
 echo 'Setting up the base system'
 genfstab -p /mnt >> /mnt/etc/fstab
@@ -117,6 +117,7 @@ mkinitcpio -p linux
 echo 'Enabling services'
 systemctl enable dhcpcd
 systemctl enable sshd
+systemctl enable ntpd
 
 echo 'Changing password'
 echo "root:changeme" | chpasswd
