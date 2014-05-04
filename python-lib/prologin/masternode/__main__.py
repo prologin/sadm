@@ -34,7 +34,8 @@ import time
 from .worker import Worker
 from . import task
 
-ioloop = asyncio.get_event_loop()
+loop = asyncio.get_event_loop()
+tornado.platform.asyncio.AsyncIOMainLoop().install()
 
 class MasterNode(prologin.rpc.server.BaseRPCApp):
     def __init__(self, *args, config=None, **kwargs):
@@ -47,6 +48,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         self.spawn_tasks()
 
     def spawn_tasks(self):
+        self.to_dispatch = asyncio.Event()
         self.janitor = asyncio.Task(self.janitor_task())
         self.dbwatcher = asyncio.Task(self.dbwatcher_task())
         self.dispatcher = asyncio.Task(self.dispatcher_task())
@@ -86,7 +88,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         hostname, port, slots, max_slots = worker
         w = self.workers[(hostname, port)]
         w.remove_compilation_task(champ_id)
-        ioloop.add_callback(self.complete_compilation, champ_id, ret)
+        loop.add_callback(self.complete_compilation, champ_id, ret)
 
     def complete_compilation(self, champ_id, ret):
         if ret is True:
@@ -142,13 +144,12 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         self.workers[(worker[0], worker[1])].remove_player_task(mpid)
 
     def redispatch_worker(self, worker):
-        worker.kill_tasks()
         tasks = [t for (t, g) in worker.tasks]
         if tasks:
             logging.info("redispatching tasks for {}: {}".format(
                              worker, tasks))
             self.worker_tasks = tasks + self.worker_tasks
-            ioloop.add_callback(dispatcher_task)
+            self.to_dispatch.set()
         del self.workers[(worker.hostname, worker.port)]
 
     @asyncio.coroutine
@@ -190,7 +191,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             self.worker_tasks.append(t)
 
         if to_set_pending:
-            ioloop.add_callback(dispatcher_task)
+            self.to_dispatch.set()
 
         cur.executemany(
             self.config['sql']['queries']['set_champion_status'],
@@ -220,7 +221,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             self.worker_tasks.append(t)
 
         if to_set_pending:
-            ioloop.add_callback(dispatcher_task)
+            self.to_dispatch.set()
 
         cur.executemany(
             self.config['sql']['queries']['set_match_status'],
@@ -250,16 +251,20 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
 
     @asyncio.coroutine
     def dispatcher_task(self):
-        while self.worker_tasks:
-            task = self.worker_tasks[0]
-            w = self.find_worker_for(task)
-            if w is None:
-                logging.info("no worker available for task {}".format(task))
-            else:
-                w.add_task(self, task)
-                logging.debug("task {} got to {}".format(task, w))
-                self.worker_tasks = self.worker_tasks[1:]
-            yield from asyncio.sleep(0.2)
+        while True:
+            yield from self.to_dispatch.wait()
+            if self.worker_tasks:
+                task = self.worker_tasks[0]
+                w = self.find_worker_for(task)
+                if w is None:
+                    logging.info("no worker available for task {}".format(task))
+                else:
+                    w.add_task(self, task)
+                    logging.debug("task {} got to {}".format(task, w))
+                    self.worker_tasks = self.worker_tasks[1:]
+            if not self.worker_tasks:
+                self.to_dispatch.clear()
+            yield from asyncio.sleep(0.1) # Avoid blocking with lot of dispatch
 
 
 if __name__ == '__main__':
@@ -283,6 +288,6 @@ if __name__ == '__main__':
     s.listen(config['master']['port'])
 
     try:
-        ioloop.instance().start()
+        loop.run_forever()
     except KeyboardInterrupt:
         pass
