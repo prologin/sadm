@@ -366,6 +366,7 @@ Installing the base user system
 The basic install process is already documented through the
 `ArchLinux Diskless Installation`_. For conveniance, use::
 
+  python install.py udbsync_rfs
   python install.py rfs
 
 The installation script will bootstrap a basic archlinux system in
@@ -434,6 +435,21 @@ On every ``rhfs`` machine, install the hfs server::
 .. todo::
 
     Add enable service
+
+.. note::
+
+    If you need to delete every /home created by the hfs, simply delete all nbd
+    files in ``/export/hfs/`` and delete entries in the ``user_location`` table
+    of the hfs' database.
+
+::
+
+  rm /export/hfs/*.nbd
+
+::
+
+  delete from user_location;
+
 
 Enable forwarding of authorized_keys
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
