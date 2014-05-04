@@ -152,7 +152,9 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
 
         b64compiled = b64encode(compilation_content).decode()
         try:
-            yield from self.master.compilation_result(cid, b64compiled, log)
+            yield from self.master.compilation_result(cid, b64compiled, log,
+                    max_retries=self.config['master']['max_retries'],
+                    retry_delay=self.config['master']['retry_delay'])
         except socket.error:
             logging.warning('master down, cannot send compiled {}'.format(
                 cid))
@@ -190,7 +192,9 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
 
         b64dump = b64encode(dumper_stdout).decode()
         try:
-            yield from self.master.match_done(match_id, result, b64dump)
+            yield from self.master.match_done(match_id, result, b64dump,
+                    max_retries=self.config['master']['max_retries'],
+                    retry_delay=self.config['master']['retry_delay'])
         except socket.error:
             logging.warning('master down, cannot send match {} result'.format(
                 match_id))
@@ -210,7 +214,9 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         logging.info('player {} for match {} done'.format(pl_id, match_id))
 
         try:
-            yield from self.master.client_done(match_id, pl_id, retcode)
+            yield from self.master.client_done(match_id, pl_id, retcode,
+                    max_retries=self.config['master']['max_retries'],
+                    retry_delay=self.config['master']['retry_delay'])
         except socket.error:
             logging.warning('master down, cannot send client {} result '
                             'for match {}'.format(pl_id, match_id))
