@@ -171,8 +171,16 @@ def install_service_dir(path, owner, mode):
     # slash are meaningful.
     os.system('rsync -rv %s/ /var/prologin/%s' % (path, name))
     user, group = owner.split(':')
+
     shutil.chown('/var/prologin/%s' % name, user, group)
     os.chmod('/var/prologin/%s' % name, mode)
+    for root, dirs, files in os.walk('/var/prologin/%s' % name):
+        for dir in dirs:
+            shutil.chown(os.path.join(root, dir), user, group)
+            os.chmod(os.path.join(root, dir), mode)
+        for file in files:
+            shutil.chown(os.path.join(root, file), user, group)
+            os.chmod(os.path.join(root, file), mode)
 
 
 def django_syncdb(name, user=None):
@@ -288,14 +296,12 @@ def install_mdbdhcp():
 def install_webservices():
     requires('nginxcfg')
 
-    mkdir('/var/prologin/webservices', mode=0o755,
-          owner='webservices:http')
-    install_service_dir('webservices/paste', mode=0o750,
+    install_service_dir('webservices/paste', mode=0o755,
                         owner='webservices:http')
     install_nginx_service('paste')
     install_systemd_unit('paste')
 
-    install_service_dir('webservices/docs', mode=0o750,
+    install_service_dir('webservices/docs', mode=0o755,
                         owner='webservices:http')
     install_nginx_service('docs')
 
@@ -321,6 +327,7 @@ def install_redmine():
 
 def install_homepage():
     requires('libprologin')
+    requires('udbsync_django')
     requires('nginxcfg')
 
     first_time = not os.path.exists('/var/prologin/homepage')

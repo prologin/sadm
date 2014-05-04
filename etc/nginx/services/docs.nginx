@@ -5,6 +5,6 @@ server {
     access_log logs/docs.access.log main;
 
     location / {
-        root /var/prologin/webservices/docs;
+        root /var/prologin/docs;
     }
 }
