@@ -478,12 +478,13 @@ def install_hfs():
     install_systemd_unit('hfs@')
     install_cfg_profile('hfs-server', group='hfs')
 
-    copytree(
-        'python-lib/prologin/hfs/skeleton',
-        '/export/skeleton',
-        dir_mode=0o755, file_mode=0o644,
-        owner='root:root'
-    )
+    if not os.path.exists('/export/skeleton'):
+        copytree(
+            'python-lib/prologin/hfs/skeleton',
+            '/export/skeleton',
+            dir_mode=0o755, file_mode=0o644,
+            owner='root:root'
+        )
 
 
 def install_set_hostname():
