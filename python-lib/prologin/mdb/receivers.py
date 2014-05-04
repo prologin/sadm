@@ -16,6 +16,7 @@
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
+import prologin.log
 import prologin.mdbsync.client
 import queue
 import threading
@@ -24,6 +25,8 @@ from django.conf import settings
 from django.dispatch import receiver
 from django.db.models.signals import post_save, pre_delete
 from prologin.mdb.models import Machine
+
+prologin.log.setup_logging('mdb')
 
 
 class UpdateSenderTask(threading.Thread):
