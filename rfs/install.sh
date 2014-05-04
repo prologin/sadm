@@ -125,6 +125,15 @@ echo "root:changeme" | chpasswd
 echo 'Installing bootloader'
 syslinux-install_update -i -a -m
 sed -i s@/dev/sda3@LABEL=root@ /boot/syslinux/syslinux.cfg
+
+echo 'Setting up sadm'
+mkdir /var/prologin
+virtualenv3 --no-site-packages /var/prologin/venv
+source /var/prologin/venv/bin/activate
+cd /root
+git clone http://bitbucket.org/prologin/sadm.git
+export C_INCLUDE_PATH=/usr/include/libxml2 # fix for archlinux
+pip install -r requirements.txt
 EOF
 chmod +x /mnt/var/tmp/install-2.sh
 echo 'Chrooting'
