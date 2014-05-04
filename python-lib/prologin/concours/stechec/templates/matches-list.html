@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% load humanize %}
 
-{% block "title" %}Tous les matchs{% endblock %}
-{% block "titleh1" %}Tous les matchs{% endblock %}
+{% block "title" %}{{ title }}{% endblock %}
+{% block "titleh1" %}{{ title }}{% endblock %}
 
 {% block "content" %}
 
@@ -27,7 +27,7 @@
             <td>{{ match.id }}</td>
             <td>{{ match.ts|naturalday }} à {{ match.ts|time:"H:i:s" }}</td>
             <td>{{ match.get_status_display }}</td>
-            {% if show_creator %}<td>{{ match.author }}</td>{% endif %}
+            {% if show_creator %}<td{% if user == match.author %} class="itsme"{% endif %}>{{ match.author }}</td>{% endif %}
             <td>{{ map_name }}</td>
             <td><a href="{{ match.get_absolute_url }}">Détails</a></td>
         </tr>

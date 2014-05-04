@@ -32,9 +32,12 @@ class ChampionsListView(ListView):
     context_object_name = "champions"
     paginate_by = 50
     template_name = "champions-list.html"
+    title="Tous les champions"
 
     def get_context_data(self, **kwargs):
         context = super(ChampionsListView, self).get_context_data(**kwargs)
+        context['title'] = self.title
+        context['user'] = self.request.user
         context['show_for_all'] = self.show_for_all
         context['explanation_text'] = self.explanation_text
         return context
@@ -46,6 +49,7 @@ class AllChampionsView(ChampionsListView):
 
 class MyChampionsView(ChampionsListView):
     explanation_text = 'Voici la liste de tous vos champions participants actuellement.'
+    title = "Mes champions"
     show_for_all = False
 
     def get_queryset(self):
@@ -56,9 +60,12 @@ class MatchesListView(ListView):
     context_object_name = "matches"
     paginate_by = 100
     template_name = "matches-list.html"
+    title="Tous les matches"
 
     def get_context_data(self, **kwargs):
         context = super(MatchesListView, self).get_context_data(**kwargs)
+        context['title'] = self.title
+        context['user'] = self.request.user
         context['explanation_text'] = self.explanation_text
         context['show_creator'] = self.show_creator
         matches = []
@@ -83,6 +90,7 @@ class AllMatchesView(MatchesListView):
     show_creator = True
 
 class MyMatchesView(MatchesListView):
+    title="Mes matches"
     explanation_text = "Voici la liste des matches que vous avez lancé."
     show_creator = False
 
