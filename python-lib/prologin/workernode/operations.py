@@ -116,8 +116,11 @@ def spawn_server(config, rep_port, pub_port, opts):
 
 @asyncio.coroutine
 def spawn_dumper(config, rep_port, pub_port, opts):
-    if not config['path']['dumper']:
+    if 'dumper' not in config['path'] or not config['path']['dumper']:
         return
+
+    if not os.path.exists(config['path']['dumper']):
+        raise FileNotFoundError(config['path']['dumper'] + ' not found.')
 
     cmd = [config['path']['stechec_client'],
            "--name", "dumper",
