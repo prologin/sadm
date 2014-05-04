@@ -83,7 +83,7 @@ mkfs.ext4 -L export /dev/mapper/data-export
 echo 'Mounting partitions'
 mount /dev/mapper/data-root /mnt
 mkdir /mnt/boot /mnt/export
-mount /dev/sda1 /mnt/boot
+mount /dev/disk/by-label/boot /mnt/boot
 mount /dev/mapper/data-export /mnt/export
 
 echo 'Installing the base system'
