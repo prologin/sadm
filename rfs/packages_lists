@@ -1,6 +1,7 @@
 bash
 devtools
 dhcpcd
+dnsutils
 gcc
 gdm
 grub-bios
