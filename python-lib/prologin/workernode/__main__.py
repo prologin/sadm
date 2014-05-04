@@ -129,6 +129,13 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         return port
 
     @prologin.rpc.remote_method
+    def get_ports(self, n=1):
+        l = []
+        for i in range(n):
+            l.append(self.available_server_port())
+        return l
+
+    @prologin.rpc.remote_method
     @async_work(slots=1)
     def compile_champion(self, worker, user, cid, ctgz):
         ctgz = b64decode(ctgz)
