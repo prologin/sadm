@@ -7,8 +7,6 @@ master:
   shared_secret: CHANGEME       # A shared secret used to avoid malicious
                                 # requests impersonating a worker node.
 
-  game: CHANGEME                # The stechec2 game.
-
 worker:
   timeout_secs: 12      # After this number of seconds has elapsed, if a worker
                         # node has not sent a ping it will be considered as
@@ -23,3 +21,5 @@ sql:
   user: concours
   password: DEFAULT_PASSWORD
   database: concours
+
+champions_path: FIXME

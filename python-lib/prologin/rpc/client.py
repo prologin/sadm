@@ -14,7 +14,9 @@
 import asyncio
 import json
 import prologin.timeauth
+import socket
 import urllib.request
+import logging
 
 from contextlib import closing
 from urllib.parse import urljoin
@@ -152,11 +154,25 @@ class Client:
 
         if self.async:
             @asyncio.coroutine
-            def proxy(*args, **kwargs):
+            def proxy(*args, max_retries=0, retry_delay=10, **kwargs):
                 # TODO: use a requests-like library that supports asyncio
                 # instead of run_in_executor?
-                return (yield from self.ioloop.run_in_executor(None,
-                    self._call_method, method, args, kwargs))
+
+                i = 0
+                while True:
+                    try:
+                        return (yield from self.ioloop.run_in_executor(None,
+                            self._call_method, method, args, kwargs))
+                    except socket.error:
+                        if i < max_retries:
+                            logging.warning('<{}> down, cannot call {}. '
+                                'Retrying in {}s...'.format(self.base_url,
+                                    method, retry_delay))
+                            yield from asyncio.sleep(retry_delay)
+                        else:
+                            raise
+                    i += 1
+
         else:
             def proxy(*args, **kwargs):
                 return self._call_method(method, args, kwargs)

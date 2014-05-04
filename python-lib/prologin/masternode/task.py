@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 # This file is part of Prologin-SADM.
 #
-# Copyright (c) 2013 Antoine Pietri <antoine.pietri@prologin.org>
+# Copyright (c) 2014 Antoine Pietri <antoine.pietri@prologin.org>
 # Copyright (c) 2011 Pierre Bourdon <pierre.bourdon@prologin.org>
 # Copyright (c) 2011 Association Prologin <info@prologin.org>
 #
@@ -18,26 +18,28 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
+import asyncio
+
+
 class CompilationTask:
-    def __init__(self, config, user, champ_id):
-        self.contest = config['master']['contest']
-        self.user = user
+    def __init__(self, champ_id, champ_tgz):
+        self.champ_tgz = champ_tgz
         self.champ_id = champ_id
 
     @property
     def slots_taken(self):
         return 1
 
+    @asyncio.coroutine
     def execute(self, master, worker):
-        worker.rpc.compile_champion(
-            self.contest, self.user, self.champ_id
-        )
+        yield from worker.rpc.compile_champion(self.champ_id, self.champ_tgz)
 
     def __repr__(self):
-        return "<Compilation: {}/{}>".format(self.user, self.champ_id)
+        return "<Compilation: {}>".format(self.champ_id)
+
 
 class PlayerTask:
-    def __init__(self, config, mid, hostname, req_port, sub_port, cid, mpid, user, opts):
+    def __init__(self, match_id):
         self.contest = config['master']['contest']
         self.mid = mid
         self.hostname = hostname
