@@ -1,7 +1,7 @@
 Generate the installation command
 =================================
 
-    echo -n "yaourt -S --needed" `sed '/^\* /!d' contestants_package_list | tr -d '\n*'`
+    echo -n "yaourt --root /export/nfsroot -S --needed" `sed '/^\* /!d' contestants_package_list | tr -d '\n*'`
 
 
 List of packages for contestants' environment
