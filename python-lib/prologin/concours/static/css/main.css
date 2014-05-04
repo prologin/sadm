@@ -166,15 +166,13 @@ td, th {
     border-left: 1px solid #004;
 }
 
-.row1 { background-color: #4488DD; }
-.row2 { background-color: #77AAFF; }
+tr:nth-child(odd){ background-color:#ddd; }
+tr:nth-child(even){ background-color:#eee; }
 
-.row1 a, .row1 a:visited, .row2 a, .row1 a:visited { color: #FFF; font-weight: bold; text-decoration:underline}
+tr a, tr a:visited { color: #FFF; font-weight: bold; text-decoration:underline}
 
-.row1 a:hover, .row2 a:hover { color: #FFAA00; text-decoration:none}
+table tbody tr:hover { background-color: #FDF8C7 }
 
-.row1:hover { background-color:#888}
-.row2:hover { background-color:#AAA}
 
 /* PAGINATION */
 p.pagination {
