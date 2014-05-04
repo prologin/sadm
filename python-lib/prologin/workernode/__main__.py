@@ -175,9 +175,6 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         server_stdout = task_server.result()
         dumper_stdout = task_dumper.result()
 
-        if not server_stdout:
-            return
-
         lines = server_stdout.split('\n')
         result = []
         score_re = re.compile(r'^(\d+) (-?\d+) (-?\d+)$')
@@ -186,9 +183,6 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
             if m is not None:
                 pid, score, stat = m.groups()
                 result.append((int(pid), int(score)))
-
-        if not result:
-            return
 
         b64dump = b64encode(dumper_stdout).decode()
         try:
