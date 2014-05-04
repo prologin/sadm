@@ -32,6 +32,7 @@ import random
 import time
 
 from .worker import Worker
+from .concoursquery import ConcoursQuery
 from . import task
 
 loop = asyncio.get_event_loop()
@@ -44,6 +45,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         self.workers = {}
         self.worker_tasks = []
         self.matches = {}
+        self.db = ConcoursQuery(config)
 
         self.spawn_tasks()
 
@@ -97,46 +99,27 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             status = 'error'
 
         logging.info('compilation of champion {}: {}'.format(champ_id, status))
-
-        db = self.connect_to_db()
-        cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        cur.execute(
-            self.config['sql']['queries']['set_champion_status'],
-            { 'champion_id': champ_id, 'champion_status': status }
-        )
-        db.commit()
+        self.db.execute('set_champion_status', champion_id=champ_id,
+                champion_stats=status)
 
     @prologin.rpc.remote_method
-    def match_done(self, worker, mid, result):
-        db = self.connect_to_db()
-        cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
-
+    def match_done(self, mid, result):
         logging.info('match {} ended'.format(mid))
 
-        to_update = [
-            { 'player_id': r[0], 'player_score': r[1] }
-            for r in result
-        ]
-        cur.executemany(
-            self.config['sql']['queries']['set_player_score'],
-            to_update
-        )
+        @asyncio.coroutine
+        def match_done_db(mid, result):
+            yield from self.db.execute('set_match_status',
+                    { 'match_id': mid, 'match_status': 'done' })
 
-        cur.execute(
-            self.config['sql']['queries']['set_match_status'],
-            { 'match_id': mid, 'match_status': 'done' }
-        )
+            t = [{ 'player_id': r[0], 'player_score': r[1]}
+                    for r in result]
+            yield from self.db.execute_many('set_player_score', t)
 
-        to_update = [
-            { 'match_id': mid, 'champion_score': r[1], 'player_id': r[0] }
-            for r in result
-        ]
-        cur.executemany(
-            self.config['sql']['queries']['update_tournament_score'],
-            to_update
-        )
+            t = [{ 'match_id': mid, 'champion_score': r[1], 'player_id': r[0]}
+                    for r in result]
+            yield from self.db.execute_many('update_tournament_score', t)
 
-        db.commit()
+        asyncio.Task(match_done_db(mid, result))
         self.workers[(worker[0], worker[1])].remove_match_task(mid)
 
     @prologin.rpc.remote_method
@@ -163,23 +146,12 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                     self.redispatch_worker(worker)
             yield from asyncio.sleep(1)
 
-    def connect_to_db(self):
-        return psycopg2.connect(
-            host=self.config['sql']['host'],
-            port=self.config['sql']['port'],
-            user=self.config['sql']['user'],
-            password=self.config['sql']['password'],
-            database=self.config['sql']['database'],
-        )
-
+    @asyncio.coroutine
     def check_requested_compilations(self, status='new'):
-        cur = self.db.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        cur.execute(
-            self.config['sql']['queries']['get_champions'],
-            { 'champion_status': status }
-        )
-
         to_set_pending = []
+        yield from self.db.execute('get_champions',
+            { 'champion_status': status })
+
         for r in cur:
             logging.info('requested compilation for {} / {}'.format(
                               r['name'], r['id']))
@@ -192,22 +164,14 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
 
         if to_set_pending:
             self.to_dispatch.set()
+        yield from self.db.executemany('set_champion_status', to_set_pending)
 
-        cur.executemany(
-            self.config['sql']['queries']['set_champion_status'],
-            to_set_pending
-        )
-        self.db.commit()
-
+    @asyncio.coroutine
     def check_requested_matches(self, status='new'):
-        cur = self.db.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        cur.execute(
-            self.config['sql']['queries']['get_matches'],
-            { 'match_status': status }
-        )
-
         to_set_pending = []
-        for r in cur:
+        c = yield from self.db.execute('get_matches', {'match_status': status})
+
+        for r in c:
             logging.info('request match id {} launch'.format(r['match_id']))
             mid = r['match_id']
             opts = r['match_options']
@@ -222,12 +186,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
 
         if to_set_pending:
             self.to_dispatch.set()
-
-        cur.executemany(
-            self.config['sql']['queries']['set_match_status'],
-            to_set_pending
-        )
-        self.db.commit()
+        yield from self.db.executemany('set_match_status', to_set_pending)
 
     @asyncio.coroutine
     def dbwatcher_task(self):

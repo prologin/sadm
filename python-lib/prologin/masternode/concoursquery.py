@@ -22,7 +22,7 @@ import aiopg
 import asyncio
 
 REQUESTS = {
-        'get_champions': '''
+    'get_champions': '''
           SELECT
             stechec_champion.id AS id,
             auth_user.username AS name
@@ -31,16 +31,16 @@ REQUESTS = {
           LEFT JOIN auth_user
             ON auth_user.id = stechec_champion.author_id
           WHERE
-            stechec_champion.status = {champion_status}
+            stechec_champion.status = %(champion_status)s
     ''',
 
     'set_champion_stats': '''
           UPDATE
             stechec_champion
           SET
-            status = {champion_status}
+            status = %(champion_status)s
           WHERE
-            stechec_champion.id = {champion_id}
+            stechec_champion.id = %(champion_id)s
     ''',
 
     'get_matches': '''
@@ -59,7 +59,7 @@ REQUESTS = {
           LEFT JOIN auth_user
             ON stechec_champion.author_id = auth_user.id
           WHERE
-            stechec_match.status = {match_status}
+            stechec_match.status = %(match_status)s
           GROUP BY
             stechec_match.id,
             stechec_match.options
@@ -70,25 +70,25 @@ REQUESTS = {
           UPDATE
             stechec_match
           SET
-            status = {match_status}
+            status = %(match_status)s
           WHERE
-            stechec_match.id = {match_id}
+            stechec_match.id = %(match_id)s
     ''',
 
     'set_player_score': '''
           UPDATE
             stechec_matchplayer
           SET
-            score = {player_score}
+            score = %(player_score)s
           WHERE
-            stechec_matchplayer.id = {player_id}
+            stechec_matchplayer.id = %(player_id)s
     ''',
 
     'update_tournament_score': '''
           UPDATE
             stechec_tournamentplayer
           SET
-            score = score + {champion_score}
+            score = score + %(champion_score)s
           WHERE
             stechec_tournamentplayer.tournament_id = (
               SELECT
@@ -96,7 +96,7 @@ REQUESTS = {
               FROM
                 stechec_match
               WHERE
-                stechec_match.id = {match_id}
+                stechec_match.id = %(match_id)s
             )
             AND stechec_tournamentplayer.champion_id = (
               SELECT
@@ -106,7 +106,7 @@ REQUESTS = {
               LEFT JOIN stechec_matchplayer
                 ON stechec_champion.id = stechec_matchplayer.champion_id
               WHERE
-                stechec_matchplayer.id = {player_id}
+                stechec_matchplayer.id = %(player_id)s
             )
     ''',
 }
@@ -129,17 +129,20 @@ class ConcoursQuery:
                 port=self.port)
         return (yield from conn.cursor())
 
-    # Each time we want to make a request, we establish a new connection, to
-    # prevent issues if DB reboots
-    def __getattr__(self, name):
+    # Each time we want to make a request, we establish a new connection, in
+    # order to prevent issues if DB reboots
+    @asyncio.coroutine
+    def execute(self, name, params):
         if name not in REQUESTS:
             raise AttributeError('No such request')
 
-        @asyncio.coroutine
-        def proxy(*args, **kwargs):
-            cursor = yield from self.connect()
-            request = REQUESTS[name].format(*args, **kwargs)
-            response = yield from cursor.execute(request)
-            return (yield from self.cursor.fetchall())
+        cursor = yield from self.connect()
+        return (yield from cursor.execute(REQUESTS[name], params))
 
-        return proxy
+    @asyncio.coroutine
+    def executemany(self, name, seq_of_params):
+        if name not in REQUESTS:
+            raise AttributeError('No such request')
+
+        cursor = yield from self.connect()
+        return (yield from cursor.executemany(REQUESTS[name], seq_of_params))
