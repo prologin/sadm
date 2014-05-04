@@ -58,6 +58,7 @@ USERS = {
                               'groups': ('presencesync_usermap',
                                          'presencesync_public',) },
     'minecraft': { 'uid': 20140, 'groups': ('minecraft',) },  # FIXME: needs presencesync?
+    'concours': { 'uid': 20150, 'groups': ('concours', 'udbsync_public') },
 }
 
 # Same with groups. *_public groups are used for services that need to access
@@ -84,6 +85,7 @@ GROUPS = {
     'redmine': 20120,
     'presencesync_usermap': 20130,
     'minecraft': 20140,  # FIXME: needs _public?
+    'concours': 20150,
 }
 
 
@@ -152,9 +154,13 @@ def install_cfg_profile(name, group, mode=0o640):
             '/etc/prologin', owner='root:%s' % group, mode=mode)
 
 
-def install_nginx_service(name):
+def install_nginx_service(name, contest=False):
+    if contest:
+        where = '/etc/nginx/services_contest'
+    else:
+        where = '/etc/nginx/services'
     install_cfg(os.path.join('nginx', 'services', name + '.nginx'),
-                '/etc/nginx/services', owner='root:root', mode=0o644)
+                where, owner='root:root', mode=0o644)
 
 
 def install_systemd_unit(name, instance='system', kind='service'):
@@ -226,6 +232,7 @@ def install_nginxcfg():
     install_cfg('nginx/proxy_params', '/etc/nginx', owner='root:root',
                 mode=0o644)
     mkdir('/etc/nginx/services', mode=0o755, owner='root:root')
+    mkdir('/etc/nginx/services_contest', mode=0o755, owner='root:root')
     if not os.path.exists('/etc/nginx/logs'):
         mkdir('/var/log/nginx', mode=0o750, owner='http:log')
         os.symlink('/var/log/nginx', '/etc/nginx/logs')
@@ -344,6 +351,25 @@ def install_homepage():
         django_syncdb('homepage')
 
 
+def install_concours():
+    requires('libprologin')
+    requires('udbsync_django')
+    requires('nginxcfg')
+
+    first_time = not os.path.exists('/var/prologin/concours')
+
+    install_service_dir('django/concours', owner='concours:concours',
+            mode=0o700)
+    install_nginx_service('concours', contest=True)
+    install_systemd_unit('concours')
+
+    install_cfg_profile('concours', group='concours')
+    install_cfg_profile('concours-udbsync', group='concours')
+
+    if first_time:
+        django_initial_data('concours')
+        django_syncdb('concours')
+
 def install_netboot():
     requires('libprologin')
     requires('nginxcfg')
@@ -381,6 +407,7 @@ def install_udbsync():
 
 def install_udbsync_django():
     requires('libprologin')
+    requires('udbsync')
 
     install_systemd_unit('udbsync_django@')
 
@@ -565,6 +592,7 @@ def install_minecraft():
 
 COMPONENTS = [
     'bindcfg',
+    'concours',
     'dhcpdcfg',
     'firewall',
     'hfs',

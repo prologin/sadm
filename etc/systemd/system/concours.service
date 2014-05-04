@@ -1,0 +1,12 @@
+[Unit]
+Description=Concours website
+After=network.target
+
+[Service]
+Type=simple
+User=concours
+WorkingDirectory=/var/prologin/concours
+ExecStart=/var/prologin/venv/bin/gunicorn -b 127.0.0.1:20150 prologin.concours.wsgi
+
+[Install]
+WantedBy=multi-user.target
