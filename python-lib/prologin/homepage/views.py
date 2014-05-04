@@ -17,9 +17,11 @@
 
 from django.conf import settings
 from django.shortcuts import render_to_response
+from django.db.models import Q
 from prologin.homepage.models import Link
 
 def home(request):
-    links = Link.objects.filter(contest_only=settings.CONTEST_MODE)
+    links = Link.objects.filter(Q(contest_only=False)
+                                | Q(contest_only=settings.CONTEST_MODE))
     links = links.order_by('display_order', 'name')
     return render_to_response('home.html', { 'links': links })
