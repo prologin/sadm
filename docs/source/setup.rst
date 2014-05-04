@@ -568,7 +568,7 @@ Then you can just start the service::
   systemctl enable wiki && systemctl start wiki
 
 Redmine (a.k.a. "bugs")
-~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
 
 First, export some useful variables. Change them if needed::
 
