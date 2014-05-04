@@ -1,5 +1,5 @@
 [Unit]
-Description=Copy ~root/.ssh/authorized_keys to NFS root
+Description=Copy ~root/.ssh/authorized_keys to NFS root (watcher)
 
 [Path]
 PathChanged=/root/.ssh/authorized_keys
