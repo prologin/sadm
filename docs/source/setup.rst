@@ -79,7 +79,7 @@ Install a few packages we will need::
 
   pacman -S git dhcp bind python python-pip python-virtualenv libyaml nginx \
             sqlite dnsutils rsync postgresql-libs tcpdump base-devel pwgen \
-            libxslt ipset pssh postgresql nbd wget
+            libxslt ipset pssh postgresql nbd wget strace
 
 Create the main Python ``virtualenv`` we'll use for all our Prologin apps::
 
