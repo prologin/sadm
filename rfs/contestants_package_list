@@ -144,6 +144,7 @@ List of packages for contestants' environment
 * gtest
 * ruby
 * python-yaml
+* python-pygame-hg
 
 
 # Stechec2 language dependancies
