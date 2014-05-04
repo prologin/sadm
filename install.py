@@ -496,15 +496,12 @@ def install_set_hostname():
 
 
 def install_firewall():
-
     copy('etc/sysctl/ip_forward.conf', '/etc/sysctl.d/ip_forward.conf')
-    copy('etc/sysctl/rp_filter.conf', '/etc/sysctl.d/rp_filter.conf')
     install_systemd_unit('firewall')
     install_cfg('iptables.save', '/etc/prologin/')
 
 
 def install_netctl_gw():
-
     copy('etc/netctl/gw', '/etc/netctl/gw')
 
 
