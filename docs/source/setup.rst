@@ -416,8 +416,8 @@ Create user ``hfs``, database ``hfs``, and associated tables:
 
 .. note::
 
-    You must change the password of user ``hfs`` in ``./sql/hfs.sql`` to match
-    the one in ``./etc/prologin/hfs-server.yml``.
+    You must change the password of user ``hfs`` in ``sql/hfs.sql`` to match
+    the one in ``etc/prologin/hfs-server.yml``.
 
 ::
 
@@ -655,7 +655,7 @@ You should be able to access the brand new Redmine.
 
   - Login at http://redmine/login with ``admin`` / ``admin``
   - Change password at http://redmine/my/password
-  - Configure a new project at http://redmine/projects/new    
+  - Configure a new project at http://redmine/projects/new
     The ``Identifiant`` **has to be prologin** in order to vhost to work.
 
 Homepage
@@ -666,8 +666,7 @@ allows adding links easily. Setup it using ``install.py``::
 
   python install.py homepage
   systemctl enable homepage && systemctl start homepage
-  systemctl enable udbsync_django@homepage
-  systemctl start udbsync_django@homepage
+  systemctl enable udbsync_django@homepage && systemctl start udbsync_django@homepage
 
 Contest website
 ~~~~~~~~~~~~~~~
