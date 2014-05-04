@@ -494,6 +494,7 @@ def install_set_hostname():
 
 def install_firewall():
 
+    copy('etc/sysctl/ip_forward.conf', '/etc/sysctl.d/ip_forward.conf')
     install_systemd_unit('firewall')
     install_cfg('iptables.save', '/etc/prologin/')
 
