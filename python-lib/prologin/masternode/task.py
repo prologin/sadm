@@ -39,26 +39,24 @@ class CompilationTask:
 
 
 class PlayerTask:
-    def __init__(self, match_id):
-        self.contest = config['master']['contest']
-        self.mid = mid
-        self.hostname = hostname
+    def __init__(self, match_id, pl_id, ip, req_port, sub_port, ctgz, opts):
+        self.match_id = match_id
+        self.hostname = ip
         self.req_port = req_port
         self.sub_port = sub_port
-        self.cid = cid
-        self.mpid = mpid
-        self.user = user
+        self.ctgz = ctgz
+        self.pl_id = pl_id
         self.opts = opts
 
     @property
     def slots_taken(self):
         return 2 # It's usually fairly intensive, take 2 slots
 
+    @asyncio.coroutine
     def execute(self, master, worker):
-        worker.rpc.run_client(
-            self.contest, self.mid, self.hostname, self.req_port,
-            self.sub_port, self.user, self.cid, self.mpid, self.opts
-        )
+        yield from worker.rpc.run_client(self.match_id, self.pl_id,
+            self.hostname, self.req_port, self.sub_port, self.ctgz, self.opts)
+
 
 class MatchTask:
     def __init__(self, config, mid, players, opts):
@@ -73,13 +71,14 @@ class MatchTask:
     def slots_taken(self):
         return 1 # Only the server is launched by this task
 
+    @asyncio.coroutine
     def execute(self, master, worker):
         master.matches[self.mid] = self
-        req_port = worker.rpc.available_port()
-        sub_port = worker.rpc.available_port()
-        worker.rpc.run_server(
-            self.contest, self.mid, self.opts
-        )
+        req_port = yield from worker.rpc.available_port()
+        sub_port = yield from worker.rpc.available_port()
+
+        yield from worker.rpc.run_server(req_port, sub_port, self.mid,
+                self.opts)
         for (cid, mpid, user) in self.players:
             # on error, prevent launching several times the players
             if mpid in self.player_tasks:

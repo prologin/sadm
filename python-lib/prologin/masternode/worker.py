@@ -33,6 +33,10 @@ class Worker(object):
         self.tasks = []
         self.keep_alive()
         self.config = config
+        self.rpc = prologin.rpc.client.Client("http://{}:{}/".format(
+            self.hostname, self.port),
+            secret=self.config['master']['shared_secret'].encode('utf-8'),
+            async=True)
 
     @property
     def usage(self):
@@ -54,45 +58,35 @@ class Worker(object):
 
     def add_task(self, master, task):
         self.slots -= task.slots_taken
-        future = asyncio.Task(task.execute(master, self))
-        self.tasks.append((task, future))
-
-    def kill_tasks(self):
-        for (t, f) in self.tasks:
-            f.cancel()
+        self.tasks.append(task)
+        asyncio.Task(task.execute(master, self))
 
     def remove_compilation_task(self, champ_id):
         new = []
-        for (t, f) in self.tasks:
+        for t in self.tasks:
             if isinstance(t, task.CompilationTask):
                 if t.champ_id == champ_id:
                     continue
-            new.append((t, f))
+            new.append(t)
         self.tasks = new
 
     def remove_match_task(self, mid):
         new = []
-        for (t, f) in self.tasks:
+        for t in self.tasks:
             if isinstance(t, task.MatchTask):
                 if t.mid == mid:
                     continue
-            new.append((t, f))
+            new.append(t)
         self.tasks = new
 
     def remove_player_task(self, mpid):
         new = []
-        for (t, f) in self.tasks:
+        for t in self.tasks:
             if isinstance(t, task.PlayerTask):
                 if t.mpid == mpid:
                     continue
-            new.append((t, f))
+            new.append(t)
         self.tasks = new
-
-    @property
-    def rpc(self):
-        url = "http://{}:{}/".format(self.hostname, self.port)
-        return prologin.rpc.client.Client(url,
-            secret=self.config['master']['shared_secret'].encode('utf-8'))
 
     def __repr__(self):
         return '<Worker: {}:{}>'.format(self.hostname, self.port)
