@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
-{% block "title" %}Tous les champions{% endblock %}
-{% block "titleh1" %}Tous les champions{% endblock %}
+{% block "title" %}{{ title }}{% endblock %}
+{% block "titleh1" %}{{ title }}{% endblock %}
 
 {% block "content" %}
 
@@ -28,7 +28,7 @@
             <td>{{ champion.id }}</td>
             <td>{{ champion.name }}</td>
             {% if show_for_all %}
-            <td>{{ champion.author }}</td>
+            <td{% if user == champion.author %} class="itsme"{% endif %}>{{ champion.author }}</td>
             <td><a href="{{ champion.get_absolute_url }}">Détails</a></td>
             {% else %}
             <td>{{ champion.get_status_display }}</td>
