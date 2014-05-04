@@ -109,7 +109,7 @@ def spawn_server(config, rep_port, pub_port, opts):
     retcode, stdout = yield from communicate(cmd)
     if not (retcode == 0):
         logging.error(stdout.decode().strip())
-        return
+        return ''
 
     return stdout.decode()
 
