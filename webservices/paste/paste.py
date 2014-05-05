@@ -146,7 +146,7 @@ def new_path(user):
 
 def dump_paste(content, user):
     filename = new_path(user)
-    with open(filename, 'w') as f:
+    with open(filename, 'wb') as f:
         f.write(content)
     return filename
 
@@ -178,7 +178,7 @@ def meta_dir(user, paste):
 
 def dump_meta(user, paste, meta):
     filename = meta_dir(user, paste)
-    with open(filename, 'w') as f:
+    with open(filename, 'wb') as f:
         dump(meta, f)
 
 def read_meta(user, paste):
@@ -270,7 +270,7 @@ class MainHandler(tornado.web.RequestHandler):
                     meta['hl'] = hl
 
             dump_meta(user, paste, meta)
-            if '&script' in self.request.body:
+            if b'&script' in self.request.body:
                 self.set_header("Content-Type", "text/plain; charset=utf-8")
                 self.write(options)
                 return
