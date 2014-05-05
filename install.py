@@ -308,14 +308,26 @@ def install_mdbdhcp():
 def install_webservices():
     requires('nginxcfg')
 
+    install_service_dir('webservices/docs', mode=0o755,
+                        owner='webservices:http')
+    install_nginx_service('docs')
+
+def install_paste():
+    requires('nginxcfg')
+
+    first_time = not os.path.exists('/var/prologin/mdb')
+
     install_service_dir('webservices/paste', mode=0o755,
                         owner='webservices:http')
     install_nginx_service('paste')
     install_systemd_unit('paste')
 
-    install_service_dir('webservices/docs', mode=0o755,
-                        owner='webservices:http')
-    install_nginx_service('docs')
+    if first_time:
+        # Use specific venv
+        with cwd('/var/prologin/paste'):
+            cmd = 'su -c "/var/prologin/venv_paste/bin/python manage.py syncdb --noinput" '
+            cmd += 'webservices'
+            os.system(cmd)
 
 
 def install_redmine():
@@ -634,6 +646,7 @@ COMPONENTS = [
     'netboot',
     'netctl_gw',
     'nginxcfg',
+    'paste',
     'presenced',
     'presencesync',
     'presencesync_firewall',

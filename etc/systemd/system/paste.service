@@ -6,7 +6,7 @@ After=network.target
 Type=simple
 User=webservices
 WorkingDirectory=/var/prologin/paste
-ExecStart=/var/prologin/venv/bin/python paste.py 20050
+ExecStart=/var/prologin/venv_paste/bin/gunicorn -b 127.0.0.1:20050 wsgi
 
 [Install]
 WantedBy=multi-user.target

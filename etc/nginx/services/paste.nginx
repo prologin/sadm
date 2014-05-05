@@ -4,21 +4,7 @@ server {
 
     access_log logs/paste.access.log main;
 
-    location ~ ^(.*)/(.*).css {
-        root /var/prologin/paste/;
-    }
-
-    location ~ ^(.*)/(.*).png {
-        root /var/prologin/paste/;
-    }
-
     location / {
-        rewrite ^/$ / break;
-        rewrite ^/user/([^/]+)$ /?user=$1 break;
-        rewrite ^/user/([^/]+)/([^&]+)?&(.*)$ /?id=$1/$2&$3 break;
-        rewrite ^/([^&]+)&(.*)$ /?id=$1&$2 break;
-        rewrite ^/(.*)$ /?id=$1 break;
-
         proxy_pass http://localhost:20050;
         include proxy_params;
     }
