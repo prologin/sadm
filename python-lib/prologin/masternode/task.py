@@ -19,12 +19,32 @@
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 import asyncio
+import os
+import os.path
+
+from base64 import b64decode, b64encode
+
+
+def champion_path(config, user, cid):
+    return os.path.join(config['champions_path'], user, cid, 'champion.tgz')
+
+
+def clog_path(config, user, cid):
+    return os.path.join(config['champions_path'], user, cid, 'compilation.log')
+
+
+def match_path(config, match_id):
+    match_id_high = "{:03}".format(match_id / 1000)
+    match_id_low = "{:03}".format(match_id % 1000)
+    return os.path.join(config['matches_path'], match_id_high, match_id_low)
 
 
 class CompilationTask:
-    def __init__(self, champ_id, champ_tgz):
-        self.champ_tgz = champ_tgz
+    def __init__(self, config, user, champ_id):
+        self.config = config
+        self.user = user
         self.champ_id = champ_id
+        self.champ_path = champion_path(config, user, cid)
 
     @property
     def slots_taken(self):
@@ -32,21 +52,26 @@ class CompilationTask:
 
     @asyncio.coroutine
     def execute(self, master, worker):
-        yield from worker.rpc.compile_champion(self.champ_id, self.champ_tgz)
+        ctgz = ''
+        with open(self.champ_path, 'rb') as f:
+            ctgz = b64encode(f.read()).decode()
+        yield from worker.rpc.compile_champion(self.user,
+                self.champ_id, ctgz)
 
     def __repr__(self):
         return "<Compilation: {}>".format(self.champ_id)
 
 
 class PlayerTask:
-    def __init__(self, match_id, pl_id, ip, req_port, sub_port, ctgz, opts):
+    def __init__(self, config, match_id, pl_id, ip, req_port, sub_port, user,
+            cid, opts):
         self.match_id = match_id
         self.hostname = ip
         self.req_port = req_port
         self.sub_port = sub_port
-        self.ctgz = ctgz
         self.pl_id = pl_id
         self.opts = opts
+        self.champ_path = champion_path(config, user, cid)
 
     @property
     def slots_taken(self):
@@ -54,8 +79,12 @@ class PlayerTask:
 
     @asyncio.coroutine
     def execute(self, master, worker):
+        ctgz = ''
+        with open(self.champ_path, 'rb') as f:
+            ctgz = b64encode(f.read()).decode()
         yield from worker.rpc.run_client(self.match_id, self.pl_id,
-            self.hostname, self.req_port, self.sub_port, self.ctgz, self.opts)
+                self.hostname, self.req_port, self.sub_port, ctgz, cid,
+                self.opts)
 
 
 class MatchTask:
@@ -73,9 +102,13 @@ class MatchTask:
 
     @asyncio.coroutine
     def execute(self, master, worker):
+        try:
+            os.makedirs(match_path(self.mid))
+        except OSError:
+            pass
+
         master.matches[self.mid] = self
-        req_port = yield from worker.rpc.available_port()
-        sub_port = yield from worker.rpc.available_port()
+        req_port, sub_port = yield from worker.rpc.available_ports(2)
 
         yield from worker.rpc.run_server(req_port, sub_port, self.mid,
                 self.opts)
@@ -86,7 +119,7 @@ class MatchTask:
             self.player_tasks.add(mpid)
 
             t = PlayerTask(self.config, self.mid, worker.hostname, req_port,
-                sub_port, cid, mpid, user, self.opts)
+                sub_port, mpid, user, cid, self.opts)
             master.worker_tasks.append(t)
         master.to_dispatch.set()
         del master.matches[self.mid]

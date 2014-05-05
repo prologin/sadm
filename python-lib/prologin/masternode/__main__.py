@@ -22,7 +22,6 @@ import asyncio
 import copy
 import logging
 import optparse
-import os.path
 import prologin.config
 import prologin.log
 import prologin.rpc.server
@@ -33,7 +32,7 @@ import time
 
 from .worker import Worker
 from .concoursquery import ConcoursQuery
-from . import task
+from .task import MatchTask, CompilationTask, champion_path, match_path
 
 loop = asyncio.get_event_loop()
 tornado.platform.asyncio.AsyncIOMainLoop().install()
@@ -86,28 +85,33 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         self.update_worker(worker)
 
     @prologin.rpc.remote_method
-    def compilation_result(self, worker, champ_id, ret):
+    def compilation_result(self, worker, cid, user, ret, b64compiled, log):
+        def complete_compilation(self, cid, user, ret):
+            status = 'ready' if ret else 'error'
+            if ret:
+                with open(champion_path(self.config, user, cid), 'wb') as f:
+                    f.write(b64decode(b64compiled))
+            with open(clog_path(self.config, user, cid, 'w')) as f:
+                f.write(log)
+            logging.info('compilation of champion {}: {}'.format(cid, status))
+            yield from self.db.execute('set_champion_status',
+                    {'champion_id': cid, 'champion_stats': status})
+
         hostname, port, slots, max_slots = worker
         w = self.workers[(hostname, port)]
-        w.remove_compilation_task(champ_id)
-        loop.add_callback(self.complete_compilation, champ_id, ret)
-
-    def complete_compilation(self, champ_id, ret):
-        if ret is True:
-            status = 'ready'
-        else:
-            status = 'error'
-
-        logging.info('compilation of champion {}: {}'.format(champ_id, status))
-        self.db.execute('set_champion_status', champion_id=champ_id,
-                champion_stats=status)
+        w.remove_compilation_task(cid)
+        asyncio.Task(complete_compilation(cid, ret))
 
     @prologin.rpc.remote_method
-    def match_done(self, mid, result):
+    def match_done(self, worker, mid, result, b64dump, stdout):
         logging.info('match {} ended'.format(mid))
 
         @asyncio.coroutine
-        def match_done_db(mid, result):
+        def match_done_db(mid, result, b64dump, stdout):
+            with open(os.path.join(match_path(mid), 'dump.json.gz'), 'wb') as f:
+                f.write(b64decode(b64dump))
+            with open(os.path.join(match_path(mid), 'server.log'), 'w') as f:
+                f.write(stdout)
             yield from self.db.execute('set_match_status',
                     { 'match_id': mid, 'match_status': 'done' })
 
@@ -119,11 +123,14 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                     for r in result]
             yield from self.db.execute_many('update_tournament_score', t)
 
-        asyncio.Task(match_done_db(mid, result))
+        asyncio.Task(match_done_db(mid, result, b64dump))
         self.workers[(worker[0], worker[1])].remove_match_task(mid)
 
     @prologin.rpc.remote_method
-    def client_done(self, worker, mpid):
+    def client_done(self, worker, mpid, stdout, mid, champ_id):
+        logname = 'log-champ-{}-{}.log'.format(mpid, champ_id)
+        with open(os.path.join(match_path(mid), logname), 'w') as f:
+            f.write(stdout)
         self.workers[(worker[0], worker[1])].remove_player_task(mpid)
 
     def redispatch_worker(self, worker):
@@ -159,7 +166,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                 'champion_id': r['id'],
                 'champion_status': 'pending'
             })
-            t = task.CompilationTask(self.config, r['name'], r['id'])
+            t = CompilationTask(config, r['name'], r['id'])
             self.worker_tasks.append(t)
 
         if to_set_pending:
@@ -181,7 +188,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                 'match_id': mid,
                 'match_status': 'pending',
             })
-            t = task.MatchTask(self.config, mid, players, opts)
+            t = MatchTask(self.config, mid, players, opts)
             self.worker_tasks.append(t)
 
         if to_set_pending:
