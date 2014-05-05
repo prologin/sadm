@@ -48,7 +48,7 @@ except KeyError:
     # should not happen, but forbid anyway.  TODO: notify sysadmins...
     fail('No such user')
 
-if PAM_TYPE == 'open_session':
+if PAM_TYPE == 'open_session' and not os.path.ismount(get_home_dir(login)):
     # Not-prologin users are not resticted at all.
     if not is_prologin_user:
         sys.exit(0)
@@ -79,25 +79,34 @@ if PAM_TYPE == 'open_session':
         # There is no need to fix permissions: this is only a mount point.
         os.mkdir(home_dir)
 
-    if not os.path.ismount(home_dir):
-        # Get a block device for the HOME mount point and mount it.
-        if subprocess.check_call(['/usr/sbin/nbd-client', host, str(port),
-                                  block_device], stdout=sys.stderr,
-                                 stderr=sys.stderr):
-            fail('Cannot get the home directory block device')
-        if subprocess.check_call(['/bin/mount', block_device, home_dir],
-                                 stdout=sys.stderr, stderr=sys.stderr):
-            fail('Cannot mount the home directory')
+    # Get a block device for the HOME mount point and mount it.
+    if subprocess.check_call(['/usr/sbin/nbd-client', host, str(port),
+                              block_device], stdout=sys.stderr,
+                             stderr=sys.stderr):
+        fail('Cannot get the home directory block device')
+    if subprocess.check_call(['/bin/mount', block_device, home_dir],
+                             stdout=sys.stderr, stderr=sys.stderr):
+        fail('Cannot mount the home directory')
 
     sys.exit(0)
 
 elif PAM_TYPE == 'close_session':
     if is_prologin_user:
-        subprocess.check_call(['/usr/bin/pkill', '-9', '-u', login],
-                              stdout=sys.stderr, stderr=sys.stderr)
+        # Make sure the user has nothing else running
+        try:
+            subprocess.check_call(['/usr/bin/pkill', '-9', '-u', login],
+                                  stdout=sys.stderr, stderr=sys.stderr)
+        except CalledProcessError as e:
+            if e.returncode != 1: # "No processes matched" we don't care
+                raise e
+
+
+        # Unmount /home/user
         time.sleep(2)
         subprocess.check_call(['/bin/umount', get_home_dir(login)],
                               stdout=sys.stderr, stderr=sys.stderr)
+
+        # And finally stop the nbd client
         subprocess.check_call(['/usr/sbin/nbd-client', '-d',
                                get_block_device(login)],
                               stdout=sys.stderr, stderr=sys.stderr)
