@@ -121,7 +121,7 @@ class PresencedServer(prologin.web.TornadoApp):
         periodically.
         """
         conn = prologin.presenced.client.connect()
-        delay = prologin.presencesync.SUB_CFG['timeout'] / 2
+        delay = prologin.presencesync.client.SUB_CFG['timeout'] / 2
         while True:
             # Communicate with the Presenced server just like any other client
             # in order to handle concurrent accesses nicely.
