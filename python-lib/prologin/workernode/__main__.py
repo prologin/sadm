@@ -137,7 +137,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
 
     @prologin.rpc.remote_method
     @async_work(slots=1)
-    def compile_champion(self, worker, user, cid, ctgz):
+    def compile_champion(self, user, cid, ctgz):
         ctgz = b64decode(ctgz)
 
         with tempfile.TemporaryDirectory() as cpath:
@@ -159,8 +159,8 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
 
         b64compiled = b64encode(compilation_content).decode()
         try:
-            yield from self.master.compilation_result(worker, cid, user, ret,
-                    b64compiled, log,
+            yield from self.master.compilation_result(self.get_worker_infos(),
+                    cid, user, ret, b64compiled, log,
                     max_retries=self.config['master']['max_retries'],
                     retry_delay=self.config['master']['retry_delay'])
         except socket.error:
@@ -169,7 +169,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
 
     @prologin.rpc.remote_method
     @async_work(slots=1)
-    def run_server(self, worker, rep_port, pub_port, match_id, opts=''):
+    def run_server(self, rep_port, pub_port, match_id, opts=''):
         logging.info('starting server for match {}'.format(match_id))
 
         task_server = asyncio.Task(operations.spawn_server(self.config,
@@ -194,8 +194,9 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
 
         b64dump = b64encode(dumper_stdout).decode()
         try:
-            yield from self.master.match_done(worker, match_id, result,
-                    b64dump, max_retries=self.config['master']['max_retries'],
+            yield from self.master.match_done(self.get_worker_infos(),
+                    match_id, result, b64dump, server_stdout,
+                    max_retries=self.config['master']['max_retries'],
                     retry_delay=self.config['master']['retry_delay'])
         except socket.error:
             logging.warning('master down, cannot send match {} result'.format(
@@ -203,8 +204,8 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
 
     @prologin.rpc.remote_method
     @async_work(slots=2)
-    def run_client(self, worker, match_id, pl_id, ip, req_port, sub_port, ctgz,
-            opts=''):
+    def run_client(self, match_id, pl_id, ip, req_port, sub_port, champ_id,
+            ctgz, opts=''):
         ctgz = b64decode(ctgz)
         logging.info('running player {} for match {}'.format(pl_id, match_id))
 
@@ -216,8 +217,9 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         logging.info('player {} for match {} done'.format(pl_id, match_id))
 
         try:
-            yield from self.master.client_done(worker, match_id, pl_id,
-                    retcode, max_retries=self.config['master']['max_retries'],
+            yield from self.master.client_done(self.get_worker_infos(), pl_id,
+                    stdout, match_id, champ_id,
+                    max_retries=self.config['master']['max_retries'],
                     retry_delay=self.config['master']['retry_delay'])
         except socket.error:
             logging.warning('master down, cannot send client {} result '
