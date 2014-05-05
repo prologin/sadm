@@ -41,7 +41,7 @@ class MapSelect(widgets.Select):
         def render_option(map):
             title = map.name
             official = map.official
-            attrs = (map.id in selected_choices) and ' selected="selected"' or '' 
+            attrs = (map.id in selected_choices) and ' selected="selected"' or ''
             if official:
                 attrs += ' class="award"'
 
@@ -69,16 +69,18 @@ class MatchCreationForm(forms.Form):
             self.fields['champion_%d' % i] = f
             self.champions.append(f)
 
-        self.fields['map'] = forms.ChoiceField(required=True,
-                widget=MapSelect(attrs={'class': 'mapselect'}),
-                label="Map utilisée")
-        self.fields['map'].choices = [
-            (author, [(map.id, map) for map in maps])
-            for author, maps in groupby(
-                models.Map.objects.order_by('author__username', 'name'),
-                lambda map: map.author
-            )
-        ]
+        if settings.STECHEC_USE_MAPS:
+            self.fields['map'] = forms.ChoiceField(required=True,
+                    widget=MapSelect(attrs={'class': 'mapselect'}),
+                    label="Map utilisée")
+
+            self.fields['map'].choices = [
+                (author, [(map.id, map) for map in maps])
+                for author, maps in groupby(
+                    models.Map.objects.order_by('author__username', 'name'),
+                    lambda map: map.author
+                )
+            ]
 
     def clean_map(self):
         try:

@@ -35,6 +35,7 @@
                     <li><a href="{% url "status" %}">Statut des serveurs</a></li>
                 </ul>
             </div>
+            {% if use_maps %}
             <div class="block">
                 <h1>Cartes</h1>
                 <ul>
@@ -44,6 +45,7 @@
                     <li><a href="{% url "maps-all" %}">Liste des cartes</a></li>
                 </ul>
             </div>
+            {% endif %}
             {% comment %}
             <div class="block">
                 <h1>Tournois</h1>

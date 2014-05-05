@@ -144,8 +144,21 @@ LOGGING = {
     }
 }
 
+# /!\ If you update django, check that there is not more default context
+# processors
+TEMPLATE_CONTEXT_PROCESSORS = ("django.contrib.auth.context_processors.auth",
+    "django.core.context_processors.debug",
+    "django.core.context_processors.i18n",
+    "django.core.context_processors.media",
+    "django.core.context_processors.static",
+    "django.core.context_processors.tz",
+    "django.contrib.messages.context_processors.messages",
+    "prologin.concours.stechec.context_processors.context_from_config")
+
 STECHEC_ROOT = cfg["contest"]["directory"]
 STECHEC_CONTEST = cfg["contest"]["game"]
 STECHEC_MASTER = cfg["master"]["url"]
 STECHEC_MASTER_SECRET = cfg["master"]["shared_secret"].encode('utf-8')
 STECHEC_NPLAYERS = cfg["contest"]["nb_players"]
+STECHEC_USE_MAPS = cfg["contest"]["use_maps"]
+
