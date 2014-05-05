@@ -1,0 +1,11 @@
+[Unit]
+Description=Master node service
+After=network.target
+
+[Service]
+Type=simple
+User=cluster
+ExecStart=/var/prologin/venv/bin/python -m prologin.masternode
+
+[Install]
+WantedBy=multi-user.target
