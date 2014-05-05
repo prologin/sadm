@@ -1,7 +1,8 @@
 from prologin.concours.stechec import views
+from django.conf import settings
 from django.conf.urls.defaults import patterns, include, url
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth import views as auth_views
+from django.contrib.auth.decorators import login_required
 from django.views.generic import TemplateView
 
 urlpatterns = patterns('prologin.concours.stechec',
@@ -21,9 +22,12 @@ urlpatterns = patterns('prologin.concours.stechec',
     url(r'^matches/my/$', login_required(views.MyMatchesView.as_view()), name="matches-my"),
     url(r'^matches/new/$', login_required(views.new_match), name="match-new"),
 
-    url(r'^maps/(?P<pk>\d+?)/$', views.MapView.as_view(), name="map-detail"),
-    url(r'^maps/all/$', views.AllMapsView.as_view(), name="maps-all"),
-    url(r'^maps/new/$', login_required(views.new_map), name="map-new"),
-
     url(r'^status/$', views.master_status, name="status"),
 )
+
+if settings.STECHEC_USE_MAPS:
+    urlpatterns += patterns('prologin.concours.stechec',
+        url(r'^maps/(?P<pk>\d+?)/$', views.MapView.as_view(), name="map-detail"),
+        url(r'^maps/all/$', views.AllMapsView.as_view(), name="maps-all"),
+        url(r'^maps/new/$', login_required(views.new_map), name="map-new"),
+    )
