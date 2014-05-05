@@ -28,6 +28,7 @@ import grp
 import os
 import os.path
 import pwd
+import re
 import shutil
 import sys
 
@@ -447,14 +448,20 @@ def install_presenced():
 
     cfg = '/etc/pam.d/system-login'
     cfg_line = (
-        'session requisite pam_exec.so stdout'
+        'session requisite pam_exec.so'
         ' /var/prologin/presenced/pam_presenced.py'
     )
+
+    cfg_contents = []
     with open(cfg, 'r') as f:
-        to_append = cfg_line not in f.read().split('\n')
+        cfg_contents = f.read().split('\n')
+        to_append = cfg_line not in cfg_contents
+
     if to_append:
-        with open(cfg, 'a') as f:
-            print(cfg_line, file=f)
+        cfg_contents = '\n'.join(cfg_contents)
+        cfg_new = re.sub(r'(.*pam_systemd.*)', cfg_line + r'\n\1', cfg_contents)
+        with open(cfg, 'w') as f:
+            print(cfg_new, file=f)
 
 
 def install_presencesync():

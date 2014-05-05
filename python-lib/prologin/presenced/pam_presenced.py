@@ -96,7 +96,7 @@ elif PAM_TYPE == 'close_session':
         try:
             subprocess.check_call(['/usr/bin/pkill', '-9', '-u', login],
                                   stdout=sys.stderr, stderr=sys.stderr)
-        except CalledProcessError as e:
+        except subprocess.CalledProcessError as e:
             if e.returncode != 1: # "No processes matched" we don't care
                 raise e
 
