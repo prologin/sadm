@@ -17,7 +17,7 @@
             <th>Date &amp; heure</th>
             <th>État</th>
             {% if show_creator %}<th>Créateur</th>{% endif %}
-            <th>Carte</th>
+            {% if use_maps %}<th>Carte</th>{% endif %}
             <th>Actions</th>
         </tr>
     </thead>
@@ -28,7 +28,7 @@
             <td>{{ match.ts|naturalday }} à {{ match.ts|time:"H:i:s" }}</td>
             <td>{{ match.get_status_display }}</td>
             {% if show_creator %}<td{% if user == match.author %} class="itsme"{% endif %}>{{ match.author }}</td>{% endif %}
-            <td>{{ map_name }}</td>
+            {% if use_maps %}<td>{{ map_name }}</td>{% endif %}
             <td><a href="{{ match.get_absolute_url }}">Détails</a></td>
         </tr>
         {% empty %}

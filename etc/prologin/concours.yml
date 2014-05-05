@@ -38,6 +38,7 @@ contest:
   directory: CHANGEME   # Root directory where the website uploads champions,
                         # finds logs, etc. Should be shared with all the worker
                         # nodes.
+  use_maps: false       # Do the game use maps?
 
 # Use http://www.miniwebtool.com/django-secret-key-generator/
 secret_key: "DEFAULT_PASSWORD"
