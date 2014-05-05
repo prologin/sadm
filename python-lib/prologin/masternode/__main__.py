@@ -29,6 +29,8 @@ import psycopg2
 import psycopg2.extras
 import random
 import time
+import tornado
+import tornado.platform.asyncio
 
 from .worker import Worker
 from .concoursquery import ConcoursQuery
