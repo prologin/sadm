@@ -21,12 +21,17 @@
 filename="$1"
 username="$2"
 group="$3"
-skeleton="$4"
+skeletons="$4"
+user_type="$5"
 
 mkfs.ext4 -F -m 0 "$filename"
 mnt=$(mktemp -d)
 mount -o loop "$filename" "$mnt"
-rsync -aHAX "$skeleton/" "$mnt"
+if [ -d "$skeletons/$user_type" ]; then # Try to get user's group's skeleton
+    rsync -aHAX "${skeletons}_$user_type/" "$mnt"
+else
+    rsync -aHAX "$skeletons/" "$mnt" # Fallback on default skeleton
+fi
 chown -R "$username:$group" "$mnt"
 umount "$mnt"
 rmdir "$mnt"

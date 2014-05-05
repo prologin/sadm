@@ -274,7 +274,7 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
 
         # Format the file and copy the skeleton
         cmd = [creation_script, self.nbd_filename(), self.user, group,
-               CFG['skeleton']]
+               CFG['skeleton'], self.user_type]
 
         self.proc = subprocess.Popen(cmd)
         error_code = self.proc.wait()
