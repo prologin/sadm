@@ -85,6 +85,7 @@ List of packages for contestants' environment
 * rlwrap
 * valgrind
 * gdb
+* cgdb
 * ddd
 * gnuplot
 * tig
