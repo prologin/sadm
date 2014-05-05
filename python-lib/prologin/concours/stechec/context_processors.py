@@ -1,5 +1,5 @@
-from prologin.djangoconf import use_profile_config
-cfg = use_profile_config('concours')
+# -*- coding: utf-8 -*-
+from django.conf import settings
 
 def context_from_config(request):
-    return {'use_maps': cfg['contest']['use_maps']}
+    return {'use_maps': settings.STECHEC_USE_MAPS}
