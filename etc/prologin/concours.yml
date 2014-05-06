@@ -35,9 +35,11 @@ master:
 contest:
   game: CHANGEME        # Most likely "prologin<YEAR>"
   nb_players: CHANGEME  # Number of players for this game.
-  directory: CHANGEME   # Root directory where the website uploads champions,
-                        # finds logs, etc. Should be shared with all the worker
-                        # nodes.
+
+  # Root directory where the website uploads champions, finds logs, etc.
+  # Should be shared with the master node.
+  directory: /var/prologin/concours_shared
+
   use_maps: false       # Do the game use maps?
 
 # Use http://www.miniwebtool.com/django-secret-key-generator/

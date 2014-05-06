@@ -59,8 +59,9 @@ USERS = {
                               'groups': ('presencesync_usermap',
                                          'presencesync_public',) },
     'minecraft': { 'uid': 20140, 'groups': ('minecraft',) },  # FIXME: needs presencesync?
-    'concours': { 'uid': 20150, 'groups': ('concours', 'udbsync_public') },
-    'cluster': { 'uid': 20160, 'groups': ('cluster',) },
+    'concours': { 'uid': 20150, 'groups': ('concours', 'udbsync_public',
+                                           'cluster_public') },
+    'cluster': { 'uid': 20160, 'groups': ('cluster', 'cluster_public') },
 }
 
 # Same with groups. *_public groups are used for services that need to access
@@ -89,6 +90,7 @@ GROUPS = {
     'minecraft': 20140,  # FIXME: needs _public?
     'concours': 20150,
     'cluster': 20160,
+    'cluster_public': 20161,
 }
 
 
@@ -552,6 +554,11 @@ def install_masternode():
     requires('libprologin')
     install_systemd_unit('masternode')
     install_cfg_profile('masternode', group='cluster')
+    mkdir(
+        '/var/prologin/concours_shared',
+        dir_mode=0o770, file_mode=0o660,
+        owner='cluster:cluster_public'
+    )
 
 def install_workernode():
     requires('libprologin')

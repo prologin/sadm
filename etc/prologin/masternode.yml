@@ -22,5 +22,4 @@ sql:
   password: DEFAULT_PASSWORD
   database: concours
 
-champions_path: FIXME
-matches_path: FIXME
+shared_dir: /var/prologin/concours_shared # directory shared with concours
