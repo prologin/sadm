@@ -90,7 +90,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
 
     @prologin.rpc.remote_method
     def compilation_result(self, worker, cid, user, ret, b64compiled, log):
-        def complete_compilation(self, cid, user, ret):
+        def complete_compilation(cid, user, ret):
             status = 'ready' if ret else 'error'
             if ret:
                 with open(champion_path(self.config, user, cid), 'wb') as f:
@@ -104,7 +104,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         hostname, port, slots, max_slots = worker
         w = self.workers[(hostname, port)]
         w.remove_compilation_task(cid)
-        asyncio.Task(complete_compilation(cid, ret))
+        asyncio.Task(complete_compilation(cid, user, ret))
 
     @prologin.rpc.remote_method
     def match_done(self, worker, mid, result, b64dump, stdout):
