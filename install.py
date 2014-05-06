@@ -618,6 +618,7 @@ COMPONENTS = [
     'hfs',
     'homepage',
     'libprologin',
+    'masternode',
     'mdb',
     'mdbdhcp',
     'mdbdns',
@@ -642,6 +643,7 @@ COMPONENTS = [
     'udbsync_rfs',
     'udbsync_rootssh',
     'webservices',
+    'workernode',
 ]
 
 
