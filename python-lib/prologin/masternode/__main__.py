@@ -22,6 +22,7 @@ import asyncio
 import copy
 import logging
 import optparse
+import os.path
 import prologin.config
 import prologin.log
 import prologin.rpc.server
