@@ -38,7 +38,7 @@ def clog_path(config, user, cid):
 
 
 def match_path(config, match_id):
-    match_id_high = "{:03}".format(match_id / 1000)
+    match_id_high = "{:03}".format(match_id // 1000)
     match_id_low = "{:03}".format(match_id % 1000)
     return os.path.join(config['contest']['directory'],
             config['contest']['game'], 'matches', match_id_high, match_id_low)
