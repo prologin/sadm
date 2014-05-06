@@ -115,9 +115,11 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
 
         @asyncio.coroutine
         def match_done_db(mid, result, b64dump, stdout):
-            with open(os.path.join(match_path(mid), 'dump.json.gz'), 'wb') as f:
+            with open(os.path.join(match_path(self.config, mid),
+                'dump.json.gz'), 'wb') as f:
                 f.write(b64decode(b64dump))
-            with open(os.path.join(match_path(mid), 'server.log'), 'w') as f:
+            with open(os.path.join(match_path(self.config, mid), 'server.log'),
+                    'w') as f:
                 f.write(stdout)
             yield from self.db.execute('set_match_status',
                     { 'match_id': mid, 'match_status': 'done' })
@@ -136,7 +138,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
     @prologin.rpc.remote_method
     def client_done(self, worker, mpid, stdout, mid, champ_id):
         logname = 'log-champ-{}-{}.log'.format(mpid, champ_id)
-        with open(os.path.join(match_path(mid), logname), 'w') as f:
+        with open(os.path.join(match_path(self.config, mid), logname), 'w') as f:
             f.write(stdout)
         self.workers[(worker[0], worker[1])].remove_player_task(mpid)
 
