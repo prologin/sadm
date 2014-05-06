@@ -30,6 +30,6 @@ python install.py libprologin
 python install.py presenced set_hostname
 
 # Enable some services
-for svc in {sshd,ntpd,presenced,set_hostname,gdm}.service; do
+for svc in {sshd,ntpd,presenced,set_hostname,kdm}.service; do
   systemctl enable "$svc"
 done

@@ -47,7 +47,7 @@ cp kdm_sessions/* /export/nfsroot/usr/share/apps/kdm/sessions/
 
 # Enable and start the services need to serve the rfs
 cd .. # ~/sadm
-python install.py udbsync_passwd udbsync_passwd_nfsroot
+python install.py udbsync_passwd udbsync_rfs
 for svc in {sshd,nfsd,udbsync_passwd{,_nfsroot},rpc-{idmapd,gssd,mountd,statd}}.service; do
   systemctl enable "$svc"
   systemctl start  "$svc"
