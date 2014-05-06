@@ -195,7 +195,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         b64dump = b64encode(dumper_stdout).decode()
         try:
             yield from self.master.match_done(self.get_worker_infos(),
-                    match_id, result, b64dump, server_stdout.decode(),
+                    match_id, result, b64dump, server_stdout,
                     max_retries=self.config['master']['max_retries'],
                     retry_delay=self.config['master']['retry_delay'])
         except socket.error:
@@ -218,7 +218,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
 
         try:
             yield from self.master.client_done(self.get_worker_infos(), pl_id,
-                    stdout.decode(), match_id, champ_id,
+                    stdout, match_id, champ_id,
                     max_retries=self.config['master']['max_retries'],
                     retry_delay=self.config['master']['retry_delay'])
         except socket.error:
