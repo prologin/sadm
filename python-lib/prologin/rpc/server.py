@@ -119,7 +119,9 @@ class RemoteCallHandler(tornado.web.RequestHandler):
         try:
             result = method(self.rpc_object, *args, **kwargs)
         except Exception as exn:
-            return self._send_exception(exn, sys.exc_info()[2])
+            tb = sys.exc_info()[2]
+            logging.warning(traceback.format_tb(tb))
+            return self._send_exception(exn, tb)
 
         # The remote method can be a generator (returns a sequence of values),
         # or just some regular function (returns only one value).
