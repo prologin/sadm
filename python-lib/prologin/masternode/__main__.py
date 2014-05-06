@@ -132,7 +132,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                     for r in result]
             yield from self.db.execute_many('update_tournament_score', t)
 
-        asyncio.Task(match_done_db(mid, result, b64dump))
+        asyncio.Task(match_done_db(mid, result, b64dump, stdout))
         self.workers[(worker[0], worker[1])].remove_match_task(mid)
 
     @prologin.rpc.remote_method
