@@ -407,9 +407,25 @@ Setup postgresql on ``web``. It is used by all the hfs.
   The database should be on ``web`` because most of its consumers are
   webservices: redmine, concours, masterworker, etc.
 
-::
+Setup postgresql
+````````````````
+
+Create a new database::
 
   su - postgres -c "initdb --locale en_US.UTF-8 -D '/var/lib/postgres/data'"
+
+Edit and uncomment ``/var/lib/postgres/data/postgresql.conf`` to make
+postgresql listen on every interface::
+
+  listen_addresses = '*'
+
+And edit ``/var/lib/postgres/data/pg_hba.conf`` in order to allow all users
+to connect with password::
+
+  host     all             all             192.168.1.0/24           password
+
+Then start postgresql::
+
   systemctl enable postgresql && systemctl start postgresql
 
 Create user ``hfs``, database ``hfs``, and associated tables:
@@ -423,42 +439,11 @@ Create user ``hfs``, database ``hfs``, and associated tables:
 
   su - postgres -c "psql" < ./sql/hfs.sql
 
-Change ``/var/lib/postgres/data/postgresql.conf`` to make postgresql listen on
-every interface::
-
-  listen_addresses = '*'
-
-And change ``/var/lib/postgres/data/pg_hba.conf`` in order to allow ``hfs`` user
-to connect with password::
-
-  host     hfs             hfs             0.0.0.0/0              password
-
 On every ``rhfs`` machine, install the hfs server::
 
   python install.py hfs
-
-.. todo::
-
-    Add enable service
-
-.. note::
-
-    If you need to delete every /home created by the hfs, simply delete all nbd
-    files in ``/export/hfs/`` and delete entries in the ``user_location`` table
-    of the hfs' database.
-
-::
-
-  rm /export/hfs/*.nbd
-
-::
-
-  delete from user_location;
-
-And finally, empty the nbd's configuration so it can take it's arguments only
-from the command line::
-
-  mv /etc/nbd-server/config /etc/nbd-server/config.save
+  # Change HFS_ID to what you need
+  systemctl enable hfs@HFS_ID && systemctl start hfs@HFS_ID
 
 
 Enable forwarding of authorized_keys
@@ -515,6 +500,22 @@ You can autoinstall some services and configuration files::
   python install.py webservices
   systemctl reload nginx
 
+concours
+~~~~~~~~
+
+.. note::
+
+    Concours is a *contest* service. See :ref:`enable_contest_services`.
+
+Setup the database::
+
+  su - postgres -c "psql" < ./sql/concours.sql
+
+Install it::
+
+  python install.py concours
+  systemctl reload nginx
+
 doc
 ~~~
 
@@ -530,9 +531,15 @@ TODO: stechec2 docs, sadm docs
 paste
 ~~~~~
 
-You just have to start the ``paste`` service::
+We will setup dpaste: https://github.com/bartTC/dpaste::
 
-  systemctl enable paste && systemctl start paste
+  # Switch to a special venv
+  virtualenv3 --no-site-packages /var/prologin/venv_paste
+  source /var/prologin/venv_paste/bin/activate
+  pip install dpaste gunicorn
+  # Back to the normal venv
+  source /var/prologin/venv/bin/activate
+  python install.py paste
 
 wiki
 ~~~~
@@ -696,9 +703,46 @@ the ``.xsession`` of the users home skeleton::
 Step 6: Switching to contest mode
 ---------------------------------
 
+Block internet access
+~~~~~~~~~~~~~~~~~~~~~
+
+Edit ``/etc/prologin/presencesync_firewall.yml`` and remove the ``user`` group,
+the restart ``presencesync_firewall``.
+
+.. _enable_contest_services:
+
+Enable contest services
+~~~~~~~~~~~~~~~~~~~~~~~
+
 By default, most of the web services are hidden from the contestants. In order
 to show them, you must activate the "contest mode" in some service.
 
 Edit ``/etc/nginx/nginx.conf``, uncomment the following line::
 
   # include services_contest/*.nginx;
+
+Reset the hfs
+~~~~~~~~~~~~~
+
+If you need to delete every /home created by the hfs, simply delete all nbd
+files in ``/export/hfs/`` and delete entries in the ``user_location`` table of
+the hfs' database.
+
+::
+
+  # For each hfs instance
+  rm /export/hfs/*.nbd
+
+::
+
+  su - postgres -c 'psql hfs'
+  delete from user_location;
+
+And finally, empty the nbd's configuration so it can take it's arguments only
+from the command line::
+
+  mv /etc/nbd-server/config /etc/nbd-server/config.save
+
+.. todo::
+
+    Setup alternate skeleton.
