@@ -123,8 +123,8 @@ class MatchTask:
                 continue
             self.player_tasks.add(mpid)
 
-            t = PlayerTask(self.config, self.mid, worker.hostname, req_port,
-                sub_port, mpid, user, cid, self.opts)
+            t = PlayerTask(self.config, self.mid, mpid, worker.hostname,
+                    req_port, sub_port, user, cid, self.opts)
             master.worker_tasks.append(t)
         master.to_dispatch.set()
         del master.matches[self.mid]
