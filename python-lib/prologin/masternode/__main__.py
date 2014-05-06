@@ -143,7 +143,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         self.workers[(worker[0], worker[1])].remove_player_task(mpid)
 
     def redispatch_worker(self, worker):
-        tasks = [t for (t, g) in worker.tasks]
+        tasks = [t for t in worker.tasks]
         if tasks:
             logging.info("redispatching tasks for {}: {}".format(
                              worker, tasks))
