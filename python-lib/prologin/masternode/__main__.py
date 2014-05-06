@@ -37,7 +37,8 @@ from pathlib import Path
 
 from .worker import Worker
 from .concoursquery import ConcoursQuery
-from .task import MatchTask, CompilationTask, champion_path, match_path
+from .task import MatchTask, CompilationTask
+from .task import champion_path, match_path, clog_path
 
 loop = asyncio.get_event_loop()
 tornado.platform.asyncio.AsyncIOMainLoop().install()
