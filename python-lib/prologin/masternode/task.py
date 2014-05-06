@@ -112,7 +112,7 @@ class MatchTask:
             pass
 
         master.matches[self.mid] = self
-        req_port, sub_port = yield from worker.rpc.available_ports(2)
+        req_port, sub_port = yield from worker.rpc.get_ports(2)
 
         yield from worker.rpc.run_server(req_port, sub_port, self.mid,
                 len(self.players), self.opts)
