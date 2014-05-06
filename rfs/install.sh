@@ -132,6 +132,7 @@ virtualenv3 --no-site-packages /var/prologin/venv
 source /var/prologin/venv/bin/activate
 cd /root
 git clone http://bitbucket.org/prologin/sadm.git
+cd sadm
 export C_INCLUDE_PATH=/usr/include/libxml2 # fix for archlinux
 pip install -r requirements.txt
 EOF
