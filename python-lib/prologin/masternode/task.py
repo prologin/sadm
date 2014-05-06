@@ -107,7 +107,7 @@ class MatchTask:
     @asyncio.coroutine
     def execute(self, master, worker):
         try:
-            os.makedirs(match_path(self.mid))
+            os.makedirs(match_path(self.config, self.mid))
         except OSError:
             pass
 
