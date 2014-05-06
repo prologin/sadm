@@ -70,11 +70,14 @@ class MatchesListView(ListView):
         context['show_creator'] = self.show_creator
         matches = []
         for m in context['matches']:
-            try:
-                map_id = int(m.map.split('/')[-1])
-                map_name = models.Map.objects.get(pk=map_id).name
-            except Exception:
-                map_name = m.map
+            if settings.STECHEC_USE_MAPS:
+                try:
+                    map_id = int(m.map.split('/')[-1])
+                    map_name = models.Map.objects.get(pk=map_id).name
+                except Exception:
+                    map_name = m.map
+            else:
+                map_name = None
             matches.append((m, map_name))
         context['matches'] = matches
         return context
@@ -152,7 +155,8 @@ def new_match(request):
                 tournament=None,
                 options=''
             )
-            match.map = form.cleaned_data['map'].path
+            if settings.STECHEC_USE_MAPS:
+                match.map = form.cleaned_data['map'].path
             match.save()
 
             for i in range(1, settings.STECHEC_NPLAYERS + 1):
