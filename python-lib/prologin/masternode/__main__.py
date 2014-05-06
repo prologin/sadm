@@ -126,11 +126,11 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
 
             t = [{ 'player_id': r[0], 'player_score': r[1]}
                     for r in result]
-            yield from self.db.execute_many('set_player_score', t)
+            yield from self.db.executemany('set_player_score', t)
 
             t = [{ 'match_id': mid, 'champion_score': r[1], 'player_id': r[0]}
                     for r in result]
-            yield from self.db.execute_many('update_tournament_score', t)
+            yield from self.db.executemany('update_tournament_score', t)
 
         asyncio.Task(match_done_db(mid, result, b64dump, stdout))
         self.workers[(worker[0], worker[1])].remove_match_task(mid)
