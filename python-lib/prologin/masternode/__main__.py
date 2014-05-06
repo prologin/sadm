@@ -251,7 +251,6 @@ if __name__ == '__main__':
     logging.getLogger('asyncio').setLevel(logging.WARNING)
 
     config = prologin.config.load('masternode')
-    config['contest']['directory'] = Path(config['contest']['directory'])
 
     s = MasterNode(config=config, app_name='masternode',
                    secret=config['master']['shared_secret'].encode('utf-8'))

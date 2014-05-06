@@ -26,20 +26,22 @@ from base64 import b64decode, b64encode
 
 
 def champion_path(config, user, cid):
-    return (config['contest']['directory'] / config['contest']['game'] /
-            'champions' / str(user) / str(cid) / 'champion.tgz')
+    return os.path.join(config['contest']['directory'],
+            config['contest']['game'], 'champions', user, str(cid),
+            'champion.tgz')
 
 
 def clog_path(config, user, cid):
-    return (config['contest']['directory'] / config['contest']['game'] /
-            'champions' / str(user) / str(cid) / 'compilation.log')
+    return os.path.join(config['contest']['directory'],
+            config['contest']['game'], 'champions', user, str(cid),
+            'compilation.log')
 
 
 def match_path(config, match_id):
     match_id_high = "{:03}".format(match_id / 1000)
     match_id_low = "{:03}".format(match_id % 1000)
-    return (config['contest']['directory'] / config['contest']['game'] /
-            'matches' / match_id_high / match_id_low)
+    return os.path.join(config['contest']['directory'],
+            config['contest']['game'], 'matches', match_id_high, match_id_low)
 
 
 class CompilationTask:
