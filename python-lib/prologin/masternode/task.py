@@ -95,7 +95,6 @@ class PlayerTask:
 class MatchTask:
     def __init__(self, config, mid, players, opts):
         self.config = config
-        self.contest = config['master']['contest']
         self.mid = mid
         self.players = players
         self.opts = opts
