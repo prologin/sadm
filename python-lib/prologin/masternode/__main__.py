@@ -200,11 +200,11 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
 
     @asyncio.coroutine
     def dbwatcher_task(self):
-        self.check_requested_compilations('pending')
-        self.check_requested_matches('pending')
+        yield from self.check_requested_compilations('pending')
+        yield from self.check_requested_matches('pending')
         while True:
-            self.check_requested_compilations()
-            self.check_requested_matches()
+            yield from self.check_requested_compilations()
+            yield from self.check_requested_matches()
             yield from asyncio.sleep(1)
 
     def find_worker_for(self, task):
