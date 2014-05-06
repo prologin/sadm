@@ -137,7 +137,8 @@ class ConcoursQuery:
             raise AttributeError('No such request')
 
         cursor = yield from self.connect()
-        return (yield from cursor.execute(REQUESTS[name], params))
+        yield from cursor.execute(REQUESTS[name], params)
+        return cursor
 
     @asyncio.coroutine
     def executemany(self, name, seq_of_params):
@@ -145,4 +146,5 @@ class ConcoursQuery:
             raise AttributeError('No such request')
 
         cursor = yield from self.connect()
-        return (yield from cursor.executemany(REQUESTS[name], seq_of_params))
+        yield from cursor.executemany(REQUESTS[name], seq_of_params)
+        return cursor
