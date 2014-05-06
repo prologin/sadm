@@ -146,5 +146,6 @@ class ConcoursQuery:
             raise AttributeError('No such request')
 
         cursor = yield from self.connect()
-        yield from cursor.executemany(REQUESTS[name], seq_of_params)
+        for p in seq_of_params:
+            yield from cursor.execute(REQUESTS[name], p)
         return cursor
