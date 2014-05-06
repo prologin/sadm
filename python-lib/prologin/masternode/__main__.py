@@ -101,7 +101,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                 f.write(log)
             logging.info('compilation of champion {}: {}'.format(cid, status))
             yield from self.db.execute('set_champion_status',
-                    {'champion_id': cid, 'champion_stats': status})
+                    {'champion_id': cid, 'champion_status': status})
 
         hostname, port, slots, max_slots = worker
         w = self.workers[(hostname, port)]
