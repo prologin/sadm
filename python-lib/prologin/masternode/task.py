@@ -89,7 +89,7 @@ class PlayerTask:
         with open(self.champ_path, 'rb') as f:
             ctgz = b64encode(f.read()).decode()
         yield from worker.rpc.run_client(self.match_id, self.pl_id,
-                self.hostname, self.req_port, self.sub_port, ctgz, self.cid,
+                self.hostname, self.req_port, self.sub_port, self.cid, ctgz,
                 self.opts)
 
 
