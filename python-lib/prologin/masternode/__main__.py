@@ -22,6 +22,7 @@ import asyncio
 import copy
 import logging
 import optparse
+import pathlib
 import prologin.config
 import prologin.log
 import prologin.rpc.server
@@ -249,6 +250,7 @@ if __name__ == '__main__':
     logging.getLogger('asyncio').setLevel(logging.WARNING)
 
     config = prologin.config.load('masternode')
+    config['shared_dir'] = pathlib.Path(config['shared_dir'])
 
     s = MasterNode(config=config, app_name='masternode',
                    secret=config['master']['shared_secret'].encode('utf-8'))
