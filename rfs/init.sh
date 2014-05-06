@@ -41,8 +41,14 @@ echo nbd > /export/nfsroot/etc/modules-load.d/nbd.conf
 rm -f "$ROOTFS/rfs.sh"
 rm -rf "$ROOTFS/sadm"
 
+# Setup necessary kdm sessions
+rm -rf /export/nfsroot/usr/share/apps/kdm/sessions/*
+cp kdm_sessions/* /export/nfsroot/usr/share/apps/kdm/sessions/
+
 # Enable and start the services need to serve the rfs
-for svc in {sshd,nfsd,udbsync_passwd_nfsroot,rpc-{idmapd,gssd,mountd,statd}}.service; do
+cd .. # ~/sadm
+python install.py udbsync_passwd udbsync_passwd_nfsroot
+for svc in {sshd,nfsd,udbsync_passwd{,_nfsroot},rpc-{idmapd,gssd,mountd,statd}}.service; do
   systemctl enable "$svc"
   systemctl start  "$svc"
 done

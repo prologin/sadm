@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=XSession
+Exec=i3
+TryExec=i3
+DesktopNames=i3
+Name=i3
