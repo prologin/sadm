@@ -97,7 +97,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             if ret:
                 with open(champion_path(self.config, user, cid), 'wb') as f:
                     f.write(b64decode(b64compiled))
-            with open(clog_path(self.config, user, cid, 'w')) as f:
+            with open(clog_path(self.config, user, cid), 'w') as f:
                 f.write(log)
             logging.info('compilation of champion {}: {}'.format(cid, status))
             yield from self.db.execute('set_champion_status',
