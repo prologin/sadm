@@ -44,7 +44,7 @@ class CompilationTask:
         self.config = config
         self.user = user
         self.champ_id = champ_id
-        self.champ_path = champion_path(config, user, cid)
+        self.champ_path = champion_path(config, user, champ_id)
 
     @property
     def slots_taken(self):
