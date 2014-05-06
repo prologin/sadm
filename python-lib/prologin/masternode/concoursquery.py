@@ -34,7 +34,7 @@ REQUESTS = {
             stechec_champion.status = %(champion_status)s
     ''',
 
-    'set_champion_stats': '''
+    'set_champion_status': '''
           UPDATE
             stechec_champion
           SET
