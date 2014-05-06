@@ -128,7 +128,9 @@ List of packages for contestants' environment
 * minecraft
 * armagetronad
 * 0ad
-* openttd-beta
+* openttd
+* openttd-opengfx
+* openttd-opensfx
 
 
 # Other additional dependancies
