@@ -26,11 +26,13 @@ from base64 import b64decode, b64encode
 
 
 def champion_path(config, user, cid):
-    return config['shared_dir'] / 'champions' / user / cid / 'champion.tgz'
+    return (config['shared_dir'] / 'champions' / str(user) / str(cid) /
+            'champion.tgz')
 
 
 def clog_path(config, user, cid):
-    return config['shared_dir'] / 'champions' / user / cid / 'compilation.log'
+    return (config['shared_dir'] / 'champions' / str(user) / str(cid) /
+            'compilation.log')
 
 
 def match_path(config, match_id):
