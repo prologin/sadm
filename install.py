@@ -60,7 +60,7 @@ USERS = {
                                          'presencesync_public',) },
     'minecraft': { 'uid': 20140, 'groups': ('minecraft',) },  # FIXME: needs presencesync?
     'concours': { 'uid': 20150, 'groups': ('concours', 'udbsync_public') },
-    'cluster': { 'uid': 20160, 'groups': ('cluster') },
+    'cluster': { 'uid': 20160, 'groups': ('cluster',) },
 }
 
 # Same with groups. *_public groups are used for services that need to access
