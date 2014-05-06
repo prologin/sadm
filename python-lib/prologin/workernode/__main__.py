@@ -169,11 +169,11 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
 
     @prologin.rpc.remote_method
     @async_work(slots=1)
-    def run_server(self, rep_port, pub_port, match_id, opts=''):
+    def run_server(self, rep_port, pub_port, match_id, nb_players, opts=''):
         logging.info('starting server for match {}'.format(match_id))
 
         task_server = asyncio.Task(operations.spawn_server(self.config,
-            rep_port, pub_port, opts))
+            rep_port, pub_port, nb_players, opts))
         task_dumper = asyncio.Task(operations.spawn_dumper(self.config,
             rep_port, pub_port, opts))
 
