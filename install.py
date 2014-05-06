@@ -553,7 +553,7 @@ def install_masternode():
     install_systemd_unit('masternode')
     install_cfg_profile('masternode', group='cluster')
 
-def install_worker():
+def install_workernode():
     requires('libprologin')
     install_systemd_unit('workernode')
     install_cfg_profile('workernode', group='cluster')
