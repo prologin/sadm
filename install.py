@@ -60,6 +60,7 @@ USERS = {
                                          'presencesync_public',) },
     'minecraft': { 'uid': 20140, 'groups': ('minecraft',) },  # FIXME: needs presencesync?
     'concours': { 'uid': 20150, 'groups': ('concours', 'udbsync_public') },
+    'cluster': { 'uid': 20160, 'groups': ('cluster') },
 }
 
 # Same with groups. *_public groups are used for services that need to access
@@ -87,6 +88,7 @@ GROUPS = {
     'presencesync_usermap': 20130,
     'minecraft': 20140,  # FIXME: needs _public?
     'concours': 20150,
+    'cluster': 20160,
 }
 
 
@@ -544,6 +546,17 @@ def install_firewall():
 
 def install_netctl_gw():
     copy('etc/netctl/gw', '/etc/netctl/gw')
+
+
+def install_masternode():
+    requires('libprologin')
+    install_systemd_unit('masternode')
+    install_cfg_profile('masternode', group='cluster')
+
+def install_worker():
+    requires('libprologin')
+    install_systemd_unit('workernode')
+    install_cfg_profile('workernode', group='cluster')
 
 
 def install_minecraft():
