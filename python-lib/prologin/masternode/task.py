@@ -74,7 +74,7 @@ class PlayerTask:
         self.hostname = ip
         self.req_port = req_port
         self.sub_port = sub_port
-        self.pl_id = pl_id
+        self.mpid = pl_id
         self.opts = opts
         self.champ_path = champion_path(config, user, cid)
         self.cid = cid
@@ -88,7 +88,7 @@ class PlayerTask:
         ctgz = ''
         with open(self.champ_path, 'rb') as f:
             ctgz = b64encode(f.read()).decode()
-        yield from worker.rpc.run_client(self.match_id, self.pl_id,
+        yield from worker.rpc.run_client(self.match_id, self.mpid,
                 self.hostname, self.req_port, self.sub_port, self.cid, ctgz,
                 self.opts)
 
