@@ -32,6 +32,7 @@ import time
 import tornado
 import tornado.platform.asyncio
 
+from base64 import b64decode, b64encode
 from pathlib import Path
 
 from .worker import Worker
