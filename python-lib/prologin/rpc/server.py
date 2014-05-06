@@ -138,7 +138,9 @@ class RemoteCallHandler(tornado.web.RequestHandler):
                 except Exception as exn:
                     # The generator raised an error: transmit it to the client
                     # and stop.
-                    return self._send_exception(exn, sys.last_traceback)
+                    tb = sys.last_traceback
+                    logging.warning(traceback.format_tb(tb))
+                    return self._send_exception(exn, tb)
                 else:
                     # The generator simply yielded a value: transmit it to the
                     # client, or stop there if this is some non-JSON data.
