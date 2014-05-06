@@ -1,6 +1,6 @@
 # Informations to connect to the master server.
 master:
-    host: master-node
+    host: masternode
     port: 8067
     heartbeat_secs: 5             # Must be < to the master timeout.
     shared_secret: CHANGEME       # Must match the one in the master config.
