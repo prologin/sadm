@@ -28,7 +28,7 @@ db:
 
 # Informations on where the master node is located.
 master:
-  url: http://master.cl:8067/   # URL to connect to the master node RPC.
+  url: http://masternode:8067/   # URL to connect to the master node RPC.
   shared_secret: CHANGEME
 
 # What game is currently being played.
