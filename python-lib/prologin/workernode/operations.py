@@ -168,4 +168,4 @@ def spawn_client(config, ip, req_port, sub_port, pl_id, champion_path, opts):
         cmd.append('--' + opt)
         cmd.append(value)
     retcode, stdout = yield from communicate(cmd, env)
-    return retcode, stdout
+    return retcode, stdout.decode()
