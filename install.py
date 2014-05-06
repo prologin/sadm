@@ -556,7 +556,7 @@ def install_masternode():
     install_cfg_profile('masternode', group='cluster')
     mkdir(
         '/var/prologin/concours_shared',
-        dir_mode=0o770, file_mode=0o660,
+        mode=0o770,
         owner='cluster:cluster_public'
     )
 
