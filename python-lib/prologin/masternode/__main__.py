@@ -22,7 +22,6 @@ import asyncio
 import copy
 import logging
 import optparse
-import pathlib
 import prologin.config
 import prologin.log
 import prologin.rpc.server
@@ -32,6 +31,8 @@ import random
 import time
 import tornado
 import tornado.platform.asyncio
+
+from pathlib import Path
 
 from .worker import Worker
 from .concoursquery import ConcoursQuery
@@ -250,7 +251,7 @@ if __name__ == '__main__':
     logging.getLogger('asyncio').setLevel(logging.WARNING)
 
     config = prologin.config.load('masternode')
-    config['shared_dir'] = pathlib.Path(config['shared_dir'])
+    config['contest']['directory'] = Path(config['contest']['directory'])
 
     s = MasterNode(config=config, app_name='masternode',
                    secret=config['master']['shared_secret'].encode('utf-8'))
