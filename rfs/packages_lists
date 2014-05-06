@@ -3,8 +3,9 @@ devtools
 dhcpcd
 dnsutils
 gcc
-gdm
 grub-bios
+kde
+kdm
 libxml2
 libxslt
 mkinitcpio-nfs-utils
