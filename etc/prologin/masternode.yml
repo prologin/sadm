@@ -22,4 +22,9 @@ sql:
   password: DEFAULT_PASSWORD
   database: concours
 
-shared_dir: /var/prologin/concours_shared # directory shared with concours
+contest:
+  game: CHANGEMENT # most likely prologin<YEAR>
+
+  # Root directory where the website uploads champions, finds logs, etc.
+  # Should be shared with the master node.
+  directory: /var/prologin/concours_shared

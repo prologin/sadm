@@ -26,19 +26,20 @@ from base64 import b64decode, b64encode
 
 
 def champion_path(config, user, cid):
-    return (config['shared_dir'] / 'champions' / str(user) / str(cid) /
-            'champion.tgz')
+    return (config['contest']['directory'] / config['contest']['game'] /
+            'champions' / str(user) / str(cid) / 'champion.tgz')
 
 
 def clog_path(config, user, cid):
-    return (config['shared_dir'] / 'champions' / str(user) / str(cid) /
-            'compilation.log')
+    return (config['contest']['directory'] / config['contest']['game'] /
+            'champions' / str(user) / str(cid) / 'compilation.log')
 
 
 def match_path(config, match_id):
     match_id_high = "{:03}".format(match_id / 1000)
     match_id_low = "{:03}".format(match_id % 1000)
-    return config['shared_dir'] / 'matches' / match_id_high / match_id_low
+    return (config['contest']['directory'] / config['contest']['game'] /
+            'matches' / match_id_high / match_id_low)
 
 
 class CompilationTask:
@@ -113,7 +114,7 @@ class MatchTask:
         req_port, sub_port = yield from worker.rpc.available_ports(2)
 
         yield from worker.rpc.run_server(req_port, sub_port, self.mid,
-                self.opts)
+                len(self.players), self.opts)
         for (cid, mpid, user) in self.players:
             # on error, prevent launching several times the players
             if mpid in self.player_tasks:

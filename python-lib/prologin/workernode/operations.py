@@ -94,12 +94,12 @@ def compile_champion(config, champion_path):
 
 
 @asyncio.coroutine
-def spawn_server(config, rep_port, pub_port, opts):
+def spawn_server(config, rep_port, pub_port, nb_players, opts):
     cmd = [config['path']['stechec_server'],
            "--rules", config['path']['rules'],
            "--rep_addr", "tcp://0.0.0.0:{}".format(rep_port),
            "--pub_addr", "tcp://0.0.0.0:{}".format(pub_port),
-           "--nb_clients", str(config['nb_clients'] + 1),
+           "--nb_clients", str(nb_players + 1),
            "--verbose", "1"]
 
     for opt, value in parse_opts(opts).items():
