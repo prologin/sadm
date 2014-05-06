@@ -164,12 +164,12 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
 
         for r in (yield from cur.fetchall()):
             logging.info('requested compilation for {} / {}'.format(
-                              r['name'], r['id']))
+                              r[1], r[0]))
             to_set_pending.append({
-                'champion_id': r['id'],
+                'champion_id': r[0],
                 'champion_status': 'pending'
             })
-            t = CompilationTask(config, r['name'], r['id'])
+            t = CompilationTask(config, r[1], r[0])
             self.worker_tasks.append(t)
 
         if to_set_pending:
@@ -182,11 +182,11 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         c = yield from self.db.execute('get_matches', {'match_status': status})
 
         for r in (yield from c.fetchall()):
-            logging.info('request match id {} launch'.format(r['match_id']))
-            mid = r['match_id']
-            opts = r['match_options']
-            players = list(zip(r['champion_ids'], r['match_player_ids'],
-                          r['user_names']))
+            logging.info('request match id {} launch'.format(r[0]))
+            mid = r[0]
+            opts = r[1]
+            players = list(zip(r[2], r[3],
+                          r[4]))
             to_set_pending.append({
                 'match_id': mid,
                 'match_status': 'pending',
