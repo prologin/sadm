@@ -120,7 +120,8 @@ class RemoteCallHandler(tornado.web.RequestHandler):
             result = method(self.rpc_object, *args, **kwargs)
         except Exception as exn:
             tb = sys.exc_info()[2]
-            logging.warning(traceback.format_tb(tb))
+            for line in traceback.format_tb(tb):
+                logging.warning(line)
             return self._send_exception(exn, tb)
 
         # The remote method can be a generator (returns a sequence of values),
@@ -141,7 +142,8 @@ class RemoteCallHandler(tornado.web.RequestHandler):
                     # The generator raised an error: transmit it to the client
                     # and stop.
                     tb = sys.last_traceback
-                    logging.warning(traceback.format_tb(tb))
+                    for line in traceback.format_tb(tb):
+                        logging.warning(line)
                     return self._send_exception(exn, tb)
                 else:
                     # The generator simply yielded a value: transmit it to the
