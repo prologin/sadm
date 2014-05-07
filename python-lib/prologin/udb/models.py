@@ -31,7 +31,7 @@ class User(models.Model):
     group = models.CharField(max_length=20, choices=TYPES)
     password = models.CharField(max_length=64, help_text='pwgen -cnB 8')
     shell = models.CharField(max_length=64, default='/bin/bash')
-    ssh_key = models.CharField(max_length=512, null=True, blank=True,
+    ssh_key = models.CharField(max_length=4096, null=True, blank=True,
                                verbose_name='SSH public key')
 
     def __str__(self):
