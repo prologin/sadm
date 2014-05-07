@@ -1,7 +1,10 @@
 bash
+chromium
 devtools
 dhcpcd
+dmenu
 dnsutils
+ethtool
 gcc
 grub-bios
 kde
