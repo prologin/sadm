@@ -201,8 +201,11 @@ def new_map(request):
                               context_instance=RequestContext(request))
 
 def master_status(request):
-    status = models.master_status()
-    status = [(h, p, (100 * (m - s)) / m) for (h, p, s, m) in status]
-    status.sort()
+    try:
+        status = models.master_status()
+        status = [(h, p, (100 * (m - s)) / m) for (h, p, s, m) in status]
+        status.sort()
+    except socket.error:
+        status = None
     return render_to_response('master-status.html', {'status': status},
                               context_instance=RequestContext(request))

@@ -18,19 +18,25 @@
         </tr>
     </thead>
     <tbody>
-        {% for host, port, usage in status %}
-        <tr class="{% cycle "row1" "row2" %}">
-            <td style="vertical-align: middle;"><strong>{{ host }}</strong>:{{ port }}</td>
-            <td>
-                <div class="ui-progressbar ui-widget ui-widget-content ui-corner-all">
-                    <div style="width: {{ usage }}%;" class="ui-progressbar-value ui-widget-header ui-corner-left"></div>
-                </div>
-            </td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="2">Aucun serveur trouvé.</td>
-        </tr>
-        {% endfor %}
-
+        {% if status %}
+            {% for host, port, usage in status %}
+            <tr class="{% cycle "row1" "row2" %}">
+                <td style="vertical-align: middle;"><strong>{{ host }}</strong>:{{ port }}</td>
+                <td>
+                    <div class="ui-progressbar ui-widget ui-widget-content ui-corner-all">
+                        <div style="width: {{ usage }}%;" class="ui-progressbar-value ui-widget-header ui-corner-left"></div>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="2">Aucun serveur trouvé.</td>
+            </tr>
+            {% endfor %}
+        {% else %}
+            <tr colspan="2">
+                Le serveur de répartition de tâches sur le cluster (masternode)
+                est inaccessible.
+            </tr>
+        {% endif %}
 {% endblock %}
