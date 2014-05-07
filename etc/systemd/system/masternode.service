@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
-User=cluster
+User=concours
 ExecStart=/var/prologin/venv/bin/python -m prologin.masternode
 
 [Install]

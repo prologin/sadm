@@ -565,11 +565,11 @@ def install_netctl_gw():
 def install_masternode():
     requires('libprologin')
     install_systemd_unit('masternode')
-    install_cfg_profile('masternode', group='cluster')
+    install_cfg_profile('masternode', group='concours')
     mkdir(
         '/var/prologin/concours_shared',
         mode=0o770,
-        owner='cluster:cluster_public'
+        owner='concours:cluster_public'
     )
 
 def install_workernode():
