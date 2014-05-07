@@ -79,6 +79,7 @@ class BootHandler(tornado.web.RequestHandler):
             script = REGISTER_ERROR_SCRIPT % {
                     'err': 'No such RFS: %s' % rfs_hostname }
             self.finish(script)
+            return
 
         if machine['room'] == 'alt':
             suffix = '-alt'
