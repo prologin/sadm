@@ -34,9 +34,12 @@
             </tr>
             {% endfor %}
         {% else %}
-            <tr colspan="2">
-                Le serveur de répartition de tâches sur le cluster (masternode)
-                est inaccessible.
+            <tr>
+                <td colspan="2"><strong style="color: red">Le serveur de
+                répartition de tâches sur le cluster (masternode) est
+                inaccessible.</strong></td>
             </tr>
         {% endif %}
+    </tbody>
+</table>
 {% endblock %}

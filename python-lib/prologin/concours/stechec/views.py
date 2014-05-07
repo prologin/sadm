@@ -12,6 +12,7 @@ from django.views.generic import DetailView, ListView
 
 import os
 import os.path
+import socket
 
 class ChampionView(DetailView):
     context_object_name = "champion"
