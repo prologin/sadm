@@ -81,10 +81,7 @@ class BootHandler(tornado.web.RequestHandler):
             self.finish(script)
             return
 
-        if machine['room'] == 'alt':
-            suffix = '-alt'
-        else:
-            suffix = ''
+        suffix = ''
         script = BOOT_SCRIPT % { 'rfs_ip': rfs_ip, 'suffix': suffix,
                                  'options': CFG['options'] }
         self.finish(script)
