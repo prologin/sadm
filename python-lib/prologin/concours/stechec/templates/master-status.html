@@ -18,7 +18,7 @@
         </tr>
     </thead>
     <tbody>
-        {% if status %}
+        {% if status != None %}
             {% for host, port, usage in status %}
             <tr class="{% cycle "row1" "row2" %}">
                 <td style="vertical-align: middle;"><strong>{{ host }}</strong>:{{ port }}</td>
