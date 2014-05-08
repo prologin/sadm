@@ -381,6 +381,13 @@ To install a new package (*never* use arch-chroot)::
 
   pacman --root /export/nfsroot -Sy package
 
+If using kdm, you need to tell it how to launch the window managers with
+.desktop files. They are likely to be already installed by the window managers
+themselves but kdm doesn't look in the right directory, so ::
+
+  cd /export/nfsroot/usr/share/apps/kdm
+  ln -s ../../xsessions sessions
+
 TODO: How to sync, hook to generate /var...
 
 Copying the kernel and initramfs
