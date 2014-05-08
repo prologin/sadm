@@ -42,8 +42,10 @@ rm -f "$ROOTFS/rfs.sh"
 rm -rf "$ROOTFS/sadm"
 
 # Setup necessary kdm sessions
-rm -rf /export/nfsroot/usr/share/apps/kdm/sessions/*
-cp kdm_sessions/* /export/nfsroot/usr/share/apps/kdm/sessions/
+cd /export/nfsroot/usr/share/apps/kdm
+rm -rf sessions
+ln -s ../../xsessions sessions
+cd - # ~/sadm/rfs
 
 # Enable and start the services need to serve the rfs
 cd .. # ~/sadm
