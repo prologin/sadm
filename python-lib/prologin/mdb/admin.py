@@ -31,6 +31,12 @@ class MachineAdmin(admin.ModelAdmin):
     radio_fields = { 'mtype': admin.HORIZONTAL, 'room': admin.HORIZONTAL }
     search_fields = ('hostname', 'aliases', 'ip', 'mac')
 
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            return ['mac', 'hostname']
+        else:
+            return []
+
 
 class VolatileSettingAdmin(admin.ModelAdmin):
     list_display = ('key', 'value_bool', 'value_str', 'value_int')
