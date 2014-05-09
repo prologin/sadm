@@ -664,6 +664,11 @@ You should be able to access the brand new Redmine.
   - Change password at http://redmine/my/password
   - Configure a new project at http://redmine/projects/new
     The ``Identifiant`` **has to be prologin** in order to vhost to work.
+  - As soon as `udbsync_redmine` has finished its first sync, you should
+    find the three groups (user, orga, root) at http://redmine/groups so
+    you can give them special priviledges: click one, click the Projects
+    tag assign your "prologin" project to one of the roles (eg. developer
+    for orgas, manager & developer for roots).
 
 Homepage
 ~~~~~~~~
