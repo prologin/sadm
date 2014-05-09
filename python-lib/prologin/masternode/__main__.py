@@ -68,14 +68,21 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             d.append((host, port, w.slots, w.max_slots))
         return d
 
+    @asyncio.coroutine
+    def register_worker(self, w):
+        if (yield from w.accessible()):
+            logging.warn("registered new worker: {}:{}".format(hostname, port))
+            self.workers[key] = w
+        else:
+            logging.warn("drop inaccessible worker: {}:{}".format(hostname, port))
+
     @prologin.rpc.remote_method
     def update_worker(self, worker):
         hostname, port, slots, max_slots = worker
         key = hostname, port
         if key not in self.workers:
-            logging.warn("registered new worker: {}:{}".format(hostname, port))
-            self.workers[key] = Worker(hostname, port, slots, max_slots,
-                    self.config)
+            w = Worker(hostname, port, slots, max_slots, self.config)
+            asyncio.Task(self.register_worker(w))
         else:
             logging.debug("updating worker: {}:{} {}/{}".format(
                               hostname, port, slots, max_slots))
