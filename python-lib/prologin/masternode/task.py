@@ -30,6 +30,11 @@ def champion_path(config, user, cid):
             config['contest']['game'], 'champions', user, str(cid),
             'champion.tgz')
 
+def champion_compiled_path(config, user, cid):
+    return os.path.join(config['contest']['directory'],
+            config['contest']['game'], 'champions', user, str(cid),
+            'champion-compiled.tgz')
+
 
 def clog_path(config, user, cid):
     return os.path.join(config['contest']['directory'],
@@ -76,7 +81,7 @@ class PlayerTask:
         self.sub_port = sub_port
         self.mpid = pl_id
         self.opts = opts
-        self.champ_path = champion_path(config, user, cid)
+        self.champ_path = champion_compiled_path(config, user, cid)
         self.cid = cid
 
     @property
