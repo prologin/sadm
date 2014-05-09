@@ -116,7 +116,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
             yield from asyncio.sleep(self.interval)
 
     @prologin.rpc.remote_method
-    def accessible(self):
+    def reachable(self):
         return True
 
     @prologin.rpc.remote_method

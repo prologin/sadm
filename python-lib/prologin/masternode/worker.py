@@ -43,9 +43,9 @@ class Worker(object):
         return 1.0 - (float(self.slots) / self.max_slots)
 
     @asyncio.coroutine
-    def accessible(self):
+    def reachable(self):
         try:
-            return (yield from self.rpc.accessible())
+            return (yield from self.rpc.reachable())
         except:
             return False
 
