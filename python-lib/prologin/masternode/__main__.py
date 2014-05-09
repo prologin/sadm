@@ -39,7 +39,7 @@ from pathlib import Path
 from .worker import Worker
 from .concoursquery import ConcoursQuery
 from .task import MatchTask, CompilationTask
-from .task import champion_path, match_path, clog_path
+from .task import champion_compiled_path, match_path, clog_path
 
 loop = asyncio.get_event_loop()
 tornado.platform.asyncio.AsyncIOMainLoop().install()
@@ -105,7 +105,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         def complete_compilation(cid, user, ret):
             status = 'ready' if ret else 'error'
             if ret:
-                with open(champion_path(self.config, user, cid), 'wb') as f:
+                with open(champion_compiled_path(self.config, user, cid), 'wb') as f:
                     f.write(b64decode(b64compiled))
             with open(clog_path(self.config, user, cid), 'w') as f:
                 f.write(log)
