@@ -101,7 +101,7 @@ def spawn_server(config, rep_port, pub_port, nb_players, opts):
            "--pub_addr", "tcp://0.0.0.0:{}".format(pub_port),
            "--nb_clients", str(nb_players + 1),
            "--time", "3000",
-           "--socket-timeout", "45000",
+           "--socket_timeout", "45000",
            "--verbose", "1"]
 
     for opt, value in parse_opts(opts).items():
@@ -132,7 +132,7 @@ def spawn_dumper(config, rep_port, pub_port, opts):
            "--sub_addr", "tcp://127.0.0.1:{}".format(pub_port),
            "--memory", "250000",
            "--time", "3000",
-           "--socket-timeout", "45000",
+           "--socket_timeout", "45000",
            "--spectator",
            "--verbose", "1"]
 
@@ -163,7 +163,7 @@ def spawn_client(config, ip, req_port, sub_port, pl_id, champion_path, opts):
                 "--req_addr", "tcp://{ip}:{port}".format(ip=ip, port=req_port),
                 "--sub_addr", "tcp://{ip}:{port}".format(ip=ip, port=sub_port),
                 "--memory", "250000",
-                "--socket-timeout", "45000",
+                "--socket_timeout", "45000",
                 "--time", "1500",
                 "--verbose", "1",
           ]
