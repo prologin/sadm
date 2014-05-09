@@ -1,5 +1,6 @@
 bash
 chromium
+collectd
 devtools
 dhcpcd
 dmenu
@@ -8,8 +9,10 @@ ethtool
 gcc
 grub-bios
 kde
+liboping
 libxml2
 libxslt
+lsof
 mkinitcpio-nfs-utils
 nbd
 nfs-utils
@@ -20,6 +23,7 @@ parted
 postgresql-libs
 python-setuptools
 python-virtualenv
+rrdtool
 strace
 tcpdump
 xorg
