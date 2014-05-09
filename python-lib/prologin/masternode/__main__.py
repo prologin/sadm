@@ -71,10 +71,12 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
     @asyncio.coroutine
     def register_worker(self, w):
         if (yield from w.accessible()):
-            logging.warn("registered new worker: {}:{}".format(hostname, port))
+            logging.warn("registered new worker: {}:{}".format(w.hostname,
+                w.port))
             self.workers[key] = w
         else:
-            logging.warn("drop inaccessible worker: {}:{}".format(hostname, port))
+            logging.warn("drop inaccessible worker: {}:{}".format(w.hostname,
+                w.port))
 
     @prologin.rpc.remote_method
     def update_worker(self, worker):
