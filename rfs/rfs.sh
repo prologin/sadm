@@ -11,6 +11,7 @@ sed -e 's:^#en_US:en_US:g' -e 's:^#fr_FR:fr_FR:g' -i /etc/locale.gen
 sed -e 's:^HOOKS.*:HOOKS="base udev autodetect modconf net block filesystems keyboard fsck prologin":g' \
     -e 's:^MODULES.*:MODULES="nfsv3":g' -i /etc/mkinitcpio.conf
 sed -e 's:^CheckSpace:#CheckSpace:' -e 's:^SigLevel.*:SigLevel = Never:' -i /etc/pacman.conf
+sed -e 's:^After=(.*):After=\1 set_hostname.service:' -i /usr/lib/systemd/system/collectd.service
 echo LANG=en_US.UTF-8 > /etc/locale.conf
 echo KEYMAP=us > /etc/vconsole.conf
 locale-gen
@@ -30,6 +31,6 @@ python install.py libprologin
 python install.py presenced set_hostname
 
 # Enable some services
-for svc in {sshd,ntpd,presenced,set_hostname,kdm}.service; do
+for svc in {sshd,ntpd,presenced,set_hostname,collectd,kdm}.service; do
   systemctl enable "$svc"
 done
