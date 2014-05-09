@@ -42,6 +42,13 @@ class Worker(object):
     def usage(self):
         return 1.0 - (float(self.slots) / self.max_slots)
 
+    @asyncio.coroutine
+    def accessible(self):
+        try:
+            return (yield from self.rpc.accessible())
+        except:
+            return False
+
     def update(self, slots, max_slots):
         self.slots = slots
         self.max_slots = max_slots
