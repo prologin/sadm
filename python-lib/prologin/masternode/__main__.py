@@ -69,7 +69,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         return d
 
     @asyncio.coroutine
-    def register_worker(self, w):
+    def register_worker(self, key, w):
         if (yield from w.accessible()):
             logging.warn("registered new worker: {}:{}".format(w.hostname,
                 w.port))
@@ -84,7 +84,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         key = hostname, port
         if key not in self.workers:
             w = Worker(hostname, port, slots, max_slots, self.config)
-            asyncio.Task(self.register_worker(w))
+            asyncio.Task(self.register_worker(key, w))
         else:
             logging.debug("updating worker: {}:{} {}/{}".format(
                               hostname, port, slots, max_slots))
