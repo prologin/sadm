@@ -57,7 +57,8 @@ USERS = {
     'redmine': { 'uid': 20120, 'groups': ('redmine', 'udbsync_public') },
     'presencesync_usermap': { 'uid': 20130,
                               'groups': ('presencesync_usermap',
-                                         'presencesync_public',) },
+                                         'presencesync_public',
+                                         'udb_public') },
     'minecraft': { 'uid': 20140, 'groups': ('minecraft',) },  # FIXME: needs presencesync?
     'concours': { 'uid': 20150, 'groups': ('concours', 'udbsync_public',
                                            'cluster_public') },
@@ -501,12 +502,10 @@ def install_presencesync_usermap():
         mode=0o700, owner='presencesync_usermap:presencesync_usermap'
     )
     copy(
-        'presencesync_usermap/presencesync_usermap.py',
-        '/var/prologin/presencesync_usermap/presencesync_usermap.py',
+        'python-lib/prologin/presencesync_clients/usermap.svg',
+        '/var/prologin/presencesync_usermap/pattern.svg',
         mode=0o700, owner='presencesync_usermap:presencesync_usermap'
     )
-    # The pattern map is still to be installed (in the same directory depending
-    # on the configuration), but it's not provided here.
     install_systemd_unit('presencesync_usermap')
 
 

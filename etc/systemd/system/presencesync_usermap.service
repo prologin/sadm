@@ -4,8 +4,7 @@ Description=User map generation daemon
 [Service]
 Type=simple
 User=presencesync_usermap
-WorkingDirectory=/var/prologin/presencesync_usermap
-ExecStart=/var/prologin/venv/bin/python presencesync_usermap.py
+ExecStart=/var/prologin/venv/bin/python -m prologin.presencesync_clients.usermap
 
 [Install]
 WantedBy=multi-user.target
