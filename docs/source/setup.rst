@@ -660,15 +660,15 @@ Enable and start the services::
 
 You should be able to access the brand new Redmine.
 
-  - Login at http://redmine/login with ``admin`` / ``admin``
-  - Change password at http://redmine/my/password
-  - Configure a new project at http://redmine/projects/new
-    The ``Identifiant`` **has to be prologin** in order to vhost to work.
-  - As soon as `udbsync_redmine` has finished its first sync, you should
-    find the three groups (user, orga, root) at http://redmine/groups so
-    you can give them special priviledges: click one, click the Projects
-    tag assign your "prologin" project to one of the roles (eg. developer
-    for orgas, manager & developer for roots).
+- Login at http://redmine/login with ``admin`` / ``admin``
+- Change password at http://redmine/my/password
+- Configure a new project at http://redmine/projects/new
+  The ``Identifiant`` **has to be ``prologin``** in order to vhosts to work.
+- As soon as `udbsync_redmine` has finished its first sync, you should
+  find the three groups (user, orga, root) at http://redmine/groups so
+  you can give them special priviledges: click one, click the "Projets"
+  tab, assign your "prologin" project to one of the roles. For instance:
+  user → ∅, orga → developer, root → manager ∪ developer
 
 Homepage
 ~~~~~~~~
