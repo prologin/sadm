@@ -6,13 +6,60 @@
     <link type="text/css" rel="stylesheet" media="all" href="/static/design.css" />
   </head>
   <body>
+
     <h1><img src="/static/logo.png" alt="" />Finale Prologin</h1>
+
+    <!-- Countdown -->
+    <div style="text-align: center;">
+        <canvas style="margin:0 auto;" id="display" width="260" height="140">
+          Your browser is unfortunately not supported.
+        </canvas>
+    </div>
+
     <h2>Liens pratiques</h2>
     <ul>
       {% for link in links %}
       <li><a href="{{ link.url }}">{{ link.name }}</a></li>
       {% endfor %}
     </ul>
+
+  <!-- Countdown code -->
+  <script src='/static/segment-display.js'></script>
+  <script>
+    TargetDate = "05/10/2014 0:47 AM";
+    function calcage(secs, num1, num2) {
+      return ((Math.floor(secs / num1)) % num2);
+    }
+    var display = new SegmentDisplay("display");
+    display.pattern         = "##:##:##";
+    display.displayAngle    = 6;
+    display.digitHeight     = 20;
+    display.digitWidth      = 14;
+    display.digitDistance   = 2.5;
+    display.segmentWidth    = 2;
+    display.segmentDistance = 0.3;
+    display.segmentCount    = 7;
+    display.cornerType      = 3;
+    display.colorOn         = "#090909";
+    display.colorOff        = "#e4e1e0";
+    display.draw();
+
+    window.setInterval('animate()', 100);
+    function animate() {
+      var dthen = new Date(TargetDate);
+      var dnow = new Date();
+      ddiff = new Date(dthen - dnow);
+      gsecs = Math.floor(ddiff.valueOf()/1000);
+
+      var hours = calcage(gsecs,3600,100000000);
+      var minutes = calcage(gsecs,60,60);
+      var seconds = calcage(gsecs,1,60);
+      var value   = ((hours < 10) ? ' ' : '') + hours
+                  + ':' + ((minutes < 10) ? '0' : '') + minutes
+                  + ':' + ((seconds < 10) ? '0' : '') + seconds;
+      display.setValue(value);
+  }
+  </script>
   </body>
 </html>
 
