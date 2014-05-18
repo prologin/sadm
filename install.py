@@ -727,6 +727,10 @@ if __name__ == '__main__':
         print('error: this script needs to be run as root')
         sys.exit(1)
 
+    if not hasattr(sys, 'real_prefix'):
+        print('error: this script needs to be run in a venv')
+        sys.exit(1)
+
     sync_groups()
     sync_users()
 
