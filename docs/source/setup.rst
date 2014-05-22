@@ -8,7 +8,17 @@ the documentation explain everything you need to do to set up the
 infrastructure for the finals, assuming all the machines are already physically
 present. Just follow the guide!
 
-Last update: 2014.
+Mainteners:
+
+- Alexandre Macabies (2013, 2014)
+- Antoine Pietri (2013, 2014)
+- Marin Hannache (2013, 2014)
+- Pierre Bourdon (2013, 2014)
+- Paul Hervot (2014)
+- Rémi Audebert (2014)
+- Nicolas Hureau (2013)
+- Pierre-Marie de Rodat (2013)
+- Sylvain Laurent (2013)
 
 Step 0: hardware and network setup
 ----------------------------------
@@ -48,7 +58,7 @@ via the gateway. However, for clarity reasons, we allocate IP addresses in the
 users and services subnet like this:
 
 :Users: 192.168.0.0 - 192.168.0.253
-:Services: 192.168.1.0 - 192.168.1.253
+:Services and organizers machines: 192.168.1.0 - 192.168.1.253
 
 Step 1: setting up the core services: MDB, DNS, DHCP
 ----------------------------------------------------
@@ -74,6 +84,10 @@ readable name::
   echo 'SUBSYSTEM=="net", ACTION=="add", ATTR{address}=="aa:bb:cc:dd:ee:ff",
   NAME="lan"' >> /etc/udev/rules.d/10-network.rules
 
+.. note::
+
+    (prologin2014) For some unknown reason, renaming interfaces did not work on
+    all the NIC we had. For more information: see halfr or delroth
 
 Install a few packages we will need::
 
@@ -207,9 +221,12 @@ your default DNS server::
 mdbdhcp
 ~~~~~~~
 
-``mdbdhcp`` works just like ``mdbdns``, but for DHCP. The installation steps
-are as usual::
+``mdbdhcp`` works just like ``mdbdns``, but for DHCP. You must edit
+``dhcpd.conf`` to add an empty subnet for the IP given by the Bocal. If it is
+on the same interface as 192.168.0.0/23, add it inside the ``shared-network``
+``prolo-lan``, else add it to a new ``shared-network``::
 
+  $EDITOR etc/dhcpd.conf
   python install.py mdbdhcp
   mv /etc/dhcpd.conf{.new,}
   # ^ To replace the default configuration by our own.
@@ -298,6 +315,11 @@ Again, use the ``install.py`` recipe::
   systemctl enable udbsync && systemctl start udbsync
   systemctl reload nginx
 
+Edit the shared secret::
+
+  $EDITOR /etc/prologin/udbsync-sub.yml
+  $EDITOR /etc/prologin/udbsync-pub.yml
+
 We can then configure udbsync clients::
 
   python install.py udbsync_django udbsync_rootssh
@@ -314,19 +336,44 @@ And once again::
   systemctl enable presencesync && systemctl start presencesync
   systemctl reload nginx
 
+Edit the shared secret::
+
+  $EDITOR /etc/prologin/presencesync-sub.yml
+  $EDITOR /etc/prologin/presencesync-pub.yml
+
 Gateway network configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-*gw* has two ips:
+*gw* has three ips:
 
 - 192.168.1.254/23 used to communicate with both the services and the users
 - 192.168.250.254/24 used to communicate with aliens (aka. machines not in mdb)
+- ?.?.?.?/? static IP given by the bocal to communicate with the bocal gateway
 
-Srretup the network interfaces, a sample netctl config file is located in
-``etc/netctl/gw``::
+.. note::
+
+    Make sure that the interfaces managed by netctl are down and don't have IP
+    addresses assigned to them.
+
+Setup the network interface, the netctl config file is located in
+``etc/netctl/gw``, you may need to edit the ``Interface=`` line, add the static
+IP given by the bocal and add a ``Gateway=`` line for the default gateway IP::
 
   python install.py netctl_gw
   netctl enable gw && netctl start gw
+
+iptables
+````````
+
+.. note::
+
+    If the upstream of gw.prolo is on a separate NIC you should replace
+    etc/iptables with etc/iptables_upstream_nic.save
+
+The name of the interface is hardcoded in the iptables configuration, you
+should edit it to match your setup::
+
+  $EDITOR etc/iptables.save
 
 Setup the iptables rules and ipset creation for users allowed internet acces::
 
@@ -680,13 +727,15 @@ allows adding links easily. Setup it using ``install.py``::
   systemctl enable homepage && systemctl start homepage
   systemctl enable udbsync_django@homepage && systemctl start udbsync_django@homepage
 
-Contest website
-~~~~~~~~~~~~~~~
-
-TODO
+You can then add links to the homepage by going to http://homepage/admin.
 
 Step 5: Misc services
 ---------------------
+
+DJ-Ango
+-------
+
+See dj_ango README: https://bitbucket.org/Zeletochoy/dj-ango/
 
 IRC
 ~~~
