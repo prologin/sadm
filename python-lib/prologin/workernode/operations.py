@@ -61,7 +61,7 @@ def untar(content, path, compression='gz'):
 
 
 @asyncio.coroutine
-def communicate(cmdline, env=None, data=None, **kwargs):
+def communicate_forever(cmdline, env=None, data=None, **kwargs):
     proc = yield from asyncio.create_subprocess_exec(*cmdline,
                                                      env=env,
                                                      stdout=subprocess.PIPE,
@@ -76,6 +76,12 @@ def communicate(cmdline, env=None, data=None, **kwargs):
 
     exitcode = yield from proc.wait()
     return (exitcode, stdout)
+
+
+@asyncio.coroutine
+def communicate(cmdline, env=None, data=None, timeout=None, **kwargs):
+    return (yield from asyncio.wait_for(
+        communicate_forever(cmdline, env, data, **kwargs), timeout))
 
 
 @asyncio.coroutine
