@@ -34,7 +34,7 @@ master:
 # What game is currently being played.
 contest:
   game: CHANGEME        # Most likely "prologin<YEAR>"
-  nb_players: CHANGEME  # Number of players for this game.
+  nb_players: 2         # Number of players for this game.
 
   # Root directory where the website uploads champions, finds logs, etc.
   # Should be shared with the master node.
