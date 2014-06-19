@@ -30,7 +30,7 @@ setup(name='ProloginSADM',
                'prologin/set_hostname.py',
                ],
       package_data={
-          'prologin.concours': ['static/**/*.*',
+          'prologin.concours': ['stechec/static/**/*.*',
                                 'stechec/templates/*'],
           'prologin.homepage': ['static/*', 'templates/*'],
           'prologin.minecraft': ['static/*.png',
