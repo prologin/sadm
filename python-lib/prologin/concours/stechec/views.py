@@ -180,7 +180,8 @@ def new_match(request):
 def match_dump(request, pk):
     match = get_object_or_404(models.Match, pk=pk)
     h = HttpResponse(match.dump, mimetype="application/stechec-dump")
-    h['Content-Disposition'] = 'attachment; filename=dump-%s.json.gz' % pk
+    h['Content-Disposition'] = 'attachment; filename=dump-%s.json' % pk
+    h['Content-Encoding'] = 'gzip'
     return h
 
 def new_map(request):
