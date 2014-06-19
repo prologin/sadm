@@ -161,4 +161,5 @@ STECHEC_MASTER = cfg["master"]["url"]
 STECHEC_MASTER_SECRET = cfg["master"]["shared_secret"].encode('utf-8')
 STECHEC_NPLAYERS = cfg["contest"]["nb_players"]
 STECHEC_USE_MAPS = cfg["contest"]["use_maps"]
+STECHEC_REPLAY = cfg["website"]["replay"]
 

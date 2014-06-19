@@ -52,3 +52,4 @@ debug: true
 website:
   static_path: CHANGEME     # Directory containing static files for the custom
                             # web design
+  replay: true              # Activate in-browser replay

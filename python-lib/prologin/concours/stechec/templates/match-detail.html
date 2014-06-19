@@ -7,6 +7,11 @@
 {% block "titleh1" %}Détail du match{% endblock %}
 {% block "head" %}
 <script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.5.2.min.js"></script>
+
+{% if replay %}
+    <script type="text/javascript" src="{{ STATIC_URL }}replay/replay.js"></script>
+{% endif %}
+
 {% endblock %}
 
 {% block "content" %}
@@ -87,5 +92,32 @@
     });
     {% endif %}
 </script>
+
+
+{% if replay %}
+    <div id="replay">
+        <canvas id="replay_canvas" width="0" height="0"></canvas>
+        <br />
+        <aside>
+            <div>
+                <button class="replay_btn" type="button" onclick="replay_play();">Jouer</button>
+                <button class="replay_btn" type="button" onclick="replay_pause();">Pause</button>
+                <br /><br />
+                <input id="replay_turn" type="range" value="0" min="0" max="0"
+                    onchange="replay_update()" />
+                Tour : <span id="replay_lbl_turn">0</span>
+                <br />
+            </div>
+
+            {% for player in match.matchplayer_set.all %}
+                <div id="replay_p{{ player.id }}"></div> <br />
+            {% endfor %}
+        </aside>
+    </div>
+
+    <script type="text/javascript">
+        replay_init();
+    </script>
+{% endif %}
 
 {% endblock %}
