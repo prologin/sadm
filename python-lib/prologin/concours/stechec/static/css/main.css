@@ -215,3 +215,27 @@ div.pbar {
 #edit_tabs {
     float: left;
 }
+
+/* REPLAY */
+#replay
+{
+    margin-top: 30px;
+    margin-bottom: 650px; /* Use vertical-align: bottom instead? */
+}
+
+#replay_canvas {
+    float: left;
+    margin-right: 10px;
+    border:2px solid black;
+}
+
+.replay_btn {
+    border: 1px solid #777777;
+    background: #44bb88;
+    color: white;
+    font: bold 11px 'Trebuchet MS';
+    padding: 4px;
+    cursor: pointer;
+    font-size: 18pt;
+    margin-left: 0px !important;
+}
