@@ -12,10 +12,9 @@ commands.each do |login, cmd|
 
         case cmd
         when 'created'
-                # FIXME: use firstname/lastname instead
                 u = User.new(
-                        :firstname => login,
-                        :lastname => user['realname'],
+                        :firstname => user['firstname'],
+                        :lastname => user['lastname'],
                         :mail => login + '@finale.prologin'
                 )
                 u.login = login

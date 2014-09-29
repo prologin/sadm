@@ -26,7 +26,8 @@ class User(models.Model):
     )
 
     login = models.CharField(max_length=64, unique=True)
-    realname = models.CharField(max_length=64, verbose_name='Real name')
+    firstname = models.CharField(max_length=64, verbose_name='First name')
+    lastname = models.CharField(max_length=64, verbose_name='Last name')
     uid = models.IntegerField(unique=True, verbose_name='UID')
     group = models.CharField(max_length=20, choices=TYPES)
     password = models.CharField(max_length=64, help_text='pwgen -cnB 8')
@@ -34,13 +35,18 @@ class User(models.Model):
     ssh_key = models.CharField(max_length=4096, null=True, blank=True,
                                verbose_name='SSH public key')
 
+    @property
+    def realname(self):
+        return self.firstname + ' ' + self.lastname
+
     def __str__(self):
         return self.login
 
     def to_dict(self):
         return {
             'login': self.login,
-            'realname': self.realname,
+            'firstname': self.firstname,
+            'lastname': self.lastname,
             'uid': self.uid,
             'group': self.group,
             'password': self.password,

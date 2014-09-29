@@ -43,7 +43,8 @@ def create_users(names, options):
     for t in names:
         if options['logins']:
             login = make_ascii(t)
-            realname = t
+            firstname = login
+            lastname = login
         else:
             firstname, lastname = t
             fn, ln = make_ascii(firstname), make_ascii(lastname)
@@ -60,13 +61,13 @@ def create_users(names, options):
             while login in logins:
                 login = base_login + str(i)
                 i += 1
-            realname = firstname + ' ' + lastname
 
         logins.add(login)
 
         u = User()
         u.login = login
-        u.realname = realname
+        u.firstname = firstname
+        u.lastname = lastname
         u.uid = uid
         u.group = options['type']
         u.password = generate_password(options['pwdlen'])

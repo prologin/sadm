@@ -172,7 +172,7 @@ def callback(root_path, users, updates_metadata):
         user = User(
             udb_user['login'], 'x',
             udb_user['uid'], PROLOGIN_GROUPS[user_groups[0]],
-            udb_user['realname'],
+            udb_user['firstname'] + ' ' + udb_user['lastname'],
             HOME_DIR.format(udb_user['login']), udb_user['shell'],
         )
         passwd_users[login] = user

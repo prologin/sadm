@@ -53,6 +53,8 @@ def callback(cfg, users, updates_metadata):
                 u = auth_models.User.objects.create_user(login,
                                                     '%s@devnull' % login,
                                                     users[login]['password'])
+            u.first_name = users[login]['firstname']
+            u.last_name = users[login]['lastname']
             u.password = hashers.make_password(users[login]['password'])
             u.is_active = users[login]['group'] in cfg.get('allowed_groups', '')
             sync_groups(cfg, u, users[login])
