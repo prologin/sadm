@@ -4,10 +4,10 @@
 import subprocess
 
 def set_hostname():
-    """Get and set this machine hostname from gw dns server."""
-    out = subprocess.check_output('ip addr', shell=True).decode().splitlines()
+    """Gets and sets this machine hostname using reverse DNS."""
 
     # Get this machine public IP addr
+    out = subprocess.check_output('ip addr', shell=True).decode().splitlines()
     ip_line = [line for line in out if 'inet ' in line and '127.0.0.1' not in line]
     assert len(ip_line) == 1, \
         "More than one public IP addr: {}".format(ip_line)
@@ -16,11 +16,14 @@ def set_hostname():
 
     # Get this machine hostname
     fqdn_hostname = subprocess.check_output('dig +short -x {}'.format(ip),
-                                       shell=True).decode()
+                                            shell=True).decode()
+
+    assert fqdn_hostname, \
+        "Reverse DNS is not working! Check your DNS settings!"
 
     hostname = fqdn_hostname.split('.')[0]
 
-    # Set his machine hostname
+    # Set this machine hostname
     subprocess.call('hostnamectl set-hostname {}.prolo'.format(hostname), shell=True)
 
 if __name__ == '__main__':
