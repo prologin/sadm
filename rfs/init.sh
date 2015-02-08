@@ -52,7 +52,7 @@ cd - # ~/sadm/rfs
 # Enable and start the services need to serve the rfs
 cd .. # ~/sadm
 python install.py udbsync_passwd udbsync_rfs
-for svc in {sshd,nfsd,udbsync_passwd{,_nfsroot},rpc-{idmapd,gssd,mountd,statd}}.service; do
+for svc in {sshd,nfsd,udbsync_passwd{,_nfsroot},nfs-server,rpcbind}.service; do
   systemctl enable "$svc"
   systemctl start  "$svc"
 done
