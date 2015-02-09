@@ -63,7 +63,7 @@ We borrowed a 48 port Gigabit switch (`HP Procurve 2848`_) from the LSE and
 satreix lent us his little 16 port Gbit switch. 3/4 of the room was on the 48
 port switch and 1/4 was on the other one.
 
-.. _HP Procurve 284: http://h10010.www1.hp.com/wwpc/ca/en/sm/WF06b/12136296-12136298-12136298-12136298-12136316-12136322-29584733.html
+.. _HP Procurve 2848: http://h10010.www1.hp.com/wwpc/ca/en/sm/WF06b/12136296-12136298-12136298-12136298-12136316-12136322-29584733.html
 
 The link between Pasteur and Masters was done by a custom cable setup by the
 Bocal.
