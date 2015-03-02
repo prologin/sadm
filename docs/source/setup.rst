@@ -232,6 +232,7 @@ on the same interface as 192.168.0.0/23, add it inside the ``shared-network``
   mv /etc/dhcpd.conf{.new,}
   # ^ To replace the default configuration by our own.
   systemctl enable mdbdhcp && systemctl start mdbdhcp
+  # if start fails, it may be usefull to do touch /etc/dhcpd/generated.conf
   systemctl enable dhcpd4 && systemctl start dhcpd4
 
 netboot
