@@ -124,9 +124,9 @@ a reverse proxy for this application. Fortunately, a very simple script is
 provided with the application in order to setup what it requires::
 
   python install.py mdb
-  # Type 'no' when Django asks you to create a superuser.
   mv /etc/nginx/nginx.conf{.new,}
   # ^ To replace the default configuration by our own.
+  # Use python manage.py createsuperuser in /var/prologin/mdb to create a root
 
 This command installed the ``mdb`` application to ``/var/prologin/mdb`` and
 installed the ``systemd`` and ``nginx`` configuration files required to run the
@@ -294,6 +294,7 @@ You can then import all contestants information to ``udb`` using the
 
   cd /var/prologin/udb
   python manage.py batchimport --file=/root/finalistes.txt
+  # Use python manage.py createsuperuser to create a root
 
 The password sheet data can then be generated with this command, then printed
 by someone else::
