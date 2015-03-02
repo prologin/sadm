@@ -44,7 +44,7 @@ cd /root/sadm
 pip install -r requirements.txt
 python install.py libprologin
 # And some sadm services
-python install.py presenced set_hostname
+python install.py presenced
 
 echo 'Enable some services'
-systemctl enable sshd presenced set_hostname sddm
+systemctl enable sshd presenced sddm

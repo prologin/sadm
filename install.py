@@ -719,12 +719,6 @@ def install_hfs():
         )
 
 
-def install_set_hostname():
-    requires('libprologin')
-
-    install_systemd_unit('set_hostname')
-
-
 def install_resolved():
     install_cfg('systemd/resolved.conf', '/etc/systemd', mode=0o644)
     install_cfg('resolv.conf', '/etc', mode=0o644, replace=True)
@@ -800,7 +794,6 @@ COMPONENTS = [
     'redmine',
     'resolved',
     'rfs',
-    'set_hostname',
     'sddmcfg',
     'sshdcfg',
     'udb',

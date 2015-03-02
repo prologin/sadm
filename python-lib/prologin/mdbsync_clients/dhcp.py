@@ -32,6 +32,7 @@ def update_dhcp_config(machines, metadata):
             'host %(hostname)s {\n'
             '\thardware ethernet %(mac)s;\n'
             '\tfixed-address %(ip)s;\n'
+            '\toption host-name "%(hostname)s";\n'
             '}\n'
         )
         fragments.append(fragment % m)
