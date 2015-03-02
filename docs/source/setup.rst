@@ -93,7 +93,7 @@ Install a few packages we will need::
 
   pacman -S git dhcp bind python python-pip python-virtualenv libyaml nginx \
             sqlite dnsutils rsync postgresql-libs tcpdump base-devel pwgen \
-            libxslt ipset pssh postgresql nbd wget strace ntp
+            libxslt ipset pssh postgresql nbd wget strace ntp tftp-hpa
 
 Create the main Python ``virtualenv`` we'll use for all our Prologin apps::
 
@@ -251,7 +251,6 @@ The TFTP server is used by the PXE clients to fetch the first stage of the boot
 chain: the iPXE binary (more on that in the next section). We simply setup
 ``tftp-hpa``::
 
-  pacman -S tftp-hpa
   systemctl enable tftpd.socket && systemctl start tftpd.socket
 
 The TFTP server will serve files from ``/srv/tftp``.
