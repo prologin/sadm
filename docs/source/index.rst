@@ -17,6 +17,7 @@ hardware and network, which explains why some things seem very complicated.
    overview
    setup
    cookbook
+   tests
 
 Indices and tables
 ==================
