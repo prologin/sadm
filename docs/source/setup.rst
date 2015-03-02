@@ -89,8 +89,9 @@ readable name::
     (prologin2014) For some unknown reason, renaming interfaces did not work on
     all the NIC we had. For more information: see halfr or delroth
 
-Install a few packages we will need::
+Update pacman packages and install a few packages we will need::
 
+  pacman -Sy
   pacman -S git dhcp bind python python-pip python-virtualenv libyaml nginx \
             sqlite dnsutils rsync postgresql-libs tcpdump base-devel pwgen \
             libxslt ipset pssh postgresql nbd wget strace ntp tftp-hpa
