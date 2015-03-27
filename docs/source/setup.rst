@@ -94,7 +94,7 @@ Update pacman packages and install a few packages we will need::
 Create the main Python ``virtualenv`` we'll use for all our Prologin apps::
 
   mkdir /var/prologin
-  virtualenv3 --no-site-packages /var/prologin/venv
+  virtualenv3 /var/prologin/venv
 
 Enter the ``virtualenv``::
 
