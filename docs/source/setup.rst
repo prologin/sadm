@@ -84,11 +84,6 @@ readable name::
   echo 'SUBSYSTEM=="net", ACTION=="add", ATTR{address}=="aa:bb:cc:dd:ee:ff",
   NAME="lan"' >> /etc/udev/rules.d/10-network.rules
 
-.. note::
-
-    (prologin2014) For some unknown reason, renaming interfaces did not work on
-    all the NIC we had. For more information: see halfr or delroth
-
 Update pacman packages and install a few packages we will need::
 
   pacman -Sy
