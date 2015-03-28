@@ -70,8 +70,8 @@ def create_users(names, options):
 
         u = User()
         u.login = login
-        u.firstname = firstname
-        u.lastname = lastname
+        u.firstname = firstname.title()
+        u.lastname = lastname.title()
         u.uid = uid
         u.group = options['type']
 
