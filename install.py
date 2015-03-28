@@ -557,10 +557,6 @@ def install_firewall():
     install_cfg('iptables.save', '/etc/prologin/')
 
 
-def install_netctl_gw():
-    copy('etc/netctl/gw', '/etc/netctl/gw')
-
-
 def install_masternode():
     requires('libprologin')
     install_systemd_unit('masternode')
@@ -643,7 +639,6 @@ COMPONENTS = [
     'mdbsync',
     'minecraft',
     'netboot',
-    'netctl_gw',
     'nginxcfg',
     'paste',
     'presenced',
