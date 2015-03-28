@@ -32,7 +32,7 @@ class Command(BaseCommand):
         make_option('--mtype',
                     help='Machine type (user/orga/cluster/service)'),
         make_option('--room',
-                    help='Machine location (pasteur/alt/cluster/other'),
+                    help='Machine location (pasteur/alt/cluster/other)'),
     )
 
     def get_opt(self, options, name):

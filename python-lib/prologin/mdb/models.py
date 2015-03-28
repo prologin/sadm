@@ -31,7 +31,7 @@ class Machine(models.Model):
     ROOMS = (
         ('pasteur', 'Pasteur'),
         ('alt', 'Supplementary room'),
-        ('cluster', 'Cluster (LSE)'),
+        ('cluster', 'Cluster'),
         ('other', 'Other/Unknown'),
     )
 
