@@ -1,0 +1,8 @@
+[Match]
+Name=lan
+
+[Network]
+Address=192.168.1.254/23
+Address=192.168.250.254/24
+Domains=prolo
+DNS=127.0.0.1

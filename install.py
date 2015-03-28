@@ -551,6 +551,14 @@ def install_set_hostname():
     install_systemd_unit('set_hostname')
 
 
+def install_networkd():
+    for networkd_file in ['lan.link', 'lan.network', 'uplink.link',
+                          'uplink.network']:
+        copy('etc/systemd/network/' + networkd_file,
+             '/etc/systemd/network/' + networkd_file,
+             mode=0o644)
+
+
 def install_firewall():
     copy('etc/sysctl/ip_forward.conf', '/etc/sysctl.d/ip_forward.conf')
     install_systemd_unit('firewall')
@@ -639,6 +647,7 @@ COMPONENTS = [
     'mdbsync',
     'minecraft',
     'netboot',
+    'networkd',
     'nginxcfg',
     'paste',
     'presenced',
