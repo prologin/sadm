@@ -36,15 +36,19 @@ class Command(BaseCommand):
     )
 
     def get_opt(self, options, name):
-        if options.get(name, None) is None:
+        if name not in options:
             raise CommandError('please specify --%s' % name)
         return options[name]
 
     def handle(self, *args, **options):
         m = Machine()
-        for attr in ('hostname', 'aliases', 'ip', 'mac', 'rfs', 'hfs',
+        for attr in ('hostname', 'aliases', 'mac', 'rfs', 'hfs',
                      'mtype', 'room'):
             setattr(m, attr, self.get_opt(options, attr))
+        if 'ip' not in options:
+            m.allocate_ip()
+        else:
+            m.ip = options['ip']
         m.save()
 
         # Sleep to let time for the sync message
