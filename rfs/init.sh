@@ -18,7 +18,7 @@ fi
 mkdir -p "$ROOTFS"
 
 # Install the tools needed to install and serve the rfs
-pacman -Sy --needed --noconfirm arch-install-scripts nfs-utils openssh dnsutils
+pacman -Sy --needed --noconfirm arch-install-scripts nfs-utils openssh dnsutils nbd
 
 # Install the base system (in rfs)
 pacstrap -d "$ROOTFS" base $PACKAGES
@@ -28,7 +28,7 @@ cp -rv initcpio $ROOTFS/lib/    # initramfs hook
 cp -rv .. "$ROOTFS/sadm"        # sadm (we'll need some of it's services)
 cp rfs.sh "$ROOTFS/"            # the script executed by chroot below
 
-# Chroot to continue work
+# Chroot to install the Arch Linux used by contestants
 arch-chroot "$ROOTFS" bash /rfs.sh
 
 # Give the new system a nameserver (the gateway)
@@ -50,7 +50,7 @@ cd - # ~/sadm/rfs
 # Enable and start the services need to serve the rfs
 cd .. # ~/sadm
 python install.py udbsync_passwd udbsync_rfs
-for svc in {sshd,nfsd,udbsync_passwd{,_nfsroot},nfs-server,rpcbind}.service; do
+for svc in {sshd,udbsync_passwd{,_nfsroot},rpcbind,nfs-server}.service; do
   systemctl enable "$svc"
   systemctl start  "$svc"
 done
