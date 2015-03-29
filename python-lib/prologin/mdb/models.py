@@ -39,6 +39,7 @@ class Machine(models.Model):
     # Vaguely inaccurate, KISS.
     HOSTNAME_REGEX = r'^[a-z0-9]*(?:\.[a-z0-9]*)?$'
     ALIASES_REGEX = r'^{0}(?:,{0})*$'.format(HOSTNAME_REGEX[1:-1])
+    MAC_REGEX = r'[0-9a-zA-Z]{2}(?::[0-9a-zA-Z]{2}){5}'
 
     hostname = models.CharField(max_length=64, unique=True,
                                 verbose_name='Host name',
@@ -49,7 +50,9 @@ class Machine(models.Model):
                                help_text='host0,host1,etc.')
     ip = models.IPAddressField(unique=True, verbose_name='IP',
                                help_text='The IP address is automatically allocated.')
-    mac = models.CharField(max_length=17, unique=True, verbose_name='MAC')
+    mac = models.CharField(max_length=17, unique=True, verbose_name='MAC',
+                           validators=[RegexValidator(regex=MAC_REGEX)],
+                           help_text='aa:bb:cc:dd:ee:ff')
     rfs = models.IntegerField(verbose_name='RFS', default=0)
     hfs = models.IntegerField(verbose_name='HFS', default=0)
     mtype = models.CharField(max_length=20, choices=TYPES, verbose_name='Type',
