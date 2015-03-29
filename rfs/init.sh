@@ -34,8 +34,6 @@ arch-chroot "$ROOTFS" bash /rfs.sh
 # Give the new system a nameserver (the gateway)
 sed -e 's:^#nameserver.*:domain prolo\nnameserver 192.168.1.254:g' -i /export/nfsroot/etc/resolv.conf
 
-# Install some configuration files
-cp -r etc/ /export/nfsroot/etc
 # Load nbd driver at startup
 echo nbd > /export/nfsroot/etc/modules-load.d/nbd.conf
 
