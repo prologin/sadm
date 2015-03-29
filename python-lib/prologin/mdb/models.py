@@ -17,6 +17,7 @@
 
 import ipaddress
 
+from django.core.validators import RegexValidator
 from django.db import models
 
 
@@ -35,21 +36,24 @@ class Machine(models.Model):
         ('other', 'Other/Unknown'),
     )
 
+    # Vaguely inaccurate, KISS.
+    HOSTNAME_REGEX = r'^[a-zA-Z0-9]*(?:\.[a-zA-Z0-9]*)?$'
+    ALIASES_REGEX = r'^{0}(?:,{0})*$'.format(HOSTNAME_REGEX[1:-1])
+
     hostname = models.CharField(max_length=64, unique=True,
-                                verbose_name='Host name')
-    aliases = models.CharField(max_length=512, blank=True)
+                                verbose_name='Host name',
+                                validators=[RegexValidator(regex=HOSTNAME_REGEX)],
+                                help_text=HOSTNAME_REGEX)
+    aliases = models.CharField(max_length=512, blank=True,
+                               validators=[RegexValidator(regex=ALIASES_REGEX)],
+                               help_text='host0,host1,etc.')
     ip = models.IPAddressField(unique=True, verbose_name='IP')
     mac = models.CharField(max_length=17, unique=True, verbose_name='MAC')
-    rfs = models.IntegerField(verbose_name='RFS')
-    hfs = models.IntegerField(verbose_name='HFS')
-    mtype = models.CharField(max_length=20, choices=TYPES, verbose_name='Type')
-    room = models.CharField(max_length=20, choices=ROOMS)
-
-    def save(self, *args, **kwargs):
-        # Normalize list of aliases to "alias0,alias1,etc."
-        self.aliases = self.aliases.replace(' ', '')
-
-        super().save(*args, **kwargs)
+    rfs = models.IntegerField(verbose_name='RFS', default=0)
+    hfs = models.IntegerField(verbose_name='HFS', default=0)
+    mtype = models.CharField(max_length=20, choices=TYPES, verbose_name='Type',
+                             default='orga')
+    room = models.CharField(max_length=20, choices=ROOMS, default='other')
 
     def __str__(self):
         return self.hostname
