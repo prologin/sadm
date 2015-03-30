@@ -80,7 +80,8 @@ if PAM_TYPE == 'open_session' and not os.path.ismount(get_home_dir(login)):
         os.mkdir(home_dir)
 
     # Get a block device for the HOME mount point and mount it.
-    if subprocess.check_call(['/usr/sbin/nbd-client', host, str(port),
+    if subprocess.check_call(['/usr/sbin/nbd-client', '-name', login,
+                              host, str(port),
                               block_device], stdout=sys.stderr,
                              stderr=sys.stderr):
         fail('Cannot get the home directory block device')
