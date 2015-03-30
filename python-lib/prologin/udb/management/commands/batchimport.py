@@ -25,6 +25,9 @@ from optparse import make_option
 from prologin.udb.models import User
 
 
+DENIED_LOGIN = ['root']
+
+
 def make_ascii(s):
     s = unicodedata.normalize('NFKD', s)
     return s.encode('ascii', 'ignore').decode('utf-8').lower()
@@ -62,7 +65,7 @@ def create_users(names, options):
 
             base_login = login
             i = 1
-            while login in logins:
+            while login in logins or login in DENIED_LOGIN:
                 login = base_login + str(i)
                 i += 1
 
