@@ -45,7 +45,7 @@ reboot
 BOOT_SCRIPT = """#!ipxe
 echo Booting the kernel on %(rfs_ip)s:/nfsroot
 initrd http://netboot/static/initrd%(suffix)s
-boot http://netboot/static/kernel%(suffix)s nfsroot=%(rfs_ip)s:/export/nfsroot %(options)s
+boot http://netboot/static/kernel%(suffix)s nfsroot=%(rfs_ip)s:/export/nfsroot,ro %(options)s
 """
 
 REGISTER_ERROR_SCRIPT = """#!ipxe
