@@ -33,11 +33,18 @@ sed -e 's:^HOOKS.*:HOOKS="base udev autodetect modconf net block filesystems key
 echo 'Regenerating an initramfs in order to include the prologin hook'
 mkinitcpio -p linux
 
+echo 'Load nbd driver at startup'
+echo nbd > /etc/modules-load.d/nbd.conf
+
+echo 'Setup necessary kdm sessions'
+rm -rf /usr/share/apps/kdm/sessions
+ln -s /usr/share/xsessions /usr/share/apps/kdm/sessions
+
 echo 'Install the prologin virtualenv and library'
 mkdir /var/prologin
 virtualenv3 /var/prologin/venv
 source /var/prologin/venv/bin/activate
-cd /sadm
+cd /root/sadm
 pip install -r requirements.txt
 python install.py libprologin
 # And some sadm services
