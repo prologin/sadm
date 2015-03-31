@@ -40,7 +40,7 @@ nameserver 192.168.1.254' > /export/nfsroot/etc/resolv.conf
 
 echo 'Enable and start the services need to serve the rfs'
 python install.py udbsync_passwd udbsync_rfs
-for svc in {sshd,udbsync_passwd{,_nfsroot},rpcbind,nfs-server}.service; do
+for svc in {sshd,udbsync_passwd{,_nfsroot},udbsync_rootssh,rpcbind,nfs-server}.service rootssh.path; do
   systemctl enable "$svc"
   systemctl start  "$svc"
 done

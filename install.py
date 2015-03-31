@@ -447,6 +447,7 @@ def install_udbsync_redmine():
 
 def install_udbsync_rfs():
     requires('libprologin')
+    requires('udbsync_rootssh')
 
     install_systemd_unit('udbsync_passwd_nfsroot')
     install_systemd_unit('rootssh-copy')
