@@ -24,6 +24,9 @@ sed -e 's:^CheckSpace:#CheckSpace:' -e 's:^SigLevel.*:SigLevel = Never:' -i /etc
 echo 'Generating host ssh keys'
 ssh-keygen -A
 
+echo 'Setting root password'
+echo 'root:changeme' | chpasswd
+
 echo 'Adding initrd hooks and modules'
 sed -e 's:^HOOKS.*:HOOKS="base udev autodetect modconf net block filesystems keyboard fsck prologin":g' \
     -e 's:^MODULES.*:MODULES="nfsv3":g' -i /etc/mkinitcpio.conf
