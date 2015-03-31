@@ -4,6 +4,18 @@ Cookbook
 All the things you might need to do as an organizer or a root are documented
 here.
 
+Server setup
+------------
+
+Here is a list of things to remember when setting up servers:
+
+- Use ssh as soon as possible.
+- Work in a tmux session, this allows any other root to take over your work if
+  needed.
+- Use only one shell (bash) and setup an infinite history. This,
+  http://stackoverflow.com/a/19533853 is already installed by the rfs sripts.
+  Doing that will document what you did during the contest.
+
 User related operations
 -----------------------
 
@@ -59,8 +71,7 @@ Adding a user machine to the network
 
 Adding a machine we don't manage to the user network
     Some organizers may want to use their laptop. Ask them for their MAC
-    address and the hostname they want. Then, go to ``mdb`` and manually take
-    an IP from the user IP pool by incrementing the last allocation integer.
+    address and the hostname they want.
     Finally, insert a ``mdb`` machine record with machine type ``orga`` using
     the IP address you manually allocated (if you set the last allocation to
     100, you should assign the IP .100). Wait a minute for the DHCP

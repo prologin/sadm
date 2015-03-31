@@ -34,7 +34,7 @@ We basically have two local networks:
 - Matches LAN, containing the cluster master and all the cluster slaves.
 
 The User LAN uses 192.168.0.0/24, and the gateway (named ``gw``) is
-192.168.0.254. 192.168.1.0/24 is reserved for servers, and 192.168.250.0/24
+192.168.1.254. 192.168.1.0/24 is reserved for servers, and 192.168.250.0/24
 is reserved for machines not in the MDB.
 
 The Matches LAN uses 192.168.2.0/24, and the gateway (named ``gw.cl``) is
