@@ -15,11 +15,17 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
+
 import logging
 import logging.handlers
 
 
-def setup_logging(program, verbose=False, local=True):
+# Do not log to stderr if started by systemd
+LOG_STDERR = os.getppid() != 1
+
+
+def setup_logging(program, verbose=False, local=LOG_STDERR):
     """Sets up the default Python logger.
 
     Always log to syslog, optionaly log to stdout.
