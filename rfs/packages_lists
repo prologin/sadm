@@ -29,3 +29,4 @@ xorg
 xorg-drivers
 xorg-server
 xorg-server-utils
+zenity

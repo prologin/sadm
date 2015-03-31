@@ -35,6 +35,11 @@ def get_block_device(login):
 def fail(reason):
     # TODO: be sure the user can see the reason.
     print(reason, file=sys.stderr)
+    os.environ['DISPLAY'] = ':0'
+    os.environ['XAUTHORITY'] = subprocess.check_output("pgrep -al Xorg | sed 's/.*auth //'", shell=True).strip().decode()
+    # DISPLAY and XAUTHORITY are required in order to connect to the X server
+    # Better approaches are welcomed.
+    os.system("/usr/bin/zenity --error --text='%s'" % reason)
     sys.exit(1)
 
 PAM_TYPE = os.environ['PAM_TYPE']
@@ -57,7 +62,7 @@ if PAM_TYPE == 'open_session' and not os.path.ismount(get_home_dir(login)):
     if PAM_SERVICE not in ('gdm', 'kde', 'slim', 'xdm'):
         print('Please log in the graphical display manager')
 
-    # Request the login to Presencd and PresenceSync.
+    # Request the login to Presenced and PresenceSync.
     failure_reason = prologin.presenced.client.connect().request_login(login)
     if failure_reason is not None:
         # Login is forbidden by presenced.
