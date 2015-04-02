@@ -1,5 +1,5 @@
 [Unit]
-Description=/etc/{passwd,shadow,group} synchronisation daemon
+Description=/etc/{passwd,shadow,group} synchronization daemon
 After=network.service
 
 [Service]

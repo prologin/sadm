@@ -1,5 +1,5 @@
 [Unit]
-Description=Worker node service
+Description=Worker node
 After=network.target
 
 [Service]

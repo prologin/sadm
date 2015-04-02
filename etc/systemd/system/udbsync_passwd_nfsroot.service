@@ -1,5 +1,5 @@
 [Unit]
-Description=/etc/{passwd,shadow,group} synchronisation daemon for nfsroot
+Description=/etc/{passwd,shadow,group} synchronization daemon for nfsroot
 After=network.service
 
 [Service]

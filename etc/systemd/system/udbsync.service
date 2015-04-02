@@ -1,5 +1,5 @@
 [Unit]
-Description=UDBSync pubsub service
+Description=UDBSync pubsub
 After=udb.service
 
 [Service]

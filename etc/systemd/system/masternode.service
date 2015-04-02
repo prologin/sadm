@@ -1,5 +1,5 @@
 [Unit]
-Description=Master node service
+Description=Master node
 After=network.target
 
 [Service]

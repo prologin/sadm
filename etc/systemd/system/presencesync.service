@@ -1,5 +1,5 @@
 [Unit]
-Description=PresenceSync pubsub service
+Description=PresenceSync pubsub
 After=mdb.service
 
 [Service]

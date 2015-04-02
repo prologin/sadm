@@ -1,5 +1,5 @@
 [Unit]
-Description=MDBSync pubsub service
+Description=MDBSync pubsub
 After=mdb.service
 
 [Service]
