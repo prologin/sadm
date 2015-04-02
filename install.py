@@ -309,7 +309,7 @@ def install_mdbdhcp():
     install_systemd_unit('mdbdhcp')
 
 
-def install_webservices():
+def install_docs():
     requires('nginxcfg')
 
     install_service_dir('webservices/docs', mode=0o755,
@@ -640,6 +640,7 @@ COMPONENTS = [
     'bindcfg',
     'concours',
     'dhcpdcfg',
+    'docs',
     'firewall',
     'hfs',
     'homepage',
@@ -669,7 +670,6 @@ COMPONENTS = [
     'udbsync_redmine',
     'udbsync_rfs',
     'udbsync_rootssh',
-    'webservices',
     'workernode',
 ]
 
