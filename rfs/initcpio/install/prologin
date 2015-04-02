@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 build() {
     add_binary find

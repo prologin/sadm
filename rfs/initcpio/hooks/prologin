@@ -1,4 +1,4 @@
-#!/usr/bin/ash
+#!/bin/sh
 
 run_latehook() {
     find /new_root/var/log -type d > /var_log_list
@@ -8,7 +8,7 @@ run_latehook() {
     mount -t tmpfs tmpfs /new_root/var/lib/kdm
     mount -t tmpfs tmpfs /new_root/home
     while read d; do
-      mkdir -p $d
+        mkdir -p "$d"
     done < /var_log_list
 }
 

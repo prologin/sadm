@@ -1,11 +1,13 @@
 [Unit]
-Description=Firewall intial setup
+Description=Load iptables.save rules
 
 [Service]
 Type=oneshot
+RemainAfterExit=yes
 ExecStart=/usr/bin/ipset -! create allowed-internet-access bitmap:ip range 192.168.0.0/23
 ExecStart=/usr/bin/ipset -! create tmp-allowed-internet-access bitmap:ip range 192.168.0.0/23
 ExecStart=/usr/bin/iptables-restore /etc/prologin/iptables.save
+ExecStop=/usr/lib/systemd/scripts/iptables-flush
 
 [Install]
 WantedBy=multi-user.target

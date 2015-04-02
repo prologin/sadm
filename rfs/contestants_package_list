@@ -1,7 +1,7 @@
 Generate the installation command
 =================================
 
-    echo -n "yaourt --root /export/nfsroot -S --needed" `sed '/^\* /!d' contestants_package_list | tr -d '\n*'`
+    echo -n "yaourt --root /export/nfsroot -S --needed" $(sed '/^\* /!d' contestants_package_list | tr -d '\n*')
 
 
 List of packages for contestants' environment
@@ -136,7 +136,7 @@ List of packages for contestants' environment
 * openttd-opensfx
 
 
-# Other additional dependancies
+# Other additional dependencies
 
 * tcl
 * tk
@@ -155,7 +155,7 @@ List of packages for contestants' environment
 * python-pygame-hg
 
 
-# Stechec2 language dependancies
+# Stechec2 language dependencies
 
 * php
 * php-embed

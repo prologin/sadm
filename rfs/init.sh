@@ -1,18 +1,18 @@
-#!/bin/bash
+#!/bin/sh
 
 set -e
 
 if [ x"$ROOTFS" == "x" ]; then
-  echo "ROOTFS not specified... aborting"
-  exit 1
+    echo "ROOTFS not specified... aborting"
+    exit 1
 fi
 if [ x"$SUBNET" == "x" ]; then
-  echo "SUBNET not specified... aborting"
-  exit 1
+    echo "SUBNET not specified... aborting"
+    exit 1
 fi
 if [ x"$PACKAGES" == "x" ]; then
-  echo "PACKAGES not specified... aborting"
-  exit 1
+    echo "PACKAGES not specified... aborting"
+    exit 1
 fi
 
 mkdir -p "$ROOTFS"
@@ -24,7 +24,7 @@ pacman -Sy --needed --noconfirm arch-install-scripts nfs-utils openssh dnsutils
 pacstrap -d "$ROOTFS" base $PACKAGES
 
 # Copy some tools we will use in chroot
-cp -rv initcpio $ROOTFS/lib/    # initramfs hook
+cp -rv initcpio "$ROOTFS/lib/"  # initramfs hook
 cp -rv .. "$ROOTFS/sadm"        # sadm (we'll need some of it's services)
 cp rfs.sh "$ROOTFS/"            # the script executed by chroot below
 
@@ -44,17 +44,17 @@ rm -f "$ROOTFS/rfs.sh"
 rm -rf "$ROOTFS/sadm"
 
 # Setup necessary kdm sessions
-cd /export/nfsroot/usr/share/apps/kdm
+pushd /export/nfsroot/usr/share/apps/kdm
 rm -rf sessions
 ln -s ../../xsessions sessions
-cd - # ~/sadm/rfs
+popd # ~/sadm/rfs
 
 # Enable and start the services need to serve the rfs
 cd .. # ~/sadm
 python install.py udbsync_passwd udbsync_rfs
 for svc in {sshd,nfsd,udbsync_passwd{,_nfsroot},nfs-server,rpcbind}.service; do
-  systemctl enable "$svc"
-  systemctl start  "$svc"
+    systemctl enable "$svc"
+    systemctl start  "$svc"
 done
 
 # And finally export the rfs via nfs

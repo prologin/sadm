@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/sh
 
 set -e
 
@@ -6,7 +6,7 @@ echo -n 'First RHFS id (eg. 0, 2, 4, ...): ' && read rhfs_id
 
 echo 'Detected disks:'
 for disk in /dev/sd?; do
-    fdisk -l ${disk} | grep Disk | grep bytes
+    fdisk -l "$disk" | grep Disk | grep bytes
 done
 while ! [ -b "${disk_0}" ]; do
     echo -n 'First disk (boot drive): ' && read disk_0
@@ -49,7 +49,7 @@ fi
 echo 'Starting setup.'
 
 echo 'Partitioning disks...'
-for disk in ${disk_0} ${disk_1}; do
+for disk in "${disk_0}" "${disk_1}"; do
 echo "o
 n
 p
@@ -61,12 +61,12 @@ p
 2
 
 
-w" | fdisk ${disk}
+w" | fdisk "$disk"
 done
 
 echo 'Creating RAID'
 mdadm --create /dev/md0 --level=1 --metadata=1.2 --chunk=64 \
-    --raid-devices=2 ${disk_0}2 ${disk_1}2
+    --raid-devices=2 "${disk_0}2" "${disk_1}2"
 cat /proc/mdstat
 
 echo 'Creating LVM'
@@ -76,7 +76,7 @@ lvcreate -L 15G data -n root
 lvcreate -l 100%FREE data -n export
 
 echo 'Formatting partitions'
-mkfs.ext4 -L boot ${disk_0}1
+mkfs.ext4 -L boot "${disk_0}1"
 mkfs.ext4 -L root /dev/mapper/data-root
 mkfs.ext4 -L export /dev/mapper/data-export
 
@@ -102,7 +102,7 @@ cat >/mnt/var/tmp/install-2.sh <<EOF
 
 set -e
 
-echo ${base_machine_name} > /etc/hostname
+echo "${base_machine_name}" > /etc/hostname
 ln -sf /usr/share/zoneinfo/Europe/Paris /etc/localtime
 
 echo 'Setting locale information'

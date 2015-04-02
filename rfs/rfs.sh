@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # This script is executed *chrooted in an nfsroot* during the 'install.py rfs'
 # process.
@@ -32,5 +32,5 @@ python install.py presenced set_hostname
 
 # Enable some services
 for svc in {sshd,ntpd,presenced,set_hostname,collectd,kdm}.service; do
-  systemctl enable "$svc"
+    systemctl enable "$svc"
 done
