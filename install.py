@@ -24,6 +24,7 @@ This can NOT use prologin.* packages as they are most likely not yet installed!
 """
 
 import contextlib
+import errno
 import grp
 import os
 import os.path
@@ -138,6 +139,16 @@ def copytree(old, new, dir_mode=0o700, file_mode=0o600, owner='root:root'):
             shutil.chown(path, user, group)
 
 
+def symlink(dest, path):
+    print('Creating symlink %s -> %s' % (path, dest))
+    try:
+        os.symlink(dest, path)
+    except OSError as e:
+        if e.errno == errno.EEXIST:
+            os.remove(path)
+            os.symlink(dest, path)
+
+
 NEW_CFG = []
 CFG_TO_REVIEW = []
 def install_cfg(path, dest_dir, owner='root:root', mode=0o600):
@@ -245,7 +256,7 @@ def install_nginxcfg():
     mkdir('/etc/nginx/services_contest', mode=0o755, owner='root:root')
     if not os.path.exists('/etc/nginx/logs'):
         mkdir('/var/log/nginx', mode=0o750, owner='http:log')
-        os.symlink('/var/log/nginx', '/etc/nginx/logs')
+        symlink('/var/log/nginx', '/etc/nginx/logs')
 
 
 def install_bindcfg():
@@ -557,12 +568,16 @@ def install_set_hostname():
     install_systemd_unit('set_hostname')
 
 
+def install_resolved():
+    symlink('/var/run/systemd/resolve/resolv.conf', '/etc/resolv.conf')
+
 def install_networkd():
     for networkd_file in ['lan.link', 'lan.network', 'uplink.link',
                           'uplink.network']:
         copy('etc/systemd/network/' + networkd_file,
              '/etc/systemd/network/' + networkd_file,
              mode=0o644)
+    symlink('/dev/null', '/etc/systemd/network/99-default.link')
 
 
 def install_firewall():
@@ -662,6 +677,7 @@ COMPONENTS = [
     'presencesync_firewall',
     'presencesync_usermap',
     'redmine',
+    'resolved',
     'rfs',
     'set_hostname',
     'sshdcfg',
