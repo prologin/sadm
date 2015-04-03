@@ -116,6 +116,7 @@ def mkdir(path, mode, owner='root:root'):
 
 
 def copy(old, new, mode=0o600, owner='root:root'):
+    print('Copying %s -> %s (mode: %o) (own: %s)' % (old, new, mode, owner))
     shutil.copy(old, new)
     os.chmod(new, mode)
     user, group = owner.split(':')
@@ -123,6 +124,7 @@ def copy(old, new, mode=0o600, owner='root:root'):
 
 
 def copytree(old, new, dir_mode=0o700, file_mode=0o600, owner='root:root'):
+    print('Copying %s -> %s (file mode: %o) (dir mode: %o) (own: %s)' % (old, new, file_mode, dir_mode, owner))
     shutil.copytree(old, new)
     user, group = owner.split(':')
     for root, dirs, files in os.walk(new):
@@ -152,7 +154,6 @@ def install_cfg(path, dest_dir, owner='root:root', mode=0o600):
     else:
         NEW_CFG.append(dest_path)
 
-    print('Copying configuration %r -> %r' % (src_path, dest_path))
     copy(src_path, dest_path, mode=0o640, owner=owner)
     os.chmod(dest_path, mode)
 
@@ -464,7 +465,8 @@ def install_presenced():
     requires('libprologin')
     requires('nginxcfg')
 
-    install_service_dir('python-lib/prologin/presenced', owner='presenced:presenced', mode=0o700)
+    install_service_dir('python-lib/prologin/presenced',
+                        owner='presenced:presenced', mode=0o700)
     install_systemd_unit('presenced')
 
     cfg = '/etc/pam.d/system-login'
