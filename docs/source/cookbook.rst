@@ -13,8 +13,20 @@ Here is a list of things to remember when setting up servers:
 - Work in a tmux session, this allows any other root to take over your work if
   needed.
 - Use only one shell (bash) and setup an infinite history. This,
-  http://stackoverflow.com/a/19533853 is already installed by the rfs sripts.
+  http://stackoverflow.com/a/19533853 is already installed by the rfs scripts.
   Doing that will document what you did during the contest.
+
+Testing on qemu/libvirt
+-----------------------
+
+Here are some ideas:
+
+- Do not use the spice graphical console for setting up servers, use the serial
+  line. For syslinux it is ``serial 0`` at the top of ``syslinux.cfg`` and for
+  Linux ``console=ttyS0`` on the cmd line of the kernel in ``syslinux.cfg``.
+- For best performance use the VirtIO devices (disk, NIC).
+- For user machines, use the QXL driver for best performance with SPICE.
+- Servers need at least 2048MiB of RAM in order to compile the dependencies
 
 User related operations
 -----------------------
