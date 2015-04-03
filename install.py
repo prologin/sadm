@@ -149,6 +149,11 @@ def symlink(dest, path):
             os.symlink(dest, path)
 
 
+def system(command):
+    print('Executing "%s"' % command)
+    os.system(command)
+
+
 NEW_CFG = []
 CFG_TO_REVIEW = []
 def install_cfg(path, dest_dir, owner='root:root', mode=0o600):
@@ -196,7 +201,7 @@ def install_service_dir(path, owner, mode):
     # Nothing in Python allows merging two directories together...
     # Be careful with rsync(1) arguments: to merge two directories, trailing
     # slash are meaningful.
-    os.system('rsync -rv %s/ /var/prologin/%s' % (path, name))
+    system('rsync -rv %s/ /var/prologin/%s' % (path, name))
     user, group = owner.split(':')
 
     shutil.chown('/var/prologin/%s' % name, user, group)
@@ -217,7 +222,7 @@ def django_syncdb(name, user=None):
     with cwd('/var/prologin/%s' % name):
         cmd = 'su -c "/var/prologin/venv/bin/python manage.py syncdb --noinput" '
         cmd += user
-        os.system(cmd)
+        system(cmd)
 
 def django_initial_data(name, user=None):
     if user is None:
@@ -231,7 +236,7 @@ def django_initial_data(name, user=None):
 
 def install_libprologin():
     with cwd('python-lib'):
-        os.system('python setup.py install')
+        system('python setup.py install')
 
     install_cfg_profile('hfs-client', group='hfs_public')
     install_cfg_profile('mdb-client', group='mdb_public')
@@ -343,7 +348,7 @@ def install_paste():
         with cwd('/var/prologin/paste'):
             cmd = 'su -c "/var/prologin/venv_paste/bin/python manage.py syncdb --noinput" '
             cmd += 'webservices'
-            os.system(cmd)
+            system(cmd)
 
 
 def install_redmine():
@@ -713,7 +718,7 @@ def sync_groups():
             grp.getgrnam(gr)
         except KeyError:
             print('Creating group %r' % gr)
-            os.system('groupadd -g %d %s' % (gid, gr))
+            system('groupadd -g %d %s' % (gid, gr))
 
 
 def sync_users():
@@ -728,7 +733,7 @@ def sync_users():
             if other_grps:
                 cmd += ' -G %s' % ','.join(other_grps)
             cmd += ' ' + user
-            os.system(cmd)
+            system(cmd)
         except KeyError:
             print('Creating user %r' % user)
             uid = data['uid']
@@ -737,7 +742,7 @@ def sync_users():
             if other_grps:
                 cmd += ' -G %s' % ','.join(other_grps)
             cmd += ' ' + user
-            os.system(cmd)
+            system(cmd)
 
 
 if __name__ == '__main__':
