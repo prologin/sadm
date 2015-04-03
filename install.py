@@ -540,6 +540,7 @@ def install_presencesync_firewall():
 
 def install_rfs():
     copy('etc/sysctl/rp_filter.conf', '/etc/sysctl.d/rp_filter.conf')
+    system('systemctl restart systemd-sysctl')
 
     rootfs = '/export/nfsroot'
     subnet = '192.168.0.0/24'
@@ -576,6 +577,7 @@ def install_set_hostname():
 def install_resolved():
     symlink('/var/run/systemd/resolve/resolv.conf', '/etc/resolv.conf')
 
+
 def install_networkd():
     for networkd_file in ['lan.link', 'lan.network', 'uplink.link',
                           'uplink.network']:
@@ -587,6 +589,8 @@ def install_networkd():
 
 def install_firewall():
     copy('etc/sysctl/ip_forward.conf', '/etc/sysctl.d/ip_forward.conf')
+    system('systemctl restart systemd-sysctl')
+
     install_systemd_unit('firewall')
     install_cfg('iptables.save', '/etc/prologin/')
 
@@ -600,6 +604,7 @@ def install_masternode():
         mode=0o770,
         owner='concours:cluster_public'
     )
+
 
 def install_workernode():
     requires('libprologin')
