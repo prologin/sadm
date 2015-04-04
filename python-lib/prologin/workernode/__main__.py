@@ -189,7 +189,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
 
         lines = server_stdout.split('\n')
         result = []
-        score_re = re.compile(r'^(\d+) (-?\d+) (-?\d+)$')
+        score_re = re.compile(r'^(\d+) (-?\d+)( (-?\d+))?$')
         for line in lines:
             m = score_re.match(line)
             if m is not None:
