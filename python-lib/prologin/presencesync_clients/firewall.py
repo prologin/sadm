@@ -41,6 +41,11 @@ def callback(logins, updates_metadata):
                 allowed_ips.add(machine['ip'])
                 break # IP found
 
+    # Add organizers machines
+    for machine in mdb_machines:
+        if machine['mtype'] == 'orga':
+            allowed_ips.add(machine['ip'])
+
     for ip in allowed_ips:
         subprocess.call('ipset add tmp-allowed-internet-access %s' % ip,
                         shell=True)
