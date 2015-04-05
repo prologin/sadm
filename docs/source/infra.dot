@@ -1,0 +1,137 @@
+// blue: synchronization.py
+// red: rpc
+// red dashed: should be rpc, currently django view
+// green: generation of config files
+// orange: sql (with or without ORM)
+
+digraph {
+    rankdir = LR;
+    compound=true;
+    subgraph clustergw {
+        label = "gateway";
+
+        dhcp;
+        dns;
+        netboot;
+        udb;
+        mdb;
+        gw_udbsync_django [label="udbsync_django"];
+
+        mdbsync -> mdb [color="red", style="dashed"];
+        mdbsync -> mdbdhcp [color="blue"];
+        mdbsync -> mdbdns [color="blue"];
+
+        mdbdns -> dns [color="green"];
+        mdbdhcp -> dhcp [color="green"];
+
+        netboot -> mdb [color="red", style="dashed"];
+        udbsync -> udb [color="red", style="dashed"];
+
+        udbsync -> gw_udbsync_rootssh [color="blue"];
+        udbsync -> gw_udbsync_django [color="blue"];
+
+        gw_udbsync_django -> udb [color="orange"];
+        gw_udbsync_django -> mdb [color="orange"];
+
+        gw_udbsync_rootssh [label="udbsync_rootssh"];
+
+        presencesync;
+        presencesync -> presencesync_firewall [color="blue"];
+
+        presencesync_firewall -> ipset [color="green"];
+        presencesync_firewall -> iptables [color="green"];
+    }
+
+    subgraph clusterrhfs {
+        label = "rhfs";
+
+        hfs_server;
+        rhfs_udbsync_rootssh [label="udbsync_rootssh"];
+        rfs_udbsync_rootssh_nfsroot [label="udbsync_rootssh_nfsroot"];
+        udbsync_passwd;
+
+        udbsync -> rhfs_udbsync_rootssh [color="blue"];
+        udbsync -> udbsync_passwd [color="blue"];
+        presencesync -> hfs_server [color="blue"];
+
+        udbsync -> rfs_udbsync_rootssh_nfsroot [color="blue"];
+
+        hfs_server -> nbd_server [color="green"];
+
+        nfsroot [label="/export/nfsroot", shape=rectangle];
+        homes [label="/export/hfs", shape=rectangle];
+
+        rfs_udbsync_rootssh_nfsroot -> nfsroot [color="green"];
+        udbsync_passwd -> nfsroot [color="green"];
+        hfs_server -> homes;
+    }
+
+    subgraph clustercontestant {
+        label = "Contestant machines";
+        workernode;
+        presenced;
+        hfs_client;
+        nbd_client;
+        contestant_dummy [style=invis, shape=point];
+
+        hfs_client -> nbd_client [label="spawn"];
+    }
+
+    hfs_client -> hfs_server [color="red", style="dashed"];
+    nbd_server -> nbd_client;
+    presenced -> presencesync [color="red", style="dashed"];
+
+    nfsroot -> contestant_dummy [lhead=clustercontestant, label="nfs"];
+    homes -> contestant_dummy [lhead=clustercontestant, label="nbd"];
+
+    subgraph clusterweb {
+        label = "web";
+
+        postgresql;
+
+        web_udbsync_rootssh [label="udbsync_rootssh"];
+        web_udbsync_django [label="udbsync_django"];
+        web_udbsync_redmine [label="udbsync_redmine"];
+
+        udbsync -> web_udbsync_rootssh [color="blue"];
+        udbsync -> web_udbsync_django [color="blue"];
+        udbsync -> web_udbsync_redmine [color="blue"];
+
+        web_udbsync_django -> concours [color="orange"];
+        web_udbsync_django -> homepage [color="orange"];
+        web_udbsync_redmine -> redmine [color="orange"];
+
+        presencesync -> presencesync_usermap [color="blue"];
+
+        concours -> masternode [color="red"];
+        masternode -> workernode [color="red"];
+        paste;
+
+        masternode -> concours [color="orange"];
+        concours -> postgresql [color="orange"];
+        redmine -> postgresql [color="orange"];
+    }
+
+    hfs_server -> postgresql [color="orange"];
+
+    subgraph clustermisc {
+        label = "misc";
+
+        misc_udbsync_django [label="udbsync_django"];
+        misc_udbsync_rootssh [label="udbsync_rootssh"];
+
+        udbsync -> misc_udbsync_rootssh [color="blue"];
+
+        udbsync -> misc_udbsync_django [color="blue"];
+        misc_udbsync_django -> dj_ango [color="orange"];
+    }
+
+    subgraph clusterlegend {
+        label = "Legend";
+        1 -> 2 [color="blue", label="via synchronisation.py"];
+        3 -> 4 [color="red", label="via RPC"];
+        5 -> 6 [color="red", style="dashed", label="should be via RPC"];
+        7 -> 8 [color="green", label="generate config files"];
+        9 -> 0 [color="orange", label="SQL (orm or not)"];
+    }
+}
