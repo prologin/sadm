@@ -1,9 +1,9 @@
-{% extends "base.html" %}
+{% extends "stechec/base.html" %}
 
-{% block "title" %}Envoi d'un champion{% endblock %}
-{% block "titleh1" %}Envoi d'un champion{% endblock %}
+{% block title %}Envoi d'un champion{% endblock %}
+{% block titleh1 %}Envoi d'un champion{% endblock %}
 
-{% block "content" %}
+{% block content %}
 
 <form action="" method="post" enctype="multipart/form-data">
     {% csrf_token %}

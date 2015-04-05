@@ -41,36 +41,42 @@ def sync_groups(cfg, uobj, data):
 def callback(cfg, users, updates_metadata):
     # Django is imported from there because DJANGO_SETTINGS_MODULE needs to be
     # configured.
-    from django.contrib.auth import hashers
-    from django.contrib.auth import models as auth_models
+    from django.contrib.auth import get_user_model
 
-    logging.info('Got events: %r' % updates_metadata)
+    UserModel = get_user_model()  # noqa
+
+    logging.info("Got events: %r", updates_metadata)
     for login, status in updates_metadata.items():
         if status in ('created', 'updated'):
             try:
-                u = auth_models.User.objects.get(username=login)
-            except auth_models.User.DoesNotExist:
-                u = auth_models.User.objects.create_user(login,
-                                                    '%s@devnull' % login,
-                                                    users[login]['password'])
+                u = UserModel.objects.get(username=login)
+            except UserModel.DoesNotExist:
+                u = UserModel.objects.create_user(login,
+                                                  email='%s@devnull' % login,
+                                                  password=users[login]['password'])
             u.first_name = users[login]['firstname']
             u.last_name = users[login]['lastname']
-            u.password = hashers.make_password(users[login]['password'])
+            u.set_password(users[login]['password'])
             u.is_active = users[login]['group'] in cfg.get('allowed_groups', '')
             sync_groups(cfg, u, users[login])
             u.save()
 
         if status == 'deleted':
             try:
-                u = auth_models.User.objects.get(username=login)
-            except auth_models.User.DoesNotExist:
-                logging.warning('Ignoring deletion of user %r' % login)
+                u = UserModel.objects.get(username=login)
+            except UserModel.DoesNotExist:
+                logging.warning("Ignoring deletion of user %r", login)
                 continue
             u.is_active = False
             u.save()
 
+
 if __name__ == '__main__':
-    app_name = sys.argv[1]
+    try:
+        app_name = sys.argv[1]
+    except IndexError:
+        print("Usage: %s <app name>" % sys.argv[0], file=sys.stderr)
+        sys.exit(1)
     prologin.log.setup_logging('udbsync_django.%s' % app_name)
     cfg = prologin.config.load('%s-udbsync' % app_name)
     sys.path.insert(0, '.')

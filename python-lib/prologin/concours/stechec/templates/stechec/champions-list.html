@@ -1,9 +1,9 @@
-{% extends "base.html" %}
+{% extends "stechec/base.html" %}
 
-{% block "title" %}{{ title }}{% endblock %}
-{% block "titleh1" %}{{ title }}{% endblock %}
+{% block title %}{{ title }}{% endblock %}
+{% block titleh1 %}{{ title }}{% endblock %}
 
-{% block "content" %}
+{% block content %}
 
 <p class="intro">{{ explanation_text }}</p>
 
@@ -28,7 +28,7 @@
             <td>{{ champion.id }}</td>
             <td>{{ champion.name }}</td>
             {% if show_for_all %}
-            <td{% if user == champion.author %} class="itsme"{% endif %}>{{ champion.author }}</td>
+            <td{% if request.user == champion.author %} class="itsme"{% endif %}>{{ champion.author }}</td>
             <td><a href="{{ champion.get_absolute_url }}">Détails</a></td>
             {% else %}
             <td>{{ champion.get_status_display }}</td>

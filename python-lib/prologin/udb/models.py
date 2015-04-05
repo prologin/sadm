@@ -25,10 +25,10 @@ class User(models.Model):
         ('root', 'root'),
     )
 
-    login = models.CharField(max_length=64, unique=True)
+    login = models.CharField(max_length=64, unique=True, db_index=True)
     firstname = models.CharField(max_length=64, verbose_name='First name')
     lastname = models.CharField(max_length=64, verbose_name='Last name')
-    uid = models.IntegerField(unique=True, verbose_name='UID')
+    uid = models.IntegerField(unique=True, db_index=True, verbose_name='UID')
     group = models.CharField(max_length=20, choices=TYPES)
     password = models.CharField(max_length=64, help_text='pwgen -cnB 8')
     shell = models.CharField(max_length=64, default='/bin/bash')

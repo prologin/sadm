@@ -1,14 +1,16 @@
-from prologin.concours.stechec import views
 from django.conf import settings
-from django.conf.urls.defaults import patterns, include, url
+from django.conf.urls import include, url
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 from django.views.generic import TemplateView
 
-urlpatterns = patterns('prologin.concours.stechec',
-    url(r'^$', login_required(TemplateView.as_view(template_name='index.html')), name="index"),
-    url(r'^login/$', auth_views.login, { 'template_name': 'login.html' }, name="login"),
-    url(r'^logout/$', auth_views.logout, { 'next_page': '/' }, name="logout"),
+from prologin.concours.stechec import views
+
+
+urlpatterns = [
+    url(r'^$', login_required(TemplateView.as_view(template_name='stechec/index.html')), name="index"),
+    url(r'^login/$', auth_views.login, {'template_name': 'stechec/login.html'}, name="login"),
+    url(r'^logout/$', auth_views.logout, {'next_page': '/'}, name="logout"),
 
     url(r'^champions/(?P<pk>\d+)/$', views.ChampionView.as_view(), name="champion-detail"),
     url(r'^champions/all/$', views.AllChampionsView.as_view(), name="champions-all"),
@@ -23,11 +25,11 @@ urlpatterns = patterns('prologin.concours.stechec',
     url(r'^matches/new/$', login_required(views.new_match), name="match-new"),
 
     url(r'^status/$', views.master_status, name="status"),
-)
+]
 
 if settings.STECHEC_USE_MAPS:
-    urlpatterns += patterns('prologin.concours.stechec',
+    urlpatterns += [
         url(r'^maps/(?P<pk>\d+?)/$', views.MapView.as_view(), name="map-detail"),
         url(r'^maps/all/$', views.AllMapsView.as_view(), name="maps-all"),
         url(r'^maps/new/$', login_required(views.new_map), name="map-new"),
-    )
+    ]

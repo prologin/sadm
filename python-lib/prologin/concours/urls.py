@@ -1,12 +1,10 @@
-from django.conf.urls.defaults import patterns, include, url
+from django.conf.urls import include, url
 from django.contrib import admin
 
 import prologin.concours.stechec.urls
 
-admin.autodiscover()
-
-urlpatterns = patterns('',
+urlpatterns = [
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^', include(prologin.concours.stechec.urls)),
-)
+]

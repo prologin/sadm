@@ -1,12 +1,14 @@
-{% extends "base.html" %}
+{% extends "stechec/base.html" %}
+{% load static %}
 
-{% block "title" %}Statut du serveur{% endblock %}
-{% block "titleh1" %}Statut du serveur{% endblock %}
-{% block "head" %}
-<link rel="stylesheet" href="{{ STATIC_URL }}css/jquery-ui-1.8.11.css" type="text/css" />
+{% block title %}Statut du serveur{% endblock %}
+{% block titleh1 %}Statut du serveur{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/jquery-ui-1.8.11.css' %}" type="text/css" />
 {% endblock %}
 
-{% block "content" %}
+{% block content %}
 
 <p class="intro">Cette page présente l'utilisation des serveurs de la finale.</p>
 

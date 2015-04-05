@@ -1,7 +1,3 @@
-# -*- encoding: utf-8 -*-
-
-from prologin.concours.stechec import forms
-from prologin.concours.stechec import models
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db.models import Max, Min
@@ -14,10 +10,14 @@ import os
 import os.path
 import socket
 
+from prologin.concours.stechec import forms
+from prologin.concours.stechec import models
+
+
 class ChampionView(DetailView):
     context_object_name = "champion"
     model = models.Champion
-    template_name = "champion-detail.html"
+    template_name = "stechec/champion-detail.html"
 
     @property
     def can_see_log(self):
@@ -29,11 +29,12 @@ class ChampionView(DetailView):
         context['can_see_log'] = self.can_see_log
         return context
 
+
 class ChampionsListView(ListView):
     context_object_name = "champions"
     paginate_by = 50
-    template_name = "champions-list.html"
-    title="Tous les champions"
+    template_name = "stechec/champions-list.html"
+    title = "Tous les champions"
 
     def get_context_data(self, **kwargs):
         context = super(ChampionsListView, self).get_context_data(**kwargs)
@@ -43,10 +44,12 @@ class ChampionsListView(ListView):
         context['explanation_text'] = self.explanation_text
         return context
 
+
 class AllChampionsView(ChampionsListView):
     queryset = models.Champion.objects.filter(deleted=False)
     explanation_text = 'Voici la liste de tous les champions participants actuellement.'
     show_for_all = True
+
 
 class MyChampionsView(ChampionsListView):
     explanation_text = 'Voici la liste de tous vos champions participants actuellement.'
@@ -57,11 +60,12 @@ class MyChampionsView(ChampionsListView):
         user = self.request.user
         return models.Champion.objects.filter(deleted=False, author=user)
 
+
 class MatchesListView(ListView):
     context_object_name = "matches"
     paginate_by = 100
-    template_name = "matches-list.html"
-    title="Tous les matches"
+    template_name = "stechec/matches-list.html"
+    title = "Tous les matches"
 
     def get_context_data(self, **kwargs):
         context = super(MatchesListView, self).get_context_data(**kwargs)
@@ -83,18 +87,21 @@ class MatchesListView(ListView):
         context['matches'] = matches
         return context
 
+
 class MatchView(DetailView):
     context_object_name = "match"
-    template_name = "match-detail.html"
+    template_name = "stechec/match-detail.html"
     queryset = models.Match.objects.annotate(Max('matchplayer__score')).annotate(Min('matchplayer__id'))
+
 
 class AllMatchesView(MatchesListView):
     queryset = models.Match.objects.all()
     explanation_text = "Voici la liste de tous les matches ayant été réalisés."
     show_creator = True
 
+
 class MyMatchesView(MatchesListView):
-    title="Mes matches"
+    title = "Mes matches"
     explanation_text = "Voici la liste des matches que vous avez lancé."
     show_creator = False
 
@@ -102,17 +109,21 @@ class MyMatchesView(MatchesListView):
         user = self.request.user
         return models.Match.objects.filter(author=user)
 
+
 class AllMapsView(ListView):
     context_object_name = "maps"
     paginate_by = 100
-    template_name = "maps-list.html"
+    template_name = "stechec/maps-list.html"
     queryset = models.Map.objects.order_by('-official', '-id')
+
 
 class MapView(DetailView):
     context_object_name = "map"
-    template_name = "map-detail.html"
+    template_name = "stechec/map-detail.html"
     model = models.Map
 
+
+# TODO: to class-based view
 def new_champion(request):
     if request.method == 'POST':
         form = forms.ChampionUploadForm(request.POST, request.FILES)
@@ -134,18 +145,22 @@ def new_champion(request):
     else:
         form = forms.ChampionUploadForm()
 
-    return render_to_response('champion-new.html', {'form': form},
+    return render_to_response('stechec/champion-new.html', {'form': form},
                               context_instance=RequestContext(request))
 
+
+# TODO: to class-based view
 def delete_champion(request, pk):
     ch = get_object_or_404(models.Champion, pk=pk, author=request.user)
     if request.method == 'POST':
         ch.deleted = True
         ch.save()
         return HttpResponseRedirect(reverse("champions-my"))
-    return render_to_response('champion-delete.html',
+    return render_to_response('stechec/champion-delete.html',
                               context_instance=RequestContext(request))
 
+
+# TODO: to class-based view
 def new_match(request):
     if request.method == 'POST':
         form = forms.MatchCreationForm(request.POST)
@@ -174,9 +189,11 @@ def new_match(request):
     else:
         form = forms.MatchCreationForm()
 
-    return render_to_response('match-new.html', {'form': form},
+    return render_to_response('stechec/match-new.html', {'form': form},
                               context_instance=RequestContext(request))
 
+
+# TODO: to class-based view
 def match_dump(request, pk):
     match = get_object_or_404(models.Match, pk=pk)
     h = HttpResponse(match.dump, mimetype="application/stechec-dump")
@@ -184,6 +201,8 @@ def match_dump(request, pk):
     h['Content-Encoding'] = 'gzip'
     return h
 
+
+# TODO: to class-based view
 def new_map(request):
     if request.method == 'POST':
         form = forms.MapCreationForm(request.POST)
@@ -199,9 +218,11 @@ def new_map(request):
     else:
         form = forms.MapCreationForm()
 
-    return render_to_response('map-new.html', {'form': form},
+    return render_to_response('stechec/map-new.html', {'form': form},
                               context_instance=RequestContext(request))
 
+
+# TODO: to class-based view
 def master_status(request):
     try:
         status = models.master_status()
@@ -209,5 +230,5 @@ def master_status(request):
         status.sort()
     except socket.error:
         status = None
-    return render_to_response('master-status.html', {'status': status},
+    return render_to_response('stechec/master-status.html', {'status': status},
                               context_instance=RequestContext(request))

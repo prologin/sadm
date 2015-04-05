@@ -17,10 +17,7 @@
 
 """Utility functions to load Django configuration from profile configs."""
 
-import os
-import os.path
 import prologin.config
-import random
 import sys
 
 # Prologin is based in France, use Europe/Paris as the default TZ if none is

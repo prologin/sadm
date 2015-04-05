@@ -1,0 +1,8 @@
+{% extends "stechec/base.html" %}
+
+{% block title %}Accueil{% endblock %}
+{% block titleh1 %}Accueil{% endblock %}
+
+{% block content %}
+<p class="intro">Bienvenue, {{ request.user.get_full_name }} !</p>
+{% endblock %}

@@ -1,20 +1,20 @@
-{% extends "base.html" %}
+{% extends "stechec/base.html" %}
 
-{% load humanize %}
+{% load humanize static %}
 {% load substract %}
 
-{% block "title" %}Détail du match{% endblock %}
-{% block "titleh1" %}Détail du match{% endblock %}
-{% block "head" %}
-<script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.5.2.min.js"></script>
+{% block title %}Détail du match{% endblock %}
+{% block titleh1 %}Détail du match{% endblock %}
+{% block head %}
+<script type="text/javascript" src="{% static 'js/jquery-1.5.2.min.js' %}"></script>
 
-{% if replay %}
-    <script type="text/javascript" src="{{ STATIC_URL }}replay/replay.js"></script>
+{% if settings.STECHEC_REPLAY %}
+    <script type="text/javascript" src="{% static 'replay/replay.js' %}"></script>
 {% endif %}
 
 {% endblock %}
 
-{% block "content" %}
+{% block content %}
 
 <dl>
     <dt>ID</dt>
@@ -55,7 +55,7 @@
             {% if match.is_done %}
             <td>{{ player.score }}</td>
             <td>
-                {% if user == match.champion.author or user.is_staff %}
+                {% if request.user == match.champion.author or request.user.is_staff %}
                 <p><a href="#" id="toggle-log-{{ player.id }}">Afficher / cacher le log</a></p>
                 <pre id="log-{{ player.id }}">{{ player.log }}</pre>
                 {% else %}
@@ -70,7 +70,7 @@
     </tbody>
 </table>
 
-{% if user.is_staff %}
+{% if request.user.is_staff %}
 <p><a href="#" id="toggle-serv-log">Afficher / cacher le log serveur</a></p>
 <pre id="serv-log">{{ match.log }}</pre>
 {% endif %}
@@ -84,7 +84,7 @@
     });
     {% endfor %}
 
-    {% if user.is_staff %}
+    {% if request.user.is_staff %}
     $("#serv-log").hide();
     $("#toggle-serv-log").click(function() {
         $("#serv-log").slideToggle();
@@ -94,7 +94,7 @@
 </script>
 
 
-{% if replay %}
+{% if settings.STECHEC_REPLAY %}
     <div id="replay">
         <canvas id="replay_canvas" width="0" height="0"></canvas>
         <br />

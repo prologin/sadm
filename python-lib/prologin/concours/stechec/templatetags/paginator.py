@@ -1,9 +1,8 @@
-# http://djangosnippets.org/snippets/73/
-
 from django import template
-
 register = template.Library()
 
+
+@register.inclusion_tag('paginator.html', takes_context=True)
 def paginator(context, adjacent_pages=2):
     """
     To be used in conjunction with the object_list generic view.
@@ -12,6 +11,7 @@ def paginator(context, adjacent_pages=2):
     last page links in addition to those created by the object_list generic
     view.
 
+    http://djangosnippets.org/snippets/73/
     """
     page = context['page_obj']
     pagin = context['paginator']
@@ -24,5 +24,3 @@ def paginator(context, adjacent_pages=2):
         'show_first': 1 not in page_numbers,
         'show_last': pagin.num_pages not in page_numbers,
     }
-
-register.inclusion_tag('paginator.html', takes_context=True)(paginator)

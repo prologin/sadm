@@ -1,11 +1,12 @@
-# -*- encoding: utf-8 -*-
-
-from prologin.concours.stechec import models
 from django import forms
 from django.conf import settings
 from django.forms import widgets
 from django.utils.html import escape, conditional_escape
+
 from itertools import chain, groupby
+
+from prologin.concours.stechec import models
+
 
 class ChampionUploadForm(forms.Form):
     name = forms.CharField(max_length=25, required=True, label="Nom du champion")
@@ -19,6 +20,7 @@ class ChampionUploadForm(forms.Form):
         except models.Champion.DoesNotExist:
             return name
         raise forms.ValidationError("Nom déjà utilisé")
+
 
 # Unused since we use a ModelChoiceField to create a match, but could still be
 # useful in some way ?
@@ -35,6 +37,7 @@ class ChampionField(forms.Field):
             raise forms.ValidationError("Numéro de champion invalide.")
         except models.Champion.DoesNotExist:
             raise forms.ValidationError("Champion inexistant")
+
 
 class MapSelect(widgets.Select):
     def render_options(self, choices, selected_choices):
@@ -57,6 +60,7 @@ class MapSelect(widgets.Select):
                 output.append(render_option(map))
             output.append('</optgroup>')
         return '\n'.join(output)
+
 
 class MatchCreationForm(forms.Form):
     def __init__(self, *args, **kwargs):
@@ -86,7 +90,7 @@ class MatchCreationForm(forms.Form):
         try:
             value = models.Map.objects.get(id=self.cleaned_data['map'])
         except models.Map.DoesNotExist:
-            raise ValidationError("Cette carte n'existe pas")
+            raise forms.ValidationError("Cette carte n'existe pas")
         return value
 
 

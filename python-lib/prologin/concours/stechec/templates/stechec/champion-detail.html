@@ -1,12 +1,13 @@
-{% extends "base.html" %}
+{% extends "stechec/base.html" %}
+{% load static %}
 
-{% block "title" %}Détails du champion - {{ champion.name }}{% endblock %}
-{% block "titleh1" %}Détails du champion - {{ champion.name }}{% endblock %}
-{% block "head" %}
-<script type="text/javascript" src="{{ STATIC_URL }}js/jquery-1.5.2.min.js"></script>
+{% block title %}Détails du champion - {{ champion.name }}{% endblock %}
+{% block titleh1 %}Détails du champion - {{ champion.name }}{% endblock %}
+{% block head %}
+<script type="text/javascript" src="{% static 'js/jquery-1.5.2.min.js' %}"></script>
 {% endblock %}
 
-{% block "content" %}
+{% block content %}
 
 <dl>
     <dt>Nom</dt>

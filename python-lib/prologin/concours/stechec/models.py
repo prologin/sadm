@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from django.conf import settings
-from django.contrib.auth import models as auth
+from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 from django.db import models
 
@@ -13,8 +13,9 @@ stripper_re = re.compile(r'\033\[.*?m')
 def strip_ansi_codes(t):
     return stripper_re.sub('', t)
 
+
 class Map(models.Model):
-    author = models.ForeignKey(auth.User, verbose_name="auteur")
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="auteur")
     name = models.CharField("nom", max_length=100)
     official = models.BooleanField("officielle", default=False)
     ts = models.DateTimeField("date", auto_now_add=True)
@@ -23,7 +24,7 @@ class Map(models.Model):
     def path(self):
         contest_dir = os.path.join(settings.STECHEC_ROOT, settings.STECHEC_CONTEST)
         maps_dir = os.path.join(contest_dir, "maps")
-        return os.path.join(maps_dir, str(self.id))
+        return os.path.join(maps_dir, "{}".format(self.id))
 
     @property
     def contents(self):
@@ -38,12 +39,13 @@ class Map(models.Model):
 
     def __str__(self):
         return "%s, de %s%s" % (self.name, self.author,
-                                 " (officielle)" if self.official else "")
+                                " (officielle)" if self.official else "")
 
     class Meta:
         ordering = ["-official", "-ts"]
         verbose_name = "map"
         verbose_name_plural = "maps"
+
 
 class Champion(models.Model):
     STATUS_CHOICES = (
@@ -54,7 +56,7 @@ class Champion(models.Model):
     )
 
     name = models.CharField("nom", max_length=100)
-    author = models.ForeignKey(auth.User, verbose_name="auteur")
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="auteur")
     status = models.CharField("statut", choices=STATUS_CHOICES,
                               max_length=100, default="new")
     deleted = models.BooleanField("supprimé", default=False)
@@ -93,6 +95,7 @@ class Champion(models.Model):
         verbose_name = "champion"
         verbose_name_plural = "champions"
 
+
 class Tournament(models.Model):
     name = models.CharField("nom", max_length=100)
     ts = models.DateTimeField("date", auto_now_add=True)
@@ -109,6 +112,7 @@ class Tournament(models.Model):
         verbose_name = "tournoi"
         verbose_name_plural = "tournois"
 
+
 class TournamentPlayer(models.Model):
     champion = models.ForeignKey(Champion, verbose_name="champion")
     tournament = models.ForeignKey(Tournament, verbose_name="tournoi")
@@ -122,6 +126,7 @@ class TournamentPlayer(models.Model):
         verbose_name = "participant à un tournoi"
         verbose_name_plural = "participants à un tournoi"
 
+
 class TournamentMap(models.Model):
     map = models.ForeignKey(Map, verbose_name="map")
     tournament = models.ForeignKey(Tournament, verbose_name="tournoi")
@@ -134,6 +139,7 @@ class TournamentMap(models.Model):
         verbose_name = "map utilisée dans un tournoi"
         verbose_name_plural = "maps utilisées dans un tournoi"
 
+
 class Match(models.Model):
     STATUS_CHOICES = (
         ('creating', 'En cours de création'),
@@ -142,7 +148,7 @@ class Match(models.Model):
         ('done', 'Terminé'),
     )
 
-    author = models.ForeignKey(auth.User, verbose_name="lancé par")
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="lancé par")
     status = models.CharField("statut", choices=STATUS_CHOICES, max_length=100,
                               default="creating")
     tournament = models.ForeignKey(Tournament, verbose_name="tournoi",
@@ -216,6 +222,7 @@ class Match(models.Model):
         verbose_name = "match"
         verbose_name_plural = "matches"
 
+
 class MatchPlayer(models.Model):
     champion = models.ForeignKey(Champion, verbose_name="champion")
     match = models.ForeignKey(Match, verbose_name="match")
@@ -240,6 +247,7 @@ class MatchPlayer(models.Model):
         ordering = ["-match"]
         verbose_name = "participant à un match"
         verbose_name_plural = "participants à un match"
+
 
 def master_status():
     rpc = prologin.rpc.client.Client(settings.STECHEC_MASTER,
