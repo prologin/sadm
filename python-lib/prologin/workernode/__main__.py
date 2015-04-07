@@ -174,7 +174,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
     @prologin.rpc.remote_method
     @async_work(slots=1)
     def run_server(self, rep_port, pub_port, match_id, nb_players,
-                   opts='', file_opts=None):
+                   opts=None, file_opts=None):
         logging.info('starting server for match {}'.format(match_id))
 
         task_server = asyncio.Task(operations.spawn_server(self.config,
@@ -210,7 +210,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
     @prologin.rpc.remote_method
     @async_work(slots=2)
     def run_client(self, match_id, pl_id, ip, req_port, sub_port, champ_id,
-                   ctgz, opts='', file_opts=None):
+                   ctgz, opts=None, file_opts=None):
         ctgz = b64decode(ctgz)
         logging.info('running player {} for match {}'.format(pl_id, match_id))
 

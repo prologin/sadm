@@ -36,16 +36,6 @@ from base64 import b64decode, b64encode
 
 ioloop = asyncio.get_event_loop()
 
-def parse_opts(opts):
-    opts_dict = {}
-    for line in opts.split('\n'):
-        if '=' not in line:
-            continue
-        name, value = line.split('=', 1)
-        opts_dict[name.strip()] = value.strip()
-    return opts_dict
-
-
 def tar(path, compression='gz'):
     with tempfile.NamedTemporaryFile() as temp:
         with tarfile.open(fileobj=temp, mode='w:' + compression) as tar:
@@ -126,14 +116,12 @@ def spawn_server(config, rep_port, pub_port, nb_players, opts, file_opts):
            "--socket_timeout", "45000",
            "--verbose", "1"]
 
-    for opt, value in parse_opts(opts).items():
-        cmd.append('--' + opt)
-        cmd.append(value)
-
+    if opts is not None:
+        cmd += opts
     if file_opts is not None:
         files = create_file_opts(file_opts)
         fopts = gen_file_opts(files)
-        cmd = cmd + fopts
+        cmd += fopts
 
     retcode, stdout = yield from communicate(cmd)
     if not (retcode == 0):
@@ -163,14 +151,12 @@ def spawn_dumper(config, rep_port, pub_port, opts, file_opts):
            "--spectator",
            "--verbose", "1"]
 
-    for opt, value in parse_opts(opts).items():
-        cmd.append('--' + opt)
-        cmd.append(value)
-
+    if opts is not None:
+        cmd += opts
     if file_opts is not None:
         files = create_file_opts(file_opts)
         fopts = gen_file_opts(files)
-        cmd = cmd + fopts
+        cmd += fopts
 
     yield from asyncio.sleep(0.1) # Let the server start
 
@@ -201,14 +187,12 @@ def spawn_client(config, ip, req_port, sub_port, pl_id, champion_path, opts,
                 "--verbose", "1",
           ]
 
-    for opt, value in parse_opts(opts).items():
-        cmd.append('--' + opt)
-        cmd.append(value)
-
+    if opts is not None:
+        cmd += opts
     if file_opts is not None:
         files = create_file_opts(file_opts)
         fopts = gen_file_opts(files)
-        cmd = cmd + fopts
+        cmd += fopts
 
     retcode, stdout = yield from communicate(cmd, env)
     return retcode, stdout.decode()
