@@ -63,7 +63,11 @@ def create_file_opts(file_opts):
 
 
 def gen_file_opts(files):
-    return itertools.chain((att, f.name) for att, f in files)
+    return list(itertools.chain((att, f.name) for att, f in files.items()))
+
+
+def gen_opts(opts):
+    return list(itertools.chain(opts.items()))
 
 
 @asyncio.coroutine
@@ -117,7 +121,7 @@ def spawn_server(config, rep_port, pub_port, nb_players, opts, file_opts):
            "--verbose", "1"]
 
     if opts is not None:
-        cmd += opts
+        cmd += gen_opts(opts)
     if file_opts is not None:
         files = create_file_opts(file_opts)
         fopts = gen_file_opts(files)
@@ -152,7 +156,7 @@ def spawn_dumper(config, rep_port, pub_port, opts, file_opts):
            "--verbose", "1"]
 
     if opts is not None:
-        cmd += opts
+        cmd += gen_opts(opts)
     if file_opts is not None:
         files = create_file_opts(file_opts)
         fopts = gen_file_opts(files)
@@ -188,7 +192,7 @@ def spawn_client(config, ip, req_port, sub_port, pl_id, champion_path, opts,
           ]
 
     if opts is not None:
-        cmd += opts
+        cmd += gen_opts(opts)
     if file_opts is not None:
         files = create_file_opts(file_opts)
         fopts = gen_file_opts(files)

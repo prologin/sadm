@@ -199,17 +199,8 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         for r in (yield from c.fetchall()):
             logging.info('request match id {} launch'.format(r[0]))
             mid = r[0]
-
-            opts = []
-            for line in r[1].split('\n'):
-                if '=' not in line:
-                    continue
-                name, value = line.split('=', 1)
-                opts.append('--' + name.strip())
-                opts.append(value.strip())
-
-            players = list(zip(r[2], r[3],
-                          r[4]))
+            opts = json.loads(r[1])
+            players = list(zip(r[2], r[3], r[4]))
             to_set_pending.append({
                 'match_id': mid,
                 'match_status': 'pending',

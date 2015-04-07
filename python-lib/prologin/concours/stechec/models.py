@@ -185,26 +185,20 @@ class Match(models.Model):
 
     @property
     def options_dict(self):
-        opts = {}
-        for line in self.options.split('\n'):
-            if '=' not in line:
-                continue
-            name, value = line.split('=', 1)
-            opts[name.strip()] = value.strip()
-        return opts
+        return json.loads(self.options)
 
     @options_dict.setter
     def options_dict(self, value):
-        self.options = '\n'.join('%s=%s' % t for t in value.items())
+        self.options = json.dumps(value)
 
     @property
     def map(self):
-        return self.options_dict.get('map', '')
+        return self.options_dict.get('--map', '')
 
     @map.setter
     def map(self, value):
         d = self.options_dict
-        d['map'] = value
+        d['--map'] = value
         self.options_dict = d
 
     @property
