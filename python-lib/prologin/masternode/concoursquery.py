@@ -47,6 +47,7 @@ REQUESTS = {
           SELECT
             stechec_match.id AS match_id,
             stechec_match.options AS match_options,
+            stechec_match.file_options AS match_file_options,
             array_agg(stechec_champion.id) AS champion_ids,
             array_agg(stechec_matchplayer.id) AS match_player_ids,
             array_agg(auth_user.username) AS user_names

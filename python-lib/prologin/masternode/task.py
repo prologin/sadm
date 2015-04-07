@@ -74,13 +74,14 @@ class CompilationTask:
 
 class PlayerTask:
     def __init__(self, config, match_id, pl_id, ip, req_port, sub_port, user,
-            cid, opts):
+            cid, opts, file_opts):
         self.match_id = match_id
         self.hostname = ip
         self.req_port = req_port
         self.sub_port = sub_port
         self.mpid = pl_id
         self.opts = opts
+        self.file_opts = file_opts
         self.champ_path = champion_compiled_path(config, user, cid)
         self.cid = cid
 
@@ -95,15 +96,16 @@ class PlayerTask:
             ctgz = b64encode(f.read()).decode()
         yield from worker.rpc.run_client(self.match_id, self.mpid,
                 self.hostname, self.req_port, self.sub_port, self.cid, ctgz,
-                self.opts)
+                self.opts, self.file_opts)
 
 
 class MatchTask:
-    def __init__(self, config, mid, players, opts):
+    def __init__(self, config, mid, players, opts, file_opts):
         self.config = config
         self.mid = mid
         self.players = players
         self.opts = opts
+        self.file_opts = file_opts
         self.player_tasks = set()
 
     @property
@@ -121,7 +123,7 @@ class MatchTask:
         req_port, sub_port = yield from worker.rpc.get_ports(2)
 
         yield from worker.rpc.run_server(req_port, sub_port, self.mid,
-                len(self.players), self.opts)
+                len(self.players), self.opts, self.file_opts)
         for (cid, mpid, user) in self.players:
             # on error, prevent launching several times the players
             if mpid in self.player_tasks:
@@ -129,7 +131,7 @@ class MatchTask:
             self.player_tasks.add(mpid)
 
             t = PlayerTask(self.config, self.mid, mpid, worker.hostname,
-                    req_port, sub_port, user, cid, self.opts)
+                    req_port, sub_port, user, cid, self.opts, self.file_opts)
             master.worker_tasks.append(t)
         master.to_dispatch.set()
         del master.matches[self.mid]

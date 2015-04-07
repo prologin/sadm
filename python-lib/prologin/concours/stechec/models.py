@@ -155,8 +155,9 @@ class Match(models.Model):
                                    null=True, blank=True)
     players = models.ManyToManyField(Champion, verbose_name="participants",
                                      through="MatchPlayer")
-    options = models.CharField("options", max_length=500)
     ts = models.DateTimeField("date", auto_now_add=True)
+    options = models.CharField("options", max_length=500)
+    file_options = models.CharField("file_options", max_length=500)
 
     @property
     def directory(self):
@@ -192,14 +193,22 @@ class Match(models.Model):
         self.options = json.dumps(value)
 
     @property
+    def file_options_dict(self):
+        return json.loads(self.file_options)
+
+    @options_dict.setter
+    def file_options_dict(self, value):
+        self.file_options = json.dumps(value)
+
+    @property
     def map(self):
-        return self.options_dict.get('--map', '')
+        return self.file_options_dict.get('--map', '')
 
     @map.setter
     def map(self, value):
-        d = self.options_dict
+        d = self.file_options_dict
         d['--map'] = value
-        self.options_dict = d
+        self.file_options_dict = d
 
     @property
     def is_done(self):

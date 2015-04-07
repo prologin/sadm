@@ -199,13 +199,23 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         for r in (yield from c.fetchall()):
             logging.info('request match id {} launch'.format(r[0]))
             mid = r[0]
+            players = list(zip(r[3], r[4], r[5]))
+
             opts = json.loads(r[1])
-            players = list(zip(r[2], r[3], r[4]))
+
+            file_opts_paths = json.loads(r[2])
+            file_opts = {}
+            for k, path in file_opts_paths.items():
+                try:
+                    file_opts[k] = b64encode(open(path, 'wb').read())
+                except FileNotFoundError:
+                    pass
+
             to_set_pending.append({
                 'match_id': mid,
                 'match_status': 'pending',
             })
-            t = MatchTask(self.config, mid, players, opts)
+            t = MatchTask(self.config, mid, players, opts, file_opts)
             self.worker_tasks.append(t)
 
         if to_set_pending:
