@@ -22,6 +22,7 @@ import asyncio
 import errno
 import fcntl
 import gzip
+import itertools
 import logging
 import os
 import os.path
@@ -30,6 +31,8 @@ import sys
 import tarfile
 import tempfile
 import time
+
+from base64 import b64decode, b64encode
 
 ioloop = asyncio.get_event_loop()
 
@@ -58,6 +61,19 @@ def untar(content, path, compression='gz'):
         temp.seek(0)
         with tarfile.open(fileobj=temp, mode='r:' + compression) as tar:
             tar.extractall(path)
+
+
+def create_file_opts(file_opts):
+    res = []
+    for l, content in file_opts.items():
+        f = tempfile.NamedTemporaryFile()
+        f.write(b64decode(content))
+        res.append(l, f)
+    return res
+
+
+def gen_file_opts(files):
+    return itertools.chain((att, f.name) for att, f in files)
 
 
 @asyncio.coroutine
@@ -100,7 +116,7 @@ def compile_champion(config, champion_path):
 
 
 @asyncio.coroutine
-def spawn_server(config, rep_port, pub_port, nb_players, opts):
+def spawn_server(config, rep_port, pub_port, nb_players, opts, file_opts):
     cmd = [config['path']['stechec_server'],
            "--rules", config['path']['rules'],
            "--rep_addr", "tcp://0.0.0.0:{}".format(rep_port),
@@ -114,6 +130,11 @@ def spawn_server(config, rep_port, pub_port, nb_players, opts):
         cmd.append('--' + opt)
         cmd.append(value)
 
+    if file_opts is not None:
+        files = create_file_opts(file_opts)
+        fopts = gen_file_opts(files)
+        cmd = cmd + fopts
+
     retcode, stdout = yield from communicate(cmd)
     if not (retcode == 0):
         logging.error(stdout.decode().strip())
@@ -123,7 +144,7 @@ def spawn_server(config, rep_port, pub_port, nb_players, opts):
 
 
 @asyncio.coroutine
-def spawn_dumper(config, rep_port, pub_port, opts):
+def spawn_dumper(config, rep_port, pub_port, opts, file_opts):
     if 'dumper' not in config['path'] or not config['path']['dumper']:
         return
 
@@ -146,6 +167,11 @@ def spawn_dumper(config, rep_port, pub_port, opts):
         cmd.append('--' + opt)
         cmd.append(value)
 
+    if file_opts is not None:
+        files = create_file_opts(file_opts)
+        fopts = gen_file_opts(files)
+        cmd = cmd + fopts
+
     yield from asyncio.sleep(0.1) # Let the server start
 
     with tempfile.NamedTemporaryFile() as dump:
@@ -158,7 +184,8 @@ def spawn_dumper(config, rep_port, pub_port, opts):
 
 
 @asyncio.coroutine
-def spawn_client(config, ip, req_port, sub_port, pl_id, champion_path, opts):
+def spawn_client(config, ip, req_port, sub_port, pl_id, champion_path, opts,
+                 file_opts=None):
     env = os.environ.copy()
     env['CHAMPION_PATH'] = champion_path + '/'
 
@@ -177,5 +204,11 @@ def spawn_client(config, ip, req_port, sub_port, pl_id, champion_path, opts):
     for opt, value in parse_opts(opts).items():
         cmd.append('--' + opt)
         cmd.append(value)
+
+    if file_opts is not None:
+        files = create_file_opts(file_opts)
+        fopts = gen_file_opts(files)
+        cmd = cmd + fopts
+
     retcode, stdout = yield from communicate(cmd, env)
     return retcode, stdout.decode()

@@ -173,13 +173,14 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
 
     @prologin.rpc.remote_method
     @async_work(slots=1)
-    def run_server(self, rep_port, pub_port, match_id, nb_players, opts=''):
+    def run_server(self, rep_port, pub_port, match_id, nb_players,
+                   opts='', file_opts=None):
         logging.info('starting server for match {}'.format(match_id))
 
         task_server = asyncio.Task(operations.spawn_server(self.config,
-            rep_port, pub_port, nb_players, opts))
+            rep_port, pub_port, nb_players, opts, file_opts))
         task_dumper = asyncio.Task(operations.spawn_dumper(self.config,
-            rep_port, pub_port, opts))
+            rep_port, pub_port, opts, file_opts))
 
         yield from asyncio.wait([task_server, task_dumper])
         logging.info('match {} done'.format(match_id))
@@ -209,14 +210,14 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
     @prologin.rpc.remote_method
     @async_work(slots=2)
     def run_client(self, match_id, pl_id, ip, req_port, sub_port, champ_id,
-            ctgz, opts=''):
+                   ctgz, opts='', file_opts=None):
         ctgz = b64decode(ctgz)
         logging.info('running player {} for match {}'.format(pl_id, match_id))
 
         with tempfile.TemporaryDirectory() as cpath:
             yield from loop.run_in_executor(None, operations.untar, ctgz, cpath)
             retcode, stdout = yield from operations.spawn_client(self.config,
-                    ip, req_port, sub_port, pl_id, cpath, opts)
+                    ip, req_port, sub_port, pl_id, cpath, opts, file_opts)
 
         logging.info('player {} for match {} done'.format(pl_id, match_id))
 
