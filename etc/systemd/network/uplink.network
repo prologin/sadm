@@ -1,0 +1,8 @@
+[Match]
+Name=uplink
+
+[Network]
+DHCP=yes
+
+[DHCP]
+UseDNS=no

@@ -1,7 +1,0 @@
-Description='gw static IP over every subnet'
-Interface=lan
-Connection=ethernet
-IP=static
-Address=('192.168.1.254/23' '192.168.250.254/24')
-DNS=('127.0.0.1')
-DNSDomain='prolo'

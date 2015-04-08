@@ -1,8 +1,6 @@
 bash
 chromium
-collectd
 devtools
-dhcpcd
 dmenu
 dnsutils
 ethtool
@@ -30,3 +28,4 @@ xorg
 xorg-drivers
 xorg-server
 xorg-server-utils
+zenity

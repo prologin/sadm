@@ -33,9 +33,9 @@ class MachineAdmin(admin.ModelAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         if obj:
-            return ['mac', 'hostname']
+            return ['ip', 'mac', 'hostname']
         else:
-            return []
+            return ['ip']
 
 
 class VolatileSettingAdmin(admin.ModelAdmin):

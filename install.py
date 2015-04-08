@@ -24,6 +24,7 @@ This can NOT use prologin.* packages as they are most likely not yet installed!
 """
 
 import contextlib
+import errno
 import grp
 import os
 import os.path
@@ -116,6 +117,7 @@ def mkdir(path, mode, owner='root:root'):
 
 
 def copy(old, new, mode=0o600, owner='root:root'):
+    print('Copying %s -> %s (mode: %o) (own: %s)' % (old, new, mode, owner))
     shutil.copy(old, new)
     os.chmod(new, mode)
     user, group = owner.split(':')
@@ -123,6 +125,7 @@ def copy(old, new, mode=0o600, owner='root:root'):
 
 
 def copytree(old, new, dir_mode=0o700, file_mode=0o600, owner='root:root'):
+    print('Copying %s -> %s (file mode: %o) (dir mode: %o) (own: %s)' % (old, new, file_mode, dir_mode, owner))
     shutil.copytree(old, new)
     user, group = owner.split(':')
     for root, dirs, files in os.walk(new):
@@ -136,6 +139,22 @@ def copytree(old, new, dir_mode=0o700, file_mode=0o600, owner='root:root'):
             shutil.chown(path, user, group)
 
 
+def symlink(dest, path):
+    print('Creating symlink %s -> %s' % (path, dest))
+    try:
+        os.symlink(dest, path)
+    except OSError as e:
+        if e.errno == errno.EEXIST:
+            os.remove(path)
+            os.symlink(dest, path)
+
+
+def system(command):
+    print('Executing "%s"' % command)
+    os.system(command)
+
+
+NEW_CFG = []
 CFG_TO_REVIEW = []
 def install_cfg(path, dest_dir, owner='root:root', mode=0o600):
     dest_path = os.path.join(dest_dir, os.path.basename(path))
@@ -148,8 +167,9 @@ def install_cfg(path, dest_dir, owner='root:root', mode=0o600):
             return
         CFG_TO_REVIEW.append(dest_path)
         dest_path += '.new'
+    else:
+        NEW_CFG.append(dest_path)
 
-    print('Copying configuration %r -> %r' % (src_path, dest_path))
     copy(src_path, dest_path, mode=0o640, owner=owner)
     os.chmod(dest_path, mode)
 
@@ -181,7 +201,7 @@ def install_service_dir(path, owner, mode):
     # Nothing in Python allows merging two directories together...
     # Be careful with rsync(1) arguments: to merge two directories, trailing
     # slash are meaningful.
-    os.system('rsync -rv %s/ /var/prologin/%s' % (path, name))
+    system('rsync -rv %s/ /var/prologin/%s' % (path, name))
     user, group = owner.split(':')
 
     shutil.chown('/var/prologin/%s' % name, user, group)
@@ -202,7 +222,7 @@ def django_syncdb(name, user=None):
     with cwd('/var/prologin/%s' % name):
         cmd = 'su -c "/var/prologin/venv/bin/python manage.py syncdb --noinput" '
         cmd += user
-        os.system(cmd)
+        system(cmd)
 
 def django_initial_data(name, user=None):
     if user is None:
@@ -216,7 +236,7 @@ def django_initial_data(name, user=None):
 
 def install_libprologin():
     with cwd('python-lib'):
-        os.system('python setup.py install')
+        system('python setup.py --quiet install')
 
     install_cfg_profile('hfs-client', group='hfs_public')
     install_cfg_profile('mdb-client', group='mdb_public')
@@ -241,7 +261,7 @@ def install_nginxcfg():
     mkdir('/etc/nginx/services_contest', mode=0o755, owner='root:root')
     if not os.path.exists('/etc/nginx/logs'):
         mkdir('/var/log/nginx', mode=0o750, owner='http:log')
-        os.symlink('/var/log/nginx', '/etc/nginx/logs')
+        symlink('/var/log/nginx', '/etc/nginx/logs')
 
 
 def install_bindcfg():
@@ -306,7 +326,7 @@ def install_mdbdhcp():
     install_systemd_unit('mdbdhcp')
 
 
-def install_webservices():
+def install_docs():
     requires('nginxcfg')
 
     install_service_dir('webservices/docs', mode=0o755,
@@ -328,7 +348,7 @@ def install_paste():
         with cwd('/var/prologin/paste'):
             cmd = 'su -c "/var/prologin/venv_paste/bin/python manage.py syncdb --noinput" '
             cmd += 'webservices'
-            os.system(cmd)
+            system(cmd)
 
 
 def install_redmine():
@@ -444,6 +464,7 @@ def install_udbsync_redmine():
 
 def install_udbsync_rfs():
     requires('libprologin')
+    requires('udbsync_rootssh')
 
     install_systemd_unit('udbsync_passwd_nfsroot')
     install_systemd_unit('rootssh-copy')
@@ -460,7 +481,8 @@ def install_presenced():
     requires('libprologin')
     requires('nginxcfg')
 
-    install_service_dir('python-lib/prologin/presenced', owner='presenced:presenced', mode=0o700)
+    install_service_dir('python-lib/prologin/presenced',
+                        owner='presenced:presenced', mode=0o700)
     install_systemd_unit('presenced')
 
     cfg = '/etc/pam.d/system-login'
@@ -518,6 +540,7 @@ def install_presencesync_firewall():
 
 def install_rfs():
     copy('etc/sysctl/rp_filter.conf', '/etc/sysctl.d/rp_filter.conf')
+    system('systemctl restart systemd-sysctl')
 
     rootfs = '/export/nfsroot'
     subnet = '192.168.0.0/24'
@@ -551,14 +574,25 @@ def install_set_hostname():
     install_systemd_unit('set_hostname')
 
 
+def install_resolved():
+    symlink('/var/run/systemd/resolve/resolv.conf', '/etc/resolv.conf')
+
+
+def install_networkd():
+    for networkd_file in ['lan.link', 'lan.network', 'uplink.link',
+                          'uplink.network']:
+        copy('etc/systemd/network/' + networkd_file,
+             '/etc/systemd/network/' + networkd_file,
+             mode=0o644)
+    symlink('/dev/null', '/etc/systemd/network/99-default.link')
+
+
 def install_firewall():
     copy('etc/sysctl/ip_forward.conf', '/etc/sysctl.d/ip_forward.conf')
+    system('systemctl restart systemd-sysctl')
+
     install_systemd_unit('firewall')
     install_cfg('iptables.save', '/etc/prologin/')
-
-
-def install_netctl_gw():
-    copy('etc/netctl/gw', '/etc/netctl/gw')
 
 
 def install_masternode():
@@ -570,6 +604,7 @@ def install_masternode():
         mode=0o770,
         owner='concours:cluster_public'
     )
+
 
 def install_workernode():
     requires('libprologin')
@@ -632,6 +667,7 @@ COMPONENTS = [
     'bindcfg',
     'concours',
     'dhcpdcfg',
+    'docs',
     'firewall',
     'hfs',
     'homepage',
@@ -643,7 +679,7 @@ COMPONENTS = [
     'mdbsync',
     'minecraft',
     'netboot',
-    'netctl_gw',
+    'networkd',
     'nginxcfg',
     'paste',
     'presenced',
@@ -651,6 +687,7 @@ COMPONENTS = [
     'presencesync_firewall',
     'presencesync_usermap',
     'redmine',
+    'resolved',
     'rfs',
     'set_hostname',
     'sshdcfg',
@@ -661,7 +698,6 @@ COMPONENTS = [
     'udbsync_redmine',
     'udbsync_rfs',
     'udbsync_rootssh',
-    'webservices',
     'workernode',
 ]
 
@@ -687,7 +723,7 @@ def sync_groups():
             grp.getgrnam(gr)
         except KeyError:
             print('Creating group %r' % gr)
-            os.system('groupadd -g %d %s' % (gid, gr))
+            system('groupadd -g %d %s' % (gid, gr))
 
 
 def sync_users():
@@ -702,7 +738,7 @@ def sync_users():
             if other_grps:
                 cmd += ' -G %s' % ','.join(other_grps)
             cmd += ' ' + user
-            os.system(cmd)
+            system(cmd)
         except KeyError:
             print('Creating user %r' % user)
             uid = data['uid']
@@ -711,7 +747,7 @@ def sync_users():
             if other_grps:
                 cmd += ' -G %s' % ','.join(other_grps)
             cmd += ' ' + user
-            os.system(cmd)
+            system(cmd)
 
 
 if __name__ == '__main__':
@@ -744,4 +780,9 @@ if __name__ == '__main__':
     if CFG_TO_REVIEW:
         print('WARNING: The following configuration files need to be merged:')
         for cfg in CFG_TO_REVIEW:
+            print(' - %s' % cfg)
+
+    if NEW_CFG:
+        print('WARNING: Please review the newly installed config files:')
+        for cfg in NEW_CFG:
             print(' - %s' % cfg)

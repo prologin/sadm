@@ -1,0 +1,5 @@
+[Match]
+MACAddress=52:54:00:92:76:ba
+
+[Link]
+Name=uplink

@@ -30,19 +30,20 @@ echo -n Nearest HFS id: && read hfs_id
 menu Room hosting this machine
 item pasteur Lab pasteur
 item alt Supplementary room
-item lse LSE (cluster)
+item cluster Cluster
 item other Other
 choose room
 
 menu Machine type
 item user Contestant machine
 item orga Organizer machine
+item service Server
 choose mtype
 
 echo =============================================================
 echo Summary:
 echo  Hostname: ${hostname}
-echo  Connecting to rfs-${rfs_id} and hfs-${hfs_id}
+echo  Connecting to rfs${rfs_id} and hfs${hfs_id}
 echo  Hosted in ${room}
 echo  Machine type ${mtype}
 echo =============================================================

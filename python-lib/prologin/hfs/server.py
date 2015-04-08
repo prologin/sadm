@@ -244,8 +244,18 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
         Returns that port.
         """
         port = find_free_port(CFG['start_port_range'], CFG['end_port_range'])
-        cmd = ['nbd-server', '-p', '/tmp/nbd.%s.pid' % self.user,
-               str(port), filename]
+
+        # Write config file, required as of nbd 3.10
+        config_file = '/etc/nbd-server/%s' % self.user
+        with open(config_file, 'w') as f:
+            f.write("[generic]\n")
+            f.write("port = %d\n" % port)
+            f.write("[%s]\n" % self.user)
+            f.write("exportname = %s\n" % filename)
+
+        cmd = ['nbd-server',
+            '-p', '/tmp/nbd.%s.pid' % self.user,
+            '-C', config_file]
         proc = subprocess.Popen(cmd)
         if proc.wait() != 0:
             raise RuntimeError('Unable to start the nbd server')

@@ -4,7 +4,10 @@
 - fields: {last: 0, mtype: cluster, network: 192.168.2.0/24}
   model: mdb.ippool
   pk: 2
-- fields: {key: allow_self_registration, value_bool: false, value_int: null, value_str: ''}
+- fields: {last: 0, mtype: service, network: 192.168.1.0/24}
+  model: mdb.ippool
+  pk: 3
+- fields: {key: allow_self_registration, value_bool: true, value_int: null, value_str: ''}
   model: mdb.volatilesetting
   pk: 1
 - fields:
