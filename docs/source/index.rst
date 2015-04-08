@@ -16,6 +16,7 @@ hardware and network, which explains why some things seem very complicated.
 
    overview
    setup
+   misc_services
    cookbook
    tests
 
