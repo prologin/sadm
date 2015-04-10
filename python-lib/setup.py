@@ -31,7 +31,7 @@ setup(name='ProloginSADM',
                ],
       package_data={
           'prologin.concours': ['stechec/static/**/*.*',
-                                'stechec/templates/*'],
+                                'stechec/templates/**/*'],
           'prologin.homepage': ['static/*', 'templates/*'],
           'prologin.minecraft': ['static/*.png',
                                  'static/bin/*.jar',
