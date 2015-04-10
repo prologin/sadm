@@ -1,7 +1,6 @@
-# -*- encoding: utf-8 -*-
 # This file is part of Prologin-SADM.
 #
-# Copyright (c) 2013-2014 Antoine Pietri <antoine.pietri@prologin.org>
+# Copyright (c) 2013-2015 Antoine Pietri <antoine.pietri@prologin.org>
 # Copyright (c) 2011 Pierre Bourdon <pierre.bourdon@prologin.org>
 # Copyright (c) 2011-2014 Association Prologin <info@prologin.org>
 #
@@ -71,27 +70,43 @@ def gen_opts(opts):
 
 
 @asyncio.coroutine
-def communicate_forever(cmdline, env=None, data=None, **kwargs):
-    proc = yield from asyncio.create_subprocess_exec(*cmdline,
-                                                     env=env,
-                                                     stdout=subprocess.PIPE,
-                                                     stderr=subprocess.STDOUT,
-                                                     **kwargs)
-    try:
-        stdout, _ = yield from proc.communicate(data)
-    except:
-        proc.kill()
-        yield from proc.wait()
-        raise
+def communicate_forever(cmdline, data=None, env=None, max_len=None,
+        truncate_message='', **kwargs):
+    proc = yield from asyncio.create_subprocess_exec(*cmdline, env=env,
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT, **kwargs)
+
+    # Send stdin
+    if data:
+        proc.stdin.write(data.encode())
+        yield from proc.stdin.drain()
+        proc.stdin.close()
+
+    # Receive stdout
+    stdout_buf = bytearray()
+    while True:
+        to_read = 4096
+        if max_len is not None:
+            to_read = min(to_read, max_len - len(stdout_buf))
+            if not to_read:
+                break
+        chunk = yield from proc.stdout.read(to_read)
+        if not chunk:
+            break
+        stdout_buf.extend(chunk)
+
+    stdout = stdout_buf.decode()
+    if not to_read:
+        stdout += truncate_message
 
     exitcode = yield from proc.wait()
     return (exitcode, stdout)
 
 
 @asyncio.coroutine
-def communicate(cmdline, env=None, data=None, timeout=None, **kwargs):
+def communicate(cmdline, *args, timeout=None, **kwargs):
     return (yield from asyncio.wait_for(
-        communicate_forever(cmdline, env, data, **kwargs), timeout))
+        communicate_forever(cmdline, *args, **kwargs), timeout))
 
 
 @asyncio.coroutine
@@ -198,5 +213,6 @@ def spawn_client(config, ip, req_port, sub_port, pl_id, champion_path, opts,
         fopts = gen_file_opts(files)
         cmd += fopts
 
-    retcode, stdout = yield from communicate(cmd, env)
+    retcode, stdout = yield from communicate(cmd, env, max_len=2 ** 18,
+            truncate_message='\n\nLog truncated to stay below 256K.\n')
     return retcode, stdout.decode()
