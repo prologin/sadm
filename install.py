@@ -60,6 +60,10 @@ USERS = {
                               'groups': ('presencesync_usermap',
                                          'presencesync_public',
                                          'udb_public') },
+    'presencesync_cacheserver': { 'uid': 20131,
+                                  'groups': ('presencesync_cacheserver',
+                                             'presencesync_public',
+                                             'udb_public', 'mdb_public') },
     'minecraft': { 'uid': 20140, 'groups': ('minecraft',) },  # FIXME: needs presencesync?
     'concours': { 'uid': 20150, 'groups': ('concours', 'udbsync_public',
                                            'cluster_public') },
@@ -89,6 +93,7 @@ GROUPS = {
     'homepage': 20110,
     'redmine': 20120,
     'presencesync_usermap': 20130,
+    'presencesync_cacheserver': 20131,
     'minecraft': 20140,  # FIXME: needs _public?
     'concours': 20150,
     'cluster': 20160,
@@ -531,6 +536,12 @@ def install_presencesync_usermap():
     install_systemd_unit('presencesync_usermap')
 
 
+def install_presencesync_cacheserver():
+    requires('libprologin')
+
+    install_systemd_unit('presencesync_cacheserver')
+
+
 def install_presencesync_firewall():
     requires('libprologin')
 
@@ -684,6 +695,7 @@ COMPONENTS = [
     'paste',
     'presenced',
     'presencesync',
+    'presencesync_cacheserver',
     'presencesync_firewall',
     'presencesync_usermap',
     'redmine',
