@@ -16,6 +16,8 @@ SED = sed
 TAR = tar
 MKDIR = mkdir
 
+all: $(DEST)
+
 lua-resty-cookie:
 	$(GITCLONE) git@github.com:cloudflare/lua-resty-cookie.git
 
@@ -40,8 +42,6 @@ $(DEST): $(LIBS_MAKEFILES)
 	$(MKDIR) -p $(BUNDLEDIR)
 	$(CP) -r $(LIBS) $(BUNDLEDIR)
 	$(TAR) -czf "$@" $(ROOTDIR)
-
-all: $(DEST)
 
 clean:
 	$(RM) -r "$(ROOTDIR)" "$(DEST)" $(LIBS)

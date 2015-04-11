@@ -604,9 +604,24 @@ You will want to ssh at this machine, so enable ``udbync_rootssh``::
   $EDITOR /etc/prologin/udbsync-sub.yml
   systemctl enable udbsync_rootssh && systemctl start udbsync_rootssh
 
-Then, install nginx::
+We'll now compile our custom version of openresty, a nginx extension with lua
+scripting. This is primarily used for Single Sign-On (SSO).
 
-  pacman -S nginx
+Build the package::
+
+  cd pkg/openresty
+  make all
+
+Then, install the package that was just built::
+
+  pacman -U openresty-*.pkg.tar.xz
+
+.. note::
+
+    This package is a drop-in replacement for nginx. Even though the package
+    is called ``openresty``, all paths and configuration files are the same
+    as the official ``nginx`` package, so you should be able to switch between
+    the two without changing anything.
 
 Then, install the ``nginx`` configuration from the repository::
 
@@ -705,6 +720,18 @@ to show them, you must activate the "contest mode" in some service.
 Edit ``/etc/nginx/nginx.conf``, uncomment the following line::
 
   # include services_contest/*.nginx;
+
+Enable Single Sign-On
+~~~~~~~~~~~~~~~~~~~~~
+
+By default, SSO is disabled as it requires other dependencies to be up and
+running.
+
+Edit ``/etc/nginx/nginx.conf``, uncomment the following lines::
+
+  # lua_package_path '/etc/nginx/sso/?.lua;;';
+  # init_by_lua_file sso/init.lua;
+  # access_by_lua_file sso/access.lua;
 
 Test the contest
 ~~~~~~~~~~~~~~~~
