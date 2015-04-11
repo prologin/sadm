@@ -1,0 +1,18 @@
+[Unit]
+Description=Openresty, a powerful web app server, extending nginx with lua scripting
+After=network.target
+
+[Service]
+Type=forking
+PIDFile=/run/nginx.pid
+PrivateDevices=yes
+SyslogLevel=err
+
+ExecStartPre=/usr/bin/nginx -p /etc/nginx -t -q -g 'pid /run/nginx.pid; error_log stderr;'
+ExecStart=/usr/bin/nginx -p /etc/nginx -g 'pid /run/nginx.pid; error_log stderr;'
+ExecReload=/usr/bin/kill -HUP $MAINPID
+KillSignal=SIGQUIT
+KillMode=mixed
+
+[Install]
+WantedBy=multi-user.target

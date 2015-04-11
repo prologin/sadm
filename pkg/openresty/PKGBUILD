@@ -1,0 +1,107 @@
+# Contributor: Jean-Sébastien Ney <jeansebastien.ney@gmail.com>
+# Contributor: James Cleveland <jc@blackflags.co.uk>
+# Contributor: Eimantas Bunevičius <eimantaster@gmail.com>
+
+pkgname=openresty
+_pkgname=ngx_openresty
+pkgver=1.7.10.1
+pkgrel=2
+pkgdesc='A powerful web app server, extending nginx with lua scripting'
+arch=('i686' 'x86_64')
+url='http://openresty.org/'
+license=('BSD')
+depends=('perl>=5.6.1' 'readline' 'zlib' 'openssl')
+conflicts=('nginx')
+source=(http://openresty.org/download/$_pkgname-$pkgver.tar.gz
+        lua-resty-extra-lib.tar.gz
+        configure-add-lua-packages.patch
+        service
+        logrotate)
+md5sums=('1093b89459922634a818e05f80c1e18a'
+         '5efede6b3382d7ea26bf3796b58a03e0'
+         '58ae70888954db2c699b9be8caaedd19'
+         '9f1504befdf4f1c3d6ad5f5701a5dde8'
+         '0f717881a8dfae826a7708caed6f6221')
+backup=('etc/nginx/fastcgi.conf'
+        'etc/nginx/fastcgi_params'
+        'etc/nginx/koi-win'
+        'etc/nginx/koi-utf'
+        'etc/nginx/mime.types'
+        'etc/nginx/nginx.conf'
+        'etc/nginx/scgi_params'
+        'etc/nginx/uwsgi_params'
+        'etc/nginx/win-utf'
+        'etc/logrotate.d/nginx')
+
+prepare() {
+  cd "$srcdir/$_pkgname-$pkgver"
+  # patch configure to include lua_packages.tar.gz packages
+  patch -Np1 -i "$srcdir"/configure-add-lua-packages.patch
+}
+
+build() {
+  cd "$srcdir/$_pkgname-$pkgver"
+
+  ./configure \
+    --prefix=/etc/nginx \
+    --conf-path=/etc/nginx/nginx.conf \
+    --sbin-path=/usr/bin/nginx \
+    --pid-path=/run/nginx.pid \
+    --lock-path=/run/lock/nginx.lock \
+    --user=http \
+    --group=http \
+    --http-log-path=/var/log/nginx/access.log \
+    --error-log-path=stderr \
+    --http-client-body-temp-path=/var/lib/nginx/client-body \
+    --http-proxy-temp-path=/var/lib/nginx/proxy \
+    --http-fastcgi-temp-path=/var/lib/nginx/fastcgi \
+    --http-scgi-temp-path=/var/lib/nginx/scgi \
+    --http-uwsgi-temp-path=/var/lib/nginx/uwsgi \
+    --with-imap \
+    --with-imap_ssl_module \
+    --with-ipv6 \
+    --with-luajit \
+    --with-pcre-jit \
+    --with-file-aio \
+    --with-http_dav_module \
+    --with-http_gunzip_module \
+    --with-http_gzip_static_module \
+    --with-http_realip_module \
+    --with-http_spdy_module \
+    --with-http_ssl_module \
+    --with-http_stub_status_module \
+    --with-http_addition_module \
+    --with-http_degradation_module \
+    --with-http_flv_module \
+    --with-http_mp4_module \
+    --with-http_secure_link_module \
+    --with-http_sub_module
+
+  make -j$(nproc)
+}
+
+package() {
+  cd "$srcdir/$_pkgname-$pkgver"
+  make DESTDIR="$pkgdir" install
+
+  rm "$pkgdir"/etc/nginx/*.default
+
+  install -d "$pkgdir"/var/lib/nginx
+  install -dm700 "$pkgdir"/var/lib/nginx/proxy
+
+  chmod 750 "$pkgdir"/var/log/nginx
+  chown http:log "$pkgdir"/var/log/nginx
+
+  install -d "$pkgdir"/usr/share/nginx
+  mv "$pkgdir"/etc/nginx/nginx/html/ "$pkgdir"/usr/share/nginx
+
+  install -d "$pkgdir"/etc/logrotate.d
+  install -m644 "$srcdir"/logrotate "$pkgdir"/etc/logrotate.d/nginx
+
+  install -Dm644 "$srcdir/logrotate" "$pkgdir"/etc/logrotate.d/nginx
+  install -Dm644 "$srcdir/service" "$pkgdir"/usr/lib/systemd/system/nginx.service
+
+  rmdir "$pkgdir/run"
+}
+
+# vim:set ts=2 sw=2 et:

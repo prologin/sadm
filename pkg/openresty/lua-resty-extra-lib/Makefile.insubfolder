@@ -1,0 +1,19 @@
+OPENRESTY_PREFIX=/usr/local/openresty-debug
+
+PREFIX ?=          /usr/local
+LUA_INCLUDE_DIR ?= $(PREFIX)/include
+LUA_LIB_DIR ?=     $(PREFIX)/lib/lua/$(LUA_VERSION)
+INSTALL ?= install
+PKGNAME = %PKGNAME%
+
+.PHONY: all test install
+
+all: ;
+
+install: all
+	echo "THE VARIABLES LOL" $(PKGNAME) $(INSTALL) $(DESTDIR) $(LUA_LIB_DIR)
+	$(INSTALL) -d $(DESTDIR)/$(LUA_LIB_DIR)/resty/$(PKGNAME)
+	$(INSTALL) lib/resty/$(PKGNAME)/*.lua $(DESTDIR)/$(LUA_LIB_DIR)/resty/$(PKGNAME)
+
+test: all
+	PATH=$(OPENRESTY_PREFIX)/nginx/sbin:$$PATH prove -I../test-nginx/lib -r t

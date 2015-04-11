@@ -1,0 +1,46 @@
+--- a/configure	2015-03-01 02:58:26.000000000 +0100
++++ b/configure	2015-04-11 17:07:36.085305052 +0200
+@@ -190,6 +190,15 @@
+     } elsif ($opt eq '--without-lua_resty_websocket') {
+         $resty_opts{no_lua_resty_websocket} = 1;
+ 
++    } elsif ($opt eq '--without-lua_resty_cookie') {
++        $resty_opts{no_lua_resty_cookie} = 1;
++
++    } elsif ($opt eq '--without-lua_resty_hmac') {
++        $resty_opts{no_lua_resty_hmac} = 1;
++
++    } elsif ($opt eq '--without-lua_resty_http_simple') {
++        $resty_opts{no_lua_resty_http_simple} = 1;
++
+     } elsif ($opt eq '--without-lua_resty_lock') {
+         $resty_opts{no_lua_resty_lock} = 1;
+ 
+@@ -346,6 +355,9 @@
+ 
+ sub auto_complete ($) {
+     my $name = shift;
++    if (-e $name) {
++        return $name;
++    }
+     my @dirs = glob "$name-[0-9]*" or
+         die "No source directory found for $name\n";
+ 
+@@ -823,6 +835,7 @@
+         }
+ 
+         for my $key (qw(dns memcached redis mysql string upload websocket
++                        cookie hmac http_simple
+                         lock lrucache core upstream_healthcheck))
+         {
+             unless ($opts->{"no_lua_resty_$key"}) {
+@@ -959,6 +972,9 @@
+                                      disable the lua-resty-upstream-healthcheck library
+   --without-lua_resty_string         disable the lua-resty-string library
+   --without-lua_resty_websocket      disable the lua-resty-websocket library
++  --without-lua_resty_cookie         disable the lua-resty-cookie library
++  --without-lua_resty_hmac           disable the lua-resty-hmac library
++  --without-lua_resty_http_simple    disable the lua-resty-http-simple library
+   --without-lua_resty_lock           disable the lua-resty-lock library
+   --without-lua_resty_lrucache       disable the lua-resty-lrucache library
+   --without-lua_resty_core           disable the lua-resty-core library
