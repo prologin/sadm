@@ -3,7 +3,7 @@ local conf = require "config"
 
 -- libs
 local http = require "resty.http.simple"
-local ngx = require "ngx"
+local ngx = ngx
 local tostring = tostring
 
 module('presence')
