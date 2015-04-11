@@ -18,7 +18,7 @@ source=(http://openresty.org/download/$_pkgname-$pkgver.tar.gz
         service
         logrotate)
 md5sums=('1093b89459922634a818e05f80c1e18a'
-         '5efede6b3382d7ea26bf3796b58a03e0'
+         'SKIP' # lua-resty-extra-lib.tar.gz is built at make time
          '58ae70888954db2c699b9be8caaedd19'
          '9f1504befdf4f1c3d6ad5f5701a5dde8'
          '0f717881a8dfae826a7708caed6f6221')
