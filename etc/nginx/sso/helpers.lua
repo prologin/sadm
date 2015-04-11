@@ -1,5 +1,5 @@
-local string = require "string"
-local hmac = require "hmac"
+local string = string
+local hmac = require "resty.hmac"
 
 module('helpers')
 

@@ -2,7 +2,7 @@
 local conf = require "config"
 
 -- libs
-local ck = require "cookie"
+local ck = require "resty.cookie"
 local hlp = require "helpers"
 local json = require "cjson"
 local presence = require "presence"
@@ -90,7 +90,7 @@ function username_from_cookie()
 end
 
 local ssoheader = ""
--- atually try to read the sso cookie
+-- actually try to read the sso cookie
 local username = username_from_cookie()
 
 if username then

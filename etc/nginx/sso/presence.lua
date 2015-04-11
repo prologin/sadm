@@ -2,48 +2,32 @@
 local conf = require "config"
 
 -- libs
-local hlp = require "helpers"
-local http = require "http"
-local json = require "cjson"
-local string = require "resty.string"
+local http = require "resty.http.simple"
+local ngx = require "ngx"
+local tostring = tostring
 
-module('presence', package.seeall)
+module('presence')
 
 local this = {}
 
 function this.whois(ipaddr)
     ngx.log(ngx.DEBUG, "SSO: querying presence for IP " .. ipaddr)
 
-    -- build data {"ip": "10.1.2.3"}
-    local data = json.encode { ip = ipaddr }
-    local timestamp = tostring(ngx.time())
-    -- build hmac token
-    local digest = hlp.hmac256(conf.presencesync_shared_secret, data .. timestamp)
-
-    if not digest then
-        return { ok = false, error = "failed to compute hmac" }
-    end
-
-    local signature = timestamp .. ":" .. string.to_hex(digest)
-
     -- query presencesync
-    local httpc = http.new()
-    local url = conf.presencesync_url .. "?" .. ngx.encode_args({ data = data, hmac = signature })
-    local res, err = httpc:request_uri(url, { method = "GET" })
+    local res, err = http.request(conf.presencesync_url[1], conf.presencesync_url[2], {
+        path = conf.presencesync_url[3],
+        query = { ip = ipaddr }
+    })
     if not res then
         return { ok = false, error = "failed to join remote: " .. err }
     end
 
-    -- extract {"username": null} or {"username": "foo"}
-    data = json.decode(res.body)
-    if not data then
-        return { ok = false, error = "malformed response: " .. res.body }
+    if res.body == "" then
+        res.body = nil
     end
-    if data.username == json.null then
-        data.username = nil
-    end
-    ngx.log(ngx.DEBUG, "SSO: " .. ipaddr .. " is " .. tostring(data.username))
-    return { ok = true, username = data.username }
+
+    ngx.log(ngx.DEBUG, "SSO: " .. ipaddr .. " is " .. tostring(res.body))
+    return { ok = true, username = res.body }
 end
 
 return this

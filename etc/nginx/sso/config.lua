@@ -1,8 +1,8 @@
 module('config')
 
 return {
-    -- presencesync conf
-    presencesync_url = "http://127.0.0.1:9191/whois",
+    -- presencesync url as {host, port, path}
+    presencesync_url = { "127.0.0.1", 9191, "/whois" },
     presencesync_shared_secret = "secret",
 
     -- Things to exclude from authentication:
