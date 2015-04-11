@@ -1,5 +1,5 @@
 [Unit]
-Description=presencesync client that caches a ip-to-login mapping to serve /whois
+Description=presencesync client that caches an ip-to-login mapping to serve /whois
 
 [Service]
 Type=simple

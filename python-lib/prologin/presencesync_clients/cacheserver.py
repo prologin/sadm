@@ -45,10 +45,13 @@ class PresenceCacheServer(prologin.web.TornadoApp):
 
     def start(self):
         """Run the server."""
-        # TODO: This Thread stuff is shit given we can use the nice asyncio or tornado event loops,
-        # but there are so many things done in poll_updates(), it would be stupid to reimplement here.
+        # NOTE: this threading stuff has seirl seal-of-approval: "It's fine
+        # because it's not related to the server."
+        # poll_updates() is rather intricate, it would be overkill
+        # to reimplement here.
         def presencesync_daemon():
-            return prologin.presencesync.client.connect().poll_updates(self.presencesync_callback)
+            return prologin.presencesync.client.connect().poll_updates(
+                self.presencesync_callback)
         thread = threading.Thread(target=presencesync_daemon)
         thread.setDaemon(True)  # exit along with main
         self.listen(self.port)
@@ -66,9 +69,10 @@ class PresenceCacheServer(prologin.web.TornadoApp):
         hostname_to_login = {v: k for k, v in login_to_hostname}
 
         with self.lock:
-            # FIXME: self.ip_to_login may contain multiple similar values (ie. logins)
+            # FIXME: self.ip_to_login may contain multiple similar logins
             # eg. {1.2.3.4: fubar, 4.3.2.1: fubar}
-            # May not be a big deal though. We could clear the mapping before building it.
+            # May not be a big deal though. We could clear the mapping before
+            # building it.
             for ip, hostname in ip_to_hostname.items():
                 try:
                     self.ip_to_login[ip] = hostname_to_login[hostname]
