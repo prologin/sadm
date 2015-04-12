@@ -33,3 +33,6 @@ debug: true
 
 # Display links to contest restricted websites (docs, concours, ...)
 contest_mode: false
+
+# Target countdown datetime (Y-m-d H:M:S, local time)
+countdown_to: "2015-05-07 20:00:00"

@@ -1,13 +1,14 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8">
     <title>Bienvenue à Prologin !</title>
-    <link type="text/css" rel="stylesheet" media="all" href="/static/design.css" />
+    <link type="text/css" rel="stylesheet" media="all" href="{% static 'design.css' %}" />
   </head>
   <body>
 
-    <h1><img src="/static/logo.png" alt="" />Finale Prologin</h1>
+    <h1><img src="{% static 'logo.png' %}" alt="" />Finale Prologin</h1>
 
     <!-- Countdown -->
     <div style="text-align: center;">
@@ -16,17 +17,19 @@
         </canvas>
     </div>
 
+    {% if links %}
     <h2>Liens pratiques</h2>
     <ul>
       {% for link in links %}
       <li><a href="{{ link.url }}">{{ link.name }}</a></li>
       {% endfor %}
     </ul>
+    {% endif %}
 
   <!-- Countdown code -->
-  <script src='/static/segment-display.js'></script>
+  <script src='{% static 'segment-display.js' %}'></script>
   <script>
-    TargetDate = "05/10/2014 0:47 AM";
+    TargetDate = "{{ target_date }}";
     function calcage(secs, num1, num2) {
       return ((Math.floor(secs / num1)) % num2);
     }
@@ -44,7 +47,7 @@
     display.colorOff        = "#e4e1e0";
     display.draw();
 
-    window.setInterval('animate()', 100);
+    window.setInterval(animate, 100);
     function animate() {
       var dthen = new Date(TargetDate);
       var dnow = new Date();
