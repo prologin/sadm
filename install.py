@@ -220,12 +220,12 @@ def install_service_dir(path, owner, mode):
             os.chmod(os.path.join(root, file), mode)
 
 
-def django_syncdb(name, user=None):
+def django_migrate(name, user=None):
     if user is None:
         user = name
 
     with cwd('/var/prologin/%s' % name):
-        cmd = 'su -c "/var/prologin/venv/bin/python manage.py syncdb --noinput" '
+        cmd = 'su -c "/var/prologin/venv/bin/python manage.py migrate --noinput" '
         cmd += user
         system(cmd)
 
@@ -308,7 +308,7 @@ def install_mdb():
 
     if first_time:
         django_initial_data('mdb')
-        django_syncdb('mdb')
+        django_migrate('mdb')
 
 
 def install_mdbsync():
@@ -353,7 +353,7 @@ def install_paste():
     if first_time:
         # Use specific venv
         with cwd('/var/prologin/paste'):
-            cmd = 'su -c "/var/prologin/venv_paste/bin/python manage.py syncdb --noinput" '
+            cmd = 'su -c "/var/prologin/venv_paste/bin/python manage.py migrate --noinput" '
             cmd += 'webservices'
             system(cmd)
 
@@ -393,7 +393,7 @@ def install_homepage():
     install_cfg_profile('homepage-udbsync', group='homepage')
 
     if first_time:
-        django_syncdb('homepage')
+        django_migrate('homepage')
 
 
 def install_concours():
@@ -413,7 +413,7 @@ def install_concours():
 
     if first_time:
         django_initial_data('concours')
-        django_syncdb('concours')
+        django_migrate('concours')
 
 def install_netboot():
     requires('libprologin')
@@ -439,7 +439,7 @@ def install_udb():
 
     if first_time:
         django_initial_data('udb')
-        django_syncdb('udb')
+        django_migrate('udb')
 
 
 def install_udbsync():

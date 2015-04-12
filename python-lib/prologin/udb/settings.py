@@ -20,10 +20,6 @@ cfg = use_profile_config('udb-server')
 
 import os.path
 
-FIXTURE_DIRS = (
-    os.path.join(os.path.dirname(os.path.dirname(__file__)), 'fixtures'),
-)
-
 ADMINS = (
     ('Pierre Bourdon', 'pierre.bourdon@prologin.org'),
 )
