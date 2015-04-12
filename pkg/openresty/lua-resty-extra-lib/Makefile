@@ -19,13 +19,13 @@ MKDIR = mkdir
 all: $(DEST)
 
 lua-resty-cookie:
-	$(GITCLONE) git@github.com:cloudflare/lua-resty-cookie.git
+	$(GITCLONE) https://github.com/cloudflare/lua-resty-cookie.git
 
 lua-resty-hmac:
-	$(GITCLONE) git@github.com:jkeys089/lua-resty-hmac.git
+	$(GITCLONE) https://github.com/jkeys089/lua-resty-hmac.git
 
 lua-resty-http-simple:
-	$(GITCLONE) git@github.com:bakins/lua-resty-http-simple.git
+	$(GITCLONE) https://github.com/bakins/lua-resty-http-simple.git
 
 lua-resty-cookie-makefile: lua-resty-cookie
 	$(CP) Makefile.inroot "$</Makefile"
