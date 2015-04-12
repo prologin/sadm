@@ -53,7 +53,7 @@ class PresenceCacheServer(prologin.web.TornadoApp):
             return prologin.presencesync.client.connect().poll_updates(
                 self.presencesync_callback)
         thread = threading.Thread(target=presencesync_daemon)
-        thread.setDaemon(True)  # exit along with main
+        thread.deamon = True  # exit along with main
         self.listen(self.port)
         thread.start()
         tornado.ioloop.IOLoop.instance().start()

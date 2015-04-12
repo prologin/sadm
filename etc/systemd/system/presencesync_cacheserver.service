@@ -3,7 +3,7 @@ Description=presencesync client that caches an ip-to-login mapping to serve /who
 
 [Service]
 Type=simple
-User=root
+User=presencesync_cacheserver
 ExecStart=/var/prologin/venv/bin/python -m prologin.presencesync_clients.cacheserver 20131
 
 [Install]
