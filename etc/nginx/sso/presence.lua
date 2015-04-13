@@ -4,6 +4,7 @@ local conf = require "config"
 -- libs
 local http = require "resty.http.simple"
 local ngx = ngx
+local string = string
 local tostring = tostring
 
 module('presence')
@@ -21,6 +22,8 @@ function this.whois(ipaddr)
     if not res then
         return { ok = false, error = "failed to join remote: " .. err }
     end
+
+    res.body = string.gsub(res.body, "\n", "")
 
     if res.body == "" then
         res.body = nil

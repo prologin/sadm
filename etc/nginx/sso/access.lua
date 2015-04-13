@@ -1,5 +1,6 @@
 -- load config
 local conf = require "config"
+local content_type = "text/plain; charset=utf-8"
 
 -- libs
 local ck = require "resty.cookie"
@@ -36,7 +37,7 @@ end
 
 -- bypass checks if page is not protected
 if not is_protected() then
-    ngx.header["X-SSO"] = "anonymous"
+    ngx.header[conf.sso_header] = "anonymous"
     return
 end
 
@@ -44,6 +45,8 @@ end
 local cookie, err = ck:new()
 if not cookie then
     ngx.log(ngx.ERR, "SSO: cookie error: " .. err)
+    ngx.header["Content-type"] = content_type
+    ngx.say(conf.sso_error .. " Cookie reader failed to load.")
     ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE)
 end
 
@@ -108,18 +111,20 @@ else
         --        maybe handle that in nginx error_page
         ngx.log(ngx.ERR, "SSO: could not query presenced: " .. whoisres.error)
         ngx.status = ngx.HTTP_SERVICE_UNAVAILABLE
-        ngx.header["X-SSO"] = "failed"
-        ngx.say("presence query failed: " .. whoisres.error)
+        ngx.header[conf.sso_header] = "failed"
+        ngx.header["Content-type"] = content_type
+        ngx.say(conf.sso_error .. " Presence query failed: " .. whoisres.error)
         ngx.exit(ngx.status)
     end
 
     if not whoisres.username then
         -- presence query went fine, but authentication failed
         ngx.log(ngx.WARN, "SSO: presenced returned null username")
-        ngx.header["X-SSO"] = "unauthorized"
+        ngx.header[conf.sso_header] = "unauthorized"
         if not conf["login_failure_redirect_url"] then
             ngx.status = ngx.HTTP_FORBIDDEN
-            ngx.say("You are not authorized.")
+            ngx.header["Content-type"] = content_type
+            ngx.say(conf.sso_error .. " You are not authorized.")
             ngx.exit(ngx.status)
         else
             ngx.redirect(conf["login_failure_redirect_url"])
@@ -141,11 +146,12 @@ else
     })
 end
 
--- All went fine, add header, set remote user var, and forward to actual page
-
+-- All went fine set remote user var
 ngx.var.sso_remote_user = username
 
-ngx.header["X-SSO"] = "authed" .. ssoheader
-ngx.header["X-SSO-Username"] = username
+-- Add debug headers
+ngx.header[conf.sso_header] = "authed" .. ssoheader
+ngx.header[conf.sso_header .. "-Username"] = username
 
+-- Forward to actual page
 return
