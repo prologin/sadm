@@ -1,0 +1,10 @@
+[Unit]
+Description=presencesync client that caches an ip-to-login mapping to serve /whois
+
+[Service]
+Type=simple
+User=presencesync_cacheserver
+ExecStart=/var/prologin/venv/bin/python -m prologin.presencesync_clients.cacheserver 20131
+
+[Install]
+WantedBy=multi-user.target
