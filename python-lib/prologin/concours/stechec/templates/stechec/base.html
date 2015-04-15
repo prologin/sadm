@@ -1,77 +1,67 @@
 {% load static %}
 <!DOCTYPE html>
-
 <html lang="fr">
-    <head>
-        <meta charset="utf-8">
-        <title>{% block title %}SANS TITRE{% endblock %} – Prologin</title>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <link rel="stylesheet" title="Main" href="{% static 'css/main.css' %}" type="text/css" media="screen">
-        {% block head %}{% endblock %}
-    </head>
-    <body>
-        <header>
-            <div id="logo">&nbsp;</div>
-            <h1>{% block titleh1 %}{% endblock %}</h1>
-        </header>
-        <nav>
-            <div class="block">
-                <h1>Champions</h1>
-                <ul>
-                    {% if request.user.is_authenticated %}
-                    <li><a href="{% url 'champions-my' %}">Mes champions</a></li>
-                    <li><a href="{% url 'champion-new' %}">Envoyer un champion</a></li>
-                    {% endif %}
-                    <li><a href="{% url 'champions-all' %}">Tous les champions</a></li>
-                </ul>
-            </div>
-            <div class="block">
-                <h1>Matches</h1>
-                <ul>
-                    {% if request.user.is_authenticated %}
-                    <li><a href="{% url 'matches-my' %}">Mes matches</a></li>
-                    <li><a href="{% url 'match-new' %}">Lancer un match</a></li>
-                    {% endif %}
-                    <li><a href="{% url 'matches-all' %}">Tous les matches</a></li>
-                    <li><a href="{% url 'status' %}">Statut des serveurs</a></li>
-                </ul>
-            </div>
-            {% if settings.STECHEC_USE_MAPS %}
-            <div class="block">
-                <h1>Cartes</h1>
-                <ul>
-                    {% if request.user.is_authenticated %}
-                    <li><a href="{% url 'map-new' %}">Uploader une carte</a></li>
-                    {% endif %}
-                    <li><a href="{% url 'maps-all' %}">Liste des cartes</a></li>
-                </ul>
-            </div>
-            {% endif %}
-            {% comment %}
-            <div class="block">
-                <h1>Tournois</h1>
-                <ul>
-                    <li><a href="/tournois/all/">Tous les tournois</a></li>
-                </ul>
-            </div>
-            {% endcomment %}
-            <div class="block">
-                <h1>Mon compte</h1>
-                <ul>
-                    {% if request.user.is_authenticated %}
-                    {% if request.user.is_staff %}
-                    <li><a href="{% url 'admin:index' %}">Administration</a></li>
-                    {% endif %}
-                    <li><a href="{% url 'logout' %}">Déconnexion</a></li>
-                    {% else %}
-                    <li><a href="{% url 'login' %}">Connexion</a></li>
-                    {% endif %}
-                </ul>
-            </div>
-        </nav>
-        <div id="content">
-            {% block content %}
-            {% endblock %}
-        </div>
-    </body>
+  <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" type="text/css" media="screen">
+  <link rel="stylesheet" href="{% static 'css/font-awesome.min.css' %}" type="text/css" media="screen">
+  <link rel="stylesheet" href="{% static 'css/main.css' %}" type="text/css" media="screen" title="Main">
+  {% block head %}{% endblock %}
+
+  <title>{% block title %}SANS TITRE{% endblock %} – Prologin</title>
+</head>
+<body>
+<nav class="navbar navbar-default">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">
+        <img alt="Prologin" src="{% static '' %}">
+      </a>
+    </div>
+    <ul class="nav navbar-nav navbar-right">
+      {% if request.user.is_authenticated %}
+        {% comment %}
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+              {{ request.user.username }}<span class="caret"></span></a>
+            <ul class="dropdown-menu" role="menu">
+              <li>some item</li>
+            </ul>
+          </li>
+        {% endcomment %}
+        <li><a href="#"><i class="fa fa-user"></i> {{ request.user.username }}</a></li>
+        {% if request.user.is_staff %}
+          <li><a href="{% url 'admin:index' %}" title="Administration"><i class="fa fa-wrench"></i> Admin</a></li>
+        {% endif %}
+      {% endif %}
+    </ul>
+  </div>
+</nav>
+
+<div class="container">
+
+  <div class="row">
+
+    <div class="col-sm-3" role="complementary">
+      {# Side menu #}
+      <h1 class="hidden-xs">&nbsp;</h1> {# hack to align menu with content #}
+      {% include "stechec/nav-menu.html" %}
+    </div>
+    <div class="col-sm-9" role="main">
+
+      {# Content #}
+      <div id="content">
+        <h1>{% block titleh1 %}{% endblock %}</h1>
+        {% block content %}{% endblock %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="{% static 'js/jquery-2.1.3.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.min.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
 </html>

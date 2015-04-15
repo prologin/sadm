@@ -1,47 +1,49 @@
 {% extends "stechec/base.html" %}
 {% load static %}
 
-{% block title %}Statut du serveur{% endblock %}
-{% block titleh1 %}Statut du serveur{% endblock %}
+{% block title %}État des serveurs{% endblock %}
+{% block titleh1 %}État des serveurs{% endblock %}
 
 {% block head %}
-<link rel="stylesheet" href="{% static 'css/jquery-ui-1.8.11.css' %}" type="text/css" />
 {% endblock %}
 
 {% block content %}
 
-<p class="intro">Cette page présente l'utilisation des serveurs de la finale.</p>
+  <p class="intro">Cette page donne un aperçu de la charge des serveurs de la finale.</p>
 
-<table>
+  {% if status == None %}
+    <p class="alert alert-danger">
+      <i class="fa fa-warning"></i> Le serveur de répartition de tâches sur le cluster (<em>masternode</em>) est
+      inaccessible.
+    </p>
+  {% endif %}
+
+  <table class="table table-striped">
     <thead>
-        <tr>
-            <th>Serveur</th>
-            <th>Utilisation</th>
-        </tr>
+    <tr>
+      <th>Serveur</th>
+      <th>Utilisation</th>
+    </tr>
     </thead>
     <tbody>
-        {% if status != None %}
-            {% for host, port, usage in status %}
-            <tr class="{% cycle "row1" "row2" %}">
-                <td style="vertical-align: middle;"><strong>{{ host }}</strong>:{{ port }}</td>
-                <td>
-                    <div class="ui-progressbar ui-widget ui-widget-content ui-corner-all">
-                        <div style="width: {{ usage }}%;" class="ui-progressbar-value ui-widget-header ui-corner-left"></div>
-                    </div>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="2">Aucun serveur trouvé.</td>
-            </tr>
-            {% endfor %}
-        {% else %}
-            <tr>
-                <td colspan="2"><strong style="color: red">Le serveur de
-                répartition de tâches sur le cluster (masternode) est
-                inaccessible.</strong></td>
-            </tr>
-        {% endif %}
+    {% for host, port, usage in status %}
+      <tr>
+        <td style="vertical-align: middle;"><code><strong>{{ host }}</strong>:{{ port }}</code></td>
+        <td>
+          <div class="progress">
+            <div class="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"
+                 style="width: {{ usage }}%;">
+              <span class="sr-only">{{ usage }}%</span>
+            </div>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="2" class="text-muted"><i class="fa fa-frown-o"></i> Aucun serveur trouvé.</td>
+      </tr>
+    {% endfor %}
     </tbody>
-</table>
+  </table>
+
 {% endblock %}

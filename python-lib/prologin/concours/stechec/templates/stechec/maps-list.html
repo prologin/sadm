@@ -9,7 +9,7 @@
 
 {% if is_paginated %}{% load paginator %}{% paginator 5 %}{% endif %}
 
-<table>
+<table class="table table-striped">
     <thead>
         <tr>
             <th>ID</th>
@@ -36,7 +36,7 @@
         </tr>
         {% empty %}
         <tr>
-            <td colspan="4">Aucune map n'est disponible actuellement.</td>
+            <td colspan="4" class="text-muted"><i class="fa fa-frown-o"></i> Aucune carte n'est disponible pour le moment.</td>
         </tr>
         {% endfor %}
     </tbody>

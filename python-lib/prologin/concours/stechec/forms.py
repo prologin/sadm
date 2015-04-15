@@ -1,3 +1,5 @@
+from crispy_forms.helper import FormHelper
+from crispy_forms import layout, bootstrap
 from django import forms
 from django.conf import settings
 from django.forms import widgets
@@ -8,10 +10,48 @@ from itertools import chain, groupby
 from prologin.concours.stechec import models
 
 
+class BaseFormHelper(FormHelper):
+    def __init__(self, *args, **kwargs):
+        self.is_horizontal = kwargs.pop('horizontal', True)
+        self.label_width = kwargs.pop('label_width', 2)
+        self.field_width = kwargs.pop('field_width', 8)
+        self.width_size = kwargs.pop('width_size', 'sm')
+        super().__init__(*args, **kwargs)
+        self.layout = layout.Layout()
+        if self.is_horizontal:
+            self.form_class = 'form-horizontal'
+            self.field_class = self._grid_class('field')
+            self.label_class = self._grid_class('label')
+
+    def _grid_class(self, type, offset=False):
+        attr = self.label_width if type == 'label' else self.field_width
+        return 'col-{}-{}{} '.format(self.width_size, 'offset-' if offset else '', attr)
+
+    def append_field(self, field):
+        self.layout.fields.append(field)
+
+    def append_submit(self, label):
+        btn = bootstrap.StrictButton(label, css_class='btn-primary', type="submit")
+        if self.is_horizontal:
+            self.append_field(
+                layout.Div(
+                    layout.Div(
+                        btn,
+                        css_class=self._grid_class('label', offset=True) + self._grid_class('field')),
+                    css_class="form-group"
+                )
+            )
+        else:
+            self.append_field(btn)
+
+
 class ChampionUploadForm(forms.Form):
-    name = forms.CharField(max_length=25, required=True, label="Nom du champion")
-    tarball = forms.FileField(required=True, label="Archive des sources (.tgz)")
-    comment = forms.CharField(required=True, widget=forms.widgets.Textarea(), label="Commentaire")
+    name = forms.CharField(max_length=25, required=True, label="Nom")
+    tarball = forms.FileField(required=True, label="Sources",
+                              help_text="Archive au format <tt>.tgz</tt>")
+    comment = forms.CharField(required=True,
+                              widget=forms.widgets.Textarea(attrs={'rows': 3}),
+                              label="Commentaire")
 
     def clean_name(self):
         name = self.cleaned_data['name']
@@ -20,6 +60,12 @@ class ChampionUploadForm(forms.Form):
         except models.Champion.DoesNotExist:
             return name
         raise forms.ValidationError("Nom déjà utilisé")
+
+    helper = BaseFormHelper()
+    helper.append_field('name')
+    helper.append_field('tarball')
+    helper.append_field('comment')
+    helper.append_submit("Envoyer le champion")
 
 
 # Unused since we use a ModelChoiceField to create a match, but could still be
@@ -52,6 +98,7 @@ class MapSelect(widgets.Select):
                 map.id, attrs,
                 conditional_escape(title)
             )
+
         selected_choices = set(v for v in selected_choices)
         output = []
         for author, maps in chain(self.choices, choices):
@@ -65,18 +112,19 @@ class MapSelect(widgets.Select):
 class MatchCreationForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(MatchCreationForm, self).__init__(*args, **kwargs)
-
+        self.helper = BaseFormHelper()
         self.champions = []
         for i in range(1, settings.STECHEC_NPLAYERS + 1):
             f = forms.ModelChoiceField(label="Champion %d" % i,
-                    queryset=models.Champion.objects.all())
+                                       queryset=models.Champion.objects.all())
             self.fields['champion_%d' % i] = f
+            self.helper.append_field('champion_%d' % i)
             self.champions.append(f)
 
         if settings.STECHEC_USE_MAPS:
             self.fields['map'] = forms.ChoiceField(required=True,
-                    widget=MapSelect(attrs={'class': 'mapselect'}),
-                    label="Map utilisée")
+                                                   widget=MapSelect(attrs={'class': 'mapselect'}),
+                                                   label="Carte utilisée")
 
             self.fields['map'].choices = [
                 (author, [(map.id, map) for map in maps])
@@ -85,6 +133,8 @@ class MatchCreationForm(forms.Form):
                     lambda map: map.author
                 )
             ]
+
+        self.helper.append_submit("Lancer le match")
 
     def clean_map(self):
         try:
@@ -95,5 +145,10 @@ class MatchCreationForm(forms.Form):
 
 
 class MapCreationForm(forms.Form):
-    name = forms.CharField(max_length=25, required=True, label="Nom de la map")
+    name = forms.CharField(max_length=25, required=True, label="Nom")
     contents = forms.CharField(required=True, widget=forms.widgets.Textarea(), label="Contenu")
+
+    helper = BaseFormHelper()
+    helper.append_field('name')
+    helper.append_field('contents')
+    helper.append_submit("Envoyer la carte")

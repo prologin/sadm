@@ -10,7 +10,7 @@
 
 {% if is_paginated %}{% load paginator %}{% paginator 5 %}{% endif %}
 
-<table>
+<table class="table table-striped">
     <thead>
         <tr>
             <th>ID</th>
@@ -33,7 +33,7 @@
         </tr>
         {% empty %}
         <tr>
-            <td colspan="8">Aucun match réalisé pour le moment.</td>
+            <td colspan="8" class="text-muted"><i class="fa fa-frown-o"></i> Aucun match réalisé pour le moment.</td>
         </tr>
         {% endfor %}
     </tbody>

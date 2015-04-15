@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 from django.db import models
 
@@ -47,8 +46,8 @@ class Map(ExportModelOperationsMixin('map'), models.Model):
 
     class Meta:
         ordering = ["-official", "-ts"]
-        verbose_name = "map"
-        verbose_name_plural = "maps"
+        verbose_name = "carte"
+        verbose_name_plural = "cartes"
 
 
 class Champion(ExportModelOperationsMixin('champion'), models.Model):
@@ -133,7 +132,7 @@ class TournamentPlayer(ExportModelOperationsMixin('tournament_player'),
 
 
 class TournamentMap(ExportModelOperationsMixin('tournament_map'), models.Model):
-    map = models.ForeignKey(Map, verbose_name="map")
+    map = models.ForeignKey(Map, verbose_name="carte")
     tournament = models.ForeignKey(Tournament, verbose_name="tournoi")
 
     def __str__(self):
@@ -141,8 +140,8 @@ class TournamentMap(ExportModelOperationsMixin('tournament_map'), models.Model):
 
     class Meta:
         ordering = ["-tournament"]
-        verbose_name = "map utilisée dans un tournoi"
-        verbose_name_plural = "maps utilisées dans un tournoi"
+        verbose_name = "carte utilisée dans un tournoi"
+        verbose_name_plural = "cartes utilisées dans un tournoi"
 
 
 class Match(ExportModelOperationsMixin('match'), models.Model):
@@ -201,7 +200,7 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
     def file_options_dict(self):
         return json.loads(self.file_options)
 
-    @options_dict.setter
+    @file_options_dict.setter
     def file_options_dict(self, value):
         self.file_options = json.dumps(value)
 
@@ -243,7 +242,7 @@ for status in ('creating', 'new', 'pending', 'done'):
 class MatchPlayer(ExportModelOperationsMixin('match_player'), models.Model):
     champion = models.ForeignKey(Champion, verbose_name="champion")
     match = models.ForeignKey(Match, verbose_name="match")
-    score = models.IntegerField("score", default=0)
+    score = models.IntegerField(default=0, verbose_name="score")
 
     @property
     def log(self):

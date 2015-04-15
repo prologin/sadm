@@ -2,9 +2,9 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db.models import Max, Min
 from django.http import HttpResponseRedirect, HttpResponse
-from django.shortcuts import render_to_response, get_object_or_404
-from django.template import RequestContext
-from django.views.generic import DetailView, ListView
+from django.shortcuts import get_object_or_404
+from django.views.generic import DetailView, ListView, FormView, TemplateView
+from django.views.generic.detail import SingleObjectMixin
 
 import os
 import os.path
@@ -47,12 +47,12 @@ class ChampionsListView(ListView):
 
 class AllChampionsView(ChampionsListView):
     queryset = models.Champion.objects.filter(deleted=False)
-    explanation_text = 'Voici la liste de tous les champions participants actuellement.'
+    explanation_text = 'Voici la liste de tous les champions participant actuellement.'
     show_for_all = True
 
 
 class MyChampionsView(ChampionsListView):
-    explanation_text = 'Voici la liste de tous vos champions participants actuellement.'
+    explanation_text = 'Voici la liste de tous vos champions participant actuellement.'
     title = "Mes champions"
     show_for_all = False
 
@@ -123,72 +123,70 @@ class MapView(DetailView):
     model = models.Map
 
 
-# TODO: to class-based view
-def new_champion(request):
-    if request.method == 'POST':
-        form = forms.ChampionUploadForm(request.POST, request.FILES)
-        if form.is_valid():
-            champion = models.Champion(
-                name = form.cleaned_data['name'],
-                author = request.user,
-                status = 'new',
-                comment = form.cleaned_data['comment']
+class NewChampionView(FormView):
+    form_class = forms.ChampionUploadForm
+    template_name = 'stechec/champion-new.html'
+
+    def form_valid(self, form):
+        champion = models.Champion(
+            name=form.cleaned_data['name'],
+            author=self.request.user,
+            status='new',
+            comment=form.cleaned_data['comment']
+        )
+        champion.save()
+
+        os.makedirs(champion.directory)
+        fp = open(os.path.join(champion.directory, 'champion.tgz'), 'wb')
+        for chunk in form.cleaned_data['tarball'].chunks():
+            fp.write(chunk)
+        fp.close()
+        return HttpResponseRedirect(champion.get_absolute_url())
+
+
+class ConfirmDeleteChampion(SingleObjectMixin, TemplateView):
+    template_name = 'stechec/champion-delete.html'
+    pk_url_kwarg = 'pk'
+    model = models.Champion
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(self.model,
+                                 pk=self.kwargs[self.pk_url_kwarg],
+                                 author=self.request.user)
+
+    def post(self, request, *args, **kwargs):
+        champion = self.get_object()
+        champion.deleted = True
+        champion.save()
+        return HttpResponseRedirect(reverse('champions-mine'))
+
+
+class NewMatchView(FormView):
+    form_class = forms.MatchCreationForm
+    template_name = 'stechec/match-new.html'
+
+    def form_valid(self, form):
+        match = models.Match(
+            author=self.request.user,
+            status='creating',
+            tournament=None,
+            options=''
+        )
+        if settings.STECHEC_USE_MAPS:
+            match.map = form.cleaned_data['map'].path
+        match.save()
+
+        for i in range(1, settings.STECHEC_NPLAYERS + 1):
+            champ = form.cleaned_data['champion_%d' % i]
+            player = models.MatchPlayer(
+                champion=champ,
+                match=match
             )
-            champion.save()
+            player.save()
 
-            os.makedirs(champion.directory)
-            fp = open(os.path.join(champion.directory, 'champion.tgz'), 'wb')
-            for chunk in form.cleaned_data['tarball'].chunks():
-                fp.write(chunk)
-            fp.close()
-            return HttpResponseRedirect(champion.get_absolute_url())
-    else:
-        form = forms.ChampionUploadForm()
-
-    return render_to_response('stechec/champion-new.html', {'form': form},
-                              context_instance=RequestContext(request))
-
-
-# TODO: to class-based view
-def delete_champion(request, pk):
-    ch = get_object_or_404(models.Champion, pk=pk, author=request.user)
-    if request.method == 'POST':
-        ch.deleted = True
-        ch.save()
-        return HttpResponseRedirect(reverse("champions-my"))
-    return render_to_response('stechec/champion-delete.html',
-                              context_instance=RequestContext(request))
-
-
-# TODO: to class-based view
-def new_match(request):
-    if request.method == 'POST':
-        form = forms.MatchCreationForm(request.POST)
-        if form.is_valid():
-            match = models.Match(
-                author=request.user,
-                status='creating',
-            )
-            if settings.STECHEC_USE_MAPS:
-                match.map = form.cleaned_data['map'].path
-            match.save()
-
-            for i in range(1, settings.STECHEC_NPLAYERS + 1):
-                champ = form.cleaned_data['champion_%d' % i]
-                player = models.MatchPlayer(
-                    champion=champ,
-                    match=match
-                )
-                player.save()
-
-            match.status = 'new'
-            match.save()
-            return HttpResponseRedirect(match.get_absolute_url())
-    else:
-        form = forms.MatchCreationForm()
-
-    return render_to_response('stechec/match-new.html', {'form': form},
-                              context_instance=RequestContext(request))
+        match.status = 'new'
+        match.save()
+        return HttpResponseRedirect(match.get_absolute_url())
 
 
 # TODO: to class-based view
@@ -200,33 +198,31 @@ def match_dump(request, pk):
     return h
 
 
-# TODO: to class-based view
-def new_map(request):
-    if request.method == 'POST':
-        form = forms.MapCreationForm(request.POST)
-        if form.is_valid():
-            map = models.Map(
-                author = request.user,
-                name = form.cleaned_data['name'],
-                official = False
-            )
-            map.save()
-            map.contents = form.cleaned_data['contents']
-            return HttpResponseRedirect(map.get_absolute_url())
-    else:
-        form = forms.MapCreationForm()
+class NewMapView(FormView):
+    form_class = forms.MapCreationForm
+    template_name = 'stechec/map-new.html'
 
-    return render_to_response('stechec/map-new.html', {'form': form},
-                              context_instance=RequestContext(request))
+    def form_valid(self, form):
+        map = models.Map(
+            author=self.request.user,
+            name=form.cleaned_data['name'],
+            official=False
+        )
+        map.save()
+        map.contents = form.cleaned_data['contents']
+        return HttpResponseRedirect(map.get_absolute_url())
 
 
-# TODO: to class-based view
-def master_status(request):
-    try:
-        status = models.master_status()
-        status = [(h, p, (100 * (m - s)) / m) for (h, p, s, m) in status]
-        status.sort()
-    except socket.error:
-        status = None
-    return render_to_response('stechec/master-status.html', {'status': status},
-                              context_instance=RequestContext(request))
+class MasterStatus(TemplateView):
+    template_name = 'stechec/master-status.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        try:
+            status = models.master_status()
+            status = [(h, p, (100 * (m - s)) / m) for (h, p, s, m) in status]
+            status.sort()
+        except socket.error:
+            status = None
+        context['status'] = status
+        return context

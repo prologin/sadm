@@ -93,6 +93,9 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.humanize',
 
+    # Vendor
+    'crispy_forms',
+
     # Prologin
     'prologin.concours.stechec',
 
@@ -134,6 +137,9 @@ LOGGING = {
 
 # This is actually the default, explicit is better than implicit
 AUTH_USER_MODEL = 'auth.User'
+
+# crispy-forms shall use Bootstrap 3
+CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
 STECHEC_ROOT = cfg["contest"]["directory"]
 STECHEC_CONTEST = cfg["contest"]["game"]
