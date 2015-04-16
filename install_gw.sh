@@ -4,9 +4,10 @@
 # completely virgin disks.
 
 set -e
+shopt -s nullglob
 
 echo 'Detected disks:'
-for disk in /dev/vd?; do
+for disk in /dev/vd? /dev/sd?; do
     fdisk -l ${disk} | grep Disk | grep bytes
 done
 while ! [ -b "$disk_0" ]; do
@@ -118,7 +119,7 @@ mkdir /var/prologin
 virtualenv3 /var/prologin/venv
 source /var/prologin/venv/bin/activate
 cd /root
-git clone http://bitbucket.org/halfr/sadm.git
+git clone http://bitbucket.org/prologin/sadm.git
 cd sadm
 pip install -r requirements.txt
 EOF
