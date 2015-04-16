@@ -142,3 +142,4 @@ LOGGING = {
 }
 
 CONTEST_MODE = cfg['contest_mode']
+COUNTDOWN_TO = cfg['countdown_to']

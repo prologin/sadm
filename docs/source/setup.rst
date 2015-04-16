@@ -142,7 +142,7 @@ provided with the application in order to setup what it requires::
 .. note::
 
   You don't have to create super users for ``mdb`` or ``udb`` using the
-  ``manage.py`` command. The root users you will add will add to ``udb`` will
+  ``manage.py`` command. The root users you will add to ``udb`` will
   be super user and replicated to ``mdb``. If you want to modify the databases
   before that, use ``manage.py shell``.
 
@@ -150,7 +150,7 @@ This command installed the ``mdb`` application to ``/var/prologin/mdb`` and
 installed the ``systemd`` and ``nginx`` configuration files required to run the
 application.
 
-Don't forget to change the ``secret_key`` used by Django.
+Don't forget to change the ``secret_key`` used by Django::
 
   $EDITOR /etc/prologin/mdb-server.yml
 
@@ -605,14 +605,17 @@ You will want to ssh at this machine, so enable ``udbync_rootssh``::
   systemctl enable udbsync_rootssh && systemctl start udbsync_rootssh
 
 We'll now compile our custom version of openresty, a nginx extension with lua
-scripting. This is primarily used for Single Sign-On (SSO).
+scripting. This is primarily used for Single Sign-On (SSO). Because ``makepkg``
+won't let you build packages as root, you either have to create a new user or
+build the package on another machine and then transfer it over.
 
 Build the package::
 
   cd pkg/openresty
   make all
 
-Then, install the package that was just built::
+You should get a tarball named like ``openresty-version.pkg.tar.xz``. Proceed
+to its installation on the target machine::
 
   pacman -U openresty-*.pkg.tar.xz
 

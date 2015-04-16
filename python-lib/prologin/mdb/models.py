@@ -48,8 +48,8 @@ class Machine(models.Model):
     aliases = models.CharField(max_length=512, blank=True,
                                validators=[RegexValidator(regex=ALIASES_REGEX)],
                                help_text='host0,host1,etc.')
-    ip = models.IPAddressField(unique=True, verbose_name='IP',
-                               help_text='The IP address is automatically allocated.')
+    ip = models.GenericIPAddressField(unique=True, verbose_name='IP',
+                                      help_text='The IP address is automatically allocated.')
     mac = models.CharField(max_length=17, unique=True, verbose_name='MAC',
                            validators=[RegexValidator(regex=MAC_REGEX)],
                            help_text='aa:bb:cc:dd:ee:ff')
