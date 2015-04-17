@@ -58,6 +58,8 @@ class Machine(models.Model):
     mtype = models.CharField(max_length=20, choices=TYPES, verbose_name='Type',
                              default='orga')
     room = models.CharField(max_length=20, choices=ROOMS, default='other')
+    is_faulty = models.BooleanField(default=False, verbose_name="Faulty machine")
+    is_faulty_details = models.TextField(blank=True, verbose_name="Details on why the machine is faulty")
 
     def __str__(self):
         return self.hostname
