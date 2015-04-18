@@ -257,6 +257,8 @@ def install_nginxcfg():
                 mode=0o644)
     install_cfg('nginx/long_polling', '/etc/nginx', owner='root:root',
                 mode=0o644)
+    install_cfg('nginx/enable_sso', '/etc/nginx', owner='root:root',
+                mode=0o644)
     mkdir('/etc/nginx/services', mode=0o755, owner='root:root')
     mkdir('/etc/nginx/services_contest', mode=0o755, owner='root:root')
     if not os.path.exists('/etc/nginx/logs'):
