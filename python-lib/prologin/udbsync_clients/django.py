@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
+import django
 import functools
 import logging
 import os
@@ -81,5 +82,6 @@ if __name__ == '__main__':
     cfg = prologin.config.load('%s-udbsync' % app_name)
     sys.path.insert(0, '.')
     os.environ['DJANGO_SETTINGS_MODULE'] = 'prologin.%s.settings' % app_name
+    django.setup()
     callback = functools.partial(callback, cfg)
     prologin.udbsync.client.connect().poll_updates(callback)
