@@ -1,5 +1,6 @@
 [Unit]
 Description=presencesync client that caches an ip-to-login mapping to serve /whois
+After=network.target
 
 [Service]
 Type=simple
