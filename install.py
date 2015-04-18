@@ -231,10 +231,8 @@ def django_migrate(name, user=None):
 
 
 def check_database_exists(database):
-    """
-    Use PGHOST, PGPORT and PGUSER environment variables for authentication.
-    """
-    retcode = system("exit $(echo \"SELECT 1 FROM pg_database WHERE datname='{}'\" | psql -t)"
+    retcode = system("exit $(echo \"SELECT 1 FROM pg_database WHERE datname='{}'\" | "
+                     "su - postgres -c 'psql -t')"
                      .format(database))
     return retcode != 0
 
@@ -243,7 +241,6 @@ def execute_sql(name, database=None, verbose=True):
     """
     Executes SQL commands in file sql/`name`.sql on database `database`
     (if provided).
-    Use PGHOST, PGPORT and PGUSER environment variables for authentication.
     """
     path = os.path.join('sql', '{}.sql'.format(name))
     args = []
@@ -252,7 +249,7 @@ def execute_sql(name, database=None, verbose=True):
     if database:
         args.append(database)
 
-    system("cat {path} | psql {args}".format(
+    system("su - postgres -c 'psql {args}' < {path}".format(
         path=path,
         args=' '.join(args),
     ))
