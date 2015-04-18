@@ -236,7 +236,7 @@ def check_database_exists(database):
     """
     retcode = system("exit $(echo \"SELECT 1 FROM pg_database WHERE datname='{}'\" | psql -t)"
                      .format(database))
-    return retcode == 1
+    return retcode != 0
 
 
 def execute_sql(name, database=None, verbose=True):
@@ -323,7 +323,7 @@ def install_mdb():
     requires('libprologin')
     requires('nginxcfg')
 
-    first_time = not check_database_exists('mdb')
+    db_exists = check_database_exists('mdb')
 
     install_service_dir('django/mdb', owner='mdb:mdb', mode=0o700)
     install_nginx_service('mdb')
@@ -332,7 +332,7 @@ def install_mdb():
     install_cfg_profile('mdb-server', group='mdb')
     install_cfg_profile('mdb-udbsync', group='mdb')
 
-    if first_time:
+    if not db_exists:
         execute_sql('mdb')
         django_migrate('mdb')
 
@@ -372,6 +372,7 @@ def install_docs():
 def install_paste():
     requires('nginxcfg')
 
+    # TODO: use the appropriate database_exists check
     first_time = not os.path.exists('/var/prologin/mdb')
 
     install_service_dir('webservices/paste', mode=0o755,
@@ -411,7 +412,7 @@ def install_homepage():
     requires('udbsync_django')
     requires('nginxcfg')
 
-    first_time = not check_database_exists('homepage')
+    db_exists = check_database_exists('homepage')
 
     install_service_dir('django/homepage', owner='homepage:homepage',
                         mode=0o700)
@@ -421,7 +422,7 @@ def install_homepage():
     install_cfg_profile('homepage', group='homepage')
     install_cfg_profile('homepage-udbsync', group='homepage')
 
-    if first_time:
+    if not db_exists:
         execute_sql('homepage')
         django_migrate('homepage')
 
@@ -431,7 +432,7 @@ def install_concours():
     requires('udbsync_django')
     requires('nginxcfg')
 
-    first_time = not check_database_exists('concours')
+    db_exists = check_database_exists('concours')
 
     install_service_dir('django/concours', owner='concours:concours',
             mode=0o700)
@@ -441,9 +442,10 @@ def install_concours():
     install_cfg_profile('concours', group='concours')
     install_cfg_profile('concours-udbsync', group='concours')
 
-    if first_time:
+    if not db_exists:
         execute_sql('concours')
         django_migrate('concours')
+
 
 def install_netboot():
     requires('libprologin')
@@ -458,7 +460,7 @@ def install_udb():
     requires('libprologin')
     requires('nginxcfg')
 
-    first_time = not check_database_exists('udb')
+    db_exists = check_database_exists('udb')
 
     install_service_dir('django/udb', owner='udb:udb', mode=0o700)
     install_nginx_service('udb')
@@ -467,7 +469,7 @@ def install_udb():
     install_cfg_profile('udb-server', group='udb')
     install_cfg_profile('udb-udbsync', group='udb')
 
-    if first_time:
+    if not db_exists:
         execute_sql('udb')
         django_migrate('udb')
 
