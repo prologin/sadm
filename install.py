@@ -156,7 +156,7 @@ def symlink(dest, path):
 
 def system(command):
     print('Executing "%s"' % command)
-    os.system(command)
+    return os.system(command)
 
 
 NEW_CFG = []
@@ -230,6 +230,34 @@ def django_migrate(name, user=None):
         system(cmd)
 
 
+def check_database_exists(database):
+    """
+    Use PGHOST, PGPORT and PGUSER environment variables for authentication.
+    """
+    retcode = system("exit $(echo \"SELECT 1 FROM pg_database WHERE datname='{}'\" | psql -t)"
+                     .format(database))
+    return retcode == 1
+
+
+def execute_sql(name, database=None, verbose=True):
+    """
+    Executes SQL commands in file sql/`name`.sql on database `database`
+    (if provided).
+    Use PGHOST, PGPORT and PGUSER environment variables for authentication.
+    """
+    path = os.path.join('sql', '{}.sql'.format(name))
+    args = []
+    if verbose:
+        args.append('--set VERBOSITY=verbose')
+    if database:
+        args.append(database)
+
+    system("cat {path} | psql {args}".format(
+        path=path,
+        args=' '.join(args),
+    ))
+
+
 # Component specific installation procedures
 
 def install_libprologin():
@@ -295,7 +323,7 @@ def install_mdb():
     requires('libprologin')
     requires('nginxcfg')
 
-    first_time = not os.path.exists('/var/prologin/mdb')
+    first_time = not check_database_exists('mdb')
 
     install_service_dir('django/mdb', owner='mdb:mdb', mode=0o700)
     install_nginx_service('mdb')
@@ -305,6 +333,7 @@ def install_mdb():
     install_cfg_profile('mdb-udbsync', group='mdb')
 
     if first_time:
+        execute_sql('mdb')
         django_migrate('mdb')
 
     mkdir('/etc/ansible', mode=0o755, owner='root:root')
@@ -382,7 +411,7 @@ def install_homepage():
     requires('udbsync_django')
     requires('nginxcfg')
 
-    first_time = not os.path.exists('/var/prologin/homepage')
+    first_time = not check_database_exists('homepage')
 
     install_service_dir('django/homepage', owner='homepage:homepage',
                         mode=0o700)
@@ -393,6 +422,7 @@ def install_homepage():
     install_cfg_profile('homepage-udbsync', group='homepage')
 
     if first_time:
+        execute_sql('homepage')
         django_migrate('homepage')
 
 
@@ -401,7 +431,7 @@ def install_concours():
     requires('udbsync_django')
     requires('nginxcfg')
 
-    first_time = not os.path.exists('/var/prologin/concours')
+    first_time = not check_database_exists('concours')
 
     install_service_dir('django/concours', owner='concours:concours',
             mode=0o700)
@@ -412,6 +442,7 @@ def install_concours():
     install_cfg_profile('concours-udbsync', group='concours')
 
     if first_time:
+        execute_sql('concours')
         django_migrate('concours')
 
 def install_netboot():
@@ -427,7 +458,7 @@ def install_udb():
     requires('libprologin')
     requires('nginxcfg')
 
-    first_time = not os.path.exists('/var/prologin/udb')
+    first_time = not check_database_exists('udb')
 
     install_service_dir('django/udb', owner='udb:udb', mode=0o700)
     install_nginx_service('udb')
@@ -437,6 +468,7 @@ def install_udb():
     install_cfg_profile('udb-udbsync', group='udb')
 
     if first_time:
+        execute_sql('udb')
         django_migrate('udb')
 
 
