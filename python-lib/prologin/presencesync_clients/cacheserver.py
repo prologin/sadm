@@ -58,15 +58,13 @@ class PresenceCacheServer(prologin.web.TornadoApp):
         thread.start()
         tornado.ioloop.IOLoop.instance().start()
 
-    def presencesync_callback(self, login_to_hostname, updates_metadata):
-        logging.info("Updating")
-
+    def presencesync_callback(self, login_to_machine, updates_metadata):
         mdb_machines = prologin.mdb.client.connect().query()  # get all machines
 
         # Translate hostnames to IPs
         ip_to_hostname = {m['ip']: m['hostname'] for m in mdb_machines}
         # Translates logins to hostnames
-        hostname_to_login = {v: k for k, v in login_to_hostname}
+        hostname_to_login = {m['hostname']: login for login, m in login_to_machine.items()}
 
         with self.lock:
             # FIXME: self.ip_to_login may contain multiple similar logins
@@ -83,7 +81,8 @@ class PresenceCacheServer(prologin.web.TornadoApp):
 
             length = len(self.ip_to_login)
 
-        logging.info("There are %d IPs in cache", length)
+        logging.info("Received %d logins, %d hostnames. Cache has %d mappings.",
+                     len(login_to_machine), len(mdb_machines), length)
 
 
 if __name__ == '__main__':
