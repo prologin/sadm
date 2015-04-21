@@ -17,6 +17,7 @@
 
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from prologin.mdb import views
 
 admin.autodiscover()
@@ -26,3 +27,5 @@ urlpatterns = patterns('',
     url(r'^register$', views.register, name='mdbapi-register'),
     url(r'', include(admin.site.urls)),
 )
+
+urlpatterns += staticfiles_urlpatterns()

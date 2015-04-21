@@ -17,6 +17,7 @@
 
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from prologin.udb import views
 
 admin.autodiscover()
@@ -25,3 +26,5 @@ urlpatterns = patterns('',
     url(r'^query$', views.query, name='udb-query'),
     url(r'', include(admin.site.urls)),
 )
+
+urlpatterns += staticfiles_urlpatterns()
