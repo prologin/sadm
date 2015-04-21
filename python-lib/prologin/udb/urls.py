@@ -24,6 +24,7 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
     url(r'^query$', views.query, name='udb-query'),
+    url(r'', include('django_prometheus.urls')),
     url(r'', include(admin.site.urls)),
 )
 

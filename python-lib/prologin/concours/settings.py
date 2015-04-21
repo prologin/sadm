@@ -48,6 +48,7 @@ STATICFILES_FINDERS = (
 )
 
 MIDDLEWARE_CLASSES = (
+    'django_prometheus.middleware.PrometheusBeforeMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -56,6 +57,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'django_prometheus.middleware.PrometheusAfterMiddleware',
 )
 
 ROOT_URLCONF = 'prologin.concours.urls'
@@ -96,6 +98,9 @@ INSTALLED_APPS = (
 
     # Built-in (for template overriding)
     'django.contrib.admin',
+
+    # Monitoring
+    'django_prometheus',
 )
 
 # A sample logging configuration. The only tangible logging

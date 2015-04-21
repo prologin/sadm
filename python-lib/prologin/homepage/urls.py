@@ -24,6 +24,7 @@ admin.autodiscover()
 urlpatterns = patterns('',
     url(r'^$', 'prologin.homepage.views.home', name='home'),
     url(r'^admin/', include(admin.site.urls)),
+    url(r'', include('django_prometheus.urls')),
 )
 
 urlpatterns += staticfiles_urlpatterns()
