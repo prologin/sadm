@@ -342,29 +342,6 @@ Enable the service::
   systemctl enable udb && systemctl start udb
   systemctl reload nginx
 
-udbsync
-~~~~~~~
-
-usbsync is a server that pushes updates of the user list.
-
-Again, use the ``install.py`` recipe::
-
-  python install.py udbsync
-
-  # Edit the shared secret
-  $EDITOR /etc/prologin/udbsync-sub.yml
-  $EDITOR /etc/prologin/udbsync-pub.yml
-
-  systemctl enable udbsync && systemctl start udbsync
-  systemctl reload nginx
-
-We can then configure udbsync clients::
-
-  python install.py udbsync_django udbsync_rootssh
-  systemctl enable udbsync_django@mdb && systemctl start udbsync_django@mdb
-  systemctl enable udbsync_django@udb && systemctl start udbsync_django@udb
-  systemctl enable udbsync_rootssh && systemctl start udbsync_rootssh
-
 You can then import all contestants information to ``udb`` using the
 ``batchimport`` command::
 
@@ -388,11 +365,33 @@ Then for roots::
       --uidbase=12000 --file=/root/roots.txt
   python manage.py pwdsheetdata --type=root > /root/root_pwdsheet_data
 
+udbsync
+~~~~~~~
+
+usbsync is a server that pushes updates of the user list.
+
+Again, use the ``install.py`` recipe::
+
+  python install.py udbsync
+
+  # Edit the shared secret
+  $EDITOR /etc/prologin/udbsync-sub.yml
+  $EDITOR /etc/prologin/udbsync-pub.yml
+
+  systemctl enable udbsync && systemctl start udbsync
+  systemctl reload nginx
+
+We can then configure udbsync clients::
+
+  python install.py udbsync_django udbsync_rootssh
+  systemctl enable udbsync_django@mdb && systemctl start udbsync_django@mdb
+  systemctl enable udbsync_django@udb && systemctl start udbsync_django@udb
+  systemctl enable udbsync_rootssh && systemctl start udbsync_rootssh
 
 .. note::
 
-  Adding add the users to a sqlite database is slow, you will have to wait a
-  bit for ``mdb`` and ``udb`` to sync their user databases.
+  Adding all the users to the sqlite databases is slow will lock them. You will
+  have to wait a bit for ``mdb`` and ``udb`` to sync their user databases.
 
 presencesync
 ~~~~~~~~~~~~
