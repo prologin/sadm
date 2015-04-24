@@ -302,6 +302,9 @@ def install_mdb():
     if first_time:
         django_migrate('mdb')
 
+    mkdir('/etc/ansible', mode=0o755, owner='root:root')
+    install_cfg('ansible/hosts', '/etc/ansible/', mode=0o700)
+
 
 def install_mdbsync():
     requires('libprologin')
