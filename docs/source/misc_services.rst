@@ -176,6 +176,9 @@ You should be able to access the brand new Redmine.
 
 - Login at http://redmine/login with ``admin`` / ``admin``
 - Change password at http://redmine/my/password
+- In http://redmine/settings?tab=authentication set minimum password length
+  to 0. Disable lost password feature, account deletion and registration.
+  Enable enforced authentication.
 - Configure a new project at http://redmine/projects/new
   The ``Identifiant`` **has to be ``prologin``** in order to vhosts to work.
 - As soon as `udbsync_redmine` has finished its first sync, you should
