@@ -23,7 +23,8 @@ commands.each do |login, cmd|
                 if u.valid?
                         u.save
                 else
-                        $stderr.puts "invalid created user #{login}"
+                        $stderr.puts "invalid created user: #{login}"
+                        $stderr.puts "#{u.errors.full_messages}"
                 end
 
         when 'deleted'
@@ -37,7 +38,8 @@ commands.each do |login, cmd|
                 if u.valid? then
                         u.save
                 else
-                        $stderr.puts "invalid updated user #{login}"
+                        $stderr.puts "invalid updated user: #{login}"
+                        $stderr.puts "#{u.errors.full_messages}"
                 end
         end
 

@@ -6,11 +6,13 @@ import os
 import prologin.log
 import prologin.udbsync.client
 import subprocess
-import sys
 
-REDMINE_ROOT = '/var/prologin/redmine/script'
-SCRIPT_PATH = os.path.join(REDMINE_ROOT, 'user_update.rb')
-RUNNER = os.path.join(REDMINE_ROOT, 'rails')
+# We assume the 'redmine' RVM environment exists and has everything setup properly.
+# This is true if installed with respect to the docs.
+
+SCRIPT_PATH = '/var/prologin/redmine/script/user_update.rb'
+RUNNER = ('source /usr/local/rvm/environments/redmine && '
+          '/var/prologin/redmine/bin/rails runner -e production ' + SCRIPT_PATH)
 
 
 def callback(users, updates_metadata):
@@ -25,7 +27,7 @@ def callback(users, updates_metadata):
     logging.info('Calling redmine runner user_update.rb...')
 
     proc = subprocess.Popen([
-        RUNNER, 'runner', '-e', 'production', SCRIPT_PATH,
+        'sh', '-c', RUNNER,
     ], env=ENV, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     stdout, stderr = proc.communicate(
@@ -33,7 +35,7 @@ def callback(users, updates_metadata):
     )
 
     if stderr:
-        logging.error('redmine runner user_update.rb returned an error:\n%s', stderr)
+        logging.error('redmine runner user_update.rb returned an error:\n%s', stderr.decode('utf-8'))
 
 
 if __name__ == '__main__':

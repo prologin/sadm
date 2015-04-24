@@ -368,7 +368,7 @@ def install_redmine():
         owner='redmine:redmine', mode=0o640
     )
 
-    install_nginx_service('redmine')
+    install_nginx_service('redmine', contest=True)
     install_systemd_unit('redmine')
 
 

@@ -103,7 +103,7 @@ First, export some useful variables. Change them if needed::
 
   export PHOME=/var/prologin
   export PGHOST=db  # postgres host
-  export RUBYV=2.0.0-p451
+  export RUBYV=2.2.1
   export RAILS_ENV=production
   export REDMINE_LANG=fr
   read -esp "Enter redmine db password (no ' please): " RMPSWD
@@ -111,23 +111,24 @@ First, export some useful variables. Change them if needed::
 Download and extract Redmine::
 
   cd /tmp
-  wget http://www.redmine.org/releases/redmine-2.5.1.tar.gz
-  tar -xvz -C $PHOME -f redmine-2.5.1.tar.gz
+  wget http://www.redmine.org/releases/redmine-3.0.1.tar.gz
+  tar -xvz -C $PHOME -f redmine*.tar.gz
   mv $PHOME/{redmine*,redmine}
 
 Using RVM, let's install dependencies::
 
-  curl -L http://get.rvm.io | bash -s stable
+  # Trust RVM keys
+  command curl -sSL https://rvm.io/mpapis.asc | gpg2 --import -
+  curl -sSL https://get.rvm.io | bash -s stable
   source /etc/profile.d/rvm.sh
   echo "gem: --no-document" >>$HOME/.gemrc
   rvm install $RUBYV  # can be rather long
   rvm alias create redmine $RUBYV
-  gem install -v 1.4.5 rack  # unicorn installs a newer version Redmine doesn't like
   gem install bundler unicorn
 
-Create the Redmine user and database (user may not be postgres)::
+Create the Redmine user and database::
 
-  sed -e s/%pwd%/$RMPSWD/ $PHOME/sadm/sql/redmine.sql | psql -U postgres -h $PGHOST
+  sed -e s/DEFAULT_PASSWORD/$RMPSWD/ /root/sadm/sql/redmine.sql | su - postgres -c psql
 
 Configure the Redmine database::
 
@@ -149,9 +150,9 @@ We can now install Redmine::
 
 Some fixtures (these commands require the above env vars)::
 
-  rake generate_secret_token
-  rake db:migrate
-  rake redmine:load_default_data
+  bundle exec rake generate_secret_token
+  bundle exec rake db:migrate
+  bundle exec rake redmine:load_default_data
 
 Create some dirs and fix permissions::
 
