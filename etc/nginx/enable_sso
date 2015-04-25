@@ -1,0 +1,8 @@
+# Enable SSO authentication for this context
+access_by_lua_file sso/access.lua;
+# Get username from lua
+set $sso_remote_user '';
+# Prevent clients from forging Remote-User
+more_clear_input_headers 'remote-user';
+# Pass our sane header to underlying server
+proxy_set_header 'remote-user' $sso_remote_user;

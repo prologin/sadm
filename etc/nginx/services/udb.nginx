@@ -5,6 +5,7 @@ server {
     access_log logs/udb.access.log main;
 
     location / {
+        include enable_sso;
         proxy_pass http://localhost:20080;
         include proxy_params;
     }

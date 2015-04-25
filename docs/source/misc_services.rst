@@ -118,7 +118,7 @@ Download and extract Redmine::
 Using RVM, let's install dependencies::
 
   # Trust RVM keys
-  command curl -sSL https://rvm.io/mpapis.asc | gpg2 --import -
+  curl -sSL https://rvm.io/mpapis.asc | gpg2 --import -
   curl -sSL https://get.rvm.io | bash -s stable
   source /etc/profile.d/rvm.sh
   echo "gem: --no-document" >>$HOME/.gemrc
@@ -161,10 +161,17 @@ Create some dirs and fix permissions::
   chmod -R o-rwx $PHOME/redmine
   chmod -R 755 $PHOME/redmine/{files,log,tmp,public/plugin_assets}
 
+Install the SSO plugin::
+
+  ( cd $PHOME/redmine/plugins && git clone https://Zopieux@bitbucket.org/Zopieux/redmine_sso_auth.git )
+  ( cd $PHOME/redmine && exec rake redmine:plugins:migrate )
+  # Should display:
+  # Migrating redmine_sso_auth (SSO authentication plugin)...
+
 Now it's time to install Redmine system configuration files. Ensure you are
 within the prologin virtualenv (``source /var/prologin/venv/bin/activate``), then::
 
-  cd $PHOME/sadm
+  cd /root/sadm
   python install.py redmine udbsync_redmine
 
 Enable and start the services::
@@ -172,20 +179,26 @@ Enable and start the services::
   systemctl enable redmine && systemctl start redmine
   systemctl enable udbsync_redmine && systemctl start udbsync_redmine
 
-You should be able to access the brand new Redmine.
+You should be able to access the brand new Redmine. There are some important
+configuration settings to change:
 
 - Login at http://redmine/login with ``admin`` / ``admin``
 - Change password at http://redmine/my/password
-- In http://redmine/settings?tab=authentication set minimum password length
-  to 0. Disable lost password feature, account deletion and registration.
-  Enable enforced authentication.
+- In http://redmine/settings?tab=authentication
+  - Enable enforced authentication.
+  - Set minimum password length to 0.
+  - Disable lost password feature, account deletion and registration.
+- In http://redmine/settings/plugin/redmine_sso_auth
+  - Enable SSO.
+  - Set environment variable to ``HTTP_REMOTE_USER``.
+  - Set search method to username.
 - Configure a new project at http://redmine/projects/new
   The ``Identifiant`` **has to be ``prologin``** in order to vhosts to work.
-- As soon as `udbsync_redmine` has finished its first sync, you should
+- As soon as ``udbsync_redmine`` has finished its first sync, you should
   find the three groups (user, orga, root) at http://redmine/groups so
   you can give them special priviledges: click one, click the "Projets"
   tab, assign your "prologin" project to one of the roles. For instance:
-  user → ∅, orga → developer, root → manager ∪ developer
+  user → ∅, orga → developer, root → {manager, developer}
 
 Homepage
 --------
