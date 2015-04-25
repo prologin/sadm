@@ -5,6 +5,9 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 import prologin.concours.stechec.urls
 import prologin.concours.stechec.restapi.urls
 
+from prologin.djangoconf import set_admin_title
+set_admin_title(admin, "Concours")
+
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^api/', include(prologin.concours.stechec.restapi.urls)),

@@ -53,6 +53,18 @@ def use_profile_config(profile, out=None):
     return cfg
 
 
+def set_admin_title(admin, title):
+    """
+    Monkey-patches the `admin` header and title using the `title` string.
+    """
+    # <h1>
+    admin.site.site_header = "Administration de {}".format(title)
+    # <title> suffix
+    admin.site.site_title = title
+    # navbar title
+    admin.site.index_title = admin.site.site_header
+
+
 def _load_config(cfg, out):
     """Loads the configuration values to the out dict."""
 
