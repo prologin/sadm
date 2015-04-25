@@ -8,46 +8,14 @@ local hlp = require "helpers"
 local json = require "cjson"
 local presence = require "presence"
 
--- check if page is protected
-function is_protected()
-    if not conf["url_whitelist"] then
-        conf["url_whitelist"] = {}
-    end
-    if not conf["regex_whitelist"] then
-        conf["regex_whitelist"] = {}
-    end
-
-    for _, url in ipairs(conf["url_whitelist"]) do
-        if hlp.string_starts(ngx.var.host .. ngx.var.uri, url)
-                or hlp.string_starts(ngx.var.host .. ":" .. ngx.var.server_port .. ngx.var.uri, url)
-                or hlp.string_starts(ngx.var.uri, url) then
-            return false
-        end
-    end
-    for _, regex in ipairs(conf["regex_whitelist"]) do
-        if string.match(ngx.var.host .. ngx.var.uri, regex)
-                or string.match(ngx.var.host .. ":" .. ngx.var.server_port .. ngx.var.uri, regex)
-                or string.match(ngx.var.uri, regex) then
-            return false
-        end
-    end
-    -- protected by default
-    return true
-end
-
--- bypass checks if page is not protected
-if not is_protected() then
-    ngx.header[conf.sso_header] = "anonymous"
-    return
-end
-
 -- load cookie reader
 local cookie, err = ck:new()
 if not cookie then
     ngx.log(ngx.ERR, "SSO: cookie error: " .. err)
     ngx.header["Content-type"] = content_type
-    ngx.say(conf.sso_error .. " Cookie reader failed to load.")
-    ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE)
+    -- continue without SSO
+    ngx.header[conf.sso_header] = "failed; cookie error"
+    return
 end
 
 -- check for sso cookie
@@ -106,32 +74,22 @@ else
     local whoisres = presence.whois(ngx.var.remote_addr)
 
     if not whoisres.ok then
-        -- presenced is supposed to be working
-        -- FIXME: should redirect to a nice error page instead;
-        --        maybe handle that in nginx error_page
         ngx.log(ngx.ERR, "SSO: could not query presenced: " .. whoisres.error)
-        ngx.status = ngx.HTTP_SERVICE_UNAVAILABLE
-        ngx.header[conf.sso_header] = "failed"
-        ngx.header["Content-type"] = content_type
-        ngx.say(conf.sso_error .. " Presence query failed: " .. whoisres.error)
-        ngx.exit(ngx.status)
+        -- continue without SSO
+        ngx.header[conf.sso_header] = "failed; whois error"
+        return
     end
 
     if not whoisres.username then
         -- presence query went fine, but authentication failed
         ngx.log(ngx.WARN, "SSO: presenced returned null username")
+        -- continue without SSO
         ngx.header[conf.sso_header] = "unauthorized"
-        if not conf["login_failure_redirect_url"] then
-            ngx.status = ngx.HTTP_FORBIDDEN
-            ngx.header["Content-type"] = content_type
-            ngx.say(conf.sso_error .. " You are not authorized.")
-            ngx.exit(ngx.status)
-        else
-            ngx.redirect(conf["login_failure_redirect_url"])
-        end
+        return
     end
     username = whoisres.username
 
+    -- authentication successful, set cookie
     -- cache the username in an encrypted cookie for subsequent queries
     local jsoned = json.encode(username)
     local signature = ngx.encode_base64(hlp.hmac256(conf.sso_cookie_secret, jsoned))
@@ -146,12 +104,12 @@ else
     })
 end
 
--- All went fine set remote user var
+-- authentication successful, set remote user var
 ngx.var.sso_remote_user = username
 
--- Add debug headers
+-- add debug headers
 ngx.header[conf.sso_header] = "authed" .. ssoheader
 ngx.header[conf.sso_header .. "-Username"] = username
 
--- Forward to actual page
+-- forward to actual page
 return
