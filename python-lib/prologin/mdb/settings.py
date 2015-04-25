@@ -79,7 +79,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'prologin.sso.django.RemoteUserMiddleware',
+    'prologin.sso.django.SSOMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -87,7 +87,7 @@ MIDDLEWARE_CLASSES = (
 )
 
 AUTHENTICATION_BACKENDS = (
-    'prologin.sso.django.RemoteUserBackend',
+    'prologin.sso.django.SSOUserBackend',
     'django.contrib.auth.backends.ModelBackend',
 )
 
