@@ -98,7 +98,7 @@ else
         value = ngx.encode_base64(jsoned) .. "." .. signature,
         domain = ngx.var.host,
         path = "/",
-        secure = true,
+        secure = false,
         httponly = true,
         expires = ngx.cookie_time(ngx.time() + conf.sso_cookie_expiration)
     })
