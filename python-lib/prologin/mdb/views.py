@@ -20,9 +20,11 @@ import prologin.mdb.receivers  # To connect our receivers
 
 from django.http import HttpResponse, HttpResponseForbidden
 from django.http import HttpResponseBadRequest, HttpResponseServerError
+from django.views.decorators.csrf import csrf_exempt
 from prologin.mdb.models import Machine, VolatileSetting
 
 
+@csrf_exempt
 def query(request):
     args = request.REQUEST
     machines = Machine.objects.filter(**args)  # TODO(delroth): secure?
@@ -30,6 +32,7 @@ def query(request):
     return HttpResponse(json.dumps(machines), content_type='application/json')
 
 
+@csrf_exempt
 def register(request):
     try:
         key = VolatileSetting.objects.get(key='allow_self_registration')

@@ -21,10 +21,12 @@ import prologin.timeauth
 import prologin.udb.receivers  # To connect our receivers
 
 from django.http import HttpResponse, HttpResponseForbidden
+from django.views.decorators.csrf import csrf_exempt
 from prologin.udb.models import User
 
 CFG = prologin.config.load('udb-client-auth')
 
+@csrf_exempt
 def query(request):
     args = dict(request.REQUEST)
 
