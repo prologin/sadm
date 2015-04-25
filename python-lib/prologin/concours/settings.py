@@ -24,7 +24,7 @@ ALLOWED_URLS = ['*']
 SITE_ID = 1
 
 LOGIN_URL = reverse_lazy('login')
-LOGIN_REDIRECT_URL = reverse_lazy('index')
+LOGIN_REDIRECT_URL = reverse_lazy('home')
 
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
@@ -154,3 +154,5 @@ STECHEC_MASTER_SECRET = cfg["master"]["shared_secret"].encode('utf-8')
 STECHEC_NPLAYERS = cfg["contest"]["nb_players"]
 STECHEC_USE_MAPS = cfg["contest"]["use_maps"]
 STECHEC_REPLAY = cfg["website"]["replay"]
+STECHEC_REDMINE_ISSUE_LIST = cfg["redmine_urls"]["issue_list"]
+STECHEC_REDMINE_ISSUE_NEW = cfg["redmine_urls"]["issue_new"]

@@ -3,12 +3,14 @@ from django.core.urlresolvers import reverse
 from django.db.models import Max, Min
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404
-from django.views.generic import DetailView, ListView, FormView, TemplateView
+from django.views.generic import DetailView, ListView, FormView, TemplateView, RedirectView
+from django.views.generic.base import View
 from django.views.generic.detail import SingleObjectMixin
 
+import collections
 import os
-import os.path
 import socket
+import urllib.parse
 
 from prologin.concours.stechec import forms
 from prologin.concours.stechec import models
@@ -189,13 +191,16 @@ class NewMatchView(FormView):
         return HttpResponseRedirect(match.get_absolute_url())
 
 
-# TODO: to class-based view
-def match_dump(request, pk):
-    match = get_object_or_404(models.Match, pk=pk)
-    h = HttpResponse(match.dump, content_type="application/stechec-dump")
-    h['Content-Disposition'] = 'attachment; filename=dump-%s.json' % pk
-    h['Content-Encoding'] = 'gzip'
-    return h
+class MatchDumpView(SingleObjectMixin, View):
+    model = models.Match
+    pk_url_kwarg = 'pk'
+
+    def get(self, request, *args, **kwargs):
+        match = self.get_object()
+        h = HttpResponse(match.dump, mimetype="application/stechec-dump")
+        h['Content-Disposition'] = 'attachment; filename=dump-%s.json' % self.kwargs[self.pk_url_kwarg]
+        h['Content-Encoding'] = 'gzip'
+        return h
 
 
 class NewMapView(FormView):
@@ -226,3 +231,74 @@ class MasterStatus(TemplateView):
             status = None
         context['status'] = status
         return context
+
+
+class RedmineIssueView(RedirectView):
+    permanent = False
+
+    tracker_id = None
+    is_private = False
+    subject = ""
+    description = ""
+
+    def get_redirect_url(self, *args, **kwargs):
+        qs = {
+            'issue[tracker_id]': str(self.tracker_id),
+            'issue[is_private]': '1' if self.is_private else '0',
+            'issue[subject]': self.subject,
+            'issue[description]': self.description,
+        }
+        return '{}?{}'.format(settings.STECHEC_REDMINE_ISSUE_NEW,
+                              urllib.parse.urlencode(qs))
+
+
+class AskForHelp(RedmineIssueView):
+    tracker_id = 3  # assistance
+    is_private = True
+    subject = "J'ai un problème : "
+
+
+class ReportBug(RedmineIssueView):
+    tracker_id = 1  # issue
+    is_private = False
+    subject = "[Remplacez ceci par un résumé court et explicite]"
+    description = "\n\n".join([
+        "*Où* est le problème (p. ex. adresse web, nom de la machine…) :",
+        "*Comment* reproduire :",
+        "Ce qui *devrait* se produire normalement :",
+        "Ce qui *se produit* dans les faits :",
+        ""
+    ])
+
+
+class RedmineIssueListView(RedirectView):
+    permanent = False
+
+    filters = []
+
+    def get_redirect_url(self, *args, **kwargs):
+        qs = collections.defaultdict(list)
+        qs['set_filter'] = '1'
+        for name, op, value in self.filters:
+            qs['f[]'].append(str(name))
+            qs['op[%s]' % name] = str(op)
+            if value is not None:
+                qs['v[%s][]' % name] = str(value)
+        return '{}?{}'.format(settings.STECHEC_REDMINE_ISSUE_LIST,
+                              urllib.parse.urlencode(qs, doseq=True))
+
+
+class AskForHelpList(RedmineIssueListView):
+    filters = [
+        ('status_id', '*', None),
+        ('tracker_id', '=', 3),
+        ('author_id', '=', 'me'),
+    ]
+
+
+class ReportBugList(RedmineIssueListView):
+    filters = [
+        ('status_id', '*', None),
+        ('tracker_id', '=', 1),
+        ('author_id', '=', 'me'),
+    ]

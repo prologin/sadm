@@ -3,6 +3,7 @@ from crispy_forms import layout, bootstrap
 from django import forms
 from django.conf import settings
 from django.forms import widgets
+from django.contrib.auth.forms import AuthenticationForm
 from django.utils.html import escape, conditional_escape
 
 from itertools import chain, groupby
@@ -146,9 +147,18 @@ class MatchCreationForm(forms.Form):
 
 class MapCreationForm(forms.Form):
     name = forms.CharField(max_length=25, required=True, label="Nom")
-    contents = forms.CharField(required=True, widget=forms.widgets.Textarea(), label="Contenu")
+    contents = forms.CharField(required=True,
+                               widget=forms.widgets.Textarea(attrs={'class': 'monospace'}),
+                               label="Contenu")
 
     helper = BaseFormHelper()
     helper.append_field('name')
     helper.append_field('contents')
     helper.append_submit("Envoyer la carte")
+
+
+class LoginForm(AuthenticationForm):
+    helper = BaseFormHelper()
+    helper.append_field('username')
+    helper.append_field('password')
+    helper.append_submit("Se connecter")

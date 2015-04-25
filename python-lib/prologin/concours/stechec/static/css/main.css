@@ -15,3 +15,7 @@
 .asteriskField {
     display: none;
 }
+
+textarea.monospace, input.monospace {
+    font-family: monospace;
+}

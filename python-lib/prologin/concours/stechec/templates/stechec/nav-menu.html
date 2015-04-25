@@ -1,7 +1,6 @@
 {% load navigation %}
 <ul class="nav nav-pills nav-stacked">
-  <li>
-    {% url 'home' as u_home %}
+  {% url 'home' as u_home %}
   <li class="{% active u_home %}"><a href="{{ u_home }}">Accueil</a></li>
   {% url 'status' as u_status %}
   <li class="{% active u_status %}"><a href="{{ u_status }}">
@@ -16,23 +15,22 @@
   </a></li>
   <h4>Champions</h4>
   <ul class="nav nav-pills nav-stacked">
+    {% url 'champions-mine' as u_champions_mine %}
+    {% url 'champion-new' as u_champions_new %}
+    {% url 'champions-all' as u_champions_all %}
     {% if request.user.is_authenticated %}
-      {% url 'champions-mine' as u_champions_mine %}
-      {% url 'champion-new' as u_champions_new %}
-      {% url 'champions-all' as u_champions_all %}
       <li class="{% active u_champions_mine %}"><a href="{{ u_champions_mine }}">Mes champions</a></li>
       <li class="{% active u_champions_new %}"><a href="{{ u_champions_new }}">Envoyer un champion</a></li>
     {% endif %}
     <li class="{% active u_champions_all %}"><a href="{{ u_champions_all }}">Tous les champions</a></li>
   </ul>
-  </li>
   <li>
     <h4>Matches</h4>
     <ul class="nav nav-pills nav-stacked">
+      {% url 'matches-mine' as u_matches_mine %}
+      {% url 'match-new' as u_matches_new %}
+      {% url 'matches-all' as u_matches_all %}
       {% if request.user.is_authenticated %}
-        {% url 'matches-mine' as u_matches_mine %}
-        {% url 'match-new' as u_matches_new %}
-        {% url 'matches-all' as u_matches_all %}
         <li class="{% active u_matches_mine %}"><a href="{{ u_matches_mine }}">Mes matches</a></li>
         <li class="{% active u_matches_new %}"><a href="{{ u_matches_new }}">Lancer un match</a></li>
       {% endif %}
@@ -43,10 +41,12 @@
     <li>
       <h4>Cartes</h4>
       <ul class="nav nav-pills nav-stacked">
+      {% url 'map-new' as u_map_new %}
+      {% url 'maps-all' as u_maps_all %}
         {% if request.user.is_authenticated %}
-          <li><a href="{% url 'map-new' %}">Envoyer une carte</a></li>
+          <li class="{% active u_map_new %}"><a href="{{ u_map_new }}">Envoyer une carte</a></li>
         {% endif %}
-        <li><a href="{% url 'maps-all' %}">Toutes les cartes</a></li>
+        <li class="{% active u_maps_all %}"><a href="{{ u_maps_all }}">Toutes les cartes</a></li>
       </ul>
     </li>
   {% endif %}

@@ -53,3 +53,8 @@ website:
   static_path: CHANGEME     # Directory containing static files for the custom
                             # web design
   replay: true              # Activate in-browser replay
+
+# Redmine URLs
+redmine_urls:
+  issue_list: http://redmine/projects/prologin/issues
+  issue_new: http://redmine/projects/prologin/issues/new

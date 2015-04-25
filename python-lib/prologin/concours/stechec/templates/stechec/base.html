@@ -17,7 +17,7 @@
   <div class="container-fluid">
     <div class="navbar-header">
       <a class="navbar-brand" href="#">
-        <img alt="Prologin" src="{% static '' %}">
+        <img alt="Prologin" src="{% static 'img/logo-cube.png' %}">
       </a>
     </div>
     <ul class="nav navbar-nav navbar-right">
@@ -35,6 +35,8 @@
         {% if request.user.is_staff %}
           <li><a href="{% url 'admin:index' %}" title="Administration"><i class="fa fa-wrench"></i> Admin</a></li>
         {% endif %}
+      {% else %}
+        <li><a href="{% url 'login' %}"><i class="fa fa-user"></i> Connexion</a></li>
       {% endif %}
     </ul>
   </div>
