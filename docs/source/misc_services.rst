@@ -157,7 +157,7 @@ Some fixtures (these commands require the above env vars)::
 Create some dirs and fix permissions::
 
   mkdir -p $PHOME/redmine/{tmp,tmp/pdf,public/plugin_assets}
-  chown -R redmine:redmine $PHOME/redmine
+  chown -R redmine:http $PHOME/redmine
   chmod -R o-rwx $PHOME/redmine
   chmod -R 755 $PHOME/redmine/{files,log,tmp,public/plugin_assets}
 
