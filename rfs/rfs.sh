@@ -38,7 +38,8 @@ echo nbd > /etc/modules-load.d/nbd.conf
 
 echo 'Setup necessary kdm sessions'
 rm -rf /usr/share/apps/kdm/sessions
-ln -s /usr/share/xsessions /usr/share/apps/kdm/sessions
+# Cannot use a symlink here because kdm does not follow links
+cp -r /usr/share/xsessions /usr/share/apps/kdm/sessions
 
 echo 'Install the prologin virtualenv and library'
 mkdir /var/prologin
