@@ -201,11 +201,11 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
 
         lines = server_stdout.split('\n')
         result = []
-        score_re = re.compile(r'^(\d+) (-?\d+)( (-?\d+))?$')
+        score_re = re.compile(r'^(\d+) (-?\d+)$')
         for line in lines:
             m = score_re.match(line)
             if m is not None:
-                pid, score, stat = m.groups()
+                pid, score = m.groups()
                 result.append((int(pid), int(score)))
 
         b64dump = b64encode(dumper_stdout).decode()

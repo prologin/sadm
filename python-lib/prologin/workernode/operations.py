@@ -53,16 +53,16 @@ def untar(content, path, compression='gz'):
 
 
 def create_file_opts(file_opts):
-    res = []
+    opts = []
+    files = []
     for l, content in file_opts.items():
         f = tempfile.NamedTemporaryFile()
         f.write(b64decode(content))
-        res.append(l, f)
-    return res
-
-
-def gen_file_opts(files):
-    return list(itertools.chain((att, f.name) for att, f in files.items()))
+        f.flush()
+        opts.append(l)
+        opts.append(f.name)
+        files.append(f)
+    return opts, files
 
 
 def gen_opts(opts):
@@ -70,7 +70,7 @@ def gen_opts(opts):
 
 
 @asyncio.coroutine
-def communicate_forever(cmdline, data=None, env=None, max_len=None,
+def communicate_forever(cmdline, *, data=None, env=None, max_len=None,
         truncate_message='', **kwargs):
     proc = yield from asyncio.create_subprocess_exec(*cmdline, env=env,
             stdin=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -138,16 +138,20 @@ def spawn_server(config, rep_port, pub_port, nb_players, opts, file_opts):
     if opts is not None:
         cmd += gen_opts(opts)
     if file_opts is not None:
-        files = create_file_opts(file_opts)
-        fopts = gen_file_opts(files)
-        cmd += fopts
+        fopts, tmp_files = create_file_opts(file_opts)
+        cmd.extend(fopts)
 
-    retcode, stdout = yield from communicate(cmd)
-    if not (retcode == 0):
-        logging.error(stdout.decode().strip())
+    try:
+        retcode, stdout = yield from communicate(cmd, timeout=60.0*2)
+    except asyncio.TimeoutError:
+        logging.error("Server timeout")
         return ''
 
-    return stdout.decode()
+    if not (retcode == 0):
+        logging.error(stdout.strip())
+        return ''
+
+    return stdout
 
 
 @asyncio.coroutine
@@ -173,9 +177,8 @@ def spawn_dumper(config, rep_port, pub_port, opts, file_opts):
     if opts is not None:
         cmd += gen_opts(opts)
     if file_opts is not None:
-        files = create_file_opts(file_opts)
-        fopts = gen_file_opts(files)
-        cmd += fopts
+        fopts, tmp_files = create_file_opts(file_opts)
+        cmd.extend(fopts)
 
     yield from asyncio.sleep(0.1) # Let the server start
 
@@ -209,10 +212,9 @@ def spawn_client(config, ip, req_port, sub_port, pl_id, champion_path, opts,
     if opts is not None:
         cmd += gen_opts(opts)
     if file_opts is not None:
-        files = create_file_opts(file_opts)
-        fopts = gen_file_opts(files)
-        cmd += fopts
+        fopts, tmp_files = create_file_opts(file_opts)
+        cmd.extend(fopts)
 
-    retcode, stdout = yield from communicate(cmd, env, max_len=2 ** 18,
+    retcode, stdout = yield from communicate(cmd, env=env, max_len=2 ** 18,
             truncate_message='\n\nLog truncated to stay below 256K.\n')
-    return retcode, stdout.decode()
+    return retcode, stdout
