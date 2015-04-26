@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import optparse
 import prologin.config
 import prologin.log
