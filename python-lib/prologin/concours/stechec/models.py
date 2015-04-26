@@ -5,8 +5,10 @@ from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 from django.db import models
 
+import json
 import os.path
 import re
+
 import prologin.rpc.client
 
 stripper_re = re.compile(r'\033\[.*?m')
@@ -156,8 +158,8 @@ class Match(models.Model):
     players = models.ManyToManyField(Champion, verbose_name="participants",
                                      through="MatchPlayer")
     ts = models.DateTimeField("date", auto_now_add=True)
-    options = models.CharField("options", max_length=500)
-    file_options = models.CharField("file_options", max_length=500)
+    options = models.CharField("options", max_length=500, default="{}")
+    file_options = models.CharField("file_options", max_length=500, default="{}")
 
     @property
     def directory(self):

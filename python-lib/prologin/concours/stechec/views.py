@@ -168,8 +168,6 @@ def new_match(request):
             match = models.Match(
                 author=request.user,
                 status='creating',
-                tournament=None,
-                options=''
             )
             if settings.STECHEC_USE_MAPS:
                 match.map = form.cleaned_data['map'].path
