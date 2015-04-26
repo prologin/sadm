@@ -21,6 +21,7 @@
       </a>
     </div>
     <ul class="nav navbar-nav navbar-right">
+      <li><a href="{% url 'v1:api-root' %}" title="API REST"><i class="fa fa-code"></i> API</a></li>
       {% if request.user.is_authenticated %}
         {% comment %}
           <li class="dropdown">
@@ -56,6 +57,16 @@
       {# Content #}
       <div id="content">
         <h1>{% block titleh1 %}{% endblock %}</h1>
+
+            {% for message in messages %}
+              <p class="alert-dismissible alert alert-{% if message.tags == 'error' %}danger{% elif message.tags %}{{ message.tags }}{% endif %}">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Cacher">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+                {{ message }}
+              </p>
+            {% endfor %}
+
         {% block content %}{% endblock %}
       </div>
     </div>

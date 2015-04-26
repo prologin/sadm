@@ -105,7 +105,8 @@ INSTALLED_APPS = (
     # Prologin
     'prologin.concours.stechec',
 
-    # Built-in (for template overriding)
+    # Built-in or vendor (for template overriding)
+    'rest_framework',
     'django.contrib.admin',
 
     # Monitoring
@@ -156,3 +157,11 @@ STECHEC_USE_MAPS = cfg["contest"]["use_maps"]
 STECHEC_REPLAY = cfg["website"]["replay"]
 STECHEC_REDMINE_ISSUE_LIST = cfg["redmine_urls"]["issue_list"]
 STECHEC_REDMINE_ISSUE_NEW = cfg["redmine_urls"]["issue_new"]
+
+# Rest Framework settings
+REST_FRAMEWORK = {
+    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.NamespaceVersioning',
+    'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAuthenticatedOrReadOnly',),
+    'PAGE_SIZE': 10,
+    'DEFAULT_VERSION': '1',
+}

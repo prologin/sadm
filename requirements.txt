@@ -10,5 +10,5 @@ psycopg2==2.6
 py-postgresql==1.1.0
 requests==2.6.0
 tornado==4.1
-aiopg==0.6.1
 django-crispy-forms==1.4.0
+djangorestframework==3.1.1

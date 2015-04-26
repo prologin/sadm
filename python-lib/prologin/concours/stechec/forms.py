@@ -126,7 +126,6 @@ class MatchCreationForm(forms.Form):
             self.fields['map'] = forms.ChoiceField(required=True,
                                                    widget=MapSelect(attrs={'class': 'mapselect'}),
                                                    label="Carte utilisée")
-
             self.fields['map'].choices = [
                 (author, [(map.id, map) for map in maps])
                 for author, maps in groupby(
@@ -134,6 +133,7 @@ class MatchCreationForm(forms.Form):
                     lambda map: map.author
                 )
             ]
+            self.helper.append_field('map')
 
         self.helper.append_submit("Lancer le match")
 

@@ -1,0 +1,33 @@
+pre {
+    overflow: auto;
+    word-wrap: normal;
+    white-space: pre;
+    font-size: 12px;
+}
+
+.request-info {
+    clear: both;
+    margin-top: 10px;
+}
+
+.resource-description, .response-info {
+    margin-bottom: 2em;
+}
+
+.version:before {
+    content: "v";
+    opacity: 0.6;
+    padding-right: 0.25em;
+}
+
+.version {
+    font-size: 70%;
+}
+
+.form-switcher {
+    margin-bottom: 15px;
+}
+
+.tabbable {
+    margin-bottom: 2em;
+}

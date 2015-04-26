@@ -18,7 +18,7 @@ def strip_ansi_codes(t):
 
 
 class Map(ExportModelOperationsMixin('map'), models.Model):
-    author = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="auteur")
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='maps', verbose_name="auteur")
     name = models.CharField("nom", max_length=100)
     official = models.BooleanField("officielle", default=False)
     ts = models.DateTimeField("date", auto_now_add=True)
@@ -35,6 +35,8 @@ class Map(ExportModelOperationsMixin('map'), models.Model):
 
     @contents.setter
     def contents(self, value):
+        if value is None:
+            return
         open(self.path, 'w', encoding='utf-8').write(value)
 
     def get_absolute_url(self):
@@ -51,6 +53,7 @@ class Map(ExportModelOperationsMixin('map'), models.Model):
 
 
 class Champion(ExportModelOperationsMixin('champion'), models.Model):
+    SOURCES_FILENAME = 'champion.tgz'
     STATUS_CHOICES = (
         ('new', 'En attente de compilation'),
         ('pending', 'En cours de compilation'),
@@ -59,7 +62,7 @@ class Champion(ExportModelOperationsMixin('champion'), models.Model):
     )
 
     name = models.CharField("nom", max_length=100)
-    author = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="auteur")
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='champions', verbose_name="auteur")
     status = models.CharField("statut", choices=STATUS_CHOICES,
                               max_length=100, default="new")
     deleted = models.BooleanField("supprimé", default=False)
@@ -67,7 +70,24 @@ class Champion(ExportModelOperationsMixin('champion'), models.Model):
     ts = models.DateTimeField("date", auto_now_add=True)
 
     @property
+    def sources(self):
+        return open(os.path.join(self.directory, Champion.SOURCES_FILENAME), 'rb')
+
+    @sources.setter
+    def sources(self, uploaded_file):
+        if uploaded_file is None:
+            return
+        directory = self.directory
+        os.makedirs(directory)
+        fp = open(os.path.join(directory, Champion.SOURCES_FILENAME), 'wb')
+        for chunk in uploaded_file.chunks():
+            fp.write(chunk)
+        fp.close()
+
+    @property
     def directory(self):
+        if self.id is None:
+            raise RuntimeError("Champion must be saved before accessing its directory")
         contest_dir = os.path.join(settings.STECHEC_ROOT, settings.STECHEC_CONTEST)
         champions_dir = os.path.join(contest_dir, "champions")
         return os.path.join(champions_dir, self.author.username, str(self.id))
@@ -103,9 +123,11 @@ class Tournament(ExportModelOperationsMixin('tournament'), models.Model):
     name = models.CharField("nom", max_length=100)
     ts = models.DateTimeField("date", auto_now_add=True)
     players = models.ManyToManyField(Champion, verbose_name="participants",
-                                     through="TournamentPlayer")
+                                     related_name='tournaments',
+                                     through='TournamentPlayer')
     maps = models.ManyToManyField(Map, verbose_name="maps",
-                                     through="TournamentMap")
+                                  related_name='tournaments',
+                                  through='TournamentMap')
 
     def __str__(self):
         return "%s, %s" % (self.name, self.ts)
@@ -152,13 +174,13 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
         ('done', 'Terminé'),
     )
 
-    author = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="lancé par")
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='matches', verbose_name="lancé par")
     status = models.CharField("statut", choices=STATUS_CHOICES, max_length=100,
                               default="creating")
     tournament = models.ForeignKey(Tournament, verbose_name="tournoi",
-                                   null=True, blank=True)
+                                   related_name='matches', null=True, blank=True)
     players = models.ManyToManyField(Champion, verbose_name="participants",
-                                     through="MatchPlayer")
+                                     related_name='matches', through='MatchPlayer')
     ts = models.DateTimeField("date", auto_now_add=True)
     options = models.CharField("options", max_length=500, default="{}")
     file_options = models.CharField("file_options", max_length=500, default="{}")

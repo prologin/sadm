@@ -1,5 +1,7 @@
 from django.conf import settings
+from django.contrib import messages
 from django.core.urlresolvers import reverse
+from django.db import transaction
 from django.db.models import Max, Min
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404
@@ -14,6 +16,8 @@ import urllib.parse
 
 from prologin.concours.stechec import forms
 from prologin.concours.stechec import models
+# Use API throttling in the standard view
+from prologin.concours.stechec.restapi.permissions import CreateMatchUserThrottle
 
 
 class ChampionView(DetailView):
@@ -137,12 +141,9 @@ class NewChampionView(FormView):
             comment=form.cleaned_data['comment']
         )
         champion.save()
+        # It's important to save() before sources =, as the latter needs the row id
+        champion.sources = form.cleaned_data['tarball']
 
-        os.makedirs(champion.directory)
-        fp = open(os.path.join(champion.directory, 'champion.tgz'), 'wb')
-        for chunk in form.cleaned_data['tarball'].chunks():
-            fp.write(chunk)
-        fp.close()
         return HttpResponseRedirect(champion.get_absolute_url())
 
 
@@ -168,26 +169,35 @@ class NewMatchView(FormView):
     template_name = 'stechec/match-new.html'
 
     def form_valid(self, form):
-        match = models.Match(
-            author=self.request.user,
-            status='creating',
-            tournament=None,
-            options=''
-        )
-        if settings.STECHEC_USE_MAPS:
-            match.map = form.cleaned_data['map'].path
-        match.save()
+        throttler = CreateMatchUserThrottle()
+        if not throttler.allow_request(self.request, self):
+            messages.error(self.request,
+                           "Vos requêtes sont trop rapprochées dans le temps. "
+                           "Merci de patienter environ {:.0f} secondes avant de "
+                            "recommencer votre requête.".format(throttler.wait()))
+            return HttpResponseRedirect(reverse('match-new'))
 
-        for i in range(1, settings.STECHEC_NPLAYERS + 1):
-            champ = form.cleaned_data['champion_%d' % i]
-            player = models.MatchPlayer(
-                champion=champ,
-                match=match
+        with transaction.atomic():
+            match = models.Match(
+                author=self.request.user,
+                status='creating',
+                tournament=None,
+                options=''
             )
-            player.save()
+            if settings.STECHEC_USE_MAPS:
+                match.map = form.cleaned_data['map'].path
+            match.save()
 
-        match.status = 'new'
-        match.save()
+            for i in range(1, settings.STECHEC_NPLAYERS + 1):
+                champ = form.cleaned_data['champion_%d' % i]
+                player = models.MatchPlayer(
+                    champion=champ,
+                    match=match
+                )
+                player.save()
+
+            match.status = 'new'
+            match.save()
         return HttpResponseRedirect(match.get_absolute_url())
 
 
