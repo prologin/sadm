@@ -7,7 +7,6 @@ from django.db import models
 
 from prometheus_client import Gauge
 from django_prometheus.models import ExportModelOperationsMixin
-
 import json
 import os.path
 import re
