@@ -21,6 +21,6 @@ path:
     compile_script: /usr/bin/compile-champion.sh
     stechec_server: /usr/bin/stechec2-server
     stechec_client: /usr/bin/stechec2-client
-    rules: /usr/lib/CHANGEME.so       # Must contain ${contest}.so rules
-    dumper: /usr/lib/CHANGEME.so      # Library to be used to dump replays.
-    makefiles: CHANGEME               # Directory containing the makefiles
+    rules: /usr/lib/libCHANGEME.so                    # Stechec's rules library
+    dumper: /usr/lib/libCHANGEME-dumper.so            # Library to be used to dump replays
+    makefiles: /usr/share/stechec2/CHANGEME/makefiles # Directory containing the makefiles
