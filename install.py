@@ -615,6 +615,11 @@ def install_masternode():
         mode=0o770,
         owner='concours:cluster_public'
     )
+    mkdir(
+        '/var/prologin/concours_shared/maps',
+        mode=0o770,
+        owner='concours:cluster_public'
+    )
 
 
 def install_workernode():
