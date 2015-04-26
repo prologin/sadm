@@ -202,7 +202,12 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             mid = r[0]
             players = list(zip(r[3], r[4], r[5]))
 
-            opts = json.loads(r[1])
+            try:
+                opts = json.loads(r[1])
+            except (TypeError, ValueError) as e:
+                opts = {}
+                logging.warning('cannot decode the custom options json,'
+                                'assuming it is empty', exc_info=1)
 
             file_opts_paths = json.loads(r[2])
             file_opts = {}
@@ -210,7 +215,8 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                 try:
                     file_opts[k] = b64encode(open(path, 'rb').read()).decode()
                 except FileNotFoundError:
-                    pass
+                    logging.warning(
+                            'file for option {} not found: {}'.format(k, path))
 
             to_set_pending.append({
                 'match_id': mid,
