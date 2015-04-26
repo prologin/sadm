@@ -20,6 +20,7 @@
 
 import asyncio
 import copy
+import json
 import logging
 import optparse
 import os.path
@@ -207,7 +208,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             file_opts = {}
             for k, path in file_opts_paths.items():
                 try:
-                    file_opts[k] = b64encode(open(path, 'wb').read())
+                    file_opts[k] = b64encode(open(path, 'rb').read()).decode()
                 except FileNotFoundError:
                     pass
 
