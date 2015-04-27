@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 from django.db import models
 
+from prometheus_client import Gauge
 from django_prometheus.models import ExportModelOperationsMixin
 
 import json
@@ -230,6 +231,15 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
         verbose_name = "match"
         verbose_name_plural = "matches"
 
+# Monitoring
+concours_match_status_count = Gauge(
+    'concours_match_status_count',
+    'Count of matches in by status',
+    labelnames=('status',))
+for status in ('creating', 'new', 'pending', 'done'):
+    labels = {'status': status}
+    concours_match_status_count.labels(labels).set_function(
+        lambda status=status: len(Match.objects.filter(status=status)))
 
 class MatchPlayer(ExportModelOperationsMixin('match_player'), models.Model):
     champion = models.ForeignKey(Champion, verbose_name="champion")
