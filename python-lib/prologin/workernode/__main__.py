@@ -23,6 +23,7 @@ import prologin.config
 import prologin.log
 
 from .worker import WorkerNode
+from .monitoring import monitoring_start
 
 if __name__ == '__main__':
     parser = optparse.OptionParser()
@@ -42,6 +43,8 @@ if __name__ == '__main__':
 
     s = WorkerNode(app_name='workernode', config=config,
                    secret=config['master']['shared_secret'].encode('utf-8'))
+
+    monitoring_start()
 
     try:
         s.run()

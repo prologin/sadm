@@ -18,22 +18,19 @@
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 import asyncio
-import errno
-import fcntl
 import gzip
 import itertools
 import logging
 import os
 import os.path
 import subprocess
-import sys
 import tarfile
 import tempfile
-import time
 
-from base64 import b64decode, b64encode
+from base64 import b64decode
 
 ioloop = asyncio.get_event_loop()
+
 
 def tar(path, compression='gz'):
     with tempfile.NamedTemporaryFile() as temp:
@@ -127,13 +124,13 @@ def compile_champion(config, champion_path):
 @asyncio.coroutine
 def spawn_server(config, rep_port, pub_port, nb_players, opts, file_opts):
     cmd = [config['path']['stechec_server'],
-           "--rules", config['path']['rules'],
-           "--rep_addr", "tcp://0.0.0.0:{}".format(rep_port),
-           "--pub_addr", "tcp://0.0.0.0:{}".format(pub_port),
-           "--nb_clients", str(nb_players + 1),
-           "--time", "3000",
-           "--socket_timeout", "45000",
-           "--verbose", "1"]
+            "--rules", config['path']['rules'],
+            "--rep_addr", "tcp://0.0.0.0:{}".format(rep_port),
+            "--pub_addr", "tcp://0.0.0.0:{}".format(pub_port),
+            "--nb_clients", str(nb_players + 1),
+            "--time", "3000",
+            "--socket_timeout", "45000",
+            "--verbose", "1"]
 
     if opts is not None:
         cmd += gen_opts(opts)
@@ -162,16 +159,16 @@ def spawn_dumper(config, rep_port, pub_port, opts, file_opts):
         raise FileNotFoundError(config['path']['dumper'] + ' not found.')
 
     cmd = [config['path']['stechec_client'],
-           "--name", "dumper",
-           "--rules", config['path']['rules'],
-           "--champion", config['path']['dumper'],
-           "--req_addr", "tcp://127.0.0.1:{}".format(rep_port),
-           "--sub_addr", "tcp://127.0.0.1:{}".format(pub_port),
-           "--memory", "250000",
-           "--time", "3000",
-           "--socket_timeout", "45000",
-           "--spectator",
-           "--verbose", "1"]
+        "--name", "dumper",
+        "--rules", config['path']['rules'],
+        "--champion", config['path']['dumper'],
+        "--req_addr", "tcp://127.0.0.1:{}".format(rep_port),
+        "--sub_addr", "tcp://127.0.0.1:{}".format(pub_port),
+        "--memory", "250000",
+        "--time", "3000",
+        "--socket_timeout", "45000",
+        "--spectator",
+        "--verbose", "1"]
 
     if opts is not None:
         cmd += gen_opts(opts)
@@ -206,7 +203,7 @@ def spawn_client(config, ip, req_port, sub_port, pl_id, champion_path, opts,
                 "--socket_timeout", "45000",
                 "--time", "1500",
                 "--verbose", "1",
-          ]
+        ]
 
     if opts is not None:
         cmd += gen_opts(opts)
