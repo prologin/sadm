@@ -145,7 +145,7 @@ def spawn_server(config, rep_port, pub_port, nb_players, opts, file_opts):
         retcode, stdout = yield from communicate(cmd, timeout=60.0*2)
     except asyncio.TimeoutError:
         logging.error("Server timeout")
-        stdout += "\nworkernode: Server timeout\n"
+        return "workernode: Server timeout"
 
     if retcode != 0:
         logging.error(stdout.strip())
