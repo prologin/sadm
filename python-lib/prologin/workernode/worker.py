@@ -155,6 +155,8 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
     @prologin.rpc.remote_method
     @async_work(slots=1)
     def compile_champion(self, user, cid, ctgz):
+        compile_champion_start = time.monotonic()
+
         ctgz = b64decode(ctgz)
 
         with tempfile.TemporaryDirectory() as cpath:
@@ -189,6 +191,9 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         except socket.error:
             logging.warning('master down, cannot send compiled {}'.format(
                 cid))
+
+        workernode_compile_champion_summary.observe(
+            max(time.monotonic() - compile_champion_start, 0))
 
     @prologin.rpc.remote_method
     @async_work(slots=1)
