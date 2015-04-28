@@ -1,37 +1,47 @@
 {% extends "stechec/base.html" %}
 {% load static %}
 
-{% block title %}Détails du champion - {{ champion.name }}{% endblock %}
-{% block titleh1 %}Détails du champion - {{ champion.name }}{% endblock %}
-{% block head %}
-<script type="text/javascript" src="{% static 'js/jquery-1.5.2.min.js' %}"></script>
-{% endblock %}
+{% block title %}{{ champion.name }} – Champion{% endblock %}
+{% block titleh1 %}Détails du champion {{ champion.name }} <small>#{{ champion.id }}</small>{% endblock %}
 
 {% block content %}
 
-<dl>
-    <dt>Nom</dt>
-    <dd>{{ champion.name }}</dd>
+  <div class="row">
+      <div class="col-sm-6">
+      <div class="panel panel-primary">
+        <div class="panel-heading">
+          <h3 class="panel-title">Champion</h3>
+        </div>
+        <div class="panel-body">
+          <dl class="dl-horizontal dl-narrow">
+            <dt>ID</dt><dd>{{ champion.id }}</dd>
+            <dt>Auteur</dt><dd>{{ champion.author }}</dd>
+            <dt>État</dt><dd>{% include "stechec/stub_status_champion.html" %}</dd>
+          </dl>
+        </div>
+      </div>
+    </div><div class="col-sm-6">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Commentaires</h3>
+        </div>
+        <div class="panel-body">
+          {{ champion.comment|linebreaksbr|default:"<em>Aucun commentaire.</em>" }}
+        </div>
+      </div>
+    </div>
+  </div>
 
-    <dt>Auteur</dt>
-    <dd>{{ champion.author }}</dd>
+  {% if champion.compilation_log and can_see_log %}
+    <p>
+      <button class="btn btn-default btn-small" data-role="toggler" data-target="#log"><i class="fa"></i> <span>Afficher</span> le log de
+        compilation
+      </button>
+    <pre id="log">{{ champion.compilation_log }}</pre>
+  {% endif %}
 
-    <dt>État</dt>
-    <dd>{{ champion.get_status_display }}</dd>
+{% endblock %}
 
-    <dt>Commentaire</dt>
-    <dd>{{ champion.comment|linebreaksbr }}</dd>
-</dl>
-
-{% if champion.compilation_log and can_see_log %}
-<p><a id="toggle-log" href="#">Afficher/cacher le log de compilation</a></p>
-<pre id="log">{{ champion.compilation_log }}</pre>
-<script type="text/javascript">
-    $("#log").hide();
-    $("#toggle-log").click(function() {
-        $("#log").slideToggle();
-    });
-</script>
-{% endif %}
-
+{% block extra_js %}
+  <script src="{% static 'js/uitools.js' %}" type="text/javascript"></script>
 {% endblock %}

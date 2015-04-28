@@ -261,6 +261,7 @@ for status in ('creating', 'new', 'pending', 'done'):
     concours_match_status_count.labels(labels).set_function(
         lambda status=status: len(Match.objects.filter(status=status)))
 
+
 class MatchPlayer(ExportModelOperationsMixin('match_player'), models.Model):
     champion = models.ForeignKey(Champion, verbose_name="champion")
     match = models.ForeignKey(Match, verbose_name="match")

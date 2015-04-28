@@ -25,14 +25,14 @@
             <td>{{ map.id }}</td>
             <td>
                 {% if map.official %}
-                Oui <i class=" fa fa-star text-warning"></i>
+                Oui <i class="fa fa-star text-warning"></i>
                 {% else %}
                 Non
                 {% endif %}
             </td>
             <td>{{ map.name }}</td>
             <td>{{ map.author }}</td>
-            <td><a href="{{ map.get_absolute_url }}">Détails</a></td>
+            <td><a href="{{ map.get_absolute_url }}" class="btn btn-default btn-xs"><i class="fa fa-info"></i> Détails</a></td>
         </tr>
         {% empty %}
         <tr>

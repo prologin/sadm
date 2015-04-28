@@ -8,7 +8,7 @@
     }
 }
 
-.nav-stacked>li+li {
+.nav-stacked > li + li {
     margin-top: 0;
 }
 
@@ -18,4 +18,15 @@
 
 textarea.monospace, input.monospace {
     font-family: monospace;
+}
+
+i.champ-status {
+    width: 1.1em;
+    text-align: center;
+}
+
+.text-ellipsis {
+    overflow: hidden;
+    -ms-text-overflow: ellipsis;
+    text-overflow: ellipsis;
 }

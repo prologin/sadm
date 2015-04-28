@@ -1,0 +1,10 @@
+{% if champion.status == 'new' %}
+<i class="champ-status fa fa-clock-o"></i>
+{% elif champion.status == 'pending' %}
+<i class="champ-status fa fa-cogs"></i>
+{% elif champion.status == 'ready' %}
+<i class="champ-status fa fa-check"></i>
+{% elif champion.status == 'error' %}
+<i class="champ-status fa fa-times"></i>
+{% endif %}
+{{ champion.get_status_display }}

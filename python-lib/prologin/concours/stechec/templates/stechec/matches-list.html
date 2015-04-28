@@ -6,37 +6,47 @@
 
 {% block content %}
 
-<p class="intro">{{ explanation_text }}</p>
+  <p class="intro">{{ explanation_text }}</p>
 
-{% if is_paginated %}{% load paginator %}{% paginator 5 %}{% endif %}
+  {% if is_paginated %}{% load paginator %}{% paginator 5 %}{% endif %}
 
-<table class="table table-striped">
+  <table class="table table-striped">
     <thead>
-        <tr>
-            <th>ID</th>
-            <th>Date &amp; heure</th>
-            <th>État</th>
-            {% if show_creator %}<th>Créateur</th>{% endif %}
-            {% if settings.STECHEC_USE_MAPS %}<th>Carte</th>{% endif %}
-            <th>Actions</th>
-        </tr>
+    <tr>
+      <th>ID</th>
+      <th>Date &amp; heure</th>
+      <th>État</th>
+      {% if show_creator %}
+        <th>Initié par</th>{% endif %}
+      {% if settings.STECHEC_USE_MAPS %}
+        <th>Carte</th>{% endif %}
+      <th>Actions</th>
+    </tr>
     </thead>
     <tbody>
-        {% for match, map_name in matches %}
-        <tr class="{% cycle "row1" "row2" %}">
-            <td>{{ match.id }}</td>
-            <td>{{ match.ts|naturalday }} à {{ match.ts|time:"H:i:s" }}</td>
-            <td>{{ match.get_status_display }}</td>
-            {% if show_creator %}<td{% if request.user == match.author %} class="itsme"{% endif %}>{{ match.author }}</td>{% endif %}
-            {% if settings.STECHEC_USE_MAPS %}<td>{{ map_name }}</td>{% endif %}
-            <td><a href="{{ match.get_absolute_url }}">Détails</a></td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="8" class="text-muted"><i class="fa fa-frown-o"></i> Aucun match réalisé pour le moment.</td>
-        </tr>
-        {% endfor %}
+    {% for match, map_id, map_name in matches %}
+      <tr class="{% cycle "row1" "row2" %}">
+        <td>{{ match.id }}</td>
+        <td>{{ match.ts|naturalday }} à {{ match.ts|time:"H:i:s" }}</td>
+        <td>{% include "stechec/stub_status_match.html" %}</td>
+        {% if show_creator %}
+          <td{% if request.user == match.author %} class="itsme"{% endif %}>{{ match.author }}</td>{% endif %}
+        {% if settings.STECHEC_USE_MAPS %}
+          <td class="text-ellipsis" style="max-width: 10em;" title="{{ map_name }}">
+            {% if map_id != None %}
+              <a href="{% url 'map-detail' map_id %}">{{ map_name }}</a>
+            {% else %}
+              {{ map_name }}
+            {% endif %}</td>{% endif %}
+        <td><a href="{{ match.get_absolute_url }}" class="btn btn-default btn-xs"><i class="fa fa-info"></i> Détails</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="8" class="text-muted"><i class="fa fa-frown-o"></i> Aucun match réalisé pour le moment.</td>
+      </tr>
+    {% endfor %}
     </tbody>
-</table>
+  </table>
 
 {% endblock %}

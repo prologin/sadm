@@ -80,16 +80,19 @@ class MatchesListView(ListView):
         context['explanation_text'] = self.explanation_text
         context['show_creator'] = self.show_creator
         matches = []
+        map_cache = {}
         for m in context['matches']:
+            map_name = None
+            map_id = None
             if settings.STECHEC_USE_MAPS:
                 try:
                     map_id = int(m.map.split('/')[-1])
-                    map_name = models.Map.objects.get(pk=map_id).name
+                    map_name = map_cache[map_id]
+                except KeyError:
+                    map_cache[map_id] = map_name = models.Map.objects.get(pk=map_id).name
                 except Exception:
                     map_name = m.map
-            else:
-                map_name = None
-            matches.append((m, map_name))
+            matches.append((m, map_id, map_name))
         context['matches'] = matches
         return context
 
@@ -112,8 +115,7 @@ class MyMatchesView(MatchesListView):
     show_creator = False
 
     def get_queryset(self):
-        user = self.request.user
-        return models.Match.objects.filter(author=user)
+        return models.Match.objects.filter(author=self.request.user)
 
 
 class AllMapsView(ListView):
@@ -147,7 +149,7 @@ class NewChampionView(FormView):
         return HttpResponseRedirect(champion.get_absolute_url())
 
 
-class ConfirmDeleteChampion(SingleObjectMixin, TemplateView):
+class ConfirmDeleteChampion(DetailView):
     template_name = 'stechec/champion-delete.html'
     pk_url_kwarg = 'pk'
     model = models.Champion
@@ -161,6 +163,7 @@ class ConfirmDeleteChampion(SingleObjectMixin, TemplateView):
         champion = self.get_object()
         champion.deleted = True
         champion.save()
+        messages.success(request, "Champion {} supprimé.".format(champion.name))
         return HttpResponseRedirect(reverse('champions-mine'))
 
 
@@ -198,6 +201,8 @@ class NewMatchView(FormView):
 
             match.status = 'new'
             match.save()
+
+        messages.success(self.request, "Le match #{} a été initié.".format(match.id))
         return HttpResponseRedirect(match.get_absolute_url())
 
 
@@ -207,7 +212,7 @@ class MatchDumpView(SingleObjectMixin, View):
 
     def get(self, request, *args, **kwargs):
         match = self.get_object()
-        h = HttpResponse(match.dump, mimetype="application/stechec-dump")
+        h = HttpResponse(match.dump, content_type="application/stechec-dump")
         h['Content-Disposition'] = 'attachment; filename=dump-%s.json' % self.kwargs[self.pk_url_kwarg]
         h['Content-Encoding'] = 'gzip'
         return h
