@@ -68,7 +68,7 @@ mount /dev/disk/by-label/boot /mnt/boot
 echo 'Installing base system and prologin-sadm dependencies'
 pacstrap /mnt base base-devel syslinux \
     git python python-pip python-virtualenv libyaml libxslt postgresql-libs \
-    dhcp bind nginx sqlite postgresql-libs pwgen ipset postgresql nbd tftp-hpa \
+    dhcp bind sqlite postgresql-libs pwgen ipset postgresql nbd tftp-hpa \
     openssh dnsutils rsync tcpdump strace wget ethtool atop htop
 
 echo 'Setting up the base system'

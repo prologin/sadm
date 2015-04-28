@@ -132,8 +132,14 @@ mdb
 
 We now have a basic environment to start setting up services on our gateway
 server. We're going to start by installing ``mdb`` and configuring ``nginx`` as
-a reverse proxy for this application. Fortunately, a very simple script is
-provided with the application in order to setup what it requires::
+a reverse proxy for this application.
+
+First, we need to install ``Openresty`` which provides a version of ``nginx``
+that supports lua scripting. For this step, see :ref:`openresty in the common
+tasks section <common-openresty>`
+
+Then install mdb. Fortunately, a very simple script is provided with the
+application in order to setup what it requires::
 
   python install.py mdb
   mv /etc/nginx/nginx.conf{.new,}
@@ -603,27 +609,8 @@ You will want to ssh at this machine, so enable ``udbync_rootssh``::
   $EDITOR /etc/prologin/udbsync-sub.yml
   systemctl enable udbsync_rootssh && systemctl start udbsync_rootssh
 
-We'll now compile our custom version of openresty, a nginx extension with lua
-scripting. This is primarily used for Single Sign-On (SSO). Because ``makepkg``
-won't let you build packages as root, you either have to create a new user or
-build the package on another machine and then transfer it over.
-
-Build the package::
-
-  cd pkg/openresty
-  make all
-
-You should get a tarball named like ``openresty-version.pkg.tar.xz``. Proceed
-to its installation on the target machine::
-
-  pacman -U openresty-*.pkg.tar.xz
-
-.. note::
-
-    This package is a drop-in replacement for nginx. Even though the package
-    is called ``openresty``, all paths and configuration files are the same
-    as the official ``nginx`` package, so you should be able to switch between
-    the two without changing anything.
+We'll now compile our custom version of openresty. For this step, see
+:ref:`openresty in the common tasks section <common-openresty>`
 
 Then, install the ``nginx`` configuration from the repository::
 
@@ -751,3 +738,33 @@ the hfs' database::
   rm /export/hfs/*.nbd
 
   echo 'delete from user_location;' | su - postgres -c 'psql hfs'
+
+Common tasks
+------------
+
+.. _common-openresty:
+
+Openresty
+~~~~~~~~~
+
+Openresty, a nginx extension with lua scripting. This is primarily used for
+Single Sign-On (SSO). Because ``makepkg`` won't let you build packages as root,
+you either have to create a new user or build the package on another machine and
+then transfer it over.
+
+Build the package::
+
+  cd pkg/openresty
+  make all
+
+You should get a tarball named like ``openresty-version.pkg.tar.xz``. Proceed
+to its installation on the target machine::
+
+  pacman -U openresty-*.pkg.tar.xz
+
+.. note::
+
+    This package is a drop-in replacement for nginx. Even though the package
+    is called ``openresty``, all paths and configuration files are the same
+    as the official ``nginx`` package, so you should be able to switch between
+    the two without changing anything.
