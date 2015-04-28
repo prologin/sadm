@@ -9,7 +9,7 @@
 
 {% if is_paginated %}{% load paginator %}{% paginator 5 %}{% endif %}
 
-<table>
+<table class="table table-striped">
     <thead>
         <tr>
             <th>ID</th>
@@ -29,18 +29,18 @@
             <td>{{ champion.name }}</td>
             {% if show_for_all %}
             <td{% if request.user == champion.author %} class="itsme"{% endif %}>{{ champion.author }}</td>
-            <td><a href="{{ champion.get_absolute_url }}">Détails</a></td>
+            <td><a href="{{ champion.get_absolute_url }}" class="btn btn-default btn-xs"><i class="fa fa-info"> Détails</i></a></td>
             {% else %}
-            <td>{{ champion.get_status_display }}</td>
+            <td>{% include "stechec/stub_status_champion.html" %}</td>
             <td>
-                <a href="{{ champion.get_absolute_url }}">Détails</a> -
-                <a href="{{ champion.get_delete_url }}">Supprimer</a>
+                <a href="{{ champion.get_absolute_url }}" class="btn btn-default btn-xs"><i class="fa fa-info"> Détails</i></a>
+                <a href="{{ champion.get_delete_url }}" class="btn btn-danger btn-xs"><i class="fa fa-trash-o"></i> Supprimer</a>
             </td>
             {% endif %}
         </tr>
         {% empty %}
         <tr>
-            <td colspan="8">Aucun champion inscrit actuellement.</td>
+            <td colspan="8" class="text-muted"><i class="fa fa-frown-o"></i> Aucun champion inscrit pour le moment.</td>
         </tr>
         {% endfor %}
     </tbody>

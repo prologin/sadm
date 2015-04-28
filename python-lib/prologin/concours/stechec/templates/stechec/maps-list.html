@@ -9,7 +9,7 @@
 
 {% if is_paginated %}{% load paginator %}{% paginator 5 %}{% endif %}
 
-<table>
+<table class="table table-striped">
     <thead>
         <tr>
             <th>ID</th>
@@ -25,18 +25,18 @@
             <td>{{ map.id }}</td>
             <td>
                 {% if map.official %}
-                Oui
+                Oui <i class="fa fa-star text-warning"></i>
                 {% else %}
                 Non
                 {% endif %}
             </td>
             <td>{{ map.name }}</td>
             <td>{{ map.author }}</td>
-            <td><a href="{{ map.get_absolute_url }}">Détails</a></td>
+            <td><a href="{{ map.get_absolute_url }}" class="btn btn-default btn-xs"><i class="fa fa-info"></i> Détails</a></td>
         </tr>
         {% empty %}
         <tr>
-            <td colspan="4">Aucune map n'est disponible actuellement.</td>
+            <td colspan="4" class="text-muted"><i class="fa fa-frown-o"></i> Aucune carte n'est disponible pour le moment.</td>
         </tr>
         {% endfor %}
     </tbody>

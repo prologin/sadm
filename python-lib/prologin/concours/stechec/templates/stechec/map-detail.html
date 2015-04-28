@@ -1,24 +1,20 @@
 {% extends "stechec/base.html" %}
 
-{% block title %}Détail du match{% endblock %}
-{% block titleh1 %}Détail du match{% endblock %}
+{% block title %}Carte {{ map.name }}{% endblock %}
+{% block titleh1 %}Carte {{ map.name }}
+  <small>#{{ map.id }}</small>{% endblock %}
 
 {% block content %}
 
-<dl>
-    <dt>ID</dt>
-    <dd>{{ map.id }}</dd>
+  {% if map.official %}
+    <p><i class=" fa fa-star text-warning"></i> Cette carte est officielle.</p>
+  {% endif %}
+  <p>
+    Envoyée par <strong>{{ map.author }}</strong>.
+  </p>
 
-    <dt>Nom</dt>
-    <dd>{{ map.name }}
+  <h3>Aperçu de la carte</h3>
 
-    <dt>Auteur</dt>
-    <dd>{{ map.author }}</dd>
-
-    <dt>Vue de la map</dt>
-    <dd><pre>
-{{ map.contents }}
-    </pre></dd>
-</dl>
+  <pre>{{ map.contents }}</pre>
 
 {% endblock %}

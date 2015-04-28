@@ -1,17 +1,23 @@
 from django.conf import settings
+from django.contrib import messages
 from django.core.urlresolvers import reverse
+from django.db import transaction
 from django.db.models import Max, Min
 from django.http import HttpResponseRedirect, HttpResponse
-from django.shortcuts import render_to_response, get_object_or_404
-from django.template import RequestContext
-from django.views.generic import DetailView, ListView
+from django.shortcuts import get_object_or_404
+from django.views.generic import DetailView, ListView, FormView, TemplateView, RedirectView
+from django.views.generic.base import View
+from django.views.generic.detail import SingleObjectMixin
 
+import collections
 import os
-import os.path
 import socket
+import urllib.parse
 
 from prologin.concours.stechec import forms
 from prologin.concours.stechec import models
+# Use API throttling in the standard view
+from prologin.concours.stechec.restapi.permissions import CreateMatchUserThrottle
 
 
 class ChampionView(DetailView):
@@ -47,12 +53,12 @@ class ChampionsListView(ListView):
 
 class AllChampionsView(ChampionsListView):
     queryset = models.Champion.objects.filter(deleted=False)
-    explanation_text = 'Voici la liste de tous les champions participants actuellement.'
+    explanation_text = 'Voici la liste de tous les champions participant actuellement.'
     show_for_all = True
 
 
 class MyChampionsView(ChampionsListView):
-    explanation_text = 'Voici la liste de tous vos champions participants actuellement.'
+    explanation_text = 'Voici la liste de tous vos champions participant actuellement.'
     title = "Mes champions"
     show_for_all = False
 
@@ -74,16 +80,19 @@ class MatchesListView(ListView):
         context['explanation_text'] = self.explanation_text
         context['show_creator'] = self.show_creator
         matches = []
+        map_cache = {}
         for m in context['matches']:
+            map_name = None
+            map_id = None
             if settings.STECHEC_USE_MAPS:
                 try:
                     map_id = int(m.map.split('/')[-1])
-                    map_name = models.Map.objects.get(pk=map_id).name
+                    map_name = map_cache[map_id]
+                except KeyError:
+                    map_cache[map_id] = map_name = models.Map.objects.get(pk=map_id).name
                 except Exception:
                     map_name = m.map
-            else:
-                map_name = None
-            matches.append((m, map_name))
+            matches.append((m, map_id, map_name))
         context['matches'] = matches
         return context
 
@@ -106,8 +115,7 @@ class MyMatchesView(MatchesListView):
     show_creator = False
 
     def get_queryset(self):
-        user = self.request.user
-        return models.Match.objects.filter(author=user)
+        return models.Match.objects.filter(author=self.request.user)
 
 
 class AllMapsView(ListView):
@@ -123,51 +131,61 @@ class MapView(DetailView):
     model = models.Map
 
 
-# TODO: to class-based view
-def new_champion(request):
-    if request.method == 'POST':
-        form = forms.ChampionUploadForm(request.POST, request.FILES)
-        if form.is_valid():
-            champion = models.Champion(
-                name = form.cleaned_data['name'],
-                author = request.user,
-                status = 'new',
-                comment = form.cleaned_data['comment']
-            )
-            champion.save()
+class NewChampionView(FormView):
+    form_class = forms.ChampionUploadForm
+    template_name = 'stechec/champion-new.html'
 
-            os.makedirs(champion.directory)
-            fp = open(os.path.join(champion.directory, 'champion.tgz'), 'wb')
-            for chunk in form.cleaned_data['tarball'].chunks():
-                fp.write(chunk)
-            fp.close()
-            return HttpResponseRedirect(champion.get_absolute_url())
-    else:
-        form = forms.ChampionUploadForm()
+    def form_valid(self, form):
+        champion = models.Champion(
+            name=form.cleaned_data['name'],
+            author=self.request.user,
+            status='new',
+            comment=form.cleaned_data['comment']
+        )
+        champion.save()
+        # It's important to save() before sources =, as the latter needs the row id
+        champion.sources = form.cleaned_data['tarball']
 
-    return render_to_response('stechec/champion-new.html', {'form': form},
-                              context_instance=RequestContext(request))
+        return HttpResponseRedirect(champion.get_absolute_url())
 
 
-# TODO: to class-based view
-def delete_champion(request, pk):
-    ch = get_object_or_404(models.Champion, pk=pk, author=request.user)
-    if request.method == 'POST':
-        ch.deleted = True
-        ch.save()
-        return HttpResponseRedirect(reverse("champions-my"))
-    return render_to_response('stechec/champion-delete.html',
-                              context_instance=RequestContext(request))
+class ConfirmDeleteChampion(DetailView):
+    template_name = 'stechec/champion-delete.html'
+    pk_url_kwarg = 'pk'
+    model = models.Champion
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(self.model,
+                                 pk=self.kwargs[self.pk_url_kwarg],
+                                 author=self.request.user)
+
+    def post(self, request, *args, **kwargs):
+        champion = self.get_object()
+        champion.deleted = True
+        champion.save()
+        messages.success(request, "Champion {} supprimé.".format(champion.name))
+        return HttpResponseRedirect(reverse('champions-mine'))
 
 
-# TODO: to class-based view
-def new_match(request):
-    if request.method == 'POST':
-        form = forms.MatchCreationForm(request.POST)
-        if form.is_valid():
+class NewMatchView(FormView):
+    form_class = forms.MatchCreationForm
+    template_name = 'stechec/match-new.html'
+
+    def form_valid(self, form):
+        throttler = CreateMatchUserThrottle()
+        if not throttler.allow_request(self.request, self):
+            messages.error(self.request,
+                           "Vos requêtes sont trop rapprochées dans le temps. "
+                           "Merci de patienter environ {:.0f} secondes avant de "
+                            "recommencer votre requête.".format(throttler.wait()))
+            return HttpResponseRedirect(reverse('match-new'))
+
+        with transaction.atomic():
             match = models.Match(
-                author=request.user,
+                author=self.request.user,
                 status='creating',
+                tournament=None,
+                options=''
             )
             if settings.STECHEC_USE_MAPS:
                 match.map = form.cleaned_data['map'].path
@@ -183,50 +201,119 @@ def new_match(request):
 
             match.status = 'new'
             match.save()
-            return HttpResponseRedirect(match.get_absolute_url())
-    else:
-        form = forms.MatchCreationForm()
 
-    return render_to_response('stechec/match-new.html', {'form': form},
-                              context_instance=RequestContext(request))
+        messages.success(self.request, "Le match #{} a été initié.".format(match.id))
+        return HttpResponseRedirect(match.get_absolute_url())
 
 
-# TODO: to class-based view
-def match_dump(request, pk):
-    match = get_object_or_404(models.Match, pk=pk)
-    h = HttpResponse(match.dump, content_type="application/stechec-dump")
-    h['Content-Disposition'] = 'attachment; filename=dump-%s.json' % pk
-    h['Content-Encoding'] = 'gzip'
-    return h
+class MatchDumpView(SingleObjectMixin, View):
+    model = models.Match
+    pk_url_kwarg = 'pk'
+
+    def get(self, request, *args, **kwargs):
+        match = self.get_object()
+        h = HttpResponse(match.dump, content_type="application/stechec-dump")
+        h['Content-Disposition'] = 'attachment; filename=dump-%s.json' % self.kwargs[self.pk_url_kwarg]
+        h['Content-Encoding'] = 'gzip'
+        return h
 
 
-# TODO: to class-based view
-def new_map(request):
-    if request.method == 'POST':
-        form = forms.MapCreationForm(request.POST)
-        if form.is_valid():
-            map = models.Map(
-                author = request.user,
-                name = form.cleaned_data['name'],
-                official = False
-            )
-            map.save()
-            map.contents = form.cleaned_data['contents']
-            return HttpResponseRedirect(map.get_absolute_url())
-    else:
-        form = forms.MapCreationForm()
+class NewMapView(FormView):
+    form_class = forms.MapCreationForm
+    template_name = 'stechec/map-new.html'
 
-    return render_to_response('stechec/map-new.html', {'form': form},
-                              context_instance=RequestContext(request))
+    def form_valid(self, form):
+        map = models.Map(
+            author=self.request.user,
+            name=form.cleaned_data['name'],
+            official=False
+        )
+        map.save()
+        map.contents = form.cleaned_data['contents']
+        return HttpResponseRedirect(map.get_absolute_url())
 
 
-# TODO: to class-based view
-def master_status(request):
-    try:
-        status = models.master_status()
-        status = [(h, p, (100 * (m - s)) / m) for (h, p, s, m) in status]
-        status.sort()
-    except socket.error:
-        status = None
-    return render_to_response('stechec/master-status.html', {'status': status},
-                              context_instance=RequestContext(request))
+class MasterStatus(TemplateView):
+    template_name = 'stechec/master-status.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        try:
+            status = models.master_status()
+            status = [(h, p, (100 * (m - s)) / m) for (h, p, s, m) in status]
+            status.sort()
+        except socket.error:
+            status = None
+        context['status'] = status
+        return context
+
+
+class RedmineIssueView(RedirectView):
+    permanent = False
+
+    tracker_id = None
+    is_private = False
+    subject = ""
+    description = ""
+
+    def get_redirect_url(self, *args, **kwargs):
+        qs = {
+            'issue[tracker_id]': str(self.tracker_id),
+            'issue[is_private]': '1' if self.is_private else '0',
+            'issue[subject]': self.subject,
+            'issue[description]': self.description,
+        }
+        return '{}?{}'.format(settings.STECHEC_REDMINE_ISSUE_NEW,
+                              urllib.parse.urlencode(qs))
+
+
+class AskForHelp(RedmineIssueView):
+    tracker_id = 3  # assistance
+    is_private = True
+    subject = "J'ai un problème : "
+
+
+class ReportBug(RedmineIssueView):
+    tracker_id = 1  # issue
+    is_private = False
+    subject = "[Remplacez ceci par un résumé court et explicite]"
+    description = "\n\n".join([
+        "*Où* est le problème (p. ex. adresse web, nom de la machine…) :",
+        "*Comment* reproduire :",
+        "Ce qui *devrait* se produire normalement :",
+        "Ce qui *se produit* dans les faits :",
+        ""
+    ])
+
+
+class RedmineIssueListView(RedirectView):
+    permanent = False
+
+    filters = []
+
+    def get_redirect_url(self, *args, **kwargs):
+        qs = collections.defaultdict(list)
+        qs['set_filter'] = '1'
+        for name, op, value in self.filters:
+            qs['f[]'].append(str(name))
+            qs['op[%s]' % name] = str(op)
+            if value is not None:
+                qs['v[%s][]' % name] = str(value)
+        return '{}?{}'.format(settings.STECHEC_REDMINE_ISSUE_LIST,
+                              urllib.parse.urlencode(qs, doseq=True))
+
+
+class AskForHelpList(RedmineIssueListView):
+    filters = [
+        ('status_id', '*', None),
+        ('tracker_id', '=', 3),
+        ('author_id', '=', 'me'),
+    ]
+
+
+class ReportBugList(RedmineIssueListView):
+    filters = [
+        ('status_id', '*', None),
+        ('tracker_id', '=', 1),
+        ('author_id', '=', 'me'),
+    ]

@@ -1,0 +1,80 @@
+{% extends "stechec/base.html" %}
+
+{% block title %}Accueil{% endblock %}
+{% block titleh1 %}Bienvenue
+  <small>{{ request.user.get_full_name }}</small>{% endblock %}
+
+{% block content %}
+
+  <div class="row">
+    {% if request.user.is_authenticated %}
+      <div class="col-lg-4">
+        <div class="panel panel-primary">
+          <div class="panel-heading">
+            <h3 class="panel-title">Le concours</h3>
+          </div>
+          <div class="panel-body">
+            <h4>Besoin d'aide&nbsp;?</h4>
+
+            <div class="btn-group" role="group">
+              <a href="{% url 'ask-for-help' %}" class="btn btn-default"><i class="fa fa-bell"></i> Demander de
+                l'aide</a>
+              <a href="{% url 'ask-for-help-list' %}" class="btn btn-default" title="Toutes mes demandes d'aide"><i
+                class=" fa fa-list"></i></a>
+            </div>
+
+            <h4>Un bug trouvé&nbsp;?</h4>
+
+            <div class="btn-group" role="group">
+              <a href="{% url 'report-bug' %}" class="btn btn-default"><i class="fa fa-bug"></i> Signaler un
+                problème</a>
+              <a href="{% url 'report-bug-list' %}" class="btn btn-default" title="Tous mes signalements de bug"><i
+                class=" fa fa-list"></i></a>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    {% comment %}
+    <div class="col-lg-4">
+      <div class="panel panel-primary">
+        <div class="panel-heading">
+          <h3 class="panel-title">Liens utiles</h3>
+        </div>
+        <div class="panel-body">
+          <ul class="nav">
+            {# TODO: actual links #}
+            <li><a href="#">Lien utile</a></li>
+            <li><a href="#">Lien utile</a></li>
+            <li><a href="#">Lien utile</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    {% if request.user.is_authenticated %}
+      <div class="col-lg-4">
+        <div class="panel panel-primary">
+          <div class="panel-heading">
+            <h3 class="panel-title">Ma participation</h3>
+          </div>
+          <div class="panel-body">
+            <dl class="dl-horizontal dl-narrow">
+              {# TODO: actual stats #}
+              <dt>4</dt>
+              <dd>champions</dd>
+              <dt>12</dt>
+              <dd>matchs</dd>
+              <dt>4</dt>
+              <dd>victoires</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+    {% endcomment %}
+
+  </div>
+
+{% endblock %}

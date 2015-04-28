@@ -1,15 +1,15 @@
 {% extends "stechec/base.html" %}
 
-{% block title %}Envoi d'un champion{% endblock %}
-{% block titleh1 %}Envoi d'un champion{% endblock %}
+{% block title %}Suppression du champion{% endblock %}
+{% block titleh1 %}Suppression du champion {{ object.name }} <small>#{{ object.id }}</small>{% endblock %}
 
 {% block content %}
 
-<p>Confirmez la suppression de votre champion :</p>
+<p>Confirmez la suppression de votre champion&nbsp;:</p>
 
 <form action="" method="post">
     {% csrf_token %}
-    <p><input type="submit" value="Confirmer"></p>
+    <button type="submit" class="btn btn-danger"><i class="fa fa-trash-o"></i> Supprimer {{ object.name }}</button>
 </form>
 
 {% endblock %}

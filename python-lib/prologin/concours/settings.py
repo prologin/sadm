@@ -24,7 +24,7 @@ ALLOWED_URLS = ['*']
 SITE_ID = 1
 
 LOGIN_URL = reverse_lazy('login')
-LOGIN_REDIRECT_URL = reverse_lazy('index')
+LOGIN_REDIRECT_URL = reverse_lazy('home')
 
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
@@ -53,11 +53,17 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'prologin.sso.django.SSOMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django_prometheus.middleware.PrometheusAfterMiddleware',
+)
+
+AUTHENTICATION_BACKENDS = (
+    'prologin.sso.django.SSOUserBackend',
+    'django.contrib.auth.backends.ModelBackend',
 )
 
 ROOT_URLCONF = 'prologin.concours.urls'
@@ -93,10 +99,14 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.humanize',
 
+    # Vendor
+    'crispy_forms',
+
     # Prologin
     'prologin.concours.stechec',
 
-    # Built-in (for template overriding)
+    # Built-in or vendor (for template overriding)
+    'rest_framework',
     'django.contrib.admin',
 
     # Monitoring
@@ -135,6 +145,9 @@ LOGGING = {
 # This is actually the default, explicit is better than implicit
 AUTH_USER_MODEL = 'auth.User'
 
+# crispy-forms shall use Bootstrap 3
+CRISPY_TEMPLATE_PACK = 'bootstrap3'
+
 STECHEC_ROOT = cfg["contest"]["directory"]
 STECHEC_CONTEST = cfg["contest"]["game"]
 STECHEC_MASTER = cfg["master"]["url"]
@@ -142,3 +155,13 @@ STECHEC_MASTER_SECRET = cfg["master"]["shared_secret"].encode('utf-8')
 STECHEC_NPLAYERS = cfg["contest"]["nb_players"]
 STECHEC_USE_MAPS = cfg["contest"]["use_maps"]
 STECHEC_REPLAY = cfg["website"]["replay"]
+STECHEC_REDMINE_ISSUE_LIST = cfg["redmine_urls"]["issue_list"]
+STECHEC_REDMINE_ISSUE_NEW = cfg["redmine_urls"]["issue_new"]
+
+# Rest Framework settings
+REST_FRAMEWORK = {
+    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.NamespaceVersioning',
+    'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAuthenticatedOrReadOnly',),
+    'PAGE_SIZE': 10,
+    'DEFAULT_VERSION': '1',
+}

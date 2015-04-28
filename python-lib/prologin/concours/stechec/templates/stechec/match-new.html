@@ -1,14 +1,11 @@
 {% extends "stechec/base.html" %}
+{% load crispy_forms_tags %}
 
-{% block title %}Nouveau match{% endblock %}
-{% block titleh1 %}Nouveau match{% endblock %}
+{% block title %}Lancer un match{% endblock %}
+{% block titleh1 %}Lancer un match{% endblock %}
 
 {% block content %}
 
-<form action="" method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <p><input type="submit" value="Envoyer"></p>
-</form>
+  {% crispy form %}
 
 {% endblock %}
