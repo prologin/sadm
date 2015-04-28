@@ -20,13 +20,14 @@ from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from prologin.mdb import views
 
-admin.autodiscover()
+from prologin.djangoconf import set_admin_title
+set_admin_title(admin, "Machine Database")
 
-urlpatterns = patterns('',
+urlpatterns = [
     url(r'^query$', views.query, name='mdbapi-query'),
     url(r'^register$', views.register, name='mdbapi-register'),
     url(r'', include('django_prometheus.urls')),
     url(r'', include(admin.site.urls)),
-)
+]
 
 urlpatterns += staticfiles_urlpatterns()
