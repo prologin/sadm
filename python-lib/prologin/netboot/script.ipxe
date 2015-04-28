@@ -5,6 +5,24 @@ echo =============================================================
 echo Prologin netboot environment
 echo =============================================================
 
+# LLDP timeout
+set timeout 60
+
+# sw_name_X is the corresponding switch chassis ID
+#set sw_name_0 02:99:71:f6:c6:5a
+#set sw_rfs_0  0
+#set sw_hfs_0  0
+#set sw_room_0 pasteur
+
+#set sw_name_1 02:99:71:f6:c6:5b
+#set sw_rfs_1  1
+#set sw_hfs_1  1
+#set sw_room_1 alt
+
+# needed for hostname autocompletion
+set short_pasteur pas
+set short_alt alt
+
 echo Getting our IP from DHCP
 dhcp || goto reboot
 iseq ${scriptlet} alien && goto alien ||
@@ -15,11 +33,64 @@ goto reboot
 
 :alien
 menu Machine not known by MDB. Do you want to register this machine?
-item alien_register Yes
+item alien_register_lldp Yes (with LLDP, contestant only)
+item alien_register Yes (without LLDP)
 item reboot No
 item --gap
 item shell Drop to an iPXE shell
 choose choice && goto ${choice}
+
+:alien_register_lldp
+set intf netX
+
+set tab:int8 9
+echo -- Waiting for an LLDP packet to arrive...
+set count:int32 0
+:retry_poll_lldp
+  iseq ${src} ${${intf}.lldp/lldpsource} || goto parse_lldp
+  sleep 1
+  inc count
+iseq ${count} ${timeout} || goto retry_poll_lldp
+clear count
+
+echo -- Timed out waiting for an LLDP packet
+goto alien
+
+:parse_lldp
+echo -- Got an LLDP packet from ${${intf}.lldp/lldpsource}
+
+echo -- LLDP CHASSIS ID: ${${intf}.lldp/chassisid}
+echo -- LLDP PORT ID: ${${intf}.lldp/portid}
+echo -- LLDP PORT DESC: ${${intf}.lldp/portdesc}
+echo -- LLDP SYSTEM NAME: ${${intf}.lldp/systemname}
+echo -- LLDP SYSTEM DESC: ${${intf}.lldp/systemdesc}
+
+:vlanid
+set count:int32 -1
+:next_vlanid
+  inc count
+  isset ${${intf}.lldp/1.1.${count}.127:hex} || goto end_vlanid
+  iseq ${${intf}.lldp/0.4.${count}.127:hex} 00:80:c2:01 || goto next_vlanid
+  echo -- * LLDP VLAN ID: ${${intf}.lldp/4.2.${count}.127:int32} --
+:end_vlanid
+
+set count:int32 -1
+:next_sw
+  inc count
+  isset ${sw_name_${count}} || goto alien_register
+  iseq ${sw_name_${count}} ${${intf}.lldp/chassisid} || goto next_sw
+  set rfs_id ${sw_rfs_${count}}
+  set hfs_id ${sw_hfs_${count}}
+  set room ${sw_room_${count}}
+:end_sw
+
+set hostname ${short_${room}}-r
+set mtype user
+
+echo Current MAC address: ${mac}
+echo -n Hostname (usually pas-r0Xp0Y or alt-r0Xp0Y): && read hostname
+
+goto summary
 
 :alien_register
 echo Current MAC address: ${mac}
@@ -40,6 +111,7 @@ item orga Organizer machine
 item service Server
 choose mtype
 
+:summary
 echo =============================================================
 echo Summary:
 echo  Hostname: ${hostname}
