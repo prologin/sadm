@@ -315,15 +315,27 @@ loaded by the machine BIOS via PXE and is responsible for booting the Linux
 kernel using the nearest RFS. It also handles registering the machine in the
 MDB if needed. These instructions need to be run on ``gw``.
 
+We need a special version of iPXE supporting the LLDP protocol to speed up
+machine registration.
+
 iPXE is an external open source project, clone it first::
 
-  git clone git://git.ipxe.org/ipxe.git
+  git clone git://git.ipxe.org/people/mareo/ipxe.git
 
-Then compile time settings need to be modified. Uncomment the following lines::
+Swith to the ``lldp`` branch::
 
-  // in src/config/general.h
+  cd ipxe
+  git checkout lldp
+
+Then compile time settings need to be modified. Add the following lines::
+
+  // in src/config/local/general.h
   #define REBOOT_CMD
   #define PING_CMD
+  #define NET_PROTO_LLDP
+
+You should then edit ``/root/sadm/python-lib/prologin/netboot/script.ipxe`` to
+add the switches.
 
 You can now build iPXE: go to ``src/`` and build the bootrom, embedding our
 script::
