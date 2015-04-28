@@ -83,11 +83,13 @@ TEMPLATE_LOADERS = (
 )
 
 MIDDLEWARE_CLASSES = (
+    'django_prometheus.middleware.PrometheusBeforeMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'django_prometheus.middleware.PrometheusAfterMiddleware',
 )
 
 ROOT_URLCONF = 'prologin.homepage.urls'
@@ -110,6 +112,9 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'prologin.homepage',
+
+    # Monitoring
+    'django_prometheus',
 )
 
 # A sample logging configuration. The only tangible logging

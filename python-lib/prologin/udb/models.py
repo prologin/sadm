@@ -17,8 +17,9 @@
 
 from django.db import models
 
+from django_prometheus.models import ExportModelOperationsMixin
 
-class User(models.Model):
+class User(ExportModelOperationsMixin('user'), models.Model):
     TYPES = (
         ('user', 'Contestant'),
         ('orga', 'Organizer'),

@@ -5,6 +5,9 @@ from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 from django.db import models
 
+from prometheus_client import Gauge
+from django_prometheus.models import ExportModelOperationsMixin
+
 import json
 import os.path
 import re
@@ -16,7 +19,7 @@ def strip_ansi_codes(t):
     return stripper_re.sub('', t)
 
 
-class Map(models.Model):
+class Map(ExportModelOperationsMixin('map'), models.Model):
     author = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="auteur")
     name = models.CharField("nom", max_length=100)
     official = models.BooleanField("officielle", default=False)
@@ -49,7 +52,7 @@ class Map(models.Model):
         verbose_name_plural = "maps"
 
 
-class Champion(models.Model):
+class Champion(ExportModelOperationsMixin('champion'), models.Model):
     STATUS_CHOICES = (
         ('new', 'En attente de compilation'),
         ('pending', 'En cours de compilation'),
@@ -98,7 +101,7 @@ class Champion(models.Model):
         verbose_name_plural = "champions"
 
 
-class Tournament(models.Model):
+class Tournament(ExportModelOperationsMixin('tournament'), models.Model):
     name = models.CharField("nom", max_length=100)
     ts = models.DateTimeField("date", auto_now_add=True)
     players = models.ManyToManyField(Champion, verbose_name="participants",
@@ -115,7 +118,8 @@ class Tournament(models.Model):
         verbose_name_plural = "tournois"
 
 
-class TournamentPlayer(models.Model):
+class TournamentPlayer(ExportModelOperationsMixin('tournament_player'),
+                       models.Model):
     champion = models.ForeignKey(Champion, verbose_name="champion")
     tournament = models.ForeignKey(Tournament, verbose_name="tournoi")
     score = models.IntegerField("score", default=0)
@@ -129,7 +133,7 @@ class TournamentPlayer(models.Model):
         verbose_name_plural = "participants à un tournoi"
 
 
-class TournamentMap(models.Model):
+class TournamentMap(ExportModelOperationsMixin('tournament_map'), models.Model):
     map = models.ForeignKey(Map, verbose_name="map")
     tournament = models.ForeignKey(Tournament, verbose_name="tournoi")
 
@@ -142,7 +146,7 @@ class TournamentMap(models.Model):
         verbose_name_plural = "maps utilisées dans un tournoi"
 
 
-class Match(models.Model):
+class Match(ExportModelOperationsMixin('match'), models.Model):
     STATUS_CHOICES = (
         ('creating', 'En cours de création'),
         ('new', 'En attente de lancement'),
@@ -227,8 +231,17 @@ class Match(models.Model):
         verbose_name = "match"
         verbose_name_plural = "matches"
 
+# Monitoring
+concours_match_status_count = Gauge(
+    'concours_match_status_count',
+    'Count of matches in by status',
+    labelnames=('status',))
+for status in ('creating', 'new', 'pending', 'done'):
+    labels = {'status': status}
+    concours_match_status_count.labels(labels).set_function(
+        lambda status=status: len(Match.objects.filter(status=status)))
 
-class MatchPlayer(models.Model):
+class MatchPlayer(ExportModelOperationsMixin('match_player'), models.Model):
     champion = models.ForeignKey(Champion, verbose_name="champion")
     match = models.ForeignKey(Match, verbose_name="match")
     score = models.IntegerField("score", default=0)

@@ -25,6 +25,7 @@ admin.autodiscover()
 urlpatterns = patterns('',
     url(r'^query$', views.query, name='mdbapi-query'),
     url(r'^register$', views.register, name='mdbapi-register'),
+    url(r'', include('django_prometheus.urls')),
     url(r'', include(admin.site.urls)),
 )
 

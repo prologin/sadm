@@ -35,6 +35,12 @@ import tornado.platform.asyncio
 from base64 import b64decode, b64encode
 from . import operations
 
+from .monitoring import (
+    workernode_slots,
+    workernode_compile_champion_summary,
+    workernode_run_server_summary,
+    workernode_run_client_summary)
+
 tornado.platform.asyncio.AsyncIOMainLoop().install()
 
 
@@ -50,11 +56,13 @@ def async_work(func=None, slots=0):
                 return
             logging.debug('starting a job for {} slots'.format(slots))
             self.slots -= slots
+            workernode_slots.set(self.slots)
             yield from self.update_master()
             try:
                 r = yield from func(self, *wargs, **wkwargs)
             finally:
                 self.slots += slots
+                workernode_slots.set(self.slots)
                 yield from self.update_master()
         asyncio.Task(wrapper(self, *args, **kwargs), loop=self.loop)
         return slots
@@ -147,6 +155,8 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
     @prologin.rpc.remote_method
     @async_work(slots=1)
     def compile_champion(self, user, cid, ctgz):
+        compile_champion_start = time.monotonic()
+
         ctgz = b64decode(ctgz)
 
         with tempfile.TemporaryDirectory() as cpath:
@@ -182,10 +192,15 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
             logging.warning('master down, cannot send compiled {}'.format(
                 cid))
 
+        workernode_compile_champion_summary.observe(
+            max(time.monotonic() - compile_champion_start, 0))
+
     @prologin.rpc.remote_method
     @async_work(slots=1)
     def run_server(self, rep_port, pub_port, match_id, nb_players,
                    opts=None, file_opts=None):
+        run_server_start = time.monotonic()
+
         logging.info('starting server for match {}'.format(match_id))
 
         task_server = asyncio.Task(operations.spawn_server(self.config,
@@ -218,10 +233,15 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
             logging.warning('master down, cannot send match {} result'.format(
                 match_id))
 
+        workernode_run_server_summary.observe(
+            max(time.monotonic() - run_server_start, 0))
+
     @prologin.rpc.remote_method
     @async_work(slots=2)
     def run_client(self, match_id, pl_id, ip, req_port, sub_port, champ_id,
                    ctgz, opts=None, file_opts=None):
+        run_client_start = time.monotonic()
+
         ctgz = b64decode(ctgz)
         logging.info('running player {} for match {}'.format(pl_id, match_id))
 
@@ -241,3 +261,6 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         except socket.error:
             logging.warning('master down, cannot send client {} result '
                             'for match {}'.format(pl_id, match_id))
+
+        workernode_run_client_summary.observe(
+            max(time.monotonic() - run_client_start, 0))

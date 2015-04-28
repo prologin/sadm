@@ -20,8 +20,10 @@ import ipaddress
 from django.core.validators import RegexValidator
 from django.db import models
 
+from django_prometheus.models import ExportModelOperationsMixin
 
-class Machine(models.Model):
+
+class Machine(ExportModelOperationsMixin('machine'), models.Model):
     TYPES = (
         ('user', 'Contestant machine'),
         ('orga', 'Organizer machine'),
@@ -97,7 +99,7 @@ class Machine(models.Model):
         ordering = ('hostname', 'ip')
 
 
-class IPPool(models.Model):
+class IPPool(ExportModelOperationsMixin('ippool'), models.Model):
     mtype = models.CharField(max_length=20, choices=Machine.TYPES, unique=True,
                              verbose_name='For type')
     network = models.CharField(max_length=32, unique=True, verbose_name='CIDR')
@@ -113,7 +115,7 @@ class IPPool(models.Model):
         verbose_name_plural = 'IP Pools'
 
 
-class VolatileSetting(models.Model):
+class VolatileSetting(ExportModelOperationsMixin('volatile'), models.Model):
     key = models.CharField(max_length=64, verbose_name='Key')
     value_bool = models.NullBooleanField(verbose_name='Boolean')
     value_str = models.CharField(max_length=64, null=True, blank=True,
