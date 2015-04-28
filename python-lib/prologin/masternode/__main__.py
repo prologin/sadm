@@ -37,10 +37,11 @@ import tornado.platform.asyncio
 from base64 import b64decode, b64encode
 from pathlib import Path
 
-from .worker import Worker
 from .concoursquery import ConcoursQuery
+from .monitoring import monitoring_start, masternode_workers
 from .task import MatchTask, CompilationTask
 from .task import champion_compiled_path, match_path, clog_path
+from .worker import Worker
 
 loop = asyncio.get_event_loop()
 tornado.platform.asyncio.AsyncIOMainLoop().install()
@@ -75,6 +76,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             logging.warn("registered new worker: {}:{}".format(w.hostname,
                 w.port))
             self.workers[key] = w
+            masternode_workers.set(len(self.workers))
         else:
             logging.warn("drop unreachable worker: {}:{}".format(w.hostname,
                 w.port))
@@ -160,6 +162,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             self.worker_tasks = tasks + self.worker_tasks
             self.to_dispatch.set()
         del self.workers[(worker.hostname, worker.port)]
+        masternode_workers.set(len(self.workers))
 
     @asyncio.coroutine
     def janitor_task(self):
@@ -285,6 +288,8 @@ if __name__ == '__main__':
     s = MasterNode(config=config, app_name='masternode',
                    secret=config['master']['shared_secret'].encode('utf-8'))
     s.listen(config['master']['port'])
+
+    monitoring_start()
 
     try:
         loop.run_forever()
