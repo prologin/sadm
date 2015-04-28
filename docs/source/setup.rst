@@ -90,7 +90,7 @@ media::
   ./install_gw.sh
   # If the install goes without trouble the system will reboot
 
-After the reboot, and for each new shell, active the virtualenv::
+After the reboot, and for each new shell, activate the virtualenv::
 
   source /var/prologin/venv/bin/activate
 
