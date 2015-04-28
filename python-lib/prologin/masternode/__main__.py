@@ -38,7 +38,10 @@ from base64 import b64decode, b64encode
 from pathlib import Path
 
 from .concoursquery import ConcoursQuery
-from .monitoring import monitoring_start, masternode_workers
+from .monitoring import (
+    monitoring_start,
+    masternode_workers,
+    masternode_worker_timeout)
 from .task import MatchTask, CompilationTask
 from .task import champion_compiled_path, match_path, clog_path
 from .worker import Worker
@@ -170,6 +173,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             all_workers = copy.copy(self.workers)
             for worker in all_workers.values():
                 if not worker.is_alive(self.config['worker']['timeout_secs']):
+                    masternode_worker_timeout.inc()
                     logging.warn("timeout detected for worker {}".format(
                                 worker))
                     self.redispatch_worker(worker)

@@ -23,5 +23,9 @@ masternode_workers = Gauge(
     'masternode_workers',
     'Number of available workers')
 
+masternode_worker_timeout = Gauge(
+    'masternode_worker_timeout',
+    'Number of workers timeout')
+
 def monitoring_start():
     start_http_server(9021)
