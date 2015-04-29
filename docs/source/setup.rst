@@ -85,7 +85,7 @@ media::
 
   pacman -Sy git
   git clone http://bitbucket.org/prologin/sadm
-  cd sadm
+  cd sadm/bootstrap
   # Keep an eye on the install process in case of breakage
   ./install_gw.sh
   # If the install goes without trouble the system will reboot
