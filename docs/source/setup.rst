@@ -625,7 +625,6 @@ Setup the database::
   # Edit the configuration files first to replace `DEFAULT_PASSWORD`
   $EDITOR etc/prologin/concours.yml
   $EDITOR sql/concours.sql
-  su - postgres -c psql < ./sql/concours.sql
 
 Install it::
 
