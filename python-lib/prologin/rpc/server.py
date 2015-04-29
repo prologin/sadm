@@ -20,6 +20,8 @@ import logging
 
 import prologin.web
 
+from .monitoring import _observe_rpc_call_in
+
 
 class MethodError(Exception):
     """Exception used to notice the remote callers that the requested method
@@ -78,6 +80,7 @@ class RemoteCallHandler(tornado.web.RequestHandler):
         return self.application
 
     @tornado.web.asynchronous
+    @_observe_rpc_call_in
     def post(self, method_name):
         # This is an asynchronous handler, since
         request = json.loads(self.request.body.strip().decode('ascii'))
