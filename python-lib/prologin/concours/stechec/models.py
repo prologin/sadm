@@ -118,6 +118,16 @@ class Champion(ExportModelOperationsMixin('champion'), models.Model):
         verbose_name = "champion"
         verbose_name_plural = "champions"
 
+# Monitoring
+concours_champion_status_count = Gauge(
+    'concours_champion_status_count',
+    'Count of champion by status',
+    labelnames=('status',))
+for status in ('new', 'pending', 'ready', 'error'):
+    labels = {'status': status}
+    concours_champion_status_count.labels(labels).set_function(
+        lambda status=status: len(Champion.objects.filter(status=status)))
+
 
 class Tournament(ExportModelOperationsMixin('tournament'), models.Model):
     name = models.CharField("nom", max_length=100)
