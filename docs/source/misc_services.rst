@@ -54,6 +54,9 @@ We will setup dpaste: https://github.com/bartTC/dpaste::
   source /var/prologin/venv/bin/activate
   python install.py paste
 
+  systemctl enable paste && systemctl start paste
+  systemctl reload nginx
+
 wiki
 ----
 
