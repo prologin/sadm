@@ -20,7 +20,7 @@
 db:
     default:
         ENGINE: django.db.backends.postgresql_psycopg2
-        HOST: db
+        HOST: web
         PORT: 5432
         USER: concours
         NAME: concours
