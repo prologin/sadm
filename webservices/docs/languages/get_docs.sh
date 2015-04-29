@@ -26,6 +26,7 @@ wget -nv http://caml.inria.fr/distrib/ocaml-${OCAML_VERSION}/ocaml-${OCAML_VERSI
 wget -nv https://docs.python.org/3/archives/python-${PYTHON3_VERSION}-docs-html.tar.bz2 -O python3.tar.bz2
 wget -nv https://docs.python.org/2/archives/python-${PYTHON2_VERSION}-docs-html.tar.bz2 -O python2.tar.bz2
 wget -nv http://fr.php.net/get/php_manual_fr.tar.gz/from/this/mirror -O php.tar.gz
+wget -nv http://www.haskell.org/ghc/docs/latest/libraries.html.tar.bz2 -O haskell.tar.gz
 
 # C
 if [ -f c.tar.gz ]; then
@@ -90,6 +91,14 @@ if [ -f java.zip ]; then
     mv docs java
 else
     echo "** No Java doc installed"
+fi
+
+# Haskell
+if [ -f haskell.tar.gz ]; then
+    tar xf haskell.tar.gz
+    mv libraries haskell
+else
+    echo "** No Haskell doc installed"
 fi
 
 # Clean
