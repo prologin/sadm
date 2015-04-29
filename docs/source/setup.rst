@@ -127,30 +127,10 @@ At this point you should reboot and test your network configuration:
 - ``uplink`` should be configured as you wanted.
 - DNS is not working until you setup ``mdbdns``, so keep on!
 
-
 Setup postgresql on gw
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Initialize the storage structure::
-
-  su - postgres -c "initdb --locale en_US.UTF-8 -D '/var/lib/postgres/data'"
-
-If needed, edit ``/var/lib/postgres/data/postgresql.conf`` to make
-postgresql listen on localhost::
-
-  listen_addresses = 'localhost'
-
-And edit ``/var/lib/postgres/data/pg_hba.conf`` in order to allow all users
-to connect with password::
-
-  host     all             all             127.0.0.0/8           password
-
-You may want to comment the line with `local` and `trust`.
-
-Then start postgresql::
-
-  systemctl enable postgresql && systemctl start postgresql
-
+Please refer to the :ref:`common Postresql setup guide <common-postgres>`.
 
 mdb
 ~~~
@@ -493,7 +473,6 @@ Step 2: file storage
     hostname of the rhfs that hosts hfs ``0`` and hfs ``1`` will have the
     following hostname: ``rhfs01``.
 
-
 The ``rfs/install.sh`` script will configure a rhfs automatically. You should
 edit it to set the ``root`` password.
 
@@ -555,47 +534,12 @@ Copy the the kernel and initramfs from ``rhfs``::
 Setting up hfs
 ~~~~~~~~~~~~~~
 
-First, setup postgresql on ``web``. It is used by all the hfs.
+Create user ``hfs``, database ``hfs``, and associated tables::
 
-.. note::
-
-  If you just want to test the ``hfs`` and have not yet setup ``web``, install
-  the database on ``gw`` and add ``db`` to the list of aliases of ``gw``.
-
-  The database should be on ``web`` because most of its consumers are
-  webservices: redmine, concours, masterworker, etc.
-
-Setup postgresql
-````````````````
-
-Create a new database::
-
-  su - postgres -c "initdb --locale en_US.UTF-8 -D '/var/lib/postgres/data'"
-
-Edit and uncomment ``/var/lib/postgres/data/postgresql.conf`` to make
-postgresql listen on every interface::
-
-  listen_addresses = '*'
-
-And edit ``/var/lib/postgres/data/pg_hba.conf`` in order to allow all users
-to connect with password::
-
-  host     all             all             192.168.1.0/24           password
-
-Then start postgresql::
-
-  systemctl enable postgresql && systemctl start postgresql
-
-Create user ``hfs``, database ``hfs``, and associated tables:
-
-.. note::
-
-    You must change the password of user ``hfs`` in ``sql/hfs.sql`` to match
-    the one in ``etc/prologin/hfs-server.yml``.
-
-Create the database::
-
-  su - postgres -c "psql" < ./sql/hfs.sql
+  # Edit the configuration files first to replace `DEFAULT_PASSWORD`
+  $EDITOR etc/prologin/hfs-server.yml
+  $EDITOR sql/hfs.sql
+  su - postgres -c psql < ./sql/hfs.sql
 
 Start the hfs
 ~~~~~~~~~~~~~
@@ -603,8 +547,6 @@ Start the hfs
 On every ``rhfs`` machine, install the hfs server::
 
   python install.py hfs
-  # Set the postgresql password
-  $EDITOR /etc/prologin/hfs-server.yml
   # Change HFS_ID to what you need
   systemctl enable hfs@HFS_ID && systemctl start hfs@HFS_ID
 
@@ -654,14 +596,21 @@ You will want to ssh at this machine, so enable ``udbync_rootssh``::
   $EDITOR /etc/prologin/udbsync-sub.yml
   systemctl enable udbsync_rootssh && systemctl start udbsync_rootssh
 
-We'll now compile our custom version of openresty. For this step, see
-:ref:`openresty in the common tasks section <common-openresty>`
+We'll now compile our custom version of openresty, or if it was already done
+during gw setup, install it directly. For this step, see
+:ref:`openresty in the common tasks section <common-openresty>`.
 
 Then, install the ``nginx`` configuration from the repository::
 
   python install.py nginxcfg
   mv /etc/nginx/nginx.conf{.new,}
   systemctl enable nginx && systemctl start nginx
+
+
+Setup postgresql on web
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Please refer to the :ref:`common Postresql setup guide <common-postgres>`.
 
 concours
 ~~~~~~~~
@@ -673,16 +622,13 @@ concours
 
 Setup the database::
 
-  # Change the password
-  $EDITOR ./sql/concours.sql
-  su - postgres -c "psql" < ./sql/concours.sql
-
-Install it::
-
   # Edit the configuration files first to replace `DEFAULT_PASSWORD`
   $EDITOR etc/prologin/concours.yml
   $EDITOR sql/concours.sql
-  # You can then proceed to install
+  su - postgres -c psql < ./sql/concours.sql
+
+Install it::
+
   python install.py concours
   # Edit the shared secret
   $EDITOR /etc/prologin/udbsync-sub.yml
@@ -789,6 +735,30 @@ the hfs' database::
 Common tasks
 ------------
 
+.. _common-postgres:
+
+Postgresql
+~~~~~~~~~~
+
+Initialize the storage directory::
+
+  su - postgres -c "initdb --locale en_US.UTF-8 -D '/var/lib/postgres/data'"
+
+Edit and uncomment ``/var/lib/postgres/data/postgresql.conf`` to make
+postgresql listen on every interface::
+
+  listen_addresses = '*'
+
+Edit ``/var/lib/postgres/data/pg_hba.conf`` to allow all users to connect with
+password::
+
+  host     all             all             192.168.1.0/23           password
+
+Then start postgresql::
+
+  systemctl enable postgresql && systemctl start postgresql
+
+
 .. _common-openresty:
 
 Openresty
@@ -815,3 +785,4 @@ to its installation on the target machine::
     is called ``openresty``, all paths and configuration files are the same
     as the official ``nginx`` package, so you should be able to switch between
     the two without changing anything.
+
