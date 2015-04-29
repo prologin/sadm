@@ -18,12 +18,12 @@
 # Database settings.
 db:
     default:
-        ENGINE: django.db.backends.sqlite3
-        NAME: /var/prologin/udb/udb.db
-        USER:
-        PASSWORD:
-        HOST:
-        PORT:
+        ENGINE: django.db.backends.postgresql_psycopg2
+        HOST: gw
+        PORT: 5432
+        USER: udb
+        NAME: udb
+        PASSWORD: DEFAULT_PASSWORD
 
 # Use http://www.miniwebtool.com/django-secret-key-generator/
 secret_key: "DEFAULT_PASSWORD_UDB_SERVER_SECRET_KEY"

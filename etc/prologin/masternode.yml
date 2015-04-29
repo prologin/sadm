@@ -16,7 +16,7 @@ worker:
 # SQL connection informations and queries. If you are using the standard
 # stechec website, do not change the queries!
 sql:
-  host: db
+  host: web
   port: 5432
   user: concours
   password: DEFAULT_PASSWORD

@@ -18,12 +18,12 @@
 # Database settings.
 db:
     default:
-        ENGINE: django.db.backends.sqlite3
-        NAME: /var/prologin/mdb/mdb.db
-        USER:
-        PASSWORD:
-        HOST:
-        PORT:
+        ENGINE: django.db.backends.postgresql_psycopg2
+        HOST: gw
+        PORT: 5432
+        USER: mdb
+        NAME: mdb
+        PASSWORD: DEFAULT_PASSWORD
 
 # Use http://www.miniwebtool.com/django-secret-key-generator/
 secret_key: "DEFAULT_PASSWORD_MDB_SERVER"

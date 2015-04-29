@@ -19,12 +19,12 @@
 # The same informations must be used in the master node configuration file.
 db:
     default:
-        HOST: db
+        ENGINE: django.db.backends.postgresql_psycopg2
+        HOST: web
         PORT: 5432
         USER: concours
-        PASSWORD: DEFAULT_PASSWORD
         NAME: concours
-        ENGINE: django.db.backends.postgresql_psycopg2
+        PASSWORD: DEFAULT_PASSWORD
 
 # Informations on where the master node is located.
 master:

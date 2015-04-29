@@ -16,7 +16,7 @@
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 # Database connection string.
-db: pq://hfs:DEFAULT_PASSWORD@db/hfs
+db: pq://hfs:DEFAULT_PASSWORD@gw/hfs
 
 # The directory where the NBD files will be placed. They will be stored in a
 # subdirectory named "hfsN" with N being the HFS id.

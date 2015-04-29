@@ -102,7 +102,7 @@ Redmine (a.k.a. "bugs")
 First, export some useful variables. Change them if needed::
 
   export PHOME=/var/prologin
-  export PGHOST=db  # postgres host
+  export PGHOST=web  # postgres host
   export RUBYV=2.2.1
   export RAILS_ENV=production
   export REDMINE_LANG=fr

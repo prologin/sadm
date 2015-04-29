@@ -127,6 +127,31 @@ At this point you should reboot and test your network configuration:
 - ``uplink`` should be configured as you wanted.
 - DNS is not working until you setup ``mdbdns``, so keep on!
 
+
+Setup postgresql on gw
+~~~~~~~~~~~~~~~~~~~~~~
+
+Initialize the storage structure::
+
+  su - postgres -c "initdb --locale en_US.UTF-8 -D '/var/lib/postgres/data'"
+
+If needed, edit ``/var/lib/postgres/data/postgresql.conf`` to make
+postgresql listen on localhost::
+
+  listen_addresses = 'localhost'
+
+And edit ``/var/lib/postgres/data/pg_hba.conf`` in order to allow all users
+to connect with password::
+
+  host     all             all             127.0.0.0/8           password
+
+You may want to comment the line with `local` and `trust`.
+
+Then start postgresql::
+
+  systemctl enable postgresql && systemctl start postgresql
+
+
 mdb
 ~~~
 
@@ -141,6 +166,10 @@ tasks section <common-openresty>`
 Then install mdb. Fortunately, a very simple script is provided with the
 application in order to setup what it requires::
 
+  # Edit the configuration files first to replace `DEFAULT_PASSWORD`
+  $EDITOR etc/prologin/mdb.yml
+  $EDITOR sql/mdb.sql
+  # You can then proceed to install
   python install.py mdb
   mv /etc/nginx/nginx.conf{.new,}
   # ^ To replace the default configuration by our own.
@@ -349,6 +378,10 @@ udb
 
 Install ``udb`` using the ``install.py`` recipe::
 
+  # Edit the configuration files first to replace `DEFAULT_PASSWORD`
+  $EDITOR etc/prologin/udb.yml
+  $EDITOR sql/udb.sql
+  # You can then proceed to install
   python install.py udb
 
 Don't forget to change the ``secret_key`` used by Django::
@@ -646,8 +679,10 @@ Setup the database::
 
 Install it::
 
-  # Edit the configuration file first, because the install procedure uses it
+  # Edit the configuration files first to replace `DEFAULT_PASSWORD`
   $EDITOR etc/prologin/concours.yml
+  $EDITOR sql/concours.sql
+  # You can then proceed to install
   python install.py concours
   # Edit the shared secret
   $EDITOR /etc/prologin/udbsync-sub.yml
