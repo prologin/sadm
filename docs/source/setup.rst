@@ -131,19 +131,21 @@ At this point you should reboot and test your network configuration:
 Setup postgresql on gw
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Create a new database::
+Initialize the storage structure::
 
   su - postgres -c "initdb --locale en_US.UTF-8 -D '/var/lib/postgres/data'"
 
-Edit and uncomment ``/var/lib/postgres/data/postgresql.conf`` to make
-postgresql listen on every interface::
+If needed, edit ``/var/lib/postgres/data/postgresql.conf`` to make
+postgresql listen on localhost::
 
-  listen_addresses = '*'
+  listen_addresses = 'localhost'
 
 And edit ``/var/lib/postgres/data/pg_hba.conf`` in order to allow all users
 to connect with password::
 
-  host     all             all             192.168.1.0/24           password
+  host     all             all             127.0.0.0/8           password
+
+You may want to comment the line with `local` and `trust`.
 
 Then start postgresql::
 
