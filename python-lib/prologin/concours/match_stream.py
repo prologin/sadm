@@ -4,6 +4,9 @@ import argparse
 import getpass
 import psycopg
 import prologin
+import subprocess
+import tempfile
+import time
 
 get_matches = '''
 SELECT
@@ -56,18 +59,31 @@ def get_replay(opts, match_id):
     return (requests.get('http://{}/{}/dump/'.format(
         opts.concours_url, match_id)).content)
 
+def replay_match(opts, match_id, champions_list):
+    replay_content = get_replay(match_id)
+    with tempfile.NamedTemporaryFile() as f:
+        f.write(replay_content)
+        f.flush()
+        p = subprocess.Popen([opts.replay, '--tv-show', f.name])
+        p.wait()
+
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser('SADM TV Mode')
+    parser = argparse.ArgumentParser('Match TV Mode')
     parser.add_argument('--concours-url', default='concours')
     parser.add_argument('--host', default='db')
     parser.add_argument('--port', type=int, default=5432)
     parser.add_argument('--database', default='concours')
     parser.add_argument('--user', default='concours')
+    parser.add_argument('--replay', default='/usr/bin/prologin2015-replay')
     opts = parser.parse_args()
     opts.password = getpass.getpass('db password: ')
 
     while True:
         l = get_matches(opts)
         l = list(filter(lambda x: x not in match_done, l))
-        i = random.randint(max(40, len(l)))
-        launch_match(i)
+        i = random.randint(min(40, len(l)))
+        try:
+            launch_match(opts, *l[i])
+        except Exception as e:
+            print('Error while replaying match {}: {}'.format(l[i][0], e))
+        time.sleep(1)
