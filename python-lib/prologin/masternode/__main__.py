@@ -39,9 +39,13 @@ from pathlib import Path
 
 from .concoursquery import ConcoursQuery
 from .monitoring import (
-    monitoring_start,
+    masternode_client_done_file,
+    masternode_match_done_db,
+    masternode_match_done_file,
+    masternode_worker_timeout,
     masternode_workers,
-    masternode_worker_timeout)
+    monitoring_start,
+)
 from .task import MatchTask, CompilationTask
 from .task import champion_compiled_path, match_path, clog_path
 from .worker import Worker
@@ -130,12 +134,15 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
 
         @asyncio.coroutine
         def match_done_db(mid, result, b64dump, stdout):
-            with open(os.path.join(match_path(self.config, mid),
-                'dump.json.gz'), 'wb') as f:
-                f.write(b64decode(b64dump))
-            with open(os.path.join(match_path(self.config, mid), 'server.log'),
-                    'w') as f:
-                f.write(stdout)
+            with masternode_match_done_file.time():
+                with open(os.path.join(match_path(self.config, mid),
+                    'dump.json.gz'), 'wb') as f:
+                    f.write(b64decode(b64dump))
+                with open(os.path.join(match_path(self.config, mid), 'server.log'),
+                        'w') as f:
+                    f.write(stdout)
+
+            match_done_db_start = time.monotonic()
             yield from self.db.execute('set_match_status',
                     { 'match_id': mid, 'match_status': 'done' })
 
@@ -146,11 +153,13 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             t = [{ 'match_id': mid, 'champion_score': r[1], 'player_id': r[0]}
                     for r in result]
             yield from self.db.executemany('update_tournament_score', t)
+            masternode_match_done_db.observe(time.monotonic() - match_done_db_start)
 
         asyncio.Task(match_done_db(mid, result, b64dump, stdout))
         self.workers[(worker[0], worker[1])].remove_match_task(mid)
 
     @prologin.rpc.remote_method
+    @masternode_client_done_file
     def client_done(self, worker, mpid, stdout, mid, champ_id):
         logname = 'log-champ-{}-{}.log'.format(mpid, champ_id)
         with open(os.path.join(match_path(self.config, mid), logname), 'w') as f:
