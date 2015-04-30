@@ -64,7 +64,7 @@ pacstrap /mnt base base-devel syslinux \
     openssh dnsutils rsync tcpdump strace wget ethtool atop htop
 
 echo 'Setting up the base system'
-genfstab -p /mnt >> /mnt/etc/fstab
+genfstab -L -p /mnt >> /mnt/etc/fstab
 
 cat >/mnt/var/tmp/install-2.sh <<EOF
 #! /bin/bash
