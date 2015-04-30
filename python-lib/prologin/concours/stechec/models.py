@@ -41,7 +41,7 @@ class Map(ExportModelOperationsMixin('map'), models.Model):
         if value is None:
             return
         if not os.path.isdir(self.maps_dir):
-            os.mkdirs(self.maps_dir, mode=0o755, exist_ok=True)
+            os.makedirs(self.maps_dir, mode=0o755, exist_ok=True)
         open(self.path, 'w', encoding='utf-8').write(value)
 
     def get_absolute_url(self):
