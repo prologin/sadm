@@ -279,7 +279,11 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                     self.worker_tasks = self.worker_tasks[1:]
             if not self.worker_tasks:
                 self.to_dispatch.clear()
-            yield from asyncio.sleep(0.1) # Avoid blocking with lot of dispatch
+
+            # Give the hand back to the event loop to avoid being blocking,
+            # but be called as soon as all the functions at the top of the heap
+            # have been executed
+            yield from asyncio.sleep(0)
 
 
 if __name__ == '__main__':
