@@ -28,12 +28,12 @@
     <tbody>
     {% for host, port, usage in status %}
       <tr>
-        <td style="vertical-align: middle;"><code><strong>{{ host }}</strong>:{{ port }}</code></td>
+        <td style="vertical-align: middle;"><tt><strong>{{ host }}</strong>:{{ port }}</tt></td>
         <td>
-          <div class="progress">
-            <div class="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"
+          <div class="progress no-margin">
+            <div class="progress-bar progress-bar-{% if usage > 80 %}danger{% elif usage > 50 %}warning{% else %}success{% endif %}" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"
                  style="width: {{ usage }}%;">
-              <span class="sr-only">{{ usage }}%</span>
+              <span class="{% if usage < 10 %}narrow{% endif %}">{{ usage }}%</span>
             </div>
           </div>
         </td>
