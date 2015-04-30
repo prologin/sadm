@@ -24,15 +24,15 @@ masternode_workers = Gauge(
     'Number of available workers')
 
 masternode_match_done_file = Summary(
-    'masternode_match_done_file'
+    'masternode_match_done_file',
     'Summary of match done files write')
 
 masternode_client_done_file = Summary(
-    'masternode_client_done_file'
+    'masternode_client_done_file',
     'Summary of client done file write')
 
 masternode_match_done_db = Summary(
-    'masternode_match_done_db'
+    'masternode_match_done_db',
     'Summary of match done database access')
 
 masternode_worker_timeout = Gauge(
