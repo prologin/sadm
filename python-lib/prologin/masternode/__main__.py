@@ -159,7 +159,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         self.workers[(worker[0], worker[1])].remove_match_task(mid)
 
     @prologin.rpc.remote_method
-    @masternode_client_done_file.time
+    @masternode_client_done_file.time()
     def client_done(self, worker, mpid, stdout, mid, champ_id):
         logname = 'log-champ-{}-{}.log'.format(mpid, champ_id)
         with open(os.path.join(match_path(self.config, mid), logname), 'w') as f:
