@@ -89,9 +89,10 @@ class MatchesListView(ListView):
                     map_id = int(m.map.split('/')[-1])
                     map_name = map_cache[map_id]
                 except KeyError:
-                    map_cache[map_id] = map_name = models.Map.objects.get(pk=map_id).name
-                except Exception:
-                    map_name = m.map
+                    try:
+                        map_cache[map_id] = map_name = models.Map.objects.get(pk=map_id).name
+                    except Exception:
+                        map_name = map_id
             matches.append((m, map_id, map_name))
         context['matches'] = matches
         return context
