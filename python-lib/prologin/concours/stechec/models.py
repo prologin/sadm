@@ -24,10 +24,13 @@ class Map(ExportModelOperationsMixin('map'), models.Model):
     ts = models.DateTimeField("date", auto_now_add=True)
 
     @property
-    def path(self):
+    def maps_dir(self):
         contest_dir = os.path.join(settings.STECHEC_ROOT, settings.STECHEC_CONTEST)
-        maps_dir = os.path.join(contest_dir, "maps")
-        return os.path.join(maps_dir, "{}".format(self.id))
+        return os.path.join(contest_dir, "maps")
+
+    @property
+    def path(self):
+        return os.path.join(self.maps_dir, "{}".format(self.id))
 
     @property
     def contents(self):
@@ -37,6 +40,8 @@ class Map(ExportModelOperationsMixin('map'), models.Model):
     def contents(self, value):
         if value is None:
             return
+        if not os.path.isdir(self.maps_dir):
+            os.mkdirs(self.maps_dir, mode=0o755, exist_ok=True)
         open(self.path, 'w', encoding='utf-8').write(value)
 
     def get_absolute_url(self):

@@ -139,6 +139,7 @@ Enable and start the services::
 
   systemctl enable redmine && systemctl start redmine
   systemctl enable udbsync_redmine && systemctl start udbsync_redmine
+  systemctl reload nginx
 
 You should be able to access the brand new Redmine. There are some important
 configuration settings to change:
