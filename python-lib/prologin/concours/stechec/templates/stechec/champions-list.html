@@ -24,7 +24,7 @@
     </thead>
     <tbody>
         {% for champion in champions %}
-        <tr class="{% cycle "row1" "row2" %}">
+        <tr>
             <td>{{ champion.id }}</td>
             <td>{{ champion.name }}</td>
             {% if show_for_all %}

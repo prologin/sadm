@@ -21,7 +21,7 @@
     </thead>
     <tbody>
         {% for map in maps %}
-        <tr class="{% cycle "row1" "row2" %}{% if map.official %} official{% endif %}">
+        <tr class="{% if map.official %}official{% endif %}">
             <td>{{ map.id }}</td>
             <td>
                 {% if map.official %}

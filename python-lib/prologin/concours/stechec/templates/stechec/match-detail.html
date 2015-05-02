@@ -56,7 +56,7 @@
     </thead>
     <tbody>
     {% for player in match.matchplayer_set.all %}
-      <tr class="{% cycle "row1" "row2" %}">
+      <tr>
         <td>{{ player.id|substract:match.matchplayer__id__min }}</td>
         <td>{{ player.champion.id }}</td>
         <td>{{ player.champion }}</td>

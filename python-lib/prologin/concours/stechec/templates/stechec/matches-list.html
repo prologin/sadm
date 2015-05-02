@@ -25,7 +25,7 @@
     </thead>
     <tbody>
     {% for match, map_id, map_name in matches %}
-      <tr class="{% cycle "row1" "row2" %}">
+      <tr>
         <td>{{ match.id }}</td>
         <td>{{ match.ts|naturalday }} à {{ match.ts|time:"H:i:s" }}</td>
         <td>{% include "stechec/stub_status_match.html" %}</td>
