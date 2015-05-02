@@ -1,10 +1,10 @@
 {% if match.status == 'creating' %}
-<i class="champ-status fa fa-clock-o"></i>
+<i class="champ-status fa fa-clock-o i-align"></i>
 {% elif match.status == 'new' %}
-<i class="champ-status fa fa-clock-o"></i>
+<i class="champ-status fa fa-clock-o i-align"></i>
 {% elif match.status == 'pending' %}
-<i class="champ-status fa fa-cogs"></i>
+<i class="champ-status fa fa-cogs i-align"></i>
 {% elif match.status == 'done' %}
-<i class="champ-status fa fa-check"></i>
+<i class="champ-status fa fa-check i-align"></i>
 {% endif %}
 {{ match.get_status_display }}

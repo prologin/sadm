@@ -29,11 +29,11 @@
             <td>{{ champion.name }}</td>
             {% if show_for_all %}
             <td{% if request.user == champion.author %} class="itsme"{% endif %}>{{ champion.author }}</td>
-            <td><a href="{{ champion.get_absolute_url }}" class="btn btn-default btn-xs"><i class="fa fa-info"> Détails</i></a></td>
+            <td><a href="{{ champion.get_absolute_url }}" class="btn btn-default btn-xs"><i class="fa fa-info"></i> Détails</a></td>
             {% else %}
             <td>{% include "stechec/stub_status_champion.html" %}</td>
             <td>
-                <a href="{{ champion.get_absolute_url }}" class="btn btn-default btn-xs"><i class="fa fa-info"> Détails</i></a>
+                <a href="{{ champion.get_absolute_url }}" class="btn btn-default btn-xs"><i class="fa fa-info"></i> Détails</a>
                 <a href="{{ champion.get_delete_url }}" class="btn btn-danger btn-xs"><i class="fa fa-trash-o"></i> Supprimer</a>
             </td>
             {% endif %}

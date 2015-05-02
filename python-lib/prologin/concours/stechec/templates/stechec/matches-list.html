@@ -35,8 +35,10 @@
           <td class="text-ellipsis" style="max-width: 10em;" title="{{ map_name }}">
             {% if map_id != None %}
               <a href="{% url 'map-detail' map_id %}">{{ map_name }}</a>
-            {% else %}
+            {% elif map_name != None %}
               {{ map_name }}
+            {% else %}
+              <em>n/a</em>
             {% endif %}</td>{% endif %}
         <td><a href="{{ match.get_absolute_url }}" class="btn btn-default btn-xs"><i class="fa fa-info"></i> Détails</a>
         </td>
