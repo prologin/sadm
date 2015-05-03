@@ -92,9 +92,8 @@ def communicate_forever(cmdline, *, data=None, env=None, max_len=None,
             break
         stdout_buf.extend(chunk)
 
-    stdout = stdout_buf.decode()
     if not to_read:
-        stdout += truncate_message
+        stdout += truncate_message.encode()
 
     exitcode = yield from proc.wait()
     return (exitcode, stdout)
@@ -117,7 +116,7 @@ def compile_champion(config, champion_path):
     """
     cmd = [config['path']['compile_script'], config['path']['makefiles'],
            champion_path]
-    retcode, stdout = yield from communicate(cmd)
+    retcode, _ = yield from communicate(cmd)
     return retcode == 0
 
 
@@ -144,9 +143,9 @@ def spawn_server(config, rep_port, pub_port, nb_players, opts, file_opts):
         logging.error("Server timeout")
         return "workernode: Server timeout"
 
+    stdout = stdout.decode()
     if retcode != 0:
         logging.error(stdout.strip())
-
     return stdout
 
 
@@ -181,7 +180,7 @@ def spawn_dumper(config, rep_port, pub_port, opts, file_opts):
     with tempfile.NamedTemporaryFile() as dump:
         new_env = os.environ.copy()
         new_env['DUMP_PATH'] = dump.name
-        retcode, stdout = yield from communicate(cmd, env=new_env)
+        retcode, _ = yield from communicate(cmd, env=new_env)
         gzdump = yield from ioloop.run_in_executor(None,
                 gzip.compress, dump.read())
     return gzdump
