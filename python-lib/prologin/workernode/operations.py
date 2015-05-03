@@ -80,7 +80,7 @@ def communicate_forever(cmdline, *, data=None, env=None, max_len=None,
         proc.stdin.close()
 
     # Receive stdout
-    stdout_buf = bytearray()
+    stdout = bytearray()
     while True:
         to_read = 4096
         if max_len is not None:
@@ -90,7 +90,7 @@ def communicate_forever(cmdline, *, data=None, env=None, max_len=None,
         chunk = yield from proc.stdout.read(to_read)
         if not chunk:
             break
-        stdout_buf.extend(chunk)
+        stdout.extend(chunk)
 
     if not to_read:
         stdout += truncate_message.encode()
