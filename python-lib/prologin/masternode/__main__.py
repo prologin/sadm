@@ -216,17 +216,25 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         for r in (yield from c.fetchall()):
             logging.info('request match id {} launch'.format(r[0]))
             mid = r[0]
+            opts_json = r[1]
+            file_opts_json = r[2]
             players = list(zip(r[3], r[4], r[5]))
 
-            try:
-                opts = json.loads(r[1])
-            except (TypeError, ValueError) as e:
-                opts = {}
-                logging.warning('cannot decode the custom options json,'
-                                'assuming it is empty', exc_info=1)
+            opts = {}
+            if opts_json:
+                try:
+                    opts = json.loads(opts_json)
+                except (TypeError, ValueError) as e:
+                    logging.warning('cannot decode the custom options json,'
+                                    'assuming it is empty', exc_info=1)
 
-            file_opts_paths = json.loads(r[2])
             file_opts = {}
+            if file_opts_json:
+                try:
+                    file_opts_paths = json.loads(file_opts_json)
+                except (TypeError, ValueError) as e:
+                    logging.warning('cannot decode the custom options json,'
+                                    'assuming it is empty', exc_info=1)
             for k, path in file_opts_paths.items():
                 try:
                     file_opts[k] = b64encode(open(path, 'rb').read()).decode()
