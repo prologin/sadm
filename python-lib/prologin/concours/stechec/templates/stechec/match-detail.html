@@ -79,29 +79,36 @@
   </table>
 
   {% if request.user.is_staff %}
-    <p><button class="btn btn-default" data-role="toggler" data-target="#serv-log"><i class="fa"></i> <span>Afficher</span> le log serveur</button></p>
+    <p>
+      <button class="btn btn-default" data-role="toggler" data-target="#serv-log"><i class="fa"></i>
+        <span>Afficher</span> le log serveur
+      </button>
+    </p>
     <pre id="serv-log">{{ match.log }}</pre>
   {% endif %}
 
   {% if settings.STECHEC_REPLAY %}
+    <h2>Replay</h2>
     <div id="replay">
-      <canvas id="replay_canvas" width="0" height="0"></canvas>
-      <br/>
-      <aside>
-        <div>
-          <button class="replay_btn" type="button" onclick="replay_play();">Jouer</button>
-          <button class="replay_btn" type="button" onclick="replay_pause();">Pause</button>
-          <br/><br/>
-          <input id="replay_turn" type="range" value="0" min="0" max="0"
-                 onchange="replay_update()"/>
-          Tour : <span id="replay_lbl_turn">0</span>
-          <br/>
-        </div>
-
+      <div id="replay-board">{# insert graphics here #}</div>
+      <div id="replay-legend">
         {% for player in match.matchplayer_set.all %}
-          <div id="replay_p{{ player.id }}"></div> <br/>
+          <div class="replay-player" id="replay_p{{ player.id }}" data-id="{{ player.id }}"></div>
         {% endfor %}
-      </aside>
+      </div>
+      <div class="row">
+        <div class="col-xs-2">
+          <button class="btn btn-default btn-xs" id="replay-playpause"><i class="fa"></i> <span>Lecture</span></button>
+          <button class="btn btn-default btn-xs" id="replay-previous"><i class="fa fa-caret-left"></i></button>
+          <button class="btn btn-default btn-xs" id="replay-next"><i class="fa fa-caret-right"></i></button>
+        </div>
+        <div class="col-xs-2">
+          Tour <span id="replay-turn-label">0</span>
+        </div>
+        <div class="col-xs-8">
+          <input id="replay-turn-slider" type="range">
+        </div>
+      </div>
     </div>
   {% endif %}
 
@@ -111,8 +118,5 @@
   <script type="text/javascript" src="{% static 'js/uitools.js' %}"></script>
   {% if settings.STECHEC_REPLAY %}
     <script type="text/javascript" src="{% static 'replay/replay.js' %}"></script>
-    <script type="text/javascript">
-      replay_init();
-    </script>
   {% endif %}
 {% endblock %}
