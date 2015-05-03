@@ -160,10 +160,11 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
 
     @prologin.rpc.remote_method
     @masternode_client_done_file.time()
-    def client_done(self, worker, mpid, stdout, mid, champ_id):
+    def client_done(self, worker, mpid, b64log, mid, champ_id):
         logname = 'log-champ-{}-{}.log'.format(mpid, champ_id)
-        with open(os.path.join(match_path(self.config, mid), logname), 'w') as f:
-            f.write(stdout)
+        with open(os.path.join(match_path(self.config, mid), logname),
+                  'wb') as f:
+            f.write(b64decode(b64log))
         self.workers[(worker[0], worker[1])].remove_player_task(mpid)
 
     def redispatch_worker(self, worker):

@@ -253,9 +253,10 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
 
         logging.info('player {} for match {} done'.format(pl_id, match_id))
 
+        b64log = b64encode(stdout).decode()
         try:
             yield from self.master.client_done(self.get_worker_infos(), pl_id,
-                    stdout, match_id, champ_id,
+                    b64log, match_id, champ_id,
                     max_retries=self.config['master']['max_retries'],
                     retry_delay=self.config['master']['retry_delay'])
         except socket.error:
