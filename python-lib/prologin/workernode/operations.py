@@ -84,7 +84,7 @@ def communicate_forever(cmdline, *, data=None, env=None, max_len=None,
     while True:
         to_read = 4096
         if max_len is not None:
-            to_read = min(to_read, max_len - len(stdout_buf))
+            to_read = min(to_read, max_len - len(stdout))
             if not to_read:
                 break
         chunk = yield from proc.stdout.read(to_read)
