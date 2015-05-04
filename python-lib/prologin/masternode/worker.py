@@ -69,31 +69,19 @@ class Worker(object):
         asyncio.Task(task.execute(master, self))
 
     def remove_compilation_task(self, champ_id):
-        new = []
-        for t in self.tasks:
-            if isinstance(t, task.CompilationTask):
-                if t.champ_id == champ_id:
-                    continue
-            new.append(t)
-        self.tasks = new
+        self.tasks = [t for t in self.tasks
+                        if not (isinstance(t, task.CompilationTask) and
+                                t.champ_id == champ_id)]
 
     def remove_match_task(self, mid):
-        new = []
-        for t in self.tasks:
-            if isinstance(t, task.MatchTask):
-                if t.mid == mid:
-                    continue
-            new.append(t)
-        self.tasks = new
+        self.tasks = [t for t in self.tasks
+                        if not (isinstance(t, task.MatchTask) and
+                                t.mid == mid)]
 
     def remove_player_task(self, mpid):
-        new = []
-        for t in self.tasks:
-            if isinstance(t, task.PlayerTask):
-                if t.mpid == mpid:
-                    continue
-            new.append(t)
-        self.tasks = new
+        self.tasks = [t for t in self.tasks
+                        if not (isinstance(t, task.Player) and
+                                t.mpid == mpid)]
 
     def __repr__(self):
         return '<Worker: {}:{}>'.format(self.hostname, self.port)
