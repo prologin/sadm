@@ -61,12 +61,13 @@ import sys
 import urllib.parse
 import urllib.request
 
-from monitoring import (
-    monitoring_start,
-    hfs_migrate_user,
+from .monitoring import (
+    hfs_get_hfs,
     hfs_migrate_remote_user,
+    hfs_migrate_user,
     hfs_new_user,
-    hfs_running_nbd)
+    hfs_running_nbd,
+    monitoring_start)
 from socketserver import ThreadingMixIn
 
 CFG = prologin.config.load('hfs-server')
@@ -354,9 +355,9 @@ if __name__ == '__main__':
 
     hfs_id = int(sys.argv[1])
     prologin.log.setup_logging('hfs-%d' % hfs_id)
-    server = ThHTTPServer((get_hfs_ip(hfs_id), CFG['port']),
-                          HFSRequestHandler)
+    hfs_ip = get_hfs_ip(hfs_id)
+    server = ThHTTPServer((hfs_ip, CFG['port']), HFSRequestHandler)
 
-    monitoring_start()
+    monitoring_start(hfs_ip)
 
     server.serve_forever()

@@ -43,5 +43,5 @@ hfs_running_nbd = Gauge(
     'hfs_running_nbd_gauge',
     'Number of nbd served by this hfs server')
 
-def monitoring_start():
-    start_http_server(9030)
+def monitoring_start(addr):
+    start_http_server(9030, addr)
