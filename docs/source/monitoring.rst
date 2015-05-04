@@ -48,11 +48,9 @@ The following endpoints are availables:
 - ``http://udb/metrics``
 - ``http://mdb/metrics``
 - ``http://concours/metrics``
-
-Workernode
-~~~~~~~~~~
-
-Each workernode exports its metrics on ``http://MACHINE:9020``.
+- ``http://masternode:9021``
+- hfs: each hfs exports its metrics on ``http://hfsx:9030``
+- workernode: each workernode exports its metrics on ``http://MACHINE:9020``.
 
 Monitoring logs
 ---------------

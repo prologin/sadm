@@ -61,6 +61,12 @@ import sys
 import urllib.parse
 import urllib.request
 
+from monitoring import (
+    monitoring_start,
+    hfs_migrate_user,
+    hfs_migrate_remote_user,
+    hfs_new_user,
+    hfs_running_nbd)
 from socketserver import ThreadingMixIn
 
 CFG = prologin.config.load('hfs-server')
@@ -141,6 +147,8 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
             logging.exception('Something wrong happened')
 
     def migrate_user(self):
+        migrate_user_start = time.monotonic()
+
         # If we have a nbd-server for that user, kill it.
         self.user = self.get_argument('user')
         self.hfs = int(self.get_argument('hfs'))
@@ -161,7 +169,13 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
                                     'backup_' + os.path.basename(fname))
         os.rename(fname, backup_fname)
 
+        labels = {'user': self.user, 'hfs': self.hfs}
+        delta = time.monotonic() - migrate_user_start
+        hfs_migrate_user.labels(labels).observe(delta)
+
     def get_hfs(self):
+        get_hfs_start = time.monotonic()
+
         db = postgresql.open(CFG['db'])
 
         self.user = self.get_argument('user')
@@ -199,6 +213,11 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(json.dumps({ 'port': port }).encode('utf-8'))
 
+        delta = time.monotonic() - get_hfs_start
+        labels = {'user': self.user, 'user_type': self.user_type,
+                  'hfs': self.hfs}
+        hfs_get_hfs.labels(labels).observe(delta)
+
     def nbd_filename(self):
         """Returns the filename for the NBD."""
         dir_path = os.path.join(CFG['export_base'], 'hfs%d' % self.hfs)
@@ -215,6 +234,7 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
             except Exception:
                 pass
             del RUNNING_NBD[self.user]
+            hfs_running_nbd.dec()
 
     def get_nbd_size(self):
         """Returns the NBD size for the current user type."""
@@ -263,10 +283,13 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
         with open('/tmp/nbd.%s.pid' % self.user) as fp:
             pid = int(fp.read().strip())
             RUNNING_NBD[self.user] = { 'pid': pid, 'port': port }
+            hfs_running_nbd.inc()
         return port
 
     def new_user_handler(self):
         """Handles creation of a new NBD file for the given user."""
+        new_user_start = time.monotonic()
+
         code_dir = os.path.abspath(os.path.dirname(__file__))
         creation_script = os.path.join(code_dir, 'create_nbd.sh')
 
@@ -291,9 +314,14 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
         if error_code != 0:
             raise RuntimeError('creation script failed!')
 
+        delta = time.monotonic() - new_user_start
+        labels = {'user': self.user, 'user_type': self.user_type}
+        hfs_new_user.labels(labels).observe(delta)
+
     def remote_user_handler(self, peer_id):
         """Transfers the data from a remote HFS to the current HFS."""
-        # TODO(delroth): replace the wget by something using urllib
+        remote_user_start = time.monotonic()
+
         self.check_available_space()
 
         url = ('http', 'hfs%d:%d' % (peer_id, CFG['port']), '/migrate_user',
@@ -312,6 +340,10 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
                             break
                         fp.write(block)
 
+        delta = time.monotonic() - remote_user_start
+        labels = {'user': self.user, 'hfs': peer_id}
+        hfs_migrate_remote_user.labels(labels).observe(delta)
+
 class ThHTTPServer(http.server.HTTPServer, ThreadingMixIn):
     pass
 
@@ -324,4 +356,7 @@ if __name__ == '__main__':
     prologin.log.setup_logging('hfs-%d' % hfs_id)
     server = ThHTTPServer((get_hfs_ip(hfs_id), CFG['port']),
                           HFSRequestHandler)
+
+    monitoring_start()
+
     server.serve_forever()
