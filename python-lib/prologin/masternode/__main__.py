@@ -146,11 +146,14 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             yield from self.db.execute('set_match_status',
                     { 'match_id': mid, 'match_status': 'done' })
 
-            t = [{ 'player_id': r[0], 'player_score': r[1]}
+            t = [{ 'player_id': r['player'],
+                   'player_score': r['score'] }
                     for r in result]
             yield from self.db.executemany('set_player_score', t)
 
-            t = [{ 'match_id': mid, 'champion_score': r[1], 'player_id': r[0]}
+            t = [{ 'match_id': mid,
+                   'champion_score': r['score'],
+                   'player_id': r['player'] }
                     for r in result]
             yield from self.db.executemany('update_tournament_score', t)
             masternode_match_done_db.observe(time.monotonic() - match_done_db_start)

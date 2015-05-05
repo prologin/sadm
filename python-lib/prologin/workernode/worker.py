@@ -31,6 +31,7 @@ import tempfile
 import time
 import tornado
 import tornado.platform.asyncio
+import yaml
 
 from base64 import b64decode, b64encode
 from . import operations
@@ -214,14 +215,9 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         server_stdout = task_server.result()
         dumper_stdout = task_dumper.result()
 
-        lines = server_stdout.split('\n')
-        result = []
-        score_re = re.compile(r'^(\d+) (-?\d+)$')
-        for line in lines:
-            m = score_re.match(line)
-            if m is not None:
-                pid, score = m.groups()
-                result.append((int(pid), int(score)))
+        result = yaml.safe_load_all(server_stdout)
+        # stechec2 rules can output non-dict data, discard it
+        result = [r for r in result if isinstance(r, dict)]
 
         b64dump = b64encode(dumper_stdout).decode()
         try:
