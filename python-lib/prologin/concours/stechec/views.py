@@ -18,6 +18,8 @@ from prologin.concours.stechec import forms
 from prologin.concours.stechec import models
 # Use API throttling in the standard view
 from prologin.concours.stechec.restapi.permissions import CreateMatchUserThrottle
+# Imported for side-effect
+import prologin.concours.stechec.monitoring
 
 
 class ChampionView(DetailView):

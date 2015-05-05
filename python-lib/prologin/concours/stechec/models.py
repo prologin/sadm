@@ -4,7 +4,6 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
 
-from prometheus_client import Gauge
 from django_prometheus.models import ExportModelOperationsMixin
 import json
 import os.path
@@ -122,16 +121,6 @@ class Champion(ExportModelOperationsMixin('champion'), models.Model):
         ordering = ['-ts']
         verbose_name = "champion"
         verbose_name_plural = "champions"
-
-# Monitoring
-concours_champion_status_count = Gauge(
-    'concours_champion_status_count',
-    'Count of champion by status',
-    labelnames=('status',))
-for status in ('new', 'pending', 'ready', 'error'):
-    labels = {'status': status}
-    concours_champion_status_count.labels(labels).set_function(
-        lambda status=status: len(Champion.objects.filter(status=status)))
 
 
 class Tournament(ExportModelOperationsMixin('tournament'), models.Model):
@@ -265,17 +254,6 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
         ordering = ["-ts"]
         verbose_name = "match"
         verbose_name_plural = "matches"
-
-# Monitoring
-concours_match_status_count = Gauge(
-    'concours_match_status_count',
-    'Count of matches in by status',
-    labelnames=('status',))
-for status in ('creating', 'new', 'pending', 'done'):
-    labels = {'status': status}
-    concours_match_status_count.labels(labels).set_function(
-        lambda status=status: len(Match.objects.filter(status=status)))
-
 
 class MatchPlayer(ExportModelOperationsMixin('match_player'), models.Model):
     champion = models.ForeignKey(Champion, verbose_name="champion")
