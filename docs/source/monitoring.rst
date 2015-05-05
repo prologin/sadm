@@ -49,6 +49,7 @@ The following endpoints are availables:
 - ``http://mdb/metrics``
 - ``http://concours/metrics``
 - ``http://masternode:9021``
+- ``http://presencesync:9030``
 - hfs: each hfs exports its metrics on ``http://hfsx:9030``
 - workernode: each workernode exports its metrics on ``http://MACHINE:9020``.
 
