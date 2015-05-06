@@ -115,7 +115,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
 
     @asyncio.coroutine
     def send_heartbeat(self):
-        logging.info('sending heartbeat to the server, {}/{} slots'.format(
+        logging.debug('sending heartbeat to the server, {}/{} slots'.format(
             self.slots, self.max_slots))
         first_heartbeat = True
         while True:

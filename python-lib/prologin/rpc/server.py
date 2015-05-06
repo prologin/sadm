@@ -91,7 +91,7 @@ class RemoteCallHandler(tornado.web.RequestHandler):
             return repr(a)
 
         # Log the call
-        logging.info('RPC <{}> {}({}{})'.format(self.request.host, method_name,
+        logging.debug('RPC <{}> {}({}{})'.format(self.request.host, method_name,
             ', '.join([farg(a) for a in request['args']]),
             ', '.join([farg(a) + '=' + farg(b)
                        for a, b in request['kwargs'].items()])))

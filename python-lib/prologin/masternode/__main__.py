@@ -104,7 +104,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
     def heartbeat(self, worker, first):
         hostname, port, slots, max_slots = worker
         usage = (1.0 - slots / max_slots)
-        logging.info('received heartbeat from {}:{}, usage is {:.2%}'.format(
+        logging.debug('received heartbeat from {}:{}, usage is {:.2%}'.format(
                          hostname, port, usage))
         if first and (hostname, port) in self.workers:
             self.redispatch_worker(self.workers[(hostname, port)])
