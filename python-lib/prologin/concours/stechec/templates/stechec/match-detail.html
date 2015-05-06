@@ -57,7 +57,7 @@
     <tbody>
     {% for player in match.matchplayer_set.all %}
       <tr>
-        <td>{{ player.id|substract:match.matchplayer__id__min }}</td>
+        <td>{{ player.id }}</td>
         <td>{{ player.champion.id }}</td>
         <td>{{ player.champion }}</td>
         {% if match.is_done %}
