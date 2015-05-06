@@ -3,6 +3,7 @@ Name=uplink
 
 [Network]
 DHCP=yes
+IPForward=yes
 
 [DHCP]
 UseDNS=no
