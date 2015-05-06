@@ -80,7 +80,7 @@ class Worker(object):
 
     def remove_player_task(self, mpid):
         self.tasks = [t for t in self.tasks
-                        if not (isinstance(t, task.Player) and
+                        if not (isinstance(t, task.PlayerTask) and
                                 t.mpid == mpid)]
 
     def __repr__(self):
