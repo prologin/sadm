@@ -1,0 +1,46 @@
+!--------------------
+! rxvt-unicode
+
+!---------------------------------------------------------------!
+! .Xdefaults: kushou s main configuration file for rxvt-unicode !
+!---------------------------------------------------------------!
+!--------------------
+! Main Configuration
+
+*.background:           #2c2c2c
+*.foreground:           #dcdcdc
+*.font:                 xft:DejaVu Sans Mono:antialias=true
+URxvt.urgentOnBell:     true
+
+URxvt.perl-ext-common:  default,matcher,clipboard,url-select,keyboard-select
+URxvt.url-launcher:     /usr/bin/firefox
+URxvt.matcher.button:   1
+URxvt.url-select.underline: true
+URxvt.keysym.M-u:           perl:url-select:select_next
+
+URxvt.keysym.M-Escape:      perl:keyboard-select:activate
+URxvt.keysym.M-s:           perl:keyboard-select:search
+
+XTerm*metaSendsEscape: true
+
+!-------------------------------------------------
+! Colors
+! black, red, green, yellow, blue, magenta, cyan, white
+! Tango Color Theme
+
+*color0:    #2E3436
+*color1:    #CC0000
+*color2:    #4E9A06
+*color3:    #C4A000
+*color4:    #3465A4
+*color5:    #75507B
+*color6:    #06989A
+*color7:    #D3D7CF
+*color8:    #555735
+*color9:    #EF2929
+*color10:   #8AE234
+*color11:   #FCE94F
+*color12:   #729FCF
+*color13:   #AD7DA8
+*color14:   #34E2E2
+*color15:   #EEEEEC
