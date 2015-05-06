@@ -1,0 +1,19 @@
+hook-receiver:
+  host: 127.0.0.1
+  port: 20129  # install.py, Redmine user, 20120 + 9 (first few ports are for Rails)
+
+irc:
+  # Used directly to populate irc3 config dict
+  # Please provide exactly one channel in `autojoins`
+  host: irc
+  port: 6667
+  ssl: false
+  nick: redmine-issues
+  here: /var/prologin
+  debug: false
+  autojoins: ['#issues']
+
+  irc3.plugins.command:
+    cmd: "!"
+    masks:
+      - "* = view"

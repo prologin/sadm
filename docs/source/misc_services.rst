@@ -125,15 +125,19 @@ Create some dirs and fix permissions::
 Install the SSO plugin::
 
   ( cd $PHOME/redmine/plugins && git clone https://Zopieux@bitbucket.org/Zopieux/redmine_sso_auth.git )
-  ( cd $PHOME/redmine && exec rake redmine:plugins:migrate )
-  # Should display:
-  # Migrating redmine_sso_auth (SSO authentication plugin)...
 
 Now it's time to install Redmine system configuration files. Ensure you are
 within the prologin virtualenv (``source /var/prologin/venv/bin/activate``), then::
 
   cd /root/sadm
   python install.py redmine udbsync_redmine
+
+Register the new plugins (SSO, IRC hook)::
+
+  ( cd $PHOME/redmine && exec rake redmine:plugins:migrate )
+  # Should display:
+  # Migrating issues_json_socket_send (Redmine issues to socket JSON serialized)...
+  # Migrating redmine_sso_auth (SSO authentication plugin)...
 
 Enable and start the services::
 

@@ -399,9 +399,21 @@ def install_redmine():
         '/var/prologin/redmine/script/user_update.rb',
         owner='redmine:redmine', mode=0o640
     )
+    copytree(
+        'webservices/redmine/issues_json_socket_send',
+        '/var/prologin/redmine/plugins/issues_json_socket_send',
+        owner='redmine:redmine', dir_mode=0o750, file_mode=0o640
+    )
 
     install_nginx_service('redmine', contest=True)
     install_systemd_unit('redmine')
+
+
+def install_irc_redmine_issues():
+    requires('redmine')
+
+    install_systemd_unit('irc_redmine_issues')
+    install_cfg_profile('irc-redmine-issues', group='redmine')
 
 
 def install_homepage():
@@ -718,6 +730,7 @@ COMPONENTS = [
     'firewall',
     'hfs',
     'homepage',
+    'irc_redmine_issues',
     'libprologin',
     'masternode',
     'mdb',

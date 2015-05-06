@@ -1,0 +1,12 @@
+[Unit]
+Description=Redmine issues to IRC
+After=redmine.service
+
+[Service]
+Type=simple
+User=redmine
+Group=redmine
+ExecStart=/var/prologin/venv/bin/python -m prologin.irc_utils.redmine_issues
+
+[Install]
+WantedBy=multi-user.target
