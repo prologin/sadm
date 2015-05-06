@@ -65,7 +65,7 @@ class Champion(ExportModelOperationsMixin('champion'), models.Model):
         ('error', 'Erreur de compilation'),
     )
 
-    name = models.CharField("nom", max_length=100)
+    name = models.CharField("nom", max_length=100, unique=True)
     author = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='champions', verbose_name="auteur")
     status = models.CharField("statut", choices=STATUS_CHOICES,
                               max_length=100, default="new")

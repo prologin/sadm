@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             name='Champion',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True, serialize=False)),
-                ('name', models.CharField(verbose_name='nom', max_length=100)),
+                ('name', models.CharField(verbose_name='nom', max_length=100, unique=True)),
                 ('status', models.CharField(verbose_name='statut', max_length=100, choices=[('new', 'En attente de compilation'), ('pending', 'En cours de compilation'), ('ready', 'Compilé et prêt'), ('error', 'Erreur de compilation')], default='new')),
                 ('deleted', models.BooleanField(verbose_name='supprimé', default=False)),
                 ('comment', models.TextField(verbose_name='commentaire')),
