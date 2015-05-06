@@ -338,7 +338,7 @@ Swith to the ``lldp`` branch::
 
 Then compile time settings need to be modified. Add the following lines::
 
-  // in src/config/local/general.h
+  // in src/config/general.h
   #define REBOOT_CMD
   #define PING_CMD
   #define NET_PROTO_LLDP
@@ -359,7 +359,7 @@ udb
 Install ``udb`` using the ``install.py`` recipe::
 
   # Edit the configuration files first to replace `DEFAULT_PASSWORD`
-  $EDITOR etc/prologin/udb.yml
+  $EDITOR etc/prologin/udb-server.yml
   $EDITOR sql/udb.sql
   # You can then proceed to install
   python install.py udb
