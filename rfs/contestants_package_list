@@ -42,6 +42,7 @@ List of packages for contestants' environment
 # Additional config
 
 * emacs-tuareg-mode
+* emacs-haskell-mode-git
 * grml-zsh-config
 * ocaml-merlin-git
 
@@ -112,6 +113,7 @@ List of packages for contestants' environment
 * jre7-openjdk
 * mono
 * php
+* ghc
 
 
 # IRC clients
