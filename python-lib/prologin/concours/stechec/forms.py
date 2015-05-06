@@ -116,8 +116,10 @@ class MatchCreationForm(forms.Form):
         self.helper = BaseFormHelper()
         self.champions = []
         for i in range(1, settings.STECHEC_NPLAYERS + 1):
+            champions = models.Champion.objects.filter(deleted=False,
+                                                       status='ready')
             f = forms.ModelChoiceField(label="Champion %d" % i,
-                                       queryset=models.Champion.objects.all())
+                                       queryset=champions)
             self.fields['champion_%d' % i] = f
             self.helper.append_field('champion_%d' % i)
             self.champions.append(f)
