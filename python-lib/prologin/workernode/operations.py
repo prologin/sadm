@@ -180,7 +180,12 @@ def spawn_dumper(config, rep_port, pub_port, opts, file_opts):
     with tempfile.NamedTemporaryFile() as dump:
         new_env = os.environ.copy()
         new_env['DUMP_PATH'] = dump.name
-        retcode, _ = yield from communicate(cmd, env=new_env)
+        try:
+            retcode, _ = yield from communicate(cmd, env=new_env,
+                    timeout=60.0 * 2)
+        except asyncio.TimeoutError:
+            logging.error("dumper timeout")
+        # even after a timeout, a dump might be available (at worse it's empty)
         gzdump = yield from ioloop.run_in_executor(None,
                 gzip.compress, dump.read())
     return gzdump
@@ -210,6 +215,11 @@ def spawn_client(config, ip, req_port, sub_port, pl_id, champion_path, opts,
         fopts, tmp_files = create_file_opts(file_opts)
         cmd.extend(fopts)
 
-    retcode, stdout = yield from communicate(cmd, env=env, max_len=2 ** 18,
-            truncate_message='\n\nLog truncated to stay below 256K.\n')
+    try:
+        retcode, stdout = yield from communicate(cmd, env=env, max_len=2 ** 18,
+                truncate_message='\n\nLog truncated to stay below 256K.\n',
+                timeout=60.0 * 2)
+    except asyncio.TimeoutError:
+        logging.error("client timeout")
+        return 1, "workernode: client timeout"
     return retcode, stdout
