@@ -63,7 +63,7 @@
         {% if match.is_done %}
           <td>{{ player.score }}</td>
           <td>
-            {% if request.user == match.champion.author or request.user.is_staff %}
+            {% if request.user == player.champion.author or request.user.is_staff %}
               <button data-role="toggler" data-target="#log-{{ player.id }}" class="btn btn-default btn-xs">
                 <i class="fa"></i> <span>Afficher</span> le log
               </button>
