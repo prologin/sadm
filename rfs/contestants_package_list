@@ -151,9 +151,9 @@ List of packages for contestants' environment
 * gtest
 * ruby
 * python-yaml
+* gflags
 
 (AUR)
-* google-gflags
 * python-pygame-hg
 
 
