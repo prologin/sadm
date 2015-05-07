@@ -410,8 +410,6 @@ def install_redmine():
 
 
 def install_irc_redmine_issues():
-    requires('redmine')
-
     install_systemd_unit('irc_redmine_issues')
     install_cfg_profile('irc-redmine-issues', group='redmine')
 
