@@ -7,8 +7,6 @@ inoremap <F1> <Esc>
 vnoremap <F1> <Esc>
 nnoremap <F1> <Esc>
 
-inoremap <silent> <Esc> <Esc>l
-
 " << it's one less key to hit every time I want to save a file >>
 "   -- Steve Losh (again)
 nnoremap ; :
