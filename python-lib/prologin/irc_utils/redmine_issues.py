@@ -61,7 +61,7 @@ class RedmineIssuePlugin:
         logging.debug("Incoming issue from %r", writer.get_extra_info('peername'))
         data = yield from reader.readline()
         try:
-            data = json.loads(data.decode('ascii'))
+            data = json.loads(data.decode())
             logging.debug("Incoming issue data: %r", data)
             self.announce_issue(data)
         except ValueError:
@@ -100,3 +100,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
