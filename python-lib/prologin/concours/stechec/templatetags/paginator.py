@@ -2,7 +2,7 @@ from django import template
 register = template.Library()
 
 
-@register.inclusion_tag('paginator.html', takes_context=True)
+@register.inclusion_tag('stechec/paginator.html', takes_context=True)
 def paginator(context, adjacent_pages=2):
     """
     To be used in conjunction with the object_list generic view.
