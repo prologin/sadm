@@ -78,14 +78,12 @@
     </tbody>
   </table>
 
-  {% if request.user.is_staff %}
-    <p>
-      <button class="btn btn-default" data-role="toggler" data-target="#serv-log"><i class="fa"></i>
-        <span>Afficher</span> le log serveur
-      </button>
-    </p>
-    <pre id="serv-log">{{ match.log }}</pre>
-  {% endif %}
+  <p>
+  <button class="btn btn-default" data-role="toggler" data-target="#serv-log"><i class="fa"></i>
+      <span>Afficher</span> le log serveur
+  </button>
+  </p>
+  <pre id="serv-log">{{ match.log }}</pre>
 
   {% if settings.STECHEC_REPLAY %}
     <h2>Replay</h2>
