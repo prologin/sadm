@@ -124,12 +124,12 @@ List of packages for contestants' environment
 
 # Games
 
-* tetrinet
+(aur)* tetrinet
 * teeworlds
 * urbanterror
-* tuxracer
-* quake3
-* minecraft
+(archlinuxfr)* tuxracer
+(aur)* quake3
+(aur)* minecraft
 * armagetronad
 * 0ad
 * openttd
