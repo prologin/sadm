@@ -17,11 +17,23 @@
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from prometheus_client import start_http_server, Summary, Gauge
+from prometheus_client import start_http_server, Summary, Gauge, Counter
 
 masternode_workers = Gauge(
     'masternode_workers',
     'Number of available workers')
+
+masternode_tasks = Gauge(
+    'masternode_tasks',
+    'Number of masternode tasks')
+
+masternode_task_redispatch = Counter(
+    'masternode_task_redispatch',
+    'Number of redispatched tasks')
+
+masternode_request_compilation_task = Counter(
+    'masternode_request_compilation_task',
+    'Number of compilation requests')
 
 masternode_match_done_file = Summary(
     'masternode_match_done_file',

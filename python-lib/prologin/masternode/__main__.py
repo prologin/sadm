@@ -39,6 +39,9 @@ from pathlib import Path
 
 from .concoursquery import ConcoursQuery
 from .monitoring import (
+    masternode_task_redispatch,
+    masternode_request_compilation_task,
+    masternode_tasks,
     masternode_client_done_file,
     masternode_match_done_db,
     masternode_match_done_file,
@@ -83,7 +86,6 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             logging.warn("registered new worker: {}:{}".format(w.hostname,
                 w.port))
             self.workers[key] = w
-            masternode_workers.set(len(self.workers))
         else:
             logging.warn("drop unreachable worker: {}:{}".format(w.hostname,
                 w.port))
@@ -172,13 +174,13 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
 
     def redispatch_worker(self, worker):
         tasks = [t for t in worker.tasks]
+        masternode_task_redispatch.inc(len(tasks))
         if tasks:
             logging.info("redispatching tasks for {}: {}".format(
                              worker, tasks))
             self.worker_tasks = tasks + self.worker_tasks
             self.to_dispatch.set()
         del self.workers[(worker.hostname, worker.port)]
-        masternode_workers.set(len(self.workers))
 
     @asyncio.coroutine
     def janitor_task(self):
@@ -201,6 +203,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         for r in (yield from cur.fetchall()):
             logging.info('requested compilation for {} / {}'.format(
                               r[1], r[0]))
+            masternode_request_compilation_task.inc()
             to_set_pending.append({
                 'champion_id': r[0],
                 'champion_status': 'pending'
@@ -317,6 +320,9 @@ if __name__ == '__main__':
     s = MasterNode(config=config, app_name='masternode',
                    secret=config['master']['shared_secret'].encode('utf-8'))
     s.listen(config['master']['port'])
+
+    masternode_tasks.set_function(lambda: len(s.worker_tasks))
+    masternode_workers.set_function(lambda: len(s.workers))
 
     monitoring_start()
 
