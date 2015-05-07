@@ -1,7 +1,7 @@
 Generate the installation command
 =================================
 
-    echo -n "pacman --root /export/nfsroot -S --needed" $(sed '/^\* /!d' contestants_package_list | tr -d '\n*')
+    echo -n "pacman -S --needed" $(sed '/^\* /!d' contestants_package_list | tr -d '\n*')
 
 
 List of packages for contestants' environment
@@ -16,7 +16,7 @@ List of packages for contestants' environment
 
 # Terminal emulators
 
-* urxvt
+* rxvt-unicode
 * xterm
 * gnome-terminal
 
@@ -41,8 +41,8 @@ List of packages for contestants' environment
 
 # Additional config
 
-* emacs-tuareg-mode
-* emacs-haskell-mode-git
+(aur)* emacs-tuareg-mode
+(aur)* emacs-haskell-mode
 * grml-zsh-config
 * ocaml-merlin-git
 
@@ -55,14 +55,13 @@ List of packages for contestants' environment
 * awesome
 * gnome
 * xfce4
-* kde
 * dwm
 
 
 # Browsers
 
 * firefox
-* google-chrome
+* chromium
 
 
 # Tools
@@ -76,8 +75,6 @@ List of packages for contestants' environment
 * zathura
 * screen
 * tmux
-* byobu
-* terminator-bzr
 * eog
 * feh
 * vlc
