@@ -81,6 +81,7 @@ class Machine(ExportModelOperationsMixin('machine'), models.Model):
             'hfs': self.hfs,
             'mtype': self.mtype,
             'room': self.room,
+            'is_faulty': self.is_faulty,
         }
 
     def allocate_ip(self):
