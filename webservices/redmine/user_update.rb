@@ -24,8 +24,19 @@ commands.each do |login, cmd|
                 if u.valid?
                         u.save
                 else
-                        $stderr.puts "invalid created user: #{login}"
-                        $stderr.puts "#{u.errors.full_messages}"
+                        u = User.find_by_login(login)
+                        if u then
+                                u.password = user['password']
+                                u.password_confirmation = user['password']
+                                u.admin = user['group'] == 'root'
+                                if u.valid? then
+                                        $stderr.puts "got created user, actually was updated: #{login}"
+                                        u.save
+                                end
+                        else
+                                $stderr.puts "invalid created user: #{login}"
+                                $stderr.puts "#{u.errors.full_messages}"
+                        end
                 end
 
         when 'deleted'
@@ -36,6 +47,7 @@ commands.each do |login, cmd|
                 u = User.find_by_login(login)
                 u.password = user['password']
                 u.password_confirmation = user['password']
+                u.admin = user['group'] == 'root'
                 if u.valid? then
                         u.save
                 else
