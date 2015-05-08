@@ -289,6 +289,10 @@ def install_nginxcfg():
                  dir_mode=0o750, file_mode=0o640)
     mkdir('/etc/nginx/services', mode=0o755, owner='root:root')
     mkdir('/etc/nginx/services_contest', mode=0o755, owner='root:root')
+    if not os.path.exists('/var/prologin/static_shared'):
+        copytree('webservices/static_shared',
+                 '/var/prologin/static_shared',
+                 dir_mode=0o644, file_mode=0o755, owner='root:root')
     if not os.path.exists('/etc/nginx/logs'):
         mkdir('/var/log/nginx', mode=0o750, owner='http:log')
         symlink('/var/log/nginx', '/etc/nginx/logs')
@@ -567,13 +571,19 @@ def install_presencesync_usermap():
 
     mkdir(
         '/var/prologin/presencesync_usermap',
-        mode=0o700, owner='presencesync_usermap:presencesync_usermap'
+        mode=0o750, owner='presencesync_usermap:http'
     )
     copy(
         'python-lib/prologin/presencesync_clients/usermap.svg',
         '/var/prologin/presencesync_usermap/pattern.svg',
-        mode=0o700, owner='presencesync_usermap:presencesync_usermap'
+        mode=0o640, owner='presencesync_usermap:http'
     )
+    copy(
+        'webservices/presencesync_usermap/index.html',
+        '/var/prologin/presencesync_usermap/index.html',
+        mode=0o640, owner='presencesync_usermap:http'
+    )
+    install_nginx_service('usermap')
     install_systemd_unit('presencesync_usermap')
 
 
