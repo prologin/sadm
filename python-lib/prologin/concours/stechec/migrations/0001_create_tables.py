@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(verbose_name='nom', max_length=100, unique=True)),
                 ('status', models.CharField(verbose_name='statut', max_length=100, choices=[('new', 'En attente de compilation'), ('pending', 'En cours de compilation'), ('ready', 'Compilé et prêt'), ('error', 'Erreur de compilation')], default='new')),
                 ('deleted', models.BooleanField(verbose_name='supprimé', default=False)),
-                ('comment', models.TextField(verbose_name='commentaire')),
+                ('comment', models.TextField(verbose_name='commentaire', blank=True)),
                 ('ts', models.DateTimeField(verbose_name='date', auto_now_add=True)),
                 ('author', models.ForeignKey(verbose_name='auteur', related_name='champions', to=settings.AUTH_USER_MODEL)),
             ],

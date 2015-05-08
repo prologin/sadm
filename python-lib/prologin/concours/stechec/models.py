@@ -70,7 +70,7 @@ class Champion(ExportModelOperationsMixin('champion'), models.Model):
     status = models.CharField("statut", choices=STATUS_CHOICES,
                               max_length=100, default="new")
     deleted = models.BooleanField("supprimé", default=False)
-    comment = models.TextField("commentaire")
+    comment = models.TextField("commentaire", blank=True)
     ts = models.DateTimeField("date", auto_now_add=True)
 
     @property
