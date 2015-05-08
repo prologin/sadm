@@ -44,7 +44,6 @@ List of packages for contestants' environment
 (aur)* emacs-tuareg-mode
 (aur)* emacs-haskell-mode
 * grml-zsh-config
-* ocaml-merlin-git
 
 
 # Graphical environments
@@ -92,7 +91,7 @@ List of packages for contestants' environment
 * python2-pylint
 * tree
 
-(AUR)* xcape-git
+(AUR)* xcape
 
 
 # Compilers & interpreters
@@ -124,9 +123,7 @@ List of packages for contestants' environment
 (aur)* tetrinet
 * teeworlds
 * urbanterror
-(archlinuxfr)* tuxracer
-(aur)* quake3
-(aur)* minecraft
+* tuxracer
 * armagetronad
 * 0ad
 * openttd
