@@ -292,7 +292,7 @@ def install_nginxcfg():
     if not os.path.exists('/var/prologin/static_shared'):
         copytree('webservices/static_shared',
                  '/var/prologin/static_shared',
-                 dir_mode=0o644, file_mode=0o755, owner='root:root')
+                 dir_mode=0o755, file_mode=0o644, owner='root:root')
     if not os.path.exists('/etc/nginx/logs'):
         mkdir('/var/log/nginx', mode=0o750, owner='http:log')
         symlink('/var/log/nginx', '/etc/nginx/logs')
