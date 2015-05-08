@@ -50,9 +50,8 @@ class ChampionUploadForm(forms.Form):
     name = forms.CharField(max_length=25, required=True, label="Nom")
     tarball = forms.FileField(required=True, label="Sources",
                               help_text="Archive au format <tt>.tgz</tt>")
-    comment = forms.CharField(required=True,
-                              widget=forms.widgets.Textarea(attrs={'rows': 3}),
-                              label="Commentaire")
+    comment = forms.CharField(widget=forms.widgets.Textarea(attrs={'rows': 3}),
+                              label="Commentaire", required=False)
 
     def clean_name(self):
         name = self.cleaned_data['name']
