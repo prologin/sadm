@@ -2,25 +2,30 @@
 {% load static %}
 
 {% block title %}{{ champion.name }} – Champion{% endblock %}
-{% block titleh1 %}Détails du champion {{ champion.name }} <small>#{{ champion.id }}</small>{% endblock %}
+{% block titleh1 %}Détails du champion {{ champion.name }}
+  <small>#{{ champion.id }}</small>{% endblock %}
 
 {% block content %}
 
   <div class="row">
-      <div class="col-sm-6">
+    <div class="col-sm-6">
       <div class="panel panel-primary">
         <div class="panel-heading">
           <h3 class="panel-title">Champion</h3>
         </div>
         <div class="panel-body">
           <dl class="dl-horizontal dl-narrow">
-            <dt>ID</dt><dd>{{ champion.id }}</dd>
-            <dt>Auteur</dt><dd><i class="fa fa-user i-align"></i> {{ champion.author }}</dd>
-            <dt>État</dt><dd>{% include "stechec/stub_status_champion.html" %}</dd>
+            <dt>ID</dt>
+            <dd>{{ champion.id }}</dd>
+            <dt>Auteur</dt>
+            <dd><i class="fa fa-user i-align"></i> {{ champion.author }}</dd>
+            <dt>État</dt>
+            <dd>{% include "stechec/stub_status_champion.html" %}</dd>
           </dl>
         </div>
       </div>
-    </div><div class="col-sm-6">
+    </div>
+    <div class="col-sm-6">
       <div class="panel panel-default">
         <div class="panel-heading">
           <h3 class="panel-title">Commentaires</h3>
@@ -29,12 +34,23 @@
           {{ champion.comment|linebreaksbr|default:"<em>Aucun commentaire.</em>" }}
         </div>
       </div>
+      {% if request.user.is_staff or champion.author == request.user %}
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title">Sources du champion</h3>
+          </div>
+          <div class="panel-body">
+            <a href="{% url 'champion-sources' champion.id %}" class="btn btn-default btn-block"><i class="fa fa-download"></i> Télécharger les sources</a>
+          </div>
+        </div>
+      {% endif %}
     </div>
   </div>
 
   {% if champion.compilation_log and can_see_log %}
     <p>
-      <button class="btn btn-default btn-small" data-role="toggler" data-target="#log"><i class="fa"></i> <span>Afficher</span> le log de
+      <button class="btn btn-default btn-small" data-role="toggler" data-target="#log"><i class="fa"></i>
+        <span>Afficher</span> le log de
         compilation
       </button>
     <pre id="log">{{ champion.compilation_log }}</pre>

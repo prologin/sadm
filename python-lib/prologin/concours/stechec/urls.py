@@ -20,6 +20,7 @@ urlpatterns = [
 
     url(r'^champions/(?P<pk>[0-9]+)/$', views.ChampionView.as_view(), name="champion-detail"),
     url(r'^champions/(?P<pk>[0-9]+)/delete/$', login_required(views.ConfirmDeleteChampion.as_view()), name="champion-delete"),
+    url(r'^champions/(?P<pk>[0-9]+)/sources/$', login_required(views.ChampionSources.as_view()), name="champion-sources"),
     url(r'^champions/all/$', views.AllChampionsView.as_view(), name="champions-all"),
     url(r'^champions/mine/$', login_required(views.MyChampionsView.as_view()), name="champions-mine"),
     url(r'^champions/new/$', login_required(views.NewChampionView.as_view()), name="champion-new"),

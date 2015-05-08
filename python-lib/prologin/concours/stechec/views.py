@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.db.models import Max, Min
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404
 from django.views.generic import DetailView, ListView, FormView, TemplateView, RedirectView
 from django.views.generic.base import View
@@ -168,6 +168,20 @@ class ConfirmDeleteChampion(DetailView):
         champion.save()
         messages.success(request, "Champion {} supprimé.".format(champion.name))
         return HttpResponseRedirect(reverse('champions-mine'))
+
+
+class ChampionSources(SingleObjectMixin, View):
+    model = models.Champion
+    pk_url_kwarg = 'pk'
+
+    def get(self, request, *args, **kwargs):
+        champion = self.get_object()
+        if not (request.user.is_staff or request.user == champion.author):
+            return HttpResponseForbidden()
+        h = HttpResponse(champion.sources, content_type="application/stechec-dump")
+        h['Content-Disposition'] = 'attachment; filename=champion-%s.tgz' % self.kwargs[self.pk_url_kwarg]
+        h['Content-Encoding'] = 'application/x-gzip'
+        return h
 
 
 class NewMatchView(FormView):
