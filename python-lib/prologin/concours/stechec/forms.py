@@ -152,6 +152,36 @@ class MapCreationForm(forms.Form):
                                widget=forms.widgets.Textarea(attrs={'class': 'monospace'}),
                                label="Contenu")
 
+    def clean_contents(self):
+        data = self.cleaned_data['contents']
+        data = [_ for _ in data.strip().upper().split('\n') if _]
+
+        def validate_coord(line, n):
+            try:
+                coords = [int(p) for p in line.split()[:2]]
+                assert len(coords) == 2
+                assert all(0 <= int(p) < settings.STECHEC_MAP_SIZE for p in coords)
+                return coords
+            except (ValueError, AssertionError):
+                raise forms.ValidationError("Le format des coordonnées ligne {} est invalide.".format(n))
+
+        output = []
+        output.append('{} {}'.format(*validate_coord(data[0], 1)))
+        output.append('{} {}'.format(*validate_coord(data[1], 2)))
+
+        if len(data[2:]) != settings.STECHEC_MAP_SIZE:
+            raise forms.ValidationError("La carte ne possède pas {} lignes.".format(settings.STECHEC_MAP_SIZE))
+
+        for n, line in enumerate(data[2:]):
+            line = line.strip()
+            if len(line) != settings.STECHEC_MAP_SIZE:
+                raise forms.ValidationError("La ligne {} ne possède pas {} caractères.".format(n + 1, settings.STECHEC_MAP_SIZE))
+            if not all(_ in '.X' for _ in line):
+                raise forms.ValidationError("La ligne {} contient des caractères invalides.".format(n + 1))
+            output.append(line)
+
+        return '\n'.join(output)
+
     helper = BaseFormHelper()
     helper.append_field('name')
     helper.append_field('contents')

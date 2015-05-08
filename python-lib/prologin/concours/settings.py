@@ -157,6 +157,7 @@ STECHEC_USE_MAPS = cfg["contest"]["use_maps"]
 STECHEC_REPLAY = cfg["website"]["replay"]
 STECHEC_REDMINE_ISSUE_LIST = cfg["redmine_urls"]["issue_list"]
 STECHEC_REDMINE_ISSUE_NEW = cfg["redmine_urls"]["issue_new"]
+STECHEC_MAP_SIZE = 30
 
 # Rest Framework settings
 REST_FRAMEWORK = {
