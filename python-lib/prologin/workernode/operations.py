@@ -221,5 +221,5 @@ def spawn_client(config, ip, req_port, sub_port, pl_id, champion_path, opts,
                 timeout=60.0 * 2)
     except asyncio.TimeoutError:
         logging.error("client timeout")
-        return 1, "workernode: client timeout"
+        return 1, b"workernode: Client timeout"
     return retcode, stdout
