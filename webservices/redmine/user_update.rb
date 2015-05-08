@@ -20,6 +20,7 @@ commands.each do |login, cmd|
                 u.login = login
                 u.password = user['password']
                 u.password_confirmation = user['password']
+                u.admin = user['group'] == 'root'
                 if u.valid?
                         u.save
                 else
