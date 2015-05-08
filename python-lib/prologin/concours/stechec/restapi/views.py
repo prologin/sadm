@@ -1,7 +1,8 @@
 from rest_framework import viewsets, mixins, permissions as rest_permissions
 
 from prologin.concours.stechec.restapi import serializers, permissions, filtering
-from prologin.concours.stechec import models
+from prologin.concours.stechec import models, forms
+from django.forms import ValidationError
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction

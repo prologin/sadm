@@ -1,6 +1,8 @@
 from rest_framework import serializers
 
-from prologin.concours.stechec import models
+from django.forms import ValidationError
+from rest_framework.exceptions import ValidationError as DRFValidationError
+from prologin.concours.stechec import models, forms
 from django.contrib.auth import get_user_model
 from django.conf import settings
 
@@ -53,11 +55,22 @@ class CreateMatchSerializer(serializers.HyperlinkedModelSerializer):
         fields = read_only_fields
 
 
+class MapContentsField(serializers.CharField):
+    """
+    Small wrapper around forms.MapCreationForm.clean_validate_contents
+    """
+    def to_representation(self, obj):
+        try:
+            return forms.MapCreationForm.clean_validate_contents(obj)
+        except ValidationError as e:
+            raise DRFValidationError(e.message)
+
+
 class MapSerializer(serializers.HyperlinkedModelSerializer):
     author = MinimalUserSerializer(read_only=True)
     created = serializers.DateTimeField(source='ts', read_only=True)
-    contents = serializers.CharField(
-        style={'base_template': 'textarea.html'})  # required because it's not a model field
+    # contents is required because it's not a model field
+    contents = MapContentsField(style={'base_template': 'textarea.html'})
 
     class Meta:
         model = models.Map

@@ -152,8 +152,8 @@ class MapCreationForm(forms.Form):
                                widget=forms.widgets.Textarea(attrs={'class': 'monospace'}),
                                label="Contenu")
 
-    def clean_contents(self):
-        data = self.cleaned_data['contents']
+    @classmethod
+    def clean_validate_contents(cls, data):
         data = [_ for _ in data.strip().upper().split('\n') if _]
 
         def validate_coord(line, n):
@@ -165,9 +165,10 @@ class MapCreationForm(forms.Form):
             except (ValueError, AssertionError):
                 raise forms.ValidationError("Le format des coordonnées ligne {} est invalide.".format(n))
 
-        output = []
-        output.append('{} {}'.format(*validate_coord(data[0], 1)))
-        output.append('{} {}'.format(*validate_coord(data[1], 2)))
+        output = [
+            '{} {}'.format(*validate_coord(data[0], 1)),
+            '{} {}'.format(*validate_coord(data[1], 2)),
+        ]
 
         if len(data[2:]) != settings.STECHEC_MAP_SIZE:
             raise forms.ValidationError("La carte ne possède pas {} lignes.".format(settings.STECHEC_MAP_SIZE))
@@ -181,6 +182,9 @@ class MapCreationForm(forms.Form):
             output.append(line)
 
         return '\n'.join(output)
+
+    def clean_contents(self):
+        return self.clean_validate_contents(self.cleaned_data['contents'])
 
     helper = BaseFormHelper()
     helper.append_field('name')
