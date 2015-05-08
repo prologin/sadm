@@ -39,12 +39,13 @@ from pathlib import Path
 
 from .concoursquery import ConcoursQuery
 from .monitoring import (
-    masternode_task_redispatch,
-    masternode_request_compilation_task,
-    masternode_tasks,
+    masternode_bad_result,
     masternode_client_done_file,
     masternode_match_done_db,
     masternode_match_done_file,
+    masternode_request_compilation_task,
+    masternode_task_redispatch,
+    masternode_tasks,
     masternode_worker_timeout,
     masternode_workers,
     monitoring_start,
@@ -148,16 +149,19 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             yield from self.db.execute('set_match_status',
                     { 'match_id': mid, 'match_status': 'done' })
 
-            t = [{ 'player_id': r['player'],
-                   'player_score': r['score'] }
-                    for r in result]
-            yield from self.db.executemany('set_player_score', t)
+            try:
+                t = [{ 'player_id': r['player'],
+                       'player_score': r['score'] }
+                        for r in result]
+                yield from self.db.executemany('set_player_score', t)
 
-            t = [{ 'match_id': mid,
-                   'champion_score': r['score'],
-                   'player_id': r['player'] }
-                    for r in result]
-            yield from self.db.executemany('update_tournament_score', t)
+                t = [{ 'match_id': mid,
+                       'champion_score': r['score'],
+                       'player_id': r['player'] }
+                        for r in result]
+                yield from self.db.executemany('update_tournament_score', t)
+            except KeyError:
+                masternode_bad_result.inc()
             masternode_match_done_db.observe(time.monotonic() - match_done_db_start)
 
         asyncio.Task(match_done_db(mid, result, b64dump, stdout))

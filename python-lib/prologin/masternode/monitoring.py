@@ -31,6 +31,10 @@ masternode_task_redispatch = Counter(
     'masternode_task_redispatch',
     'Number of redispatched tasks')
 
+masternode_bad_result = Counter(
+    'masternode_bad_result',
+    'Number of match server logs that are not yaml')
+
 masternode_request_compilation_task = Counter(
     'masternode_request_compilation_task',
     'Number of compilation requests')
