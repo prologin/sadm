@@ -287,6 +287,9 @@ def install_nginxcfg():
     if not os.path.exists('/etc/nginx/sso'):
         copytree('etc/nginx/sso', '/etc/nginx/sso', owner='http:root',
                  dir_mode=0o750, file_mode=0o640)
+    if not os.path.exists('/etc/nginx/errors'):
+        copytree('etc/nginx/errors', '/etc/nginx/errors', owner='http:root',
+                 dir_mode=0o750, file_mode=0o640)
     mkdir('/etc/nginx/services', mode=0o755, owner='root:root')
     mkdir('/etc/nginx/services_contest', mode=0o755, owner='root:root')
     if not os.path.exists('/var/prologin/static_shared'):
