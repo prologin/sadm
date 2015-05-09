@@ -137,14 +137,6 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
 
         @asyncio.coroutine
         def match_done_db(mid, result, b64dump, stdout):
-            with masternode_match_done_file.time():
-                with open(os.path.join(match_path(self.config, mid),
-                    'dump.json.gz'), 'wb') as f:
-                    f.write(b64decode(b64dump))
-                with open(os.path.join(match_path(self.config, mid), 'server.log'),
-                        'w') as f:
-                    f.write(stdout)
-
             match_done_db_start = time.monotonic()
             yield from self.db.execute('set_match_status',
                     { 'match_id': mid, 'match_status': 'done' })
@@ -163,6 +155,14 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             except KeyError:
                 masternode_bad_result.inc()
             masternode_match_done_db.observe(time.monotonic() - match_done_db_start)
+
+            with masternode_match_done_file.time():
+                with open(os.path.join(match_path(self.config, mid),
+                    'dump.json.gz'), 'wb') as f:
+                    f.write(b64decode(b64dump))
+                with open(os.path.join(match_path(self.config, mid), 'server.log'),
+                        'w') as f:
+                    f.write(stdout)
 
         asyncio.Task(match_done_db(mid, result, b64dump, stdout))
         self.workers[(worker[0], worker[1])].remove_match_task(mid)
