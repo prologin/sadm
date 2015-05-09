@@ -130,7 +130,7 @@ class MatchCreationForm(forms.Form):
                                                    widget=MapSelect(attrs={'class': 'mapselect select2'}),
                                                    label="Carte utilisée")
 
-            all_maps = models.Map.objects.order_by('author__username', 'name')
+            all_maps = models.Map.objects.select_related('author').order_by('author__username', 'name')
             self.fields['map'].choices = [
                 ('Officielles', [(map.id, map) for map in all_maps if map.official])
             ] + [
