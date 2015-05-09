@@ -128,9 +128,12 @@ class MatchCreationForm(forms.Form):
                                                    widget=MapSelect(attrs={'class': 'mapselect'}),
                                                    label="Carte utilisée")
             self.fields['map'].choices = [
+                ('Officielles', [(map.id, map)
+                    for map in models.Map.objects.filter(official=True).order_by('name')])
+            ] + [
                 (author, [(map.id, map) for map in maps])
                 for author, maps in groupby(
-                    models.Map.objects.order_by('author__username', 'name'),
+                    models.Map.objects.filter(official=False).order_by('author__username', 'name'),
                     lambda map: map.author
                 )
             ]
