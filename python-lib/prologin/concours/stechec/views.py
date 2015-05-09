@@ -54,7 +54,7 @@ class ChampionsListView(ListView):
 
 
 class AllChampionsView(ChampionsListView):
-    queryset = models.Champion.objects.filter(deleted=False)
+    queryset = models.Champion.objects.filter(deleted=False).select_related('author')
     explanation_text = 'Voici la liste de tous les champions participant actuellement.'
     show_for_all = True
 
@@ -107,7 +107,7 @@ class MatchView(DetailView):
 
 
 class AllMatchesView(MatchesListView):
-    queryset = models.Match.objects.all()
+    queryset = models.Match.objects.all().select_related('author')
     explanation_text = "Voici la liste de tous les matches ayant été réalisés."
     show_creator = True
 
@@ -125,7 +125,7 @@ class AllMapsView(ListView):
     context_object_name = "maps"
     paginate_by = 100
     template_name = "stechec/maps-list.html"
-    queryset = models.Map.objects.order_by('-official', '-id')
+    queryset = models.Map.objects.order_by('-official', '-id').select_related('author')
 
 
 class MapView(DetailView):
