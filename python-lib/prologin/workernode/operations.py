@@ -138,7 +138,8 @@ def spawn_server(config, rep_port, pub_port, nb_players, opts, file_opts):
         cmd.extend(fopts)
 
     try:
-        retcode, stdout = yield from communicate(cmd, timeout=60.0*2)
+        retcode, stdout = yield from communicate(cmd,
+                timeout=config['timeout'].get('server', 400))
     except asyncio.TimeoutError:
         logging.error("Server timeout")
         return "workernode: Server timeout"
@@ -183,7 +184,7 @@ def spawn_dumper(config, rep_port, pub_port, opts, file_opts):
         new_env['DUMP_PATH'] = dump.name
         try:
             retcode, _ = yield from communicate(cmd, env=new_env,
-                    timeout=60.0 * 2)
+                    timeout=config['timeout'].get('dumper', 400))
         except asyncio.TimeoutError:
             logging.error("dumper timeout")
         # even after a timeout, a dump might be available (at worse it's empty)
@@ -220,7 +221,7 @@ def spawn_client(config, ip, req_port, sub_port, pl_id, champion_path, opts,
     try:
         retcode, stdout = yield from communicate(cmd, env=env, max_len=2 ** 18,
                 truncate_message='\n\nLog truncated to stay below 256K.\n',
-                timeout=60.0 * 2)
+                timeout=config['timeout'].get('client', 400))
     except asyncio.TimeoutError:
         logging.error("client timeout")
         return 1, b"workernode: Client timeout"

@@ -24,3 +24,8 @@ path:
     rules: /usr/lib/libCHANGEME.so                    # Stechec's rules library
     dumper: /usr/lib/libCHANGEME-dumper.so            # Library to be used to dump replays
     makefiles: /usr/share/stechec2/CHANGEME/makefiles # Directory containing the makefiles
+
+timeout: # timeouts in seconds (double)
+    server: 400
+    client: 400
+    dumper: 400
