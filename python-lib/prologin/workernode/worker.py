@@ -235,7 +235,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
     @prologin.rpc.remote_method
     @async_work(slots=2)
     def run_client(self, match_id, pl_id, ip, req_port, sub_port, champ_id,
-                   ctgz, opts=None, file_opts=None):
+                   ctgz, opts=None, file_opts=None, order_id=0):
         run_client_start = time.monotonic()
 
         ctgz = b64decode(ctgz)
@@ -245,7 +245,8 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
             yield from self.loop.run_in_executor(None, operations.untar, ctgz,
                     cpath)
             retcode, stdout = yield from operations.spawn_client(self.config,
-                    ip, req_port, sub_port, pl_id, cpath, opts, file_opts)
+                    ip, req_port, sub_port, pl_id, cpath, opts, file_opts,
+                    order_id)
 
         logging.info('player {} for match {} done'.format(pl_id, match_id))
 

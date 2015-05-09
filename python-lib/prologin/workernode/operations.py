@@ -167,6 +167,7 @@ def spawn_dumper(config, rep_port, pub_port, opts, file_opts):
         "--time", "3000",
         "--socket_timeout", "45000",
         "--spectator",
+        "--client_id", "3",
         "--verbose", "1"]
 
     if opts is not None:
@@ -193,7 +194,7 @@ def spawn_dumper(config, rep_port, pub_port, opts, file_opts):
 
 @asyncio.coroutine
 def spawn_client(config, ip, req_port, sub_port, pl_id, champion_path, opts,
-                 file_opts=None):
+                 file_opts=None, order_id=0):
     env = os.environ.copy()
     env['CHAMPION_PATH'] = champion_path + '/'
 
@@ -207,6 +208,7 @@ def spawn_client(config, ip, req_port, sub_port, pl_id, champion_path, opts,
                 "--socket_timeout", "45000",
                 "--time", "1500",
                 "--verbose", "1",
+                "--client_id", str(order_id),
         ]
 
     if opts is not None:
