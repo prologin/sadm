@@ -114,9 +114,10 @@ class MatchCreationForm(forms.Form):
         super(MatchCreationForm, self).__init__(*args, **kwargs)
         self.helper = BaseFormHelper()
         self.champions = []
+        champions = (models.Champion.objects
+                           .filter(deleted=False, status='ready')
+                           .select_related('author'))
         for i in range(1, settings.STECHEC_NPLAYERS + 1):
-            champions = models.Champion.objects.filter(deleted=False,
-                                                       status='ready')
             f = forms.ModelChoiceField(label="Champion %d" % i,
                                        queryset=champions,
                                        widget=forms.Select(attrs={'class': 'select2'}))
@@ -128,13 +129,14 @@ class MatchCreationForm(forms.Form):
             self.fields['map'] = forms.ChoiceField(required=True,
                                                    widget=MapSelect(attrs={'class': 'mapselect select2'}),
                                                    label="Carte utilisée")
+
+            all_maps = models.Map.objects.order_by('author__username', 'name')
             self.fields['map'].choices = [
-                ('Officielles', [(map.id, map)
-                    for map in models.Map.objects.filter(official=True).order_by('name')])
+                ('Officielles', [(map.id, map) for map in all_maps if map.official])
             ] + [
                 (author, [(map.id, map) for map in maps])
                 for author, maps in groupby(
-                    models.Map.objects.filter(official=False).order_by('author__username', 'name'),
+                    (map for map in all_maps if not map.official),
                     lambda map: map.author
                 )
             ]
