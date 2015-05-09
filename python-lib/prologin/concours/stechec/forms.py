@@ -118,14 +118,15 @@ class MatchCreationForm(forms.Form):
             champions = models.Champion.objects.filter(deleted=False,
                                                        status='ready')
             f = forms.ModelChoiceField(label="Champion %d" % i,
-                                       queryset=champions)
+                                       queryset=champions,
+                                       widget=forms.Select(attrs={'class': 'select2'}))
             self.fields['champion_%d' % i] = f
             self.helper.append_field('champion_%d' % i)
             self.champions.append(f)
 
         if settings.STECHEC_USE_MAPS:
             self.fields['map'] = forms.ChoiceField(required=True,
-                                                   widget=MapSelect(attrs={'class': 'mapselect'}),
+                                                   widget=MapSelect(attrs={'class': 'mapselect select2'}),
                                                    label="Carte utilisée")
             self.fields['map'].choices = [
                 ('Officielles', [(map.id, map)
