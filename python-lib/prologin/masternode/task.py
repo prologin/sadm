@@ -98,5 +98,5 @@ class MatchTask:
         except OSError:
             pass
 
-        yield from worker.rpc.run_server(req_port, sub_port, self.mid,
-                self.players, self.opts, self.file_opts)
+        yield from worker.rpc.run_match(self.mid, self.players, self.opts,
+                                        self.file_opts)

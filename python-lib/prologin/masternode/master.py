@@ -38,9 +38,7 @@ from .monitoring import (
     masternode_match_done_file,
     masternode_request_compilation_task,
     masternode_task_redispatch,
-    masternode_tasks,
     masternode_worker_timeout,
-    masternode_workers,
 )
 from .task import MatchTask, CompilationTask
 from .task import champion_compiled_path, match_path, clog_path
@@ -124,8 +122,8 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         logging.info('match {} ended'.format(mid))
 
         # Write player logs
-        for pl_id, log in players_stdout:
-            logname = 'log-champ-{}-{}.log'.format(mpid, champ_id)
+        for pl_id, (champ_id, log) in players_stdout.items():
+            logname = 'log-champ-{}-{}.log'.format(pl_id, champ_id)
             logpath = os.path.join(match_path(self.config, mid), logname)
             with masternode_client_done_file.time(), \
                  open(logpath, 'wb') as fplayer:
@@ -135,7 +133,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         serverpath = os.path.join(match_path(self.config, mid), 'server.log')
         dumppath = os.path.join(match_path(self.config, mid), 'dump.json.gz')
         with masternode_match_done_file.time(), \
-             open(serverpath, 'wb') as fserver, \
+             open(serverpath, 'w') as fserver, \
              open(dumppath, 'wb') as fdump:
                 fserver.write(server_stdout)
                 fdump.write(b64decode(dumper_stdout))
@@ -158,7 +156,8 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                        'champion_score': r['score'],
                        'player_id': r['player'] }
                     for r in result]
-            asyncio.Task(match_done_db(mid, mstatus, pscores, tscores))
+            asyncio.Task(match_done_db(mid, match_status, player_scores,
+                                       tournament_scores))
         except KeyError:
             masternode_bad_result.inc()
             return
@@ -195,14 +194,13 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             { 'champion_status': status })
 
         for r in (yield from cur.fetchall()):
-            logging.info('requested compilation for {} / {}'.format(
-                              r[1], r[0]))
+            logging.info('requested compilation for {} / {}'.format(r[1], r[0]))
             masternode_request_compilation_task.inc()
             to_set_pending.append({
                 'champion_id': r[0],
                 'champion_status': 'pending'
             })
-            t = CompilationTask(config, r[1], r[0])
+            t = CompilationTask(self.config, r[1], r[0])
             self.worker_tasks.append(t)
 
         if to_set_pending:

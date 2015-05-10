@@ -19,12 +19,18 @@
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 import asyncio
+import logging
 import optparse
 import prologin.config
 import prologin.log
 import tornado.platform.asyncio
 
-from .monitoring import monitoring_start
+from .monitoring import (
+    monitoring_start,
+    masternode_tasks,
+    masternode_workers,
+)
+
 from .master import MasterNode
 
 if __name__ == '__main__':
