@@ -21,13 +21,9 @@ workernode_compile_champion_summary = Summary(
     'workernode_compile_champion_summary',
     'Summary of compile champion task')
 
-workernode_run_server_summary = Summary(
-    'workernode_run_server_count',
-    'Summary of server task')
-
-workernode_run_client_summary = Summary(
-    'workernode_run_client_count',
-    'Summary of client task')
+workernode_run_match_summary = Summary(
+    'workernode_run_match_count',
+    'Summary of match task')
 
 workernode_slots = Gauge(
     'workernode_slots',

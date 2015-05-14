@@ -31,7 +31,6 @@ from base64 import b64decode
 
 ioloop = asyncio.get_event_loop()
 
-
 def tar(path, compression='gz'):
     with tempfile.NamedTemporaryFile() as temp:
         with tarfile.open(fileobj=temp, mode='w:' + compression) as tar:
@@ -121,11 +120,11 @@ def compile_champion(config, champion_path):
 
 
 @asyncio.coroutine
-def spawn_server(config, rep_port, pub_port, nb_players, opts, file_opts):
+def spawn_server(config, rep_addr, pub_addr, nb_players, opts, file_opts):
     cmd = [config['path']['stechec_server'],
             "--rules", config['path']['rules'],
-            "--rep_addr", "tcp://0.0.0.0:{}".format(rep_port),
-            "--pub_addr", "tcp://0.0.0.0:{}".format(pub_port),
+            "--rep_addr", rep_addr,
+            "--pub_addr", pub_addr,
             "--nb_clients", str(nb_players + 1),
             "--time", "3000",
             "--socket_timeout", "45000",
@@ -151,7 +150,7 @@ def spawn_server(config, rep_port, pub_port, nb_players, opts, file_opts):
 
 
 @asyncio.coroutine
-def spawn_dumper(config, rep_port, pub_port, opts, file_opts):
+def spawn_dumper(config, rep_addr, pub_addr, opts, file_opts, order_id=None):
     if 'dumper' not in config['path'] or not config['path']['dumper']:
         return
 
@@ -162,22 +161,20 @@ def spawn_dumper(config, rep_port, pub_port, opts, file_opts):
         "--name", "dumper",
         "--rules", config['path']['rules'],
         "--champion", config['path']['dumper'],
-        "--req_addr", "tcp://127.0.0.1:{}".format(rep_port),
-        "--sub_addr", "tcp://127.0.0.1:{}".format(pub_port),
+        "--req_addr", rep_addr,
+        "--sub_addr", pub_addr,
         "--memory", "250000",
         "--time", "3000",
         "--socket_timeout", "45000",
         "--spectator",
-        "--client_id", "3",
         "--verbose", "1"]
+    cmd += ["--client_id", str(order_id)] if order_id is not None else []
 
     if opts is not None:
         cmd += gen_opts(opts)
     if file_opts is not None:
         fopts, tmp_files = create_file_opts(file_opts)
         cmd.extend(fopts)
-
-    yield from asyncio.sleep(0.1) # Let the server start
 
     with tempfile.NamedTemporaryFile() as dump:
         new_env = os.environ.copy()
@@ -194,8 +191,8 @@ def spawn_dumper(config, rep_port, pub_port, opts, file_opts):
 
 
 @asyncio.coroutine
-def spawn_client(config, ip, req_port, sub_port, pl_id, champion_path, opts,
-                 file_opts=None, order_id=0):
+def spawn_client(config, req_addr, sub_addr, pl_id, champion_path, opts,
+                 file_opts=None, order_id=None):
     env = os.environ.copy()
     env['CHAMPION_PATH'] = champion_path + '/'
 
@@ -203,14 +200,14 @@ def spawn_client(config, ip, req_port, sub_port, pl_id, champion_path, opts,
                 "--name", str(pl_id),
                 "--rules", config['path']['rules'],
                 "--champion", champion_path + '/champion.so',
-                "--req_addr", "tcp://{ip}:{port}".format(ip=ip, port=req_port),
-                "--sub_addr", "tcp://{ip}:{port}".format(ip=ip, port=sub_port),
+                "--req_addr", req_addr,
+                "--sub_addr", sub_addr,
                 "--memory", "250000",
                 "--socket_timeout", "45000",
                 "--time", "1500",
                 "--verbose", "1",
-                "--client_id", str(order_id),
         ]
+    cmd += ["--client_id", str(order_id)] if order_id is not None else []
 
     if opts is not None:
         cmd += gen_opts(opts)

@@ -44,7 +44,6 @@ from .monitoring import (
 
 tornado.platform.asyncio.AsyncIOMainLoop().install()
 
-
 def async_work(func=None, slots=0):
     if func is None:
         return functools.partial(async_work, slots=slots)
@@ -78,12 +77,10 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         self.hostname = socket.gethostname()
         self.port = config['worker']['port']
         self.slots = self.max_slots = config['worker']['available_slots']
-        self.min_srv_port = config['worker']['port_range_start']
-        self.max_srv_port = config['worker']['port_range_end']
-        self.srv_port = self.min_srv_port
         self.matches = {}
         self.loop = asyncio.get_event_loop()
         self.master = self.get_master()
+        self.socket_dir = tempfile.TemporaryDirectory(prefix='workernode')
 
     def run(self):
         logging.info('worker listening on {}'.format(
@@ -134,26 +131,6 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         return True
 
     @prologin.rpc.remote_method
-    def available_server_port(self):
-        """
-        Be optimistic and hope that:
-        - nobody will use the ports in the port range but us
-        - there will never be more servers than ports in the range
-        """
-        port = self.srv_port
-        self.srv_port += 1
-        if self.srv_port > self.max_srv_port:
-            self.srv_port = self.min_srv_port
-        return port
-
-    @prologin.rpc.remote_method
-    def get_ports(self, n=1):
-        l = []
-        for i in range(n):
-            l.append(self.available_server_port())
-        return l
-
-    @prologin.rpc.remote_method
     @async_work(slots=1)
     def compile_champion(self, user, cid, ctgz):
         compile_champion_start = time.monotonic()
@@ -197,68 +174,64 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
             max(time.monotonic() - compile_champion_start, 0))
 
     @prologin.rpc.remote_method
-    @async_work(slots=1)
-    def run_server(self, rep_port, pub_port, match_id, nb_players,
-                   opts=None, file_opts=None):
-        run_server_start = time.monotonic()
+    @async_work(slots=5)
+    def run_match(self, match_id, players, opts=None, file_opts=None):
+        logging.info('starting match {}'.format(match_id))
+        run_match_start = time.monotonic()
 
-        logging.info('starting server for match {}'.format(match_id))
+        s_reqrep = 'ipc://' + self.socket_dir.name + '/' + str(match_id) + 'rr'
+        s_pubsub = 'ipc://' + self.socket_dir.name + '/' + str(match_id) + 'ps'
 
+        # Server
         task_server = asyncio.Task(operations.spawn_server(self.config,
             rep_port, pub_port, nb_players, opts, file_opts))
+        yield from asyncio.sleep(0.1) # Let the server start
+
+        # Dumper
         task_dumper = asyncio.Task(operations.spawn_dumper(self.config,
             rep_port, pub_port, opts, file_opts))
 
-        yield from asyncio.wait([task_server, task_dumper])
+        # Players
+        tasks_players = {}
+        champion_dirs = []
+        for pl_id, (c_id, c_tgz) in players.items():
+            ctgz = b64decode(ctgz)
+            cdir = tempfile.TemporaryDirectory()
+            champion_dirs.append(cdir)
+            yield from self.loop.run_in_executor(None, operations.untar,
+                                                 ctgz, cdir.name)
+            tasks_players[pl_id] = asyncio.Task(operations.spawn_client(
+                self.config, s_reqrep, s_pubsub, pl_id, cpath, opts, file_opts))
+
+        # Wait for the match to complete
+        yield from asyncio.wait([task_server, task_dumper] +
+                                tasks_players.values())
         logging.info('match {} done'.format(match_id))
 
+        # Get the output of the tasks
         server_stdout = task_server.result()
-        dumper_stdout = task_dumper.result()
+        dumper_stdout = b64encode(task_dumper.result()).decode()
+        players_stdout = {pl_id: b64encode(t.result()[1]).decode()
+                          for pl_id, t in tasks_players.items()}
 
-        result = yaml.safe_load_all(server_stdout)
+        # Extract the match result from the server stdout
         # stechec2 rules can output non-dict data, discard it
-        result = [r for r in result if isinstance(r, dict)]
+        server_result = yaml.safe_load_all(server_stdout)
+        server_result = [r for r in result if isinstance(r, dict)]
 
-        b64dump = b64encode(dumper_stdout).decode()
+        # Remove the champion temporary directories
+        for tmpdir in champion_dirs:
+            tmpdir.cleanup()
+
         try:
             yield from self.master.match_done(self.get_worker_infos(),
-                    match_id, result, b64dump, server_stdout,
+                    match_id, result, dumper_stdout, server_stdout,
+                    players_stdout,
                     max_retries=self.config['master']['max_retries'],
                     retry_delay=self.config['master']['retry_delay'])
         except socket.error:
             logging.warning('master down, cannot send match {} result'.format(
                 match_id))
 
-        workernode_run_server_summary.observe(
-            max(time.monotonic() - run_server_start, 0))
-
-    @prologin.rpc.remote_method
-    @async_work(slots=2)
-    def run_client(self, match_id, pl_id, ip, req_port, sub_port, champ_id,
-                   ctgz, opts=None, file_opts=None, order_id=0):
-        run_client_start = time.monotonic()
-
-        ctgz = b64decode(ctgz)
-        logging.info('running player {} for match {}'.format(pl_id, match_id))
-
-        with tempfile.TemporaryDirectory() as cpath:
-            yield from self.loop.run_in_executor(None, operations.untar, ctgz,
-                    cpath)
-            retcode, stdout = yield from operations.spawn_client(self.config,
-                    ip, req_port, sub_port, pl_id, cpath, opts, file_opts,
-                    order_id)
-
-        logging.info('player {} for match {} done'.format(pl_id, match_id))
-
-        b64log = b64encode(stdout).decode()
-        try:
-            yield from self.master.client_done(self.get_worker_infos(), pl_id,
-                    b64log, match_id, champ_id,
-                    max_retries=self.config['master']['max_retries'],
-                    retry_delay=self.config['master']['retry_delay'])
-        except socket.error:
-            logging.warning('master down, cannot send client {} result '
-                            'for match {}'.format(pl_id, match_id))
-
-        workernode_run_client_summary.observe(
-            max(time.monotonic() - run_client_start, 0))
+        workernode_run_match_summary.observe(
+            max(time.monotonic() - run_match_start, 0))

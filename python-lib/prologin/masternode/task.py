@@ -72,51 +72,24 @@ class CompilationTask:
         return "<Compilation: {}>".format(self.champ_id)
 
 
-class PlayerTask:
-    def __init__(self, config, match_id, pl_id, ip, req_port, sub_port, user,
-            cid, opts, file_opts, order_id=0):
-        self.match_id = match_id
-        self.hostname = ip
-        self.req_port = req_port
-        self.sub_port = sub_port
-        self.mpid = pl_id
-        self.opts = opts
-        self.file_opts = file_opts
-        self.champ_path = champion_compiled_path(config, user, cid)
-        self.cid = cid
-        self.order_id = order_id
-
-    @property
-    def slots_taken(self):
-        return 2 # It's usually fairly intensive, take 2 slots
-
-    @asyncio.coroutine
-    def execute(self, master, worker):
-        ctgz = ''
-        with open(self.champ_path, 'rb') as f:
-            ctgz = b64encode(f.read()).decode()
-        yield from worker.rpc.run_client(self.match_id, self.mpid,
-                self.hostname, self.req_port, self.sub_port, self.cid, ctgz,
-                self.opts, self.file_opts, self.order_id)
-
-
 class MatchTask:
     def __init__(self, config, mid, players, opts, file_opts):
         self.config = config
         self.mid = mid
         self.opts = opts
         self.file_opts = file_opts
-        self.player_tasks = set()
+        self.players = {}
 
-        if ('order' in self.config['contest'] and
-            self.config['contest']['order'] in ('up', 'down')):
-            players = list(sorted(players, key=lambda p: p[0],
-                            reverse=self.config['contest']['order'] == 'down'))
-        self.players = players
+        for (cid, mpid, user) in players:
+            cpath = champion_compiled_path(config, user, cid)
+            ctgz = ''
+            with open(cpath, 'rb') as f:
+                ctgz = b64encode(f.read()).decode()
+            self.players[mpid] = (cid, ctgz)
 
     @property
     def slots_taken(self):
-        return 1 # Only the server is launched by this task
+        return 5
 
     @asyncio.coroutine
     def execute(self, master, worker):
@@ -125,24 +98,5 @@ class MatchTask:
         except OSError:
             pass
 
-        master.matches[self.mid] = self
-        req_port, sub_port = yield from worker.rpc.get_ports(2)
-
         yield from worker.rpc.run_server(req_port, sub_port, self.mid,
-                len(self.players), self.opts, self.file_opts)
-
-        # TODO(seirl): dirty hack to order the players by id. We need to
-        # relaunch masternode and to change between the config 'up' and 'down'
-        # during the tournament. We need a proper way to do that.
-        for order_id, (cid, mpid, user) in enumerate(self.players, 1):
-            # on error, prevent launching several times the players
-            if mpid in self.player_tasks:
-                continue
-            self.player_tasks.add(mpid)
-
-            t = PlayerTask(self.config, self.mid, mpid, worker.hostname,
-                    req_port, sub_port, user, cid, self.opts, self.file_opts,
-                    order_id)
-            master.worker_tasks.append(t)
-        master.to_dispatch.set()
-        del master.matches[self.mid]
+                self.players, self.opts, self.file_opts)

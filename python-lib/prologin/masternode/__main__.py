@@ -63,9 +63,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         self.config = config
         self.workers = {}
         self.worker_tasks = []
-        self.matches = {}
         self.db = ConcoursQuery(config)
-
         self.spawn_tasks()
 
     def spawn_tasks(self):
@@ -132,49 +130,52 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         asyncio.Task(complete_compilation(cid, user, ret))
 
     @prologin.rpc.remote_method
-    def match_done(self, worker, mid, result, b64dump, stdout):
+    def match_done(self, worker, mid, result, dumper_stdout, server_stdout,
+                   players_stdout):
         logging.info('match {} ended'.format(mid))
 
+        # Write player logs
+        for pl_id, log in players_stdout:
+            logname = 'log-champ-{}-{}.log'.format(mpid, champ_id)
+            logpath = os.path.join(match_path(self.config, mid), logname)
+            with masternode_client_done_file.time(), \
+                 open(logpath, 'wb') as fplayer:
+                fplayer.write(b64decode(log))
+
+        # Write server logs and dumper log
+        serverpath = os.path.join(match_path(self.config, mid), 'server.log')
+        dumppath = os.path.join(match_path(self.config, mid), 'dump.json.gz')
+        with masternode_match_done_file.time(), \
+             open(serverpath, 'wb') as fserver, \
+             open(dumppath, 'wb') as fdump:
+                fserver.write(server_stdout)
+                fdump.write(b64decode(dumper_stdout))
+
+        # Update the database with the results
         @asyncio.coroutine
-        def match_done_db(mid, result, b64dump, stdout):
-            match_done_db_start = time.monotonic()
-            yield from self.db.execute('set_match_status',
-                    { 'match_id': mid, 'match_status': 'done' })
+        def match_done_db(mid, mstatus, pscores, tscores):
+            start = time.monotonic()
+            yield from self.db.execute('set_match_status', mstatus)
+            yield from self.db.executemany('set_player_score', pscores)
+            yield from self.db.executemany('update_tournament_score', tscores)
+            masternode_match_done_db.observe(time.monotonic() - start)
 
-            try:
-                t = [{ 'player_id': r['player'],
-                       'player_score': r['score'] }
-                        for r in result]
-                yield from self.db.executemany('set_player_score', t)
-
-                t = [{ 'match_id': mid,
+        try:
+            match_status = { 'match_id': mid, 'match_status': 'done' }
+            player_scores = [{ 'player_id': r['player'],
+                   'player_score': r['score'] }
+                    for r in result]
+            tournament_scores = [{ 'match_id': mid,
                        'champion_score': r['score'],
                        'player_id': r['player'] }
-                        for r in result]
-                yield from self.db.executemany('update_tournament_score', t)
-            except KeyError:
-                masternode_bad_result.inc()
-            masternode_match_done_db.observe(time.monotonic() - match_done_db_start)
+                    for r in result]
+            asyncio.Task(match_done_db(mid, mstatus, pscores, tscores))
+        except KeyError:
+            masternode_bad_result.inc()
+            return
 
-            with masternode_match_done_file.time():
-                with open(os.path.join(match_path(self.config, mid),
-                    'dump.json.gz'), 'wb') as f:
-                    f.write(b64decode(b64dump))
-                with open(os.path.join(match_path(self.config, mid), 'server.log'),
-                        'w') as f:
-                    f.write(stdout)
-
-        asyncio.Task(match_done_db(mid, result, b64dump, stdout))
+        # Remove task from worker
         self.workers[(worker[0], worker[1])].remove_match_task(mid)
-
-    @prologin.rpc.remote_method
-    @masternode_client_done_file.time()
-    def client_done(self, worker, mpid, b64log, mid, champ_id):
-        logname = 'log-champ-{}-{}.log'.format(mpid, champ_id)
-        with open(os.path.join(match_path(self.config, mid), logname),
-                  'wb') as f:
-            f.write(b64decode(b64log))
-        self.workers[(worker[0], worker[1])].remove_player_task(mpid)
 
     def redispatch_worker(self, worker):
         tasks = [t for t in worker.tasks]
