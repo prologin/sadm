@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 # This file is part of Prologin-SADM.
 #
-# Copyright (c) 2014 Antoine Pietri <antoine.pietri@prologin.org>
+# Copyright (c) 2014-2015 Antoine Pietri <antoine.pietri@prologin.org>
 # Copyright (c) 2011 Pierre Bourdon <pierre.bourdon@prologin.org>
 # Copyright (c) 2011-2014 Association Prologin <info@prologin.org>
 #
