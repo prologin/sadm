@@ -21,7 +21,6 @@ Needs
     - Bug tracking software (Redmine)
     - Documentation pages
     - IRC server
-    - Minecraft server
     - Pastebin
     - Matches cluster
 
@@ -92,7 +91,7 @@ It stores the following information for every user:
 
 As with the MDB, the UDB is used as the main data source for several services:
 every service accepting logins from users synchronizes the user data from the
-UDB (contest website, bug tracker, minecraft server, ...). A ``pam_udb``
+UDB (contest website, bug tracker, ...). A ``pam_udb``
 service is also used to handle login on user machines.
 
 File storage
@@ -167,16 +166,6 @@ connected to the master node.
 
 To share data, all the nodes are connected to a local NFS share: ``fs.cl``.
 Read the file storage overview for more information.
-
-Minecraft server
-----------------
-
-Surprisingly, setting up a Minecraft server integrated with UDB is pretty
-complicated. A replacement for the Minecraft authentication server will be
-running on ``mineauth``, aka. ``session.minecraft.net``. This server will need
-to have a valid SSL key for the hostname (so we need to deploy our own CA) and
-we need to patch ``minecraft.jar`` because it contains some keys and
-certificates that we will need to modify.
 
 Other small services
 --------------------
