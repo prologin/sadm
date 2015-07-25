@@ -177,7 +177,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
     @asyncio.coroutine
     def janitor_task(self):
         while True:
-            for worker in self.workers[:].values():
+            for worker in list(self.workers.values()):
                 if not worker.is_alive(self.config['worker']['timeout_secs']):
                     masternode_worker_timeout.inc()
                     logging.warn("timeout detected for worker {}".format(
