@@ -284,10 +284,10 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                     self.worker_tasks = self.worker_tasks[1:]
             if not self.worker_tasks:
                 self.to_dispatch.clear()
+            else:
+                yield from asyncio.sleep(1) # No worker available, wait 1s
 
             # Give the hand back to the event loop to avoid being blocking,
             # but be called as soon as all the functions at the top of the heap
             # have been executed
             yield from asyncio.sleep(0)
-
-
