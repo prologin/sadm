@@ -21,6 +21,7 @@
 import asyncio
 import os
 import os.path
+import time
 
 from base64 import b64decode, b64encode
 
@@ -49,9 +50,22 @@ def match_path(config, match_id):
             config['contest']['game'], 'matches', match_id_high, match_id_low)
 
 
-class CompilationTask:
+class Task:
+    def __init__(self, timeout=None):
+        self.start_time = None
+        self.timeout = None
+
+    def execute(self):
+        self.start_time = time.time()
+
+    def has_timeout(self):
+        return (self.start_time is not None and
+                time.time() > self.start_time + self.timeout)
+
+
+class CompilationTask(Task):
     def __init__(self, config, user, champ_id):
-        self.config = config
+        super().__init__(timeout=config['worker']['compilation_timeout_secs'])
         self.user = user
         self.champ_id = champ_id
         self.champ_path = champion_path(config, user, champ_id)
@@ -62,6 +76,7 @@ class CompilationTask:
 
     @asyncio.coroutine
     def execute(self, master, worker):
+        super().execute()
         ctgz = ''
         with open(self.champ_path, 'rb') as f:
             ctgz = b64encode(f.read()).decode()
@@ -72,13 +87,14 @@ class CompilationTask:
         return "<Compilation: {}>".format(self.champ_id)
 
 
-class MatchTask:
+class MatchTask(Task):
     def __init__(self, config, mid, players, opts, file_opts):
-        self.config = config
+        super().__init__(timeout=config['worker']['match_timeout_secs'])
         self.mid = mid
         self.opts = opts
         self.file_opts = file_opts
         self.players = {}
+        self.match_path = match_path(config, self.mid)
 
         for (cid, mpid, user) in players:
             cpath = champion_compiled_path(config, user, cid)
@@ -93,8 +109,9 @@ class MatchTask:
 
     @asyncio.coroutine
     def execute(self, master, worker):
+        super().execute()
         try:
-            os.makedirs(match_path(self.config, self.mid))
+            os.makedirs(self.match_path)
         except OSError:
             pass
 

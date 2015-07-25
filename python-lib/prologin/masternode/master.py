@@ -103,7 +103,8 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         def complete_compilation(cid, user, ret):
             status = 'ready' if ret else 'error'
             if ret:
-                with open(champion_compiled_path(self.config, user, cid), 'wb') as f:
+                with open(champion_compiled_path(self.config, user, cid),
+                          'wb') as f:
                     f.write(b64decode(b64compiled))
             with open(clog_path(self.config, user, cid), 'w') as f:
                 f.write(log)
@@ -113,12 +114,24 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
 
         hostname, port, slots, max_slots = worker
         w = self.workers[(hostname, port)]
+
+        # Ignore the tasks we already redispatched
+        if w.get_compilation_task(cid) is None:
+            return
+
         w.remove_compilation_task(cid)
         asyncio.Task(complete_compilation(cid, user, ret))
 
     @prologin.rpc.remote_method
     def match_done(self, worker, mid, result, dumper_stdout, server_stdout,
                    players_stdout):
+        hostname, port, slots, max_slots = worker
+        w = self.workers[(hostname, port)]
+
+        # Ignore the tasks we already redispatched
+        if w.get_match_task(mid) is None:
+            return
+
         logging.info('match {} ended'.format(mid))
 
         # Write player logs
@@ -163,7 +176,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             return
 
         # Remove task from worker
-        self.workers[(worker[0], worker[1])].remove_match_task(mid)
+        w.remove_match_task(mid)
 
     def redispatch_worker(self, worker):
         masternode_task_redispatch.inc(len(worker.tasks))
@@ -174,6 +187,15 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             self.to_dispatch.set()
         del self.workers[(worker.hostname, worker.port)]
 
+    def redispatch_timeout_tasks(self, worker):
+        for i, t in list(enumerate(worker.tasks)):
+            if t.has_timeout():
+                logging.info("redispatching timeout task {} for {}".format(
+                                 t, worker))
+                worker.tasks.pop(i)
+                self.worker_tasks.append(t)
+                self.to_dispatch.set()
+
     @asyncio.coroutine
     def janitor_task(self):
         while True:
@@ -183,6 +205,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                     logging.warn("timeout detected for worker {}".format(
                                 worker))
                     self.redispatch_worker(worker)
+                self.redispatch_timeout_tasks(worker)
             yield from asyncio.sleep(1)
 
     @asyncio.coroutine
