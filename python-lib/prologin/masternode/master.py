@@ -166,20 +166,18 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         self.workers[(worker[0], worker[1])].remove_match_task(mid)
 
     def redispatch_worker(self, worker):
-        tasks = [t for t in worker.tasks]
-        masternode_task_redispatch.inc(len(tasks))
-        if tasks:
+        masternode_task_redispatch.inc(len(worker.tasks))
+        if worker.tasks:
             logging.info("redispatching tasks for {}: {}".format(
-                             worker, tasks))
-            self.worker_tasks = tasks + self.worker_tasks
+                             worker, worker.tasks))
+            self.worker_tasks = worker.tasks + self.worker_tasks
             self.to_dispatch.set()
         del self.workers[(worker.hostname, worker.port)]
 
     @asyncio.coroutine
     def janitor_task(self):
         while True:
-            all_workers = copy.copy(self.workers)
-            for worker in all_workers.values():
+            for worker in self.workers[:].values():
                 if not worker.is_alive(self.config['worker']['timeout_secs']):
                     masternode_worker_timeout.inc()
                     logging.warn("timeout detected for worker {}".format(
