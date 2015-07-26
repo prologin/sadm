@@ -14,6 +14,7 @@ worker:
                         # configured as the ping interval in the worker nodes.
   compilation_timeout_secs: 20
   match_timeout_secs: 450
+  max_task_tries: 10
 
 # SQL connection informations and queries. If you are using the standard
 # stechec website, do not change the queries!

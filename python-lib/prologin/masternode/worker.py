@@ -66,6 +66,7 @@ class Worker(object):
     def add_task(self, master, task):
         self.slots -= task.slots_taken
         self.tasks.append(task)
+        task.start_time = None
         asyncio.Task(task.execute(master, self))
 
     def get_compilation_task(self, champ_id):

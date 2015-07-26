@@ -190,11 +190,16 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
     def redispatch_timeout_tasks(self, worker):
         for i, t in list(enumerate(worker.tasks)):
             if t.has_timeout():
-                logging.info("redispatching timeout task {} for {}".format(
-                                 t, worker))
                 worker.tasks.pop(i)
-                self.worker_tasks.append(t)
-                self.to_dispatch.set()
+                max_tries = self.config['worker']['max_task_tries']
+                if t.executions < max_tries:
+                    self.worker_tasks.append(t)
+                    self.to_dispatch.set()
+                    msg = "redispatching (try {}/{})".format(t.executions,
+                                                             max_tries)
+                else:
+                    msg = "maximum number of retries exceeded, bailing out"
+                logging.info("task {} of {} timeout: {}".format(t, worker, msg))
 
     @asyncio.coroutine
     def janitor_task(self):

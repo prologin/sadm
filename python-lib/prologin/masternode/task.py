@@ -53,13 +53,16 @@ def match_path(config, match_id):
 class Task:
     def __init__(self, timeout=None):
         self.start_time = None
-        self.timeout = None
+        self.timeout = timeout
+        self.executions = 0
 
     def execute(self):
         self.start_time = time.time()
+        self.executions += 1
 
     def has_timeout(self):
-        return (self.start_time is not None and
+        return (self.timeout is not None and
+                self.start_time is not None and
                 time.time() > self.start_time + self.timeout)
 
 
