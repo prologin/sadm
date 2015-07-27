@@ -31,6 +31,6 @@ timeout: # timeouts in seconds (double)
     dumper: 400
 
 isolate:
-    time_limit: 350   # seconds
-    mem_limit: 20000  # KB
-    processes: 2
+    time_limit_secs: 350   # seconds
+    mem_limit_KiB: 20000  # KB
+    processes: 20

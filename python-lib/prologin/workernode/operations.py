@@ -181,9 +181,9 @@ def spawn_client(config, req_addr, sub_addr, pl_id, champion_path, sockets_dir,
                 max_len=2 ** 18,
                 truncate_message='\n\nLog truncated to stay below 256K.\n',
                 coro_timeout=config['timeout'].get('client', 400),
-                time_limit=config['isolate'].get('time_limit', 350),
-                mem_limit=config['isolate'].get('mem_limit', 500000),
-                processes=config['isolate'].get('processes', 100),
+                time_limit=config['isolate'].get('time_limit_secs', 350),
+                mem_limit=config['isolate'].get('mem_limit_KiB', 20000),
+                processes=config['isolate'].get('processes', 20),
                 allowed_dirs=['/var', '/tmp', sockets_dir + ':rw'],
         )
     except asyncio.TimeoutError:
