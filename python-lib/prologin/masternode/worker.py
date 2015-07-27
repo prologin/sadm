@@ -66,7 +66,18 @@ class Worker(object):
     def add_task(self, master, task):
         self.slots -= task.slots_taken
         self.tasks.append(task)
+        task.start_time = None
         asyncio.Task(task.execute(master, self))
+
+    def get_compilation_task(self, champ_id):
+        f = [isinstance(t, task.CompilationTask) and
+             t.champ_id == champ_id for t in self.tasks]
+        return f[0] if f else None
+
+    def get_match_task(self, mid):
+        f = [isinstance(t, task.MatchTask) and
+             t.mid == mid for t in self.tasks]
+        return f[0] if f else None
 
     def remove_compilation_task(self, champ_id):
         self.tasks = [t for t in self.tasks
