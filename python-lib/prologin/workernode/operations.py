@@ -29,6 +29,9 @@ import tempfile
 
 from base64 import b64decode
 
+from . import tools
+from . import isolate
+
 ioloop = asyncio.get_event_loop()
 
 def tar(path, compression='gz'):
@@ -55,53 +58,11 @@ def create_file_opts(file_opts):
         f = tempfile.NamedTemporaryFile()
         f.write(b64decode(content))
         f.flush()
+        os.chmod(f.name, 0o644)
         opts.append(l)
         opts.append(f.name)
         files.append(f)
     return opts, files
-
-
-def gen_opts(opts):
-    return list(itertools.chain(opts.items()))
-
-
-@asyncio.coroutine
-def communicate_forever(cmdline, *, data=None, env=None, max_len=None,
-        truncate_message='', **kwargs):
-    proc = yield from asyncio.create_subprocess_exec(*cmdline, env=env,
-            stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT, **kwargs)
-
-    # Send stdin
-    if data:
-        proc.stdin.write(data.encode())
-        yield from proc.stdin.drain()
-        proc.stdin.close()
-
-    # Receive stdout
-    stdout = bytearray()
-    while True:
-        to_read = 4096
-        if max_len is not None:
-            to_read = min(to_read, max_len - len(stdout))
-            if not to_read:
-                break
-        chunk = yield from proc.stdout.read(to_read)
-        if not chunk:
-            break
-        stdout.extend(chunk)
-
-    if not to_read:
-        stdout += truncate_message.encode()
-
-    exitcode = yield from proc.wait()
-    return (exitcode, stdout)
-
-
-@asyncio.coroutine
-def communicate(cmdline, *args, timeout=None, **kwargs):
-    return (yield from asyncio.wait_for(
-        communicate_forever(cmdline, *args, **kwargs), timeout))
 
 
 @asyncio.coroutine
@@ -115,7 +76,7 @@ def compile_champion(config, champion_path):
     """
     cmd = [config['path']['compile_script'], config['path']['makefiles'],
            champion_path]
-    retcode, _ = yield from communicate(cmd)
+    retcode, _ = yield from tools.communicate(cmd)
     return retcode == 0
 
 
@@ -131,14 +92,14 @@ def spawn_server(config, rep_addr, pub_addr, nb_players, opts, file_opts):
             "--verbose", "1"]
 
     if opts is not None:
-        cmd += gen_opts(opts)
+        cmd += opts
     if file_opts is not None:
         fopts, tmp_files = create_file_opts(file_opts)
         cmd.extend(fopts)
 
     try:
-        retcode, stdout = yield from communicate(cmd,
-                timeout=config['timeout'].get('server', 400))
+        retcode, stdout = yield from tools.communicate(cmd,
+                coro_timeout=config['timeout'].get('server', 400))
     except asyncio.TimeoutError:
         logging.error("Server timeout")
         return "workernode: Server timeout"
@@ -171,7 +132,7 @@ def spawn_dumper(config, rep_addr, pub_addr, opts, file_opts, order_id=None):
     cmd += ["--client_id", str(order_id)] if order_id is not None else []
 
     if opts is not None:
-        cmd += gen_opts(opts)
+        cmd += opts
     if file_opts is not None:
         fopts, tmp_files = create_file_opts(file_opts)
         cmd.extend(fopts)
@@ -180,8 +141,8 @@ def spawn_dumper(config, rep_addr, pub_addr, opts, file_opts, order_id=None):
         new_env = os.environ.copy()
         new_env['DUMP_PATH'] = dump.name
         try:
-            retcode, _ = yield from communicate(cmd, env=new_env,
-                    timeout=config['timeout'].get('dumper', 400))
+            retcode, _ = yield from tools.communicate(cmd, env=new_env,
+                    coro_timeout=config['timeout'].get('dumper', 400))
         except asyncio.TimeoutError:
             logging.error("dumper timeout")
         # even after a timeout, a dump might be available (at worse it's empty)
@@ -191,8 +152,8 @@ def spawn_dumper(config, rep_addr, pub_addr, opts, file_opts, order_id=None):
 
 
 @asyncio.coroutine
-def spawn_client(config, req_addr, sub_addr, pl_id, champion_path, opts,
-                 file_opts=None, order_id=None):
+def spawn_client(config, req_addr, sub_addr, pl_id, champion_path, sockets_dir,
+                 opts, file_opts=None, order_id=None):
     env = os.environ.copy()
     env['CHAMPION_PATH'] = champion_path + '/'
 
@@ -210,15 +171,21 @@ def spawn_client(config, req_addr, sub_addr, pl_id, champion_path, opts,
     cmd += ["--client_id", str(order_id)] if order_id is not None else []
 
     if opts is not None:
-        cmd += gen_opts(opts)
+        cmd += opts
     if file_opts is not None:
         fopts, tmp_files = create_file_opts(file_opts)
         cmd.extend(fopts)
 
     try:
-        retcode, stdout = yield from communicate(cmd, env=env, max_len=2 ** 18,
+        retcode, stdout = yield from isolate.communicate(cmd, env=env,
+                max_len=2 ** 18,
                 truncate_message='\n\nLog truncated to stay below 256K.\n',
-                timeout=config['timeout'].get('client', 400))
+                coro_timeout=config['timeout'].get('client', 400),
+                time_limit=config['isolate'].get('time_limit_secs', 350),
+                mem_limit=config['isolate'].get('mem_limit_KiB', 20000),
+                processes=config['isolate'].get('processes', 20),
+                allowed_dirs=['/var', '/tmp', sockets_dir + ':rw'],
+        )
     except asyncio.TimeoutError:
         logging.error("client timeout")
         return 1, b"workernode: Client timeout"

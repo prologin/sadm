@@ -29,3 +29,8 @@ timeout: # timeouts in seconds (double)
     server: 400
     client: 400
     dumper: 400
+
+isolate:
+    time_limit_secs: 350   # seconds
+    mem_limit_KiB: 20000  # KB
+    processes: 20

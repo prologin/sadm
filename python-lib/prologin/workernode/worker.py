@@ -19,8 +19,10 @@
 
 import asyncio
 import functools
+import itertools
 import logging
 import logging.handlers
+import os
 import os.path
 import prologin.rpc.client
 import prologin.rpc.server
@@ -79,7 +81,6 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         self.matches = {}
         self.loop = asyncio.get_event_loop()
         self.master = self.get_master()
-        self.socket_dir = tempfile.TemporaryDirectory(prefix='workernode')
 
     def run(self):
         logging.info('worker listening on {}'.format(
@@ -178,13 +179,30 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         logging.info('starting match {}'.format(match_id))
         run_match_start = time.monotonic()
 
-        s_reqrep = 'ipc://' + self.socket_dir.name + '/' + str(match_id) + 'rr'
-        s_pubsub = 'ipc://' + self.socket_dir.name + '/' + str(match_id) + 'ps'
+        socket_dir = tempfile.TemporaryDirectory(prefix='workernode-')
+        os.chmod(socket_dir.name, 0o777)
+        f_reqrep = socket_dir.name + '/' + 'reqrep'
+        f_pubsub = socket_dir.name + '/' + 'pubsub'
+        s_reqrep = 'ipc://' + f_reqrep
+        s_pubsub = 'ipc://' + f_pubsub
+
+        opts = list(itertools.chain(opts.items()))
 
         # Server
         task_server = asyncio.Task(operations.spawn_server(self.config,
             s_reqrep, s_pubsub, len(players), opts, file_opts))
         yield from asyncio.sleep(0.1) # Let the server start
+
+        for i in range(5):
+            try:
+                os.chmod(f_reqrep, 0o777)
+                os.chmod(f_pubsub, 0o777)
+                break
+            except FileNotFoundError:
+                yield from asyncio.sleep(1)
+        else:
+            logging.error("Server socket was never created")
+            return
 
         # Dumper
         task_dumper = asyncio.Task(operations.spawn_dumper(self.config,
@@ -200,8 +218,8 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
             yield from self.loop.run_in_executor(None, operations.untar,
                                                  ctgz, cdir.name)
             tasks_players[pl_id] = asyncio.Task(operations.spawn_client(
-                self.config, s_reqrep, s_pubsub, pl_id, cdir.name, opts,
-                file_opts))
+                self.config, s_reqrep, s_pubsub, pl_id, cdir.name,
+                socket_dir.name, opts, file_opts))
 
         # Wait for the match to complete
         yield from asyncio.wait([task_server, task_dumper] +
@@ -223,6 +241,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         # Remove the champion temporary directories
         for tmpdir in champion_dirs:
             tmpdir.cleanup()
+        socket_dir.cleanup()
 
         try:
             yield from self.master.match_done(self.get_worker_infos(),
