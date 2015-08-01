@@ -40,11 +40,11 @@ class RemoteError(BaseError):
 class Client:
     """RPC client: connect to a server and perform remote calls."""
 
-    def __init__(self, base_url, secret=None, async=False, ioloop=None):
+    def __init__(self, base_url, secret=None, coro=False, ioloop=None):
         self.base_url = base_url
         self.secret = secret
-        self.async = async
-        if async:
+        self.coro = coro
+        if coro:
             self.ioloop = (ioloop if ioloop is not None else
                            asyncio.get_event_loop())
 
@@ -152,7 +152,7 @@ class Client:
     def __getattr__(self, method):
         """Return a callable to invoke a remote procedure."""
 
-        if self.async:
+        if self.coro:
             @asyncio.coroutine
             def proxy(*args, max_retries=0, retry_delay=10, **kwargs):
                 # TODO: use a requests-like library that supports asyncio

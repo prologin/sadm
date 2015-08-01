@@ -104,7 +104,7 @@ class RpcAsyncTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.c = prologin.rpc.client.Client('http://127.0.0.1:42546',
-                async=True)
+                coro=True)
         cls.s = RpcServerInstance(42546)
         cls.s.start()
         time.sleep(1)

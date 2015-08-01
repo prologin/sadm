@@ -36,7 +36,7 @@ class Worker(object):
         self.rpc = prologin.rpc.client.Client("http://{}:{}/".format(
             self.hostname, self.port),
             secret=self.config['master']['shared_secret'].encode('utf-8'),
-            async=True)
+            coro=True)
 
     @property
     def usage(self):
