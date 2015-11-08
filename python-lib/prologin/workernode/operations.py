@@ -113,7 +113,7 @@ def spawn_server(config, rep_addr, pub_addr, nb_players, opts, file_opts):
 @asyncio.coroutine
 def spawn_dumper(config, rep_addr, pub_addr, opts, file_opts, order_id=None):
     if 'dumper' not in config['path'] or not config['path']['dumper']:
-        return
+        return b''
 
     if not os.path.exists(config['path']['dumper']):
         raise FileNotFoundError(config['path']['dumper'] + ' not found.')
