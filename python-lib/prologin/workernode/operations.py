@@ -186,7 +186,10 @@ def spawn_client(config, req_addr, sub_addr, pl_id, champion_path, sockets_dir,
                 processes=config['isolate'].get('processes', 20),
                 allowed_dirs=['/var', '/tmp', sockets_dir + ':rw'],
         )
+        return retcode, stdout
     except asyncio.TimeoutError:
         logging.error("client timeout")
         return 1, b"workernode: Client timeout"
-    return retcode, stdout
+    except Exception as e:
+        logging.exception(e)
+        return 1, str(e).encode()
