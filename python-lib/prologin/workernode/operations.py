@@ -82,11 +82,14 @@ def compile_champion(config, champion_path):
 
 @asyncio.coroutine
 def spawn_server(config, rep_addr, pub_addr, nb_players, opts, file_opts):
+    if 'dumper' in config['path'] and config['path']['dumper']:
+        nb_players += 1
+
     cmd = [config['path']['stechec_server'],
             "--rules", config['path']['rules'],
             "--rep_addr", rep_addr,
             "--pub_addr", pub_addr,
-            "--nb_clients", str(nb_players + 1),
+            "--nb_clients", str(nb_players),
             "--time", "3000",
             "--socket_timeout", "45000",
             "--verbose", "1"]
