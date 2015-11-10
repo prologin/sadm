@@ -157,6 +157,7 @@ STECHEC_USE_MAPS = cfg["contest"]["use_maps"]
 STECHEC_REPLAY = cfg["website"]["replay"]
 STECHEC_REDMINE_ISSUE_LIST = cfg["redmine_urls"]["issue_list"]
 STECHEC_REDMINE_ISSUE_NEW = cfg["redmine_urls"]["issue_new"]
+STECHEC_FIGHT_ONLY_OWN_CHAMPIONS = cfg["contest"]["fight_only_own_champions"]
 
 # Rest Framework settings
 REST_FRAMEWORK = {

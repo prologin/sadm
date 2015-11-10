@@ -111,12 +111,15 @@ class MapSelect(widgets.Select):
 
 class MatchCreationForm(forms.Form):
     def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
         super(MatchCreationForm, self).__init__(*args, **kwargs)
         self.helper = BaseFormHelper()
         self.champions = []
         champions = (models.Champion.objects
                            .filter(deleted=False, status='ready')
                            .select_related('author'))
+        if settings.STECHEC_FIGHT_ONLY_OWN_CHAMPIONS:
+            champions.filter(author=self.request.user)
         for i in range(1, settings.STECHEC_NPLAYERS + 1):
             f = forms.ModelChoiceField(label="Champion %d" % i,
                                        queryset=champions,

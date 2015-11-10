@@ -151,6 +151,9 @@ class NewChampionView(FormView):
 
         return HttpResponseRedirect(champion.get_absolute_url())
 
+    def get_form_kwargs(self):
+        return {'request': self.request}
+
 
 class ConfirmDeleteChampion(DetailView):
     template_name = 'stechec/champion-delete.html'
