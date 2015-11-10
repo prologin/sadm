@@ -835,7 +835,7 @@ if __name__ == '__main__':
         print('error: this script needs to be run as root')
         sys.exit(1)
 
-    if not hasattr(sys, 'real_prefix'):
+    if not (hasattr(sys, 'real_prefix') or 'VIRTUAL_ENV' in os.environ):
         print('error: this script needs to be run in a venv')
         sys.exit(1)
 
