@@ -19,7 +19,7 @@ from prologin.djangoconf import use_profile_config
 
 cfg = use_profile_config('concours')
 
-ALLOWED_URLS = ['*']
+ALLOWED_HOSTS = ['*']
 
 SITE_ID = 1
 
