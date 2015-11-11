@@ -82,8 +82,7 @@ def compile_champion(config, champion_path):
 
 @asyncio.coroutine
 def spawn_server(config, rep_addr, pub_addr, nb_players, opts, file_opts):
-    if 'dumper' in config['path'] and config['path']['dumper']:
-        nb_players += 1
+    dump = tempfile.NamedTemporaryFile()
 
     cmd = [config['path']['stechec_server'],
             "--rules", config['path']['rules'],
@@ -92,7 +91,8 @@ def spawn_server(config, rep_addr, pub_addr, nb_players, opts, file_opts):
             "--nb_clients", str(nb_players),
             "--time", "3000",
             "--socket_timeout", "45000",
-            "--verbose", "1"]
+            "--verbose", "1",
+            "--dump", dump.name]
 
     if opts is not None:
         cmd += opts
@@ -108,50 +108,11 @@ def spawn_server(config, rep_addr, pub_addr, nb_players, opts, file_opts):
         return "workernode: Server timeout"
 
     stdout = stdout.decode()
+    gzdump = yield from ioloop.run_in_executor(None, gzip.compress, dump.read())
+
     if retcode != 0:
         logging.error(stdout.strip())
-    return stdout
-
-
-@asyncio.coroutine
-def spawn_dumper(config, rep_addr, pub_addr, opts, file_opts, order_id=None):
-    if 'dumper' not in config['path'] or not config['path']['dumper']:
-        return b''
-
-    if not os.path.exists(config['path']['dumper']):
-        raise FileNotFoundError(config['path']['dumper'] + ' not found.')
-
-    cmd = [config['path']['stechec_client'],
-        "--name", "dumper",
-        "--rules", config['path']['rules'],
-        "--champion", config['path']['dumper'],
-        "--req_addr", rep_addr,
-        "--sub_addr", pub_addr,
-        "--memory", "250000",
-        "--time", "3000",
-        "--socket_timeout", "45000",
-        "--spectator",
-        "--verbose", "1"]
-    cmd += ["--client_id", str(order_id)] if order_id is not None else []
-
-    if opts is not None:
-        cmd += opts
-    if file_opts is not None:
-        fopts, tmp_files = create_file_opts(file_opts)
-        cmd.extend(fopts)
-
-    with tempfile.NamedTemporaryFile() as dump:
-        new_env = os.environ.copy()
-        new_env['DUMP_PATH'] = dump.name
-        try:
-            retcode, _ = yield from tools.communicate(cmd, env=new_env,
-                    coro_timeout=config['timeout'].get('dumper', 400))
-        except asyncio.TimeoutError:
-            logging.error("dumper timeout")
-        # even after a timeout, a dump might be available (at worse it's empty)
-        gzdump = yield from ioloop.run_in_executor(None,
-                gzip.compress, dump.read())
-    return gzdump
+    return stdout, gzdump
 
 
 @asyncio.coroutine

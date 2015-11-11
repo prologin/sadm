@@ -204,10 +204,6 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
             logging.error("Server socket was never created")
             return
 
-        # Dumper
-        task_dumper = asyncio.Task(operations.spawn_dumper(self.config,
-            s_reqrep, s_pubsub, opts, file_opts))
-
         # Players
         tasks_players = {}
         champion_dirs = []
@@ -222,13 +218,13 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
                 socket_dir.name, opts, file_opts))
 
         # Wait for the match to complete
-        yield from asyncio.wait([task_server, task_dumper] +
+        yield from asyncio.wait([task_server] +
                                 list(tasks_players.values()))
         logging.info('match {} done'.format(match_id))
 
         # Get the output of the tasks
-        server_stdout = task_server.result()
-        dumper_stdout = b64encode(task_dumper.result()).decode()
+        server_stdout, dumper_stdout = task_server.result()
+        dumper_stdout = b64encode(dumper_stdout).decode()
         players_stdout = {pl_id: (players[pl_id][0], # champion_id
                                   b64encode(t.result()[1]).decode()) # output
                           for pl_id, t in tasks_players.items()}
