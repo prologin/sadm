@@ -215,8 +215,10 @@ class NewMatchView(FormView):
     form_class = forms.MatchCreationForm
     template_name = 'stechec/match-new.html'
 
-    def get_form_kwargs(self):
-        return {'request': self.request}
+    def get_form_kwargs(self, **kwargs):
+        kwargs = super().get_form_kwargs(**kwargs)
+        kwargs['request'] = self.request
+        return kwargs
 
     def form_valid(self, form):
         throttler = CreateMatchUserThrottle()
