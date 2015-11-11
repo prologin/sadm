@@ -118,8 +118,9 @@ class MatchCreationForm(forms.Form):
         champions = (models.Champion.objects
                            .filter(deleted=False, status='ready')
                            .select_related('author'))
-        if settings.STECHEC_FIGHT_ONLY_OWN_CHAMPIONS:
-            champions.filter(author=self.request.user)
+        if (settings.STECHEC_FIGHT_ONLY_OWN_CHAMPIONS and not
+            self.request.user.is_staff):
+            champions = champions.filter(author=self.request.user)
         for i in range(1, settings.STECHEC_NPLAYERS + 1):
             f = forms.ModelChoiceField(label="Champion %d" % i,
                                        queryset=champions,

@@ -37,6 +37,13 @@ class ChampionView(DetailView):
         context['can_see_log'] = self.can_see_log
         return context
 
+    def get(self, request, *args, **kwargs):
+        match = self.get_object()
+        if (settings.STECHEC_FIGHT_ONLY_OWN_CHAMPIONS and not
+            self.request.user.is_staff) and match.author != request.user:
+            return HttpResponseForbidden()
+        return super().get(request, *args, **kwargs)
+
 
 class ChampionsListView(ListView):
     context_object_name = "champions"
@@ -58,6 +65,12 @@ class AllChampionsView(ChampionsListView):
     explanation_text = 'Voici la liste de tous les champions participant actuellement.'
     show_for_all = True
 
+    def get(self, request, *args, **kwargs):
+        if (settings.STECHEC_FIGHT_ONLY_OWN_CHAMPIONS and not
+            self.request.user.is_staff):
+            return HttpResponseForbidden()
+        return super().get(request, *args, **kwargs)
+
 
 class MyChampionsView(ChampionsListView):
     explanation_text = 'Voici la liste de tous vos champions participant actuellement.'
@@ -69,7 +82,7 @@ class MyChampionsView(ChampionsListView):
         return models.Champion.objects.filter(deleted=False, author=user)
 
 
-class MatchesListView(ListView):
+class MatchesListView(ListView): # Abstract class!
     context_object_name = "matches"
     paginate_by = 100
     template_name = "stechec/matches-list.html"
@@ -103,13 +116,27 @@ class MatchesListView(ListView):
 class MatchView(DetailView):
     context_object_name = "match"
     template_name = "stechec/match-detail.html"
-    queryset = models.Match.objects.annotate(Max('matchplayer__score')).annotate(Min('matchplayer__id'))
+
+    def get_queryset(self):
+        queryset = models.Match.objects
+        if (settings.STECHEC_FIGHT_ONLY_OWN_CHAMPIONS and not
+            self.request.user.is_staff):
+            queryset = queryset.filter(author=self.request.user.id)
+        queryset = (queryset.annotate(Max('matchplayer__score'))
+                            .annotate(Min('matchplayer__id')))
+        return queryset
 
 
 class AllMatchesView(MatchesListView):
     queryset = models.Match.objects.all().select_related('author')
     explanation_text = "Voici la liste de tous les matches ayant été réalisés."
     show_creator = True
+
+    def get(self, request, *args, **kwargs):
+        if (settings.STECHEC_FIGHT_ONLY_OWN_CHAMPIONS and not
+            self.request.user.is_staff):
+            return HttpResponseForbidden()
+        return super().get(request, *args, **kwargs)
 
 
 class MyMatchesView(MatchesListView):
@@ -151,9 +178,6 @@ class NewChampionView(FormView):
 
         return HttpResponseRedirect(champion.get_absolute_url())
 
-    def get_form_kwargs(self):
-        return {'request': self.request}
-
 
 class ConfirmDeleteChampion(DetailView):
     template_name = 'stechec/champion-delete.html'
@@ -190,6 +214,9 @@ class ChampionSources(SingleObjectMixin, View):
 class NewMatchView(FormView):
     form_class = forms.MatchCreationForm
     template_name = 'stechec/match-new.html'
+
+    def get_form_kwargs(self):
+        return {'request': self.request}
 
     def form_valid(self, form):
         throttler = CreateMatchUserThrottle()
@@ -232,6 +259,9 @@ class MatchDumpView(SingleObjectMixin, View):
 
     def get(self, request, *args, **kwargs):
         match = self.get_object()
+        if (settings.STECHEC_FIGHT_ONLY_OWN_CHAMPIONS and not
+            self.request.user.is_staff) and match.author != request.user:
+            return HttpResponseForbidden()
         h = HttpResponse(match.dump, content_type="application/stechec-dump")
         h['Content-Disposition'] = 'attachment; filename=dump-%s.json' % self.kwargs[self.pk_url_kwarg]
         h['Content-Encoding'] = 'gzip'

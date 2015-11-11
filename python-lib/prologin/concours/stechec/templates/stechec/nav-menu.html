@@ -15,7 +15,9 @@
       <li class="{% active u_champions_mine %}"><a href="{{ u_champions_mine }}">Mes champions</a></li>
       <li class="{% active u_champions_new %}"><a href="{{ u_champions_new }}">Envoyer un champion</a></li>
     {% endif %}
-    <li class="{% active u_champions_all %}"><a href="{{ u_champions_all }}">Tous les champions</a></li>
+    {% if not settings.STECHEC_FIGHT_ONLY_OWN_CHAMPIONS or request.user.is_staff %}
+      <li class="{% active u_champions_all %}"><a href="{{ u_champions_all }}">Tous les champions</a></li>
+    {% endif %}
   </ul>
   <li>
     <h4>Matches</h4>
@@ -27,7 +29,9 @@
         <li class="{% active u_matches_mine %}"><a href="{{ u_matches_mine }}">Mes matches</a></li>
         <li class="{% active u_matches_new %}"><a href="{{ u_matches_new }}">Lancer un match</a></li>
       {% endif %}
-      <li class="{% active u_matches_all %}"><a href="{{ u_matches_all }}">Tous les matches</a></li>
+      {% if not settings.STECHEC_FIGHT_ONLY_OWN_CHAMPIONS or request.user.is_staff %}
+        <li class="{% active u_matches_all %}"><a href="{{ u_matches_all }}">Tous les matches</a></li>
+      {% endif %}
     </ul>
   </li>
   {% if settings.STECHEC_USE_MAPS %}
