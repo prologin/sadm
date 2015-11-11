@@ -12,9 +12,6 @@ worker:
     port: 8068                    # Port used for RPC communication.
     available_slots: 20           # Number of parallel tasks that can be
                                   # executed on this worker.
-    port_range_start: 40000       # Port range used for tasks that need to
-                                  # listen on ports (match server for example).
-    port_range_end: 41000
 
 # Paths of some needed tools
 path:
