@@ -8,14 +8,14 @@ the documentation explain everything you need to do to set up the
 infrastructure for the finals, assuming all the machines are already physically
 present. Just follow the guide!
 
-Mainteners:
+Maintainers:
 
-- Alexandre Macabies (2013, 2014)
-- Antoine Pietri (2013, 2014)
+- Alexandre Macabies (2013, 2014, 2015)
+- Antoine Pietri (2013, 2014, 2015)
+- Rémi Audebert (2014, 2015)
+- Paul Hervot (2014, 2015)
 - Marin Hannache (2013, 2014)
 - Pierre Bourdon (2013, 2014)
-- Paul Hervot (2014)
-- Rémi Audebert (2014)
 - Nicolas Hureau (2013)
 - Pierre-Marie de Rodat (2013)
 - Sylvain Laurent (2013)
