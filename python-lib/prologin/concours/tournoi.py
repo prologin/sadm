@@ -1,32 +1,34 @@
 #!/usr/bin/python2
 
+import django
 import os
 import sys
 import time
-sys.path.insert(0, '/home/davyg/prologin/srv/www')
+
 os.environ['DJANGO_SETTINGS_MODULE'] = 'prologin.concours.settings'
+django.setup()
 
 from django.contrib.auth.models import User
-from prologin.concours.stechec.models import Tournament, Match, MatchPlayer, Champion, TournamentPlayer
+from prologin.concours.stechec.models import Tournament, Match, MatchPlayer, Champion, TournamentPlayer, Map
 
-prologin = User.objects.get(username="stechec")
+prologin = User.objects.get(username="seirl")
 tournoi = Tournament.objects.create()
+maptournoi = Map.objects.get(pk=4)
 
 def lancer_match(c1, c2):
     m = Match(author=prologin,
               tournament=tournoi)
-    m.save()
+    m.map = maptournoi.path
     MatchPlayer(champion=c1, match=m).save()
     MatchPlayer(champion=c2, match=m).save()
-    m.statut = STATUT_MATCH_NOUVEAU
+    m.status = 'new'
     m.save()
-    time.sleep(0.25)
     return m.id
 
 def all_finished(matches):
     for id in matches:
         m = Match.objects.get(pk=id)
-        if m.statut != STATUT_MATCH_TERMINE:
+        if m.status != 'done':
             return False
     return True
 
@@ -83,9 +85,8 @@ print('Saving...')
 for (score, indice, id) in l:
     ch = Champion.objects.get(pk=id)
     p = TournamentPlayer(
-        user = ch.author,
         champion = ch,
-        tournoi = tournoi,
+        tournament = tournoi,
         score = score
     )
     p.save()
