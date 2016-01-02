@@ -21,6 +21,8 @@ import itertools
 
 from . import tools
 
+MAX_BOX_ID = 100
+
 class Isolator:
     def __init__(self):
         self.last_box_id = 0
@@ -30,7 +32,7 @@ class Isolator:
                     allowed_dirs=None, processes=1, **kwargs):
         if allowed_dirs is None:
             allowed_dirs = []
-        self.last_box_id += 1
+        self.last_box_id = (self.last_box_id + 1) % MAX_BOX_ID
         box_id = self.last_box_id
 
         isolate_base = ['isolate', '--box-id', str(box_id), '--cg']
