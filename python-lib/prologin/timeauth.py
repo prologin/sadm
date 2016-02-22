@@ -61,15 +61,9 @@ def check_token(token, secret, message=None):
     if time.time() - timestamp > TOKEN_TIMEOUT:
         return False
 
-    # Reject invalid tokens.
-    if get_hmac(
-        secret,
-        str(message) + chunks[0],
-    ) != chunks[1]:
-        return False
-
-    # What remains should be valid.
-    return True
+    # Check if the token is valid.
+    return hmac.compare_digest(get_hmac(secret, str(message) + chunks[0]),
+                               chunks[1])
 
 
 def get_hmac(secret, timestamp):
