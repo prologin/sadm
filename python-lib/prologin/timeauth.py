@@ -66,10 +66,10 @@ def check_token(token, secret, message=None):
                                chunks[1])
 
 
-def get_hmac(secret, timestamp):
-    """Return a HMAC of `timestamp` for some `secret`."""
+def get_hmac(secret, message):
+    """Return a HMAC of `message` for some `secret`."""
     return hmac.new(
         secret,
-        timestamp.encode('ascii'),
+        message.encode('ascii'),
         digestmod=hashlib.sha256
     ).hexdigest()
