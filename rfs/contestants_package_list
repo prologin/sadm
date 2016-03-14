@@ -156,3 +156,11 @@ List of packages for contestants' environment
 * php-embed
 * ocaml
 * mono
+
+
+# Language libraries
+
+* boost
+* python-numpy
+* python-scikit-learn
+(AUR)* python-theano
