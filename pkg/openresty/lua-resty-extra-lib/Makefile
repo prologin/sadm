@@ -1,6 +1,6 @@
 LIBS_NAMES = cookie hmac http-simple
-PKGNAME = ngx_openresty
-PKGVER = 1.7.10.1
+PKGNAME = openresty
+PKGVER = 1.9.7.4
 DEST = ../lua-resty-extra-lib.tar.gz
 
 
