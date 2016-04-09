@@ -36,11 +36,6 @@ mkinitcpio -p linux
 echo 'Load nbd driver at startup'
 echo nbd > /etc/modules-load.d/nbd.conf
 
-echo 'Setup necessary kdm sessions'
-rm -rf /usr/share/apps/kdm/sessions
-# Cannot use a symlink here because kdm does not follow links
-cp -r /usr/share/xsessions /usr/share/apps/kdm/sessions
-
 echo 'Install the prologin virtualenv and library'
 mkdir /var/prologin
 virtualenv3 /var/prologin/venv
@@ -52,4 +47,4 @@ python install.py libprologin
 python install.py presenced set_hostname
 
 echo 'Enable some services'
-systemctl enable sshd nscd presenced set_hostname kdm
+systemctl enable sshd nscd presenced set_hostname sddm
