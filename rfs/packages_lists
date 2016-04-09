@@ -6,7 +6,6 @@ dnsutils
 ethtool
 gcc
 grub-bios
-kde
 liboping
 libxml2
 libxslt
@@ -18,6 +17,7 @@ nginx
 ntp
 openssh
 parted
+plasma
 postgresql-libs
 python-setuptools
 python-virtualenv
