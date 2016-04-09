@@ -311,5 +311,5 @@ class Client(prologin.webapi.Client):
                             )
             except Exception as e:
                 logging.exception('connection lost to synchronisation server, '
-                                  'retrying in 2s: %s' % e)
+                                  'retrying in 2s: %s (url: %s)' % (e, poll_url))
                 time.sleep(2)
