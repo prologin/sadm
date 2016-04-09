@@ -1,6 +1,6 @@
 [Unit]
 Description=.ssh/authorized_keys synchronization daemon
-After=network.service
+After=network.target
 
 [Service]
 Type=simple
