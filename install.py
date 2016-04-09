@@ -654,7 +654,6 @@ def install_networkd():
 
 
 def install_firewall():
-    copy('etc/sysctl/ip_forward.conf', '/etc/sysctl.d/ip_forward.conf')
     system('systemctl restart systemd-sysctl')
 
     install_systemd_unit('firewall')
