@@ -539,6 +539,8 @@ Create user ``hfs``, database ``hfs``, and associated tables::
   # Edit the configuration files first to replace `DEFAULT_PASSWORD`
   $EDITOR etc/prologin/hfs-server.yml
   $EDITOR sql/hfs.sql
+  su - postgres -c "initdb --locale en_US.UTF-8 -D '/var/lib/postgres/data'"
+  systemctl enable postgresql && systemctl start postgresql
   su - postgres -c psql < ./sql/hfs.sql
 
 Start the hfs
