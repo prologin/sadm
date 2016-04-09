@@ -641,6 +641,7 @@ def install_set_hostname():
 
 def install_resolved():
     symlink('/var/run/systemd/resolve/resolv.conf', '/etc/resolv.conf')
+    install_cfg('systemd/resolved.conf', '/etc/systemd/')
 
 
 def install_networkd():
