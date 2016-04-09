@@ -92,7 +92,7 @@ mount /dev/mapper/data-export /mnt/export
 echo 'Installing base system and prologin-sadm dependencies'
 pacstrap /mnt base syslinux \
     base-devel git python python-pip python-virtualenv libyaml libxslt postgresql-libs \
-    openssh dnsutils rsync tcpdump strace wget ethtool atop htop
+    postgresql openssh dnsutils rsync tcpdump strace wget ethtool atop htop
 
 echo 'Setting up the base system'
 genfstab -L -p /mnt >> /mnt/etc/fstab
