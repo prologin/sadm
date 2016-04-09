@@ -52,4 +52,4 @@ python install.py libprologin
 python install.py presenced set_hostname
 
 echo 'Enable some services'
-systemctl enable sshd presenced set_hostname kdm
+systemctl enable sshd nscd presenced set_hostname kdm

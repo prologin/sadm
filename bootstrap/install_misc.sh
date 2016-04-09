@@ -104,6 +104,7 @@ mkinitcpio -p linux
 
 echo 'Enabling services'
 systemctl enable sshd
+systemctl enable misc
 
 echo 'Changing password'
 echo "root:changeme" | chpasswd
