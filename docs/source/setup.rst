@@ -80,8 +80,15 @@ Basic system
 ~~~~~~~~~~~~
 
 The very first step is to install an Arch Linux system. In order to do that,
-use the ``install_gw.sh`` script just after booting an Arch Linux install
-media::
+use the ``install_gw.sh`` script.
+
+Recent Archlinux ISO images are provided with a very limited *cowspace* size,
+which prevents installing git in the first place. To work around the issue,
+first run::
+
+  mount -o remount,size=2G /run/archiso/cowspace
+
+You can then proceed with the automated setup::
 
   pacman -Sy git
   git clone http://bitbucket.org/prologin/sadm
