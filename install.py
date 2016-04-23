@@ -338,7 +338,7 @@ def install_mdb():
 
     if not db_exists:
         execute_sql('mdb')
-        django_migrate('mdb')
+    django_migrate('mdb')
 
     mkdir('/etc/ansible', mode=0o755, owner='root:root')
     install_cfg('ansible/hosts', '/etc/ansible/', mode=0o700)
@@ -438,7 +438,7 @@ def install_homepage():
 
     if not db_exists:
         execute_sql('homepage')
-        django_migrate('homepage')
+    django_migrate('homepage')
 
 
 def install_concours():
@@ -458,7 +458,7 @@ def install_concours():
 
     if not db_exists:
         execute_sql('concours')
-        django_migrate('concours')
+    django_migrate('concours')
 
 
 def install_netboot():
@@ -485,7 +485,7 @@ def install_udb():
 
     if not db_exists:
         execute_sql('udb')
-        django_migrate('udb')
+    django_migrate('udb')
 
 
 def install_udbsync():
