@@ -6,7 +6,7 @@ server {
 
     location / {
         proxy_pass http://localhost:20010;
-        include long_polling;
-        include proxy_params;
+        include include/long_polling;
+        include include/proxy_params;
     }
 }
