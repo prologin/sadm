@@ -154,7 +154,7 @@ Then install mdb. Fortunately, a very simple script is provided with the
 application in order to setup what it requires::
 
   # Edit the configuration files first to replace `DEFAULT_PASSWORD`
-  $EDITOR etc/prologin/mdb.yml
+  $EDITOR etc/prologin/mdb-server.yml # also change the django secret_key
   $EDITOR sql/mdb.sql
   # You can then proceed to install
   python install.py mdb
@@ -171,10 +171,6 @@ application in order to setup what it requires::
 This command installed the ``mdb`` application to ``/var/prologin/mdb`` and
 installed the ``systemd`` and ``nginx`` configuration files required to run the
 application.
-
-Don't forget to change the ``secret_key`` used by Django::
-
-  $EDITOR /etc/prologin/mdb-server.yml
 
 .. note::
 
