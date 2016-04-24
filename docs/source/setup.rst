@@ -238,7 +238,6 @@ Once again, an installation script is provided::
   python install.py mdbdns
   mv /etc/named.conf{.new,}
   # ^ To replace the default configuration by our own.
-  touch /var/log/named.log && chown named /var/log/named.log
   systemctl enable mdbdns && systemctl start mdbdns
   systemctl enable named && systemctl start named
 

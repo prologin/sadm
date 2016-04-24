@@ -159,6 +159,15 @@ def system(command):
     return os.system(command)
 
 
+def touch(path, mode=0o600, owner='root:root'):
+    print('Touching %s' % path)
+    with open(path, 'a'):
+        os.utime(path, None)
+    os.chmod(path, mode)
+    user, group = owner.split(':')
+    shutil.chown(path, user, group)
+
+
 NEW_CFG = []
 CFG_TO_REVIEW = []
 def install_cfg(path, dest_dir, owner='root:root', mode=0o600):
@@ -309,6 +318,7 @@ def install_bindcfg():
                 mode=0o640)
     shutil.chown('/etc/rndc.key', 'named', 'mdbdns')
     install_systemd_unit('named')
+    touch('/var/log/named.log', owner='named:root', mode=0o640)
 
 
 def install_dhcpdcfg():
