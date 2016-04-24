@@ -28,7 +28,7 @@ List of packages for contestants' environment
 * emacs
 * qtcreator
 * gedit
-* sublime-text
+(aur)* sublime-text
 * codeblocks
 * eclipse
 * intellij-idea-community-edition
@@ -125,7 +125,7 @@ List of packages for contestants' environment
 (aur)* tetrinet
 * teeworlds
 * urbanterror
-* tuxracer
+* extremetuxracer
 * armagetronad
 * 0ad
 * openttd
