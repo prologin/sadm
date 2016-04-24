@@ -430,6 +430,34 @@ Once again::
   systemctl enable presencesync && systemctl start presencesync
   systemctl reload nginx
 
+
+presencesync_cacheserver
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+*Cacheserver* maintains a mapping of user machine IP addresses to logged-in
+usernames. This provides a way of telling which user is logged on which machine
+by knowing the machine IP address. This service was created because SSO needs
+such mapping to work, and it is rather costly to query both *presencesync* and
+*mdb* very often.
+
+To install *presencesync_cacheserver*::
+
+    python install.py presencesync_cacheserver
+    systemctl enable presencesync_cacheserver
+    systemctl start presencesync_cacheserver
+
+Now, on all machines with nginx (openresty) installed that require SSO::
+
+    # Edit the shared secrets and the path to cacheserver, that is:
+    # - presencesync_url
+    # - presencesync_shared_secret (see presencesync config)
+    # - sso_cookie_secret (use any random string)
+    $EDITOR /etc/nginx/sso/config.lua
+
+Enable SSO on the services where it is needed. See the sample `server` block
+in `/etc/nginx/nginx.conf` (look for *SSO*).
+
+
 iptables
 ~~~~~~~~
 
