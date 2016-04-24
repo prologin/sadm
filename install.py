@@ -278,12 +278,9 @@ def install_libprologin():
 def install_nginxcfg():
     install_cfg('nginx/nginx.conf', '/etc/nginx', owner='root:root',
                 mode=0o644)
-    install_cfg('nginx/proxy_params', '/etc/nginx', owner='root:root',
-                mode=0o644)
-    install_cfg('nginx/long_polling', '/etc/nginx', owner='root:root',
-                mode=0o644)
-    install_cfg('nginx/enable_sso', '/etc/nginx', owner='root:root',
-                mode=0o644)
+    if not os.path.exists('/etc/nginx/include'):
+        copytree('etc/nginx/include', '/etc/nginx/include', owner='http:root',
+                 dir_mode=0o750, file_mode=0o640)
     if not os.path.exists('/etc/nginx/sso'):
         copytree('etc/nginx/sso', '/etc/nginx/sso', owner='http:root',
                  dir_mode=0o750, file_mode=0o640)
