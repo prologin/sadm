@@ -19,7 +19,7 @@
 db:
     default:
         ENGINE: django.db.backends.postgresql_psycopg2
-        HOST: gw
+        HOST: udb
         PORT: 5432
         USER: udb
         NAME: udb
