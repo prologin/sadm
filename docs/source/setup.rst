@@ -353,14 +353,10 @@ udb
 Install ``udb`` using the ``install.py`` recipe::
 
   # Edit the configuration files first to replace `DEFAULT_PASSWORD`
-  $EDITOR etc/prologin/udb-server.yml
+  $EDITOR etc/prologin/udb-server.yml # also change the django secret_key
   $EDITOR sql/udb.sql
   # You can then proceed to install
   python install.py udb
-
-Don't forget to change the ``secret_key`` used by Django::
-
-  $EDITOR /etc/prologin/mdb-server.yml
 
 Enable the service::
 
