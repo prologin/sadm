@@ -286,7 +286,7 @@ Start the DHCP server::
 .. note::
 
   ``gw`` needs to have ``192.168.1.254/23`` as a static IP or else
-  ``dhcpd`` will not satrt.
+  ``dhcpd`` will not start.
 
 netboot
 ~~~~~~~
