@@ -249,14 +249,6 @@ so that DNS configuration can be generated::
       --ip 192.168.1.254 --rfs 0 --hfs 0 --mtype service --room pasteur \
       --aliases mdb,mdbsync,ns,netboot,udb,udbsync,presencesync,ntp
 
-.. note::
-
-  If the gw does not have IP ``192.168.1.254``, use the following command to
-  add it::
-
-    ip link set dev <INTERACE> up
-    ip addr add 192.168.1.254/23 dev <INTERFACE>
-
 Once this is done, ``mdbdns`` should have automagically regenerated the DNS
 configuration::
 
