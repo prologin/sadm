@@ -37,7 +37,7 @@ echo 'Load nbd driver at startup'
 echo nbd > /etc/modules-load.d/nbd.conf
 
 echo 'Install the prologin virtualenv and library'
-mkdir /var/prologin
+mkdir -p /var/prologin
 virtualenv3 /var/prologin/venv
 source /var/prologin/venv/bin/activate
 cd /root/sadm
