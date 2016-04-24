@@ -344,7 +344,7 @@ You can now build iPXE: go to ``src/`` and build the bootrom, embedding our
 script::
 
   cd src/
-  make bin/undionly.kpxe EMBED=/root/sadm/python-lib/prologin/netboot/script.ipxe
+  make bin/undionly.kpxe EMBED=/root/sadm/python-lib/prologin/netboot/script.ipxe NO_WERROR=1
   cp bin/undionly.kpxe /srv/tftp/prologin.kpxe
 
 udb
