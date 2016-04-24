@@ -37,10 +37,10 @@ USE_L10N = True
 # URL prefix for static files.
 STATIC_URL = '/static/'
 
-STATICFILES_DIRS = ()
+STATICFILES_DIRS = []
 if 'static_path' in cfg['website']:
     # Overwrite local static files with static_path assets
-    STATICFILES_DIRS = (cfg['website']['static_path'],)
+    STATICFILES_DIRS += [cfg['website']['static_path']]
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -67,11 +67,6 @@ AUTHENTICATION_BACKENDS = (
 )
 
 ROOT_URLCONF = 'prologin.concours.urls'
-
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-)
 
 TEMPLATES = [
     {

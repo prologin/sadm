@@ -10,7 +10,7 @@ class IsOwnerFilterBackend(filters.BaseFilterBackend):
     query_param = 'mine'
 
     def filter_queryset(self, request, queryset, view):
-        if request.QUERY_PARAMS.get('mine') is not None:
+        if request.query_params.get('mine') is not None:
             return queryset.filter(**{self.field: request.user})
         return queryset
 
