@@ -1,4 +1,5 @@
 {% extends "stechec/base.html" %}
+{% load staticfiles %}
 
 {% block title %}Carte {{ map.name }}{% endblock %}
 {% block titleh1 %}Carte {{ map.name }}
@@ -6,15 +7,24 @@
 
 {% block content %}
 
-  {% if map.official %}
-    <p><i class=" fa fa-star text-warning"></i> Cette carte est officielle.</p>
-  {% endif %}
   <p>
     Envoyée par <strong><i class="fa fa-user i-align"></i> {{ map.author }}</strong>.
+  {% if map.official %}
+    Cette carte est <i class=" fa fa-star official-map"></i> officielle.
+  {% endif %}
   </p>
 
-  <h3>Aperçu de la carte</h3>
+  <h3>Carte au format texte</h3>
 
-  <pre>{{ map.contents }}</pre>
+  <pre id="map-contents">{{ map.contents }}</pre>
 
+  <h3 id="map-preview-title">Aperçu de la carte</h3>
+
+  <div id="map-preview"></div>
+
+{% endblock %}
+
+{% block extra_js %}
+  <script type="text/javascript" src="{% static 'js/uitools.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/map-preview.js' %}"></script>
 {% endblock %}

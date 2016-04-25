@@ -30,3 +30,7 @@ i.champ-status {
     -ms-text-overflow: ellipsis;
     text-overflow: ellipsis;
 }
+
+.official-map {
+    color: gold;
+}
