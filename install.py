@@ -26,12 +26,14 @@ This can NOT use prologin.* packages as they are most likely not yet installed!
 import contextlib
 import errno
 import grp
+import hmac
 import os
 import os.path
 import pwd
 import re
 import shutil
 import sys
+import tempfile
 
 # It's better to have a consistent user<->uid mapping. We keep it here.
 USERS = {
@@ -103,6 +105,35 @@ GROUPS = {
 
 # Helper functions for installation procedures.
 
+def replace_secrets(string):
+    secret_path = '/etc/prologin/sadm-secret'
+    if not os.path.exists(secret_path):
+        raise RuntimeError("/etc/prologin/sadm-secret has not been set.")
+    with open(secret_path, 'r') as secret_file:
+        secret = secret_file.read().strip()
+    def secret_regex_callback(match):
+        return hmac.new(secret.encode(), match.group(1).encode()).hexdigest()
+    return re.sub(r'%%SECRET:(\w+)%%', secret_regex_callback, string)
+
+
+def replace_secrets_in(config_path):
+    """Replace the secrets in a configuration file."""
+    with open(config_path) as in_f:
+        out_config = replace_secrets(in_f.read())
+    with open(config_path, 'w') as out_f:
+        out_f.write(out_config)
+
+
+@contextlib.contextmanager
+def with_secrets(config_path):
+    """Returns a temporary file with replaced secrets"""
+    with tempfile.NamedTemporaryFile(mode='r+') as out_f:
+        with open(config_path) as in_f:
+            out_f.write(replace_secrets(in_f.read()))
+        out_f.flush()
+        yield out_f.name
+
+
 @contextlib.contextmanager
 def cwd(path):
     """Moves to a directory relative to the current script."""
@@ -170,11 +201,11 @@ def touch(path, mode=0o600, owner='root:root'):
 
 NEW_CFG = []
 CFG_TO_REVIEW = []
-def install_cfg(path, dest_dir, owner='root:root', mode=0o600):
+def install_cfg(path, dest_dir, owner='root:root', mode=0o600, replace=False):
     dest_path = os.path.join(dest_dir, os.path.basename(path))
     src_path = os.path.join('etc', path)
 
-    if os.path.exists(dest_path):
+    if os.path.exists(dest_path) and not replace:
         old_contents = open(dest_path).read()
         new_contents = open(src_path).read()
         if old_contents == new_contents:
@@ -186,6 +217,8 @@ def install_cfg(path, dest_dir, owner='root:root', mode=0o600):
 
     copy(src_path, dest_path, mode=0o640, owner=owner)
     os.chmod(dest_path, mode)
+    replace_secrets_in(dest_path)
+
 
 
 def install_cfg_profile(name, group, mode=0o640):
@@ -258,10 +291,11 @@ def execute_sql(name, database=None, verbose=True):
     if database:
         args.append(database)
 
-    system("su - postgres -c 'psql {args}' < {path}".format(
-        path=path,
-        args=' '.join(args),
-    ))
+    with with_secrets(path) as tmp_sql:
+        system("su - postgres -c 'psql {args}' < {path}".format(
+            path=tmp_sql,
+            args=' '.join(args),
+        ))
 
 
 # Component specific installation procedures
@@ -754,6 +788,8 @@ def install_minecraft():
 
 
 COMPONENTS = [
+    'generate_secret',
+    'pull_secret',
     'bindcfg',
     'concours',
     'dhcpdcfg',
