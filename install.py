@@ -291,7 +291,7 @@ def install_postgresql():
                 .format(pg_path))
     install_cfg('postgres/pg_hba.conf', pg_path, owner='root:root', mode=0o600)
     install_cfg('postgres/postgresql.conf', pg_path,
-            owner='root:root', mode=0o600)
+            owner='postgres:postgres', mode=0o600)
 
 
 def install_nginxcfg():
