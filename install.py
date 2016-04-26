@@ -284,6 +284,16 @@ def install_libprologin():
     install_cfg_profile('udbsync-sub', group='udbsync_public')
 
 
+def install_postgresql():
+    pg_path = '/var/lib/postgres/data'
+    if not os.path.exists(os.path.join(pg_path, 'postgresql.conf')):
+        system('su - postgres -c "initdb --locale en_US.UTF-8 -D {}"'
+                .format(pg_path))
+    install_cfg('postgres/pg_hba.conf', pg_path, owner='root:root', mode=0o600)
+    install_cfg('postgres/postgresql.conf', pg_path,
+            owner='root:root', mode=0o600)
+
+
 def install_nginxcfg():
     install_cfg('nginx/nginx.conf', '/etc/nginx', owner='root:root',
                 mode=0o644)
@@ -328,6 +338,7 @@ def install_sshdcfg():
 
 
 def install_mdb():
+    requires('postgresql')
     requires('libprologin')
     requires('nginxcfg')
 
@@ -349,6 +360,7 @@ def install_mdb():
 
 
 def install_mdbsync():
+    requires('postgresql')
     requires('libprologin')
     requires('nginxcfg')
 
@@ -397,6 +409,7 @@ def install_paste():
 
 
 def install_redmine():
+    requires('postgresql')
     requires('libprologin')
     requires('nginxcfg')
 
@@ -426,6 +439,7 @@ def install_irc_redmine_issues():
 
 
 def install_homepage():
+    requires('postgresql')
     requires('libprologin')
     requires('udbsync_django')
     requires('nginxcfg')
@@ -446,6 +460,7 @@ def install_homepage():
 
 
 def install_concours():
+    requires('postgresql')
     requires('libprologin')
     requires('udbsync_django')
     requires('nginxcfg')
@@ -475,6 +490,7 @@ def install_netboot():
 
 
 def install_udb():
+    requires('postgresql')
     requires('libprologin')
     requires('nginxcfg')
 
@@ -623,6 +639,7 @@ def install_rfs():
 
 
 def install_hfs():
+    requires('postgresql')
     requires('libprologin')
 
     install_systemd_unit('hfs@')
@@ -756,6 +773,7 @@ COMPONENTS = [
     'networkd',
     'nginxcfg',
     'paste',
+    'postgresql',
     'presenced',
     'presencesync',
     'presencesync_cacheserver',

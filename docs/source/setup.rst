@@ -137,7 +137,13 @@ At this point you should reboot and test your network configuration:
 Setup postgresql on gw
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Please refer to the :ref:`common Postresql setup guide <common-postgres>`.
+Install and enable postgresql::
+
+  python install.py postgresql
+  mv /var/lib/postgres/data/postgresql.conf{.new,}
+  mv /var/lib/postgres/data/pg_hba.conf{.new,}
+  systemctl enable postgresql && systemctl start postgresql
+
 
 mdb
 ~~~
@@ -630,7 +636,12 @@ Then, install the ``nginx`` configuration from the repository::
 Setup postgresql on web
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Please refer to the :ref:`common Postresql setup guide <common-postgres>`.
+Install and enable postgresql::
+
+  python install.py postgresql
+  mv /var/lib/postgres/data/postgresql.conf{.new,}
+  mv /var/lib/postgres/data/pg_hba.conf{.new,}
+  systemctl enable postgresql && systemctl start postgresql
 
 concours
 ~~~~~~~~
@@ -753,30 +764,6 @@ the hfs' database::
 
 Common tasks
 ------------
-
-.. _common-postgres:
-
-Postgresql
-~~~~~~~~~~
-
-Initialize the storage directory::
-
-  su - postgres -c "initdb --locale en_US.UTF-8 -D '/var/lib/postgres/data'"
-
-Edit and uncomment ``/var/lib/postgres/data/postgresql.conf`` to make
-postgresql listen on every interface::
-
-  listen_addresses = '*'
-
-Edit ``/var/lib/postgres/data/pg_hba.conf`` to allow all users to connect with
-password::
-
-  host     all             all             192.168.1.0/23           password
-
-Then start postgresql::
-
-  systemctl enable postgresql && systemctl start postgresql
-
 
 .. _common-openresty:
 
