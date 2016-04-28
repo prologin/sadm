@@ -721,7 +721,7 @@ def install_set_hostname():
 
 def install_resolved():
     install_cfg('systemd/resolved.conf', '/etc/systemd')
-    install_cfg('systemd/resolv.conf', '/etc', replace=True)
+    install_cfg('resolv.conf', '/etc', replace=True)
 
 
 def install_networkd():
