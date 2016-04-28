@@ -25,6 +25,7 @@ This can NOT use prologin.* packages as they are most likely not yet installed!
 
 import contextlib
 import errno
+import getpass
 import grp
 import hmac
 import os
@@ -108,8 +109,17 @@ GROUPS = {
 def replace_secrets(string):
     secret_path = '/etc/prologin/sadm-secret'
     if not os.path.exists(secret_path):
-        raise RuntimeError("/etc/prologin/sadm-secret has not been set.")
-    with open(secret_path, 'r') as secret_file:
+        print('We need to set the Prologin SADM master secret.\n'
+              'This secret has to be shared across all the machines.')
+        secret1 = getpass.getpass('Enter ProloginSADM master secret: ')
+        secret2 = getpass.getpass('Enter ProloginSADM master secret again: ')
+        if secret1 != secret2:
+            raise RuntimeError("Master secrets do not match, aborting.")
+        with open(secret_path, 'w') as secret_file:
+            secret_file.write(secret1 + '\n')
+        os.chmod(secret_path, 0o600)
+
+    with open(secret_path) as secret_file:
         secret = secret_file.read().strip()
     def secret_regex_callback(match):
         return hmac.new(secret.encode(), match.group(1).encode()).hexdigest()
