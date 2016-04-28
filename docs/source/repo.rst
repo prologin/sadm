@@ -7,18 +7,18 @@ custom packages and AUR content.
 Usage
 -----
 
-Add the following section to the ``/etc/pacman.conf`` file:
+Add the following section to the ``/etc/pacman.conf`` file::
 
     [prologin]
     Server = https://repo.prologin.org/
 
-Then, trust the repository signing keys:
+Then, trust the repository signing keys::
 
     # wget https://repo.prologin.org/prologin.pub
     # pacman-key --add prologin.pub
     # pacman-key --lsign-key prologin
 
-Finally, test the repository:
+Finally, test the repository::
 
     pacman -Sy
 
@@ -30,7 +30,7 @@ Uploading packages to the reposityory
 Only the owner of the repository's private key and ssh access to
 repo@prologin.org can upload packages.
 
-To import the private key to your keystore:
+To import the private key to your keystore::
 
     $ ssh repo@prologin.org 'gpg --export-secret-keys --armor F4592F5F00D9EA8279AE25190312438E8809C743' | gpg --import
     $ gpg --edit-key F4592F5F00D9EA8279AE25190312438E8809C743
@@ -38,16 +38,16 @@ To import the private key to your keystore:
 Trust fully the key.
 
 Then, build the package you want to upload locally using ``makepkg``. Once the
-package is built, use the ``pkg/upload2repo.sh`` to sign it, update the database
+package is built, use ``pkg/upload2repo.sh`` to sign it, update the database
 and upload it.
 
-Example usage:
+Example usage::
 
     $ cd quake3-pak0.pk3
     $ makepkg
     $ ~/sadm/pkg/upload2repo.sh quake3-pak0.pk3-1-1-x86_64.pkg.tar.xz
 
-You can then install the package like any other:
+You can then install the package like any other::
 
     # pacman -Sy quake3-pak0.pk3
     $ quake3
@@ -57,7 +57,8 @@ Enjoy!
 More information
 ----------------
 
-The repository is stored in ``rosa:~repo/www``
+The repository content is stored in ``rosa:~repo/www``. Use your Prologin SADM
+credentials when asked for a password or a passphrase.
 
 Troubleshooting
 ---------------
