@@ -24,12 +24,12 @@ db:
         PORT: 5432
         USER: concours
         NAME: concours
-        PASSWORD: DEFAULT_PASSWORD
+        PASSWORD: "%%SECRET:concoursdb%%"
 
 # Informations on where the master node is located.
 master:
   url: http://masternode:8067/   # URL to connect to the master node RPC.
-  shared_secret: CHANGEME
+  shared_secret: "%%SECRET:cluster%%"
 
 # What game is currently being played.
 contest:
@@ -44,7 +44,7 @@ contest:
   fight_only_own_champions: false  # Can users only fight their own champions?
 
 # Use http://www.miniwebtool.com/django-secret-key-generator/
-secret_key: "DEFAULT_PASSWORD"
+secret_key: "%%SECRET:concours%%"
 
 # Should always be false in production!
 debug: true

@@ -1,1 +1,1 @@
-shared_secret: "DEFAULT_PASSWORD_PRESENCESYNC_PUB"
+shared_secret: "%%SECRET:presencesync%%"

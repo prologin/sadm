@@ -4,8 +4,8 @@ master:
                                 # connect to the node through this port.
                                 # Configure your firewall!
 
-  shared_secret: CHANGEME       # A shared secret used to avoid malicious
-                                # requests impersonating a worker node.
+  shared_secret: "%%SECRET:cluster%%" # A shared secret used to avoid malicious
+                                      # requests impersonating a worker node.
 
 worker:
   timeout_secs: 12      # After this number of seconds has elapsed, if a worker
@@ -22,11 +22,11 @@ sql:
   host: web
   port: 5432
   user: concours
-  password: DEFAULT_PASSWORD
+  password: "%%SECRET:concoursdb%%"
   database: concours
 
 contest:
-  game: CHANGEMENT # most likely prologin<YEAR>
+  game: CHANGEME # most likely prologin<YEAR>
 
   # Root directory where the website uploads champions, finds logs, etc.
   # Should be shared with the master node.

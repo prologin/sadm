@@ -23,10 +23,10 @@ db:
         PORT: 5432
         USER: udb
         NAME: udb
-        PASSWORD: DEFAULT_PASSWORD
+        PASSWORD: "%%SECRET:udbdb%%"
 
 # Use http://www.miniwebtool.com/django-secret-key-generator/
-secret_key: "DEFAULT_PASSWORD_UDB_SERVER_SECRET_KEY"
+secret_key: "%%SECRET:udb%%"
 
 # Should always be false in production!
 debug: true

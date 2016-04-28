@@ -16,4 +16,4 @@
 
 # Shared secret for updates. Should match the shared secret in the UDB
 # configuration.
-shared_secret: "DEFAULT_PASSWORD_UDBSYNC_PUB"
+shared_secret: "%%SECRET:udbsync%%"

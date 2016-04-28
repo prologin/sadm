@@ -23,10 +23,10 @@ db:
         PORT: 5432
         USER: homepage
         NAME: homepage
-        PASSWORD: DEFAULT_PASSWORD
+        PASSWORD: "%%SECRET:homepagedb%%"
 
 # Use http://www.miniwebtool.com/django-secret-key-generator/
-secret_key: "DEFAULT_PASSWORD_HOME"
+secret_key: "%%SECRET:homepage%%"
 
 # Should always be false in production!
 debug: true

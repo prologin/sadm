@@ -19,4 +19,4 @@ url: http://udbsync/
 
 # Shared secret for subscription. Both UDBSync server and its clients read this
 # file.
-shared_secret: "DEFAULT_PASSWORD_UDBSYNC_SUB"
+shared_secret: "%%SECRET:udbsync%%"

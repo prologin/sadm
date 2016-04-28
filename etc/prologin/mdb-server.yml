@@ -23,10 +23,10 @@ db:
         PORT: 5432
         USER: mdb
         NAME: mdb
-        PASSWORD: DEFAULT_PASSWORD
+        PASSWORD: "%%SECRET:mdbdb%%"
 
 # Use http://www.miniwebtool.com/django-secret-key-generator/
-secret_key: "DEFAULT_PASSWORD_MDB_SERVER"
+secret_key: "%%SECRET:mdb%%"
 
 # Should always be false in production!
 debug: true
