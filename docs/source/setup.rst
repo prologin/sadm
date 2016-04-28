@@ -156,6 +156,13 @@ First, we need to install ``Openresty`` which provides a version of ``nginx``
 that supports lua scripting. For this step, see :ref:`openresty in the common
 tasks section <common-openresty>`
 
+In order to test if ``mdb`` is working properly, we need to go to query
+``http://mdb/`` with a command line tool like ``curl``. However, to get DNS
+working, we need ``mdbdns``, which needs ``mdbsync``, which needs ``mdb``. As a
+temporary workaround, we're going to add ``mdb`` to our ``/etc/hosts`` file::
+
+  echo '127.0.0.1 mdb' >> /etc/hosts
+
 Then install mdb. Fortunately, a very simple script is provided with the
 application in order to setup what it requires::
 
@@ -179,13 +186,6 @@ You should be able to start ``mdb`` and ``nginx`` like this::
 
   systemctl enable mdb && systemctl start mdb
   systemctl enable nginx && systemctl start nginx
-
-In order to test if ``mdb`` is working properly, we need to go to query
-``http://mdb/`` with a command line tool like ``curl``. However, to get DNS
-working, we need ``mdbdns``, which needs ``mdbsync``, which needs ``mdb``. As a
-temporary workaround, we're going to add ``mdb`` to our ``/etc/hosts`` file::
-
-  echo '127.0.0.1 mdb' >> /etc/hosts
 
 Now you should get an empty list when querying ``/query``::
 
