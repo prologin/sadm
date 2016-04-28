@@ -722,7 +722,7 @@ def install_set_hostname():
 def install_resolved():
     install_cfg('systemd/resolved.conf', '/etc/systemd')
     with open('/etc/resolv.conf', 'w') as f:
-        f.write('nameserver 127.0.0.1\nsearch prolo')
+        f.write('nameserver 127.0.0.1\nsearch prolo\n')
 
 
 def install_networkd():
