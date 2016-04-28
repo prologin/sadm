@@ -1,6 +1,6 @@
 [Unit]
 Description=Internet domain name server
-After=netctl@gw.service
+After=systemd-networkd.service
 Before=network.target
 
 [Service]

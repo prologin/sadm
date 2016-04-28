@@ -720,7 +720,9 @@ def install_set_hostname():
 
 
 def install_resolved():
-    symlink('/var/run/systemd/resolve/resolv.conf', '/etc/resolv.conf')
+    install_cfg('systemd/resolved.conf', '/etc/systemd')
+    with open('/etc/resolv.conf', 'w') as f:
+        f.write('nameserver 127.0.0.1\nsearch prolo')
 
 
 def install_networkd():
@@ -730,7 +732,6 @@ def install_networkd():
              '/etc/systemd/network/' + networkd_file,
              mode=0o644)
     symlink('/dev/null', '/etc/systemd/network/99-default.link')
-    install_cfg('systemd/resolved.conf', '/etc/systemd')
 
 
 def install_firewall():
