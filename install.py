@@ -314,7 +314,6 @@ def execute_sql(name, database=None, verbose=True):
 def install_base():
     '''Config every single machine should have'''
     requires('sshdcfg')
-    requires('nscdcfg')
 
 
 def install_libprologin():
@@ -390,17 +389,6 @@ def install_dhcpdcfg():
 def install_sshdcfg():
     install_cfg('ssh/sshd_config', '/etc/ssh', owner='root:root', mode=0o644,
                 replace=True)
-    # FIXME: we should make our services depend of a target that wants sshd
-    system('systemctl enable sshd')
-    system('systemctl start sshd')
-
-
-def install_nscdcfg():
-    install_cfg('nscd.conf', '/etc', owner='root:root', mode=0o644,
-                replace=True)
-    # FIXME: we should make our services depend of a target that wants nscd
-    system('systemctl enable nscd')
-    system('systemctl start nscd')
 
 
 def install_mdb():
@@ -742,6 +730,7 @@ def install_networkd():
              '/etc/systemd/network/' + networkd_file,
              mode=0o644)
     symlink('/dev/null', '/etc/systemd/network/99-default.link')
+    install_cfg('systemd/resolved.conf', '/etc/systemd')
 
 
 def install_firewall():
@@ -846,7 +835,6 @@ COMPONENTS = [
     'netboot',
     'networkd',
     'nginxcfg',
-    'nscdcfg',
     'paste',
     'postgresql',
     'presenced',

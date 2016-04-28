@@ -134,7 +134,7 @@ sed -i 's/^HOOKS=.*$/HOOKS="base udev autodetect modconf block mdadm_udev lvm2 f
 mkinitcpio -p linux
 
 echo 'Enabling services'
-systemctl enable systemd-networkd systemd-timesyncd systemd-resolved sshd nscd
+systemctl enable systemd-networkd systemd-timesyncd systemd-resolved sshd
 
 echo 'Changing password'
 echo "root:changeme" | chpasswd
