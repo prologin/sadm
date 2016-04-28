@@ -117,7 +117,7 @@ def replace_secrets(string):
 
 
 def replace_secrets_in(config_path):
-    """Replace the secrets in a configuration file."""
+    print('Replacing secrets in %s' % config_path)
     with open(config_path) as in_f:
         out_config = replace_secrets(in_f.read())
     with open(config_path, 'w') as out_f:
@@ -345,6 +345,7 @@ def install_nginxcfg():
     if not os.path.exists('/etc/nginx/sso'):
         copytree('etc/nginx/sso', '/etc/nginx/sso', owner='http:root',
                  dir_mode=0o750, file_mode=0o640)
+    replace_secrets_in('/etc/nginx/sso/config.lua')
     mkdir('/etc/nginx/services', mode=0o755, owner='root:root')
     mkdir('/etc/nginx/services_contest', mode=0o755, owner='root:root')
     if not os.path.exists('/var/prologin/static_shared'):
