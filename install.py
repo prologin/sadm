@@ -107,6 +107,7 @@ GROUPS = {
 # Helper functions for installation procedures.
 
 def replace_secrets(string):
+    mkdir('/etc/prologin', mode=0o755, owner='root:root')
     secret_path = '/etc/prologin/sadm-secret'
     if not os.path.exists(secret_path):
         print('We need to set the Prologin SADM master secret.\n'
