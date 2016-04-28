@@ -341,7 +341,8 @@ def install_postgresql():
     if not os.path.exists(os.path.join(pg_path, 'postgresql.conf')):
         system('su - postgres -c "initdb --locale en_US.UTF-8 -D {}"'
                 .format(pg_path))
-    install_cfg('postgres/pg_hba.conf', pg_path, owner='root:root', mode=0o600)
+    install_cfg('postgres/pg_hba.conf', pg_path,
+            owner='postgres:postgres', mode=0o600)
     install_cfg('postgres/postgresql.conf', pg_path,
             owner='postgres:postgres', mode=0o600)
 
