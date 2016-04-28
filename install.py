@@ -704,8 +704,13 @@ def install_rfs():
         os.system('./init.sh')
 
 
-def install_hfs():
+def install_hfsdb():
     requires('postgresql')
+    if not check_database_exists('hfs')
+        execute_sql('hfs')
+
+
+def install_hfs():
     requires('libprologin')
 
     install_systemd_unit('hfs@')
@@ -828,6 +833,7 @@ COMPONENTS = [
     'firewall',
     'generate_secret',
     'hfs',
+    'hfsdb',
     'homepage',
     'irc_redmine_issues',
     'libprologin',

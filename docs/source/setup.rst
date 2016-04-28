@@ -159,9 +159,6 @@ tasks section <common-openresty>`
 Then install mdb. Fortunately, a very simple script is provided with the
 application in order to setup what it requires::
 
-  # Edit the configuration files first to replace `DEFAULT_PASSWORD`
-  $EDITOR etc/prologin/mdb-server.yml # also change the django secret_key
-  $EDITOR sql/mdb.sql
   # You can then proceed to install
   python install.py mdb
   mv /etc/nginx/nginx.conf{.new,}
@@ -177,16 +174,6 @@ application in order to setup what it requires::
 This command installed the ``mdb`` application to ``/var/prologin/mdb`` and
 installed the ``systemd`` and ``nginx`` configuration files required to run the
 application.
-
-.. note::
-
-  You will see through this guide that you have to set a password or a shared
-  secret for most of the services. This is a tedious tasks, but required in
-  order to prevent unauthorised access to the services. One way to make the
-  password managemnt easier is to clone the repository locally and set the
-  shared secrets once and for all, then change all references of
-  ``http://bitbucket.org/prologin/sadm`` to the url of your local respository.
-  This way you will install pre-configured configuration files.
 
 You should be able to start ``mdb`` and ``nginx`` like this::
 
@@ -221,11 +208,6 @@ config generation scripts use it to automatically update the configuration when
 ``mdb`` changes. Once again, setting up ``mdbsync`` is pretty easy::
 
   python install.py mdbsync
-
-  # Set the same ``shared_secret`` for ``mdbsync-pub.yml`` and ``mdbsync-sub.yml``
-  $EDITOR /etc/prologin/mdbsync-pub.yml
-  $EDITOR /etc/prologin/mdbsync-sub.yml
-
   systemctl enable mdbsync && systemctl start mdbsync
   systemctl reload nginx
   echo '127.0.0.1 mdbsync' >> /etc/hosts
@@ -358,10 +340,6 @@ udb
 
 Install ``udb`` using the ``install.py`` recipe::
 
-  # Edit the configuration files first to replace `DEFAULT_PASSWORD`
-  $EDITOR etc/prologin/udb-server.yml # also change the django secret_key
-  $EDITOR sql/udb.sql
-  # You can then proceed to install
   python install.py udb
 
 Enable the service::
@@ -401,10 +379,6 @@ Again, use the ``install.py`` recipe::
 
   python install.py udbsync
 
-  # Edit the shared secret
-  $EDITOR /etc/prologin/udbsync-sub.yml
-  $EDITOR /etc/prologin/udbsync-pub.yml
-
   systemctl enable udbsync && systemctl start udbsync
   systemctl reload nginx
 
@@ -429,10 +403,6 @@ Once again::
 
   python install.py presencesync
 
-  # Edit the shared secret
-  $EDITOR /etc/prologin/presencesync-sub.yml
-  $EDITOR /etc/prologin/presencesync-pub.yml
-
   systemctl enable presencesync && systemctl start presencesync
   systemctl reload nginx
 
@@ -456,8 +426,6 @@ Now, on all machines with nginx (openresty) installed that require SSO::
 
     # Edit the shared secrets and the path to cacheserver, that is:
     # - presencesync_url
-    # - presencesync_shared_secret (see presencesync config)
-    # - sso_cookie_secret (use any random string)
     $EDITOR /etc/nginx/sso/config.lua
 
 Enable SSO on the services where it is needed. See the sample `server` block
@@ -527,14 +495,10 @@ The basic install process is already documented through the
 
   # Install the udbsync clients for rhfs
   python install.py udbsync_rfs
-  # Edit the shared-secret to match the one on gw
-  $EDITOR /etc/prologin/udbsync-sub.yml
   # Edit the root password of the users machines
   $EDITOR rfs/rfs.sh
   # Setup the rhfs server, install the exported rootfs
   python install.py rfs
-  # Edit all the shared-secrets:
-  $EDITOR /export/nfsroot/etc/prologin/*.yml
 
 The installation script will bootstrap a basic archlinux system in
 ``/export/nfsroot`` with a few packages, a prologin hook that creates tmpfs at
@@ -558,14 +522,9 @@ Copy the the kernel and initramfs from ``rhfs``::
 Setting up hfs
 ~~~~~~~~~~~~~~
 
-Create user ``hfs``, database ``hfs``, and associated tables::
+On ``gw``, install the hfs database::
 
-  # Edit the configuration files first to replace `DEFAULT_PASSWORD`
-  $EDITOR etc/prologin/hfs-server.yml
-  $EDITOR sql/hfs.sql
-  su - postgres -c "initdb --locale en_US.UTF-8 -D '/var/lib/postgres/data'"
-  systemctl enable postgresql && systemctl start postgresql
-  su - postgres -c psql < ./sql/hfs.sql
+  python install.py hfsdb
 
 Start the hfs
 ~~~~~~~~~~~~~
@@ -619,7 +578,6 @@ following alliases on ``mdb`` ::
 You will want to ssh at this machine, so enable ``udbync_rootssh``::
 
   python install.py udbsync_rootssh
-  $EDITOR /etc/prologin/udbsync-sub.yml
   systemctl enable udbsync_rootssh && systemctl start udbsync_rootssh
 
 We'll now compile our custom version of openresty, or if it was already done
@@ -651,17 +609,9 @@ concours
     Concours is a *contest* service. It won't be enabled by default.
     See :ref:`enable_contest_services`.
 
-Setup the database::
-
-  # Edit the configuration files first to replace `DEFAULT_PASSWORD`
-  $EDITOR etc/prologin/concours.yml
-  $EDITOR sql/concours.sql
-
-Install it::
+Installation::
 
   python install.py concours
-  # Edit the shared secret
-  $EDITOR /etc/prologin/udbsync-sub.yml
   systemctl enable concours && systemctl start concours
   systemctl enable udbsync_django@concours && systemctl start udbsync_django@concours
   systemctl reload nginx
@@ -672,8 +622,6 @@ Step 5: Setting up masternode and workernode
 On ``masternode``::
 
   python install.py masternode
-  # Edit the passwords
-  $EDITOR /etc/prologin/masternode.yml
   systemctl enable masternode && systemctl start masternode
 
 On another machine (because ``makepkg`` won't let you build packages as
@@ -701,7 +649,6 @@ Then, still for the users machines, install ``workernode``::
   cd sadm
   python install.py workernode
   cp python-lib/prologin/workernode/compile-champion.sh /usr/bin/compile-champion.sh
-  $EDITOR /etc/prologin/workernode.yml
   systemctl enable workernode
   exit # get out of the chroot
 
