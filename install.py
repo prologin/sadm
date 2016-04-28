@@ -706,7 +706,7 @@ def install_rfs():
 
 def install_hfsdb():
     requires('postgresql')
-    if not check_database_exists('hfs')
+    if not check_database_exists('hfs'):
         execute_sql('hfs')
 
 
