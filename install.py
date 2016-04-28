@@ -720,8 +720,8 @@ def install_set_hostname():
 
 
 def install_resolved():
-    install_cfg('systemd/resolved.conf', '/etc/systemd')
-    install_cfg('resolv.conf', '/etc', replace=True)
+    install_cfg('systemd/resolved.conf', '/etc/systemd', mode=0o644)
+    install_cfg('resolv.conf', '/etc', mode=0o644, replace=True)
 
 
 def install_networkd():
