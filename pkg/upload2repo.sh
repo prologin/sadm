@@ -3,7 +3,7 @@
 
 SADM_FGP=F4592F5F00D9EA8279AE25190312438E8809C743
 
-PKG=${1?Usage: $0 package}
+PKG=${1?Usage: $0 package.pkg.tar.xz}
 
 set -e
 
@@ -11,8 +11,9 @@ echo "[+] Checking gpg key store"
 
 if ! gpg --list-secret-keys $SADM_FGP >/dev/null 2>&1; then
     cat >&2 <<EOF
-GPG key store is missing the prologin private key
-To get it:
+The GPG key store is missing the prologin private key.
+
+To get it, run:
 
     $ ssh repo@prologin.org 'gpg --export-secret-keys --armor $SADM_FGP' | gpg --import
 EOF
