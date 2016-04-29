@@ -28,7 +28,7 @@ CFG = prologin.config.load('udb-client-auth')
 
 @csrf_exempt
 def query(request):
-    args = dict(request.REQUEST)
+    args = dict(request.GET)
 
     # If a HMAC is provided, check for authentication. If checking fails,
     # return a HTTP 403 error.
