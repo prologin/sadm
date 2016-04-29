@@ -22,12 +22,12 @@ from django.http import HttpResponse, HttpResponseForbidden
 from django.http import HttpResponseBadRequest, HttpResponseServerError
 from django.views.decorators.csrf import csrf_exempt
 from prologin.mdb.models import Machine, VolatileSetting
+from prologin.utils.django import get_request_args
 
 
 @csrf_exempt
 def query(request):
-    args = dict(request.GET)
-    args.update(dict(request.POST))
+    args = get_request_args(request)
     machines = Machine.objects.filter(**args)  # TODO(delroth): secure?
     machines = [m.to_dict() for m in machines]
     return HttpResponse(json.dumps(machines), content_type='application/json')
@@ -41,8 +41,7 @@ def register(request):
     except VolatileSetting.DoesNotExist:
         authorized = False
 
-    args = dict(request.GET)
-    args.update(dict(request.POST))
+    args = get_request_args(request)
 
     if not authorized:
         return HttpResponseForbidden('self registration is disabled',

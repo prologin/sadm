@@ -23,13 +23,13 @@ import prologin.udb.receivers  # To connect our receivers
 from django.http import HttpResponse, HttpResponseForbidden
 from django.views.decorators.csrf import csrf_exempt
 from prologin.udb.models import User
+from prologin.utils.django import get_request_args
 
 CFG = prologin.config.load('udb-client-auth')
 
 @csrf_exempt
 def query(request):
-    args = dict(request.GET)
-    args.update(dict(request.POST))
+    args = get_request_args(request)
 
     # If a HMAC is provided, check for authentication. If checking fails,
     # return a HTTP 403 error.
