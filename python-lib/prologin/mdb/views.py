@@ -26,7 +26,8 @@ from prologin.mdb.models import Machine, VolatileSetting
 
 @csrf_exempt
 def query(request):
-    args = request.GET
+    args = dict(request.GET)
+    args.update(dict(request.POST))
     machines = Machine.objects.filter(**args)  # TODO(delroth): secure?
     machines = [m.to_dict() for m in machines]
     return HttpResponse(json.dumps(machines), content_type='application/json')
@@ -40,22 +41,25 @@ def register(request):
     except VolatileSetting.DoesNotExist:
         authorized = False
 
+    args = dict(request.GET)
+    args.update(dict(request.POST))
+
     if not authorized:
         return HttpResponseForbidden('self registration is disabled',
                                      content_type='text/plain')
 
     for field in ('hostname', 'mac', 'rfs', 'hfs', 'room', 'mtype'):
-        if field not in request.GET:
+        if field not in args:
             return HttpResponseBadRequest('missing field %r' % field,
                                           content_type='text/plain')
 
     machine = Machine()
-    machine.hostname = request.GET['hostname']
-    machine.mac = request.GET['mac']
-    machine.rfs = int(request.GET['rfs'])
-    machine.hfs = int(request.GET['hfs'])
-    machine.room = request.GET['room']
-    machine.mtype = request.GET['mtype']
+    machine.hostname = args['hostname']
+    machine.mac = args['mac']
+    machine.rfs = int(args['rfs'])
+    machine.hfs = int(args['hfs'])
+    machine.room = args['room']
+    machine.mtype = args['mtype']
     try:
         machine.allocate_ip()
     except Exception:
