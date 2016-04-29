@@ -69,6 +69,7 @@ class BootHandler(tornado.web.RequestHandler):
         machine = prologin.mdb.client.connect().query(mac=mac)
         if len(machine) != 1:
             self.finish(BOOT_UNKNOWN_SCRIPT)
+            return
 
         machine = machine[0]
         rfs_hostname = 'rfs%d' % machine['rfs']
