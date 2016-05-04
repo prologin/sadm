@@ -693,6 +693,13 @@ def install_rfs():
         os.system('./init.sh')
 
 
+def install_sddmcfg():
+    copy('etc/sddm/sddm.conf', '/export/nfsroot/etc/sddm.conf', mode=0o644)
+    copytree('etc/sddm/themes/prologin',
+             '/export/nfsroot/usr/share/sddm/themes/prologin',
+             dir_mode=0o755, file_mode=0o644)
+
+
 def install_hfsdb():
     requires('postgresql')
     if not check_database_exists('hfs'):
@@ -848,6 +855,7 @@ COMPONENTS = [
     'resolved',
     'rfs',
     'set_hostname',
+    'sddmcfg',
     'sshdcfg',
     'udb',
     'udbsync',

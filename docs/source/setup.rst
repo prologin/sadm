@@ -507,6 +507,11 @@ To install a new package (*never* use arch-chroot on a live nfs export)::
 
   pacman --root /export/nfsroot -Sy package
 
+Once SDDM is installed (the login manager we use for sadm), you can use this
+command to generate the default Prologin SDDM config and theme::
+
+  python install.py sddmcfg
+
 TODO: How to sync, hook to generate /var...
 
 Copy the the kernel and initramfs from ``rhfs``::
