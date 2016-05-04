@@ -1,2 +1,2 @@
 static_path: /srv/tftp
-options: root=/dev/nfs ip=:::::eth0:dhcp nosplash
+options: root=/dev/nfs ip=:::::eth0:dhcp nosplash rootdelay=0
