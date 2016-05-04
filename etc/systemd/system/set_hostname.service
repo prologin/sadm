@@ -1,6 +1,6 @@
 [Unit]
 Description=Set hostname from reverse dns
-After=network.target
+After=network-online.target
 
 [Service]
 Type=oneshot

@@ -11,7 +11,7 @@ The following ``systemd`` service can be installed on the rhfs::
 
   # /etc/systemd/system/sgoinfre.mount
   [Unit]
-  After=network.target
+  After=network-online.target
 
   [Mount]
   What=sgoinfre:/sgoinfre
