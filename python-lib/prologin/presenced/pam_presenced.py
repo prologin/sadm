@@ -16,6 +16,7 @@ import os.path
 import prologin.hfs.client
 import prologin.log
 import prologin.presenced.client
+import prologin.xhack
 import socket
 import subprocess
 import sys
@@ -33,13 +34,8 @@ def get_block_device(login):
     return '/dev/nbd0'
 
 def fail(reason):
-    # TODO: be sure the user can see the reason.
     print(reason, file=sys.stderr)
-    os.environ['DISPLAY'] = ':0'
-    os.environ['XAUTHORITY'] = subprocess.check_output("pgrep -al Xorg | sed 's/.*auth //'", shell=True).strip().decode()
-    # DISPLAY and XAUTHORITY are required in order to connect to the X server
-    # Better approaches are welcomed.
-    os.system("/usr/bin/zenity --error --text='%s'" % reason)
+    prologin.xhack.run(['/usr/bin/zenity', '--error', '--text', reason])
     sys.exit(1)
 
 PAM_TYPE = os.environ['PAM_TYPE']
