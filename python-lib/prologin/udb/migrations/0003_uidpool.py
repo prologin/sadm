@@ -8,9 +8,9 @@ import django_prometheus.models
 
 def initial_data(apps, schema_editor):
     UIDPool = apps.get_model('udb', 'UIDPool')
-    UIDPool(last=0, group="user", base=1000, pk=1).save()
-    UIDPool(last=0, group="orga", base=2000, pk=2).save()
-    UIDPool(last=0, group="root", base=3000, pk=3).save()
+    UIDPool(last=0, group="user", base=10000, pk=1).save()
+    UIDPool(last=0, group="orga", base=11000, pk=2).save()
+    UIDPool(last=0, group="root", base=12000, pk=3).save()
 
 
 class Migration(migrations.Migration):
