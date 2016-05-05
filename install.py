@@ -67,7 +67,6 @@ USERS = {
                                   'groups': ('presencesync_cacheserver',
                                              'presencesync_public',
                                              'udb_public', 'mdb_public') },
-    'minecraft': { 'uid': 20140, 'groups': ('minecraft',) },  # FIXME: needs presencesync?
     'concours': { 'uid': 20150, 'groups': ('concours', 'udbsync_public',
                                            'cluster_public') },
     'cluster': { 'uid': 20160, 'groups': ('cluster', 'cluster_public') },
@@ -97,7 +96,6 @@ GROUPS = {
     'redmine': 20120,
     'presencesync_usermap': 20130,
     'presencesync_cacheserver': 20131,
-    'minecraft': 20140,  # FIXME: needs _public?
     'concours': 20150,
     'cluster': 20160,
     'cluster_public': 20161,
@@ -770,57 +768,6 @@ def install_workernode():
     install_cfg_profile('workernode', group='cluster')
 
 
-def install_minecraft():
-    requires('libprologin')
-    requires('nginxcfg')
-    requires('presencesync')
-
-    install_cfg_profile('minecraft', group='minecraft')
-
-    mkdir(
-        '/var/prologin/minecraft',
-        mode=0o755, owner='minecraft:minecraft'
-    )
-
-    copytree(
-        'minecraft/static',
-        '/var/prologin/minecraft/static',
-        dir_mode=0o755, file_mode=0o644,
-        owner='minecraft:minecraft'
-    )
-
-    mkdir(
-        '/var/prologin/minecraft/static/resources',
-        mode=0o755, owner='minecraft:minecraft'
-    )
-
-    copytree(
-        'minecraft/server',
-        '/var/prologin/minecraft/server',
-        dir_mode=0o700, file_mode=0o600,
-        owner='minecraft:minecraft'
-    )
-
-    with cwd('/var/prologin/minecraft'):
-        # download static resources once (this takes time!)
-        # and create shared servers.dat
-        os.system('python setup.py')
-
-    install_nginx_service('minecraft-skins')
-    install_nginx_service('minecraft')
-
-    install_systemd_unit('minecraft-skins')
-    install_systemd_unit('minecraft')
-
-    # TODO:
-    # for each user machine:
-    #   mkdir ~/.minecraft
-    #   ln -s /var/prologin/minecraft/static/bin ~/.minecraft/bin
-    #   ln -s /var/prologin/minecraft/static/resources ~/.minecraft/resources
-    #   ln -s /var/prologin/minecraft/static/servers.dat ~/.minecraft/servers.dat
-    #   provide the minecraft/client/*.py tools for the user
-
-
 COMPONENTS = [
     'base',
     'bindcfg',
@@ -839,7 +786,6 @@ COMPONENTS = [
     'mdbdhcp',
     'mdbdns',
     'mdbsync',
-    'minecraft',
     'netboot',
     'networkd',
     'nginxcfg',
