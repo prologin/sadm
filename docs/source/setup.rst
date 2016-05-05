@@ -361,13 +361,13 @@ by someone else::
 Then do the same for organizers::
 
   python manage.py batchimport --logins --type=orga --pwdlen=10 \
-      --uidbase=11000 --file=/root/orgas.txt
+      --file=/root/orgas.txt
   python manage.py pwdsheetdata --type=orga > /root/orga_pwdsheet_data
 
 Then for roots::
 
   python manage.py batchimport --logins --type=root --pwdlen=10 \
-      --uidbase=12000 --file=/root/roots.txt
+      --file=/root/roots.txt
   python manage.py pwdsheetdata --type=root > /root/root_pwdsheet_data
 
 udbsync

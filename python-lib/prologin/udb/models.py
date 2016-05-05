@@ -43,6 +43,11 @@ class User(ExportModelOperationsMixin('user'), models.Model):
     def __str__(self):
         return self.login
 
+    def save(self, *args, **kwargs):
+        if not self.uid:
+            self.allocate_uid()
+        super().save(*args, **kwargs)
+
     def to_dict(self):
         return {
             'login': self.login,
@@ -55,8 +60,30 @@ class User(ExportModelOperationsMixin('user'), models.Model):
             'ssh_key': self.ssh_key,
         }
 
+    def allocate_uid(self):
+        pool = UIDPool.objects.get(group=self.group)
+        pool.last += 1
+        pool.save()
+        self.uid = pool.base + pool.last
+
     class Meta:
         ordering = ('group', 'login',)
+
+
+class UIDPool(ExportModelOperationsMixin('uidpool'), models.Model):
+    group = models.CharField(max_length=20, choices=User.TYPES, unique=True,
+                             verbose_name='For type')
+    base = models.IntegerField(unique=True, verbose_name='Base UID')
+    last = models.IntegerField(blank=True, default=0,
+                               verbose_name='Last allocation')
+
+    def __str__(self):
+        return 'Pool for %r' % self.group
+
+    class Meta:
+        ordering = ('group',)
+        verbose_name = 'UID Pool'
+        verbose_name_plural = 'UID Pools'
 
 
 # Import the signal receivers so they are activated

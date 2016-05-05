@@ -29,11 +29,17 @@ def root(request):
     return True
 
 
+class UIDPoolAdmin(admin.ModelAdmin):
+    list_display = ('group', 'base', 'last')
+    radio_fields = { 'group': admin.HORIZONTAL }
+
+
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('login', 'group')
+    list_display = ('uid', 'login', 'group', 'firstname', 'lastname')
     list_filter = ('group',)
     list_per_page = 250
     radio_fields = { 'group': admin.HORIZONTAL }
+    readonly_fields = ('uid',)
     search_fields = ('login', )
 
     def has_change_permission(self, request, obj=None):
@@ -48,4 +54,5 @@ class UserAdmin(admin.ModelAdmin):
         return super().save_model(request, obj, form, change)
 
 
+admin.site.register(models.UIDPool, UIDPoolAdmin)
 admin.site.register(models.User, UserAdmin)

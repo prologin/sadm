@@ -41,7 +41,6 @@ def generate_password(length):
 
 
 def create_users(names, options):
-    uid = options['uidbase']
     logins = set()  # To check for duplicates
     for row in names:
         if options['passwords']:
@@ -75,7 +74,6 @@ def create_users(names, options):
         u.login = login
         u.firstname = firstname.title()
         u.lastname = lastname.title()
-        u.uid = uid
         u.group = options['type']
 
         if options['passwords']:
@@ -86,7 +84,6 @@ def create_users(names, options):
         print("Adding user %s (login: %s)" % (u.realname, u.login))
 
         u.save()
-        uid += 1
 
 
 
@@ -95,7 +92,6 @@ class Command(BaseCommand):
         make_option('--file', help='File with "first name\\tlast name" lines'),
         make_option('--type', default='user', help='User type (user/orga/root)'),
         make_option('--pwdlen', type='int', default=8, help='Password length'),
-        make_option('--uidbase', type='int', default=10000, help='Base UID'),
         make_option('--logins', action='store_true', default=False, help='File contains logins, not real names'),
         make_option('--passwords', action='store_true', default=False, help='File contains passwords after a colon'),
     )
