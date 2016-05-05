@@ -50,6 +50,7 @@ class _MDBClient:
         url = urllib.parse.urljoin(self.url, path)
         params = { 'data': data }
         r = requests.post(url, **params)
+        r.raise_for_status()
         return r.json()
 
     def query(self, **kwargs):

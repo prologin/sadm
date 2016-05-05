@@ -53,6 +53,7 @@ class _UDBClient:
             data['hmac'] = prologin.timeauth.generate_token(self.secret)
         params = { 'data': data }
         r = requests.post(url, **params)
+        r.raise_for_status()
         return r.json()
 
     def query(self, **kwargs):
