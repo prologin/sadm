@@ -27,10 +27,18 @@ import SddmComponents 2.0
 
 Rectangle {
     id: container
-    width: 640
-    height: 480
 
-    LayoutMirroring.enabled: Qt.locale().textDirection == Qt.RightToLeft
+    property color textColor: '#fafafa'
+    property color brandColor: '#33449d'
+
+    function login(event) {
+        if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+            sddm.login(name.text, password.text, session.index)
+            event.accepted = true
+        }
+    }
+
+    LayoutMirroring.enabled: Qt.locale().textDirection === Qt.RightToLeft
     LayoutMirroring.childrenInherit: true
 
     TextConstants { id: textConstants }
@@ -51,47 +59,58 @@ Rectangle {
 
     Background {
         anchors.fill: parent
-        source: config.background
-        fillMode: Image.PreserveAspectCrop
+        source: config.backgroundPattern
+        fillMode: Image.Tile
         onStatusChanged: {
-            if (status == Image.Error && source != config.defaultBackground) {
+            if (status == Image.Error && source !== config.defaultBackground) {
                 source = config.defaultBackground
             }
         }
     }
 
+    Image {
+        anchors.centerIn: parent
+        width: parent.width / 3
+        height: parent.height / 3
+        sourceSize.width: width
+        sourceSize.height: height
+        source: config.background
+        fillMode: Image.PreserveAspectFit
+        clip: true
+        focus: false
+        smooth: true
+    }
+
     Rectangle {
         anchors.fill: parent
         color: "transparent"
-        //visible: primaryScreen
+        anchors.topMargin: 90
+        anchors.rightMargin: 120
 
         Clock {
             id: clock
-            anchors.margins: 5
-            anchors.top: parent.top; anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.right: parent.right
 
-            color: "white"
-            timeFont.family: "Oxygen"
+            color: textColor
+            timeFont.family: "Oxygen,Oxygen-Sans,sans-serif"
         }
 
-        Image {
+        Rectangle {
             id: rectangle
-            anchors.right: parent.right;
-            anchors.top: parent.top;
-            anchors.rightMargin: 30;
-            anchors.topMargin: 225;
-            width: Math.max(320, mainColumn.implicitWidth + 50)
-            height: Math.max(320, mainColumn.implicitHeight + 50)
-
-            source: "rectangle.png"
+            anchors.right: clock.right
+            anchors.left: clock.left
+            anchors.top: clock.bottom
+            anchors.topMargin: 200
 
             Column {
                 id: mainColumn
                 anchors.centerIn: parent
                 spacing: 12
+
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    color: "black"
+                    color: textColor
                     verticalAlignment: Text.AlignVCenter
                     height: text.implicitHeight
                     width: parent.width
@@ -102,59 +121,38 @@ Rectangle {
                     horizontalAlignment: Text.AlignHCenter
                 }
 
-                Column {
-                    width: parent.width
-                    spacing: 4
-                    Text {
-                        id: lblName
-                        width: parent.width
-                        text: textConstants.userName
-                        font.bold: true
-                        font.pixelSize: 12
-                    }
+                Input {
+                    id: name
+                    input.color: textColor
+                    image.source: 'user.png'
+                    anchors.left: parent.left
+                    anchors.right: parent.right
 
-                    TextBox {
-                        id: name
-                        width: parent.width; height: 30
-                        text: userModel.lastUser
-                        font.pixelSize: 14
+                    input.focus: true
 
-                        KeyNavigation.backtab: rebootButton; KeyNavigation.tab: password
+                    input.text: userModel.lastUser
 
-                        Keys.onPressed: {
-                            if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                                sddm.login(name.text, password.text, session.index)
-                                event.accepted = true
-                            }
-                        }
-                    }
+                    KeyNavigation.backtab: rebootButton
+                    KeyNavigation.tab: password
+                    Keys.onPressed: login(event)
                 }
 
-                Column {
+                PasswordInput {
+                    id: password
+                    input.color: textColor
+                    image.source: 'lock.png'
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+
+                    KeyNavigation.backtab: name
+                    KeyNavigation.tab: session
+                    Keys.onPressed: login(event)
+                }
+
+                // separator
+                Item {
+                    height: 30
                     width: parent.width
-                    spacing : 4
-                    Text {
-                        id: lblPassword
-                        width: parent.width
-                        text: textConstants.password
-                        font.bold: true
-                        font.pixelSize: 12
-                    }
-
-                    PasswordBox {
-                        id: password
-                        width: parent.width; height: 30
-                        font.pixelSize: 14
-
-                        KeyNavigation.backtab: name; KeyNavigation.tab: session
-
-                        Keys.onPressed: {
-                            if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                                sddm.login(name.text, password.text, session.index)
-                                event.accepted = true
-                            }
-                        }
-                    }
                 }
 
                 Row {
@@ -171,6 +169,7 @@ Rectangle {
                         Text {
                             id: lblSession
                             width: parent.width
+                            color: textColor
                             text: textConstants.session
                             wrapMode: TextEdit.WordWrap
                             font.bold: true
@@ -182,6 +181,9 @@ Rectangle {
                             width: parent.width; height: 30
                             font.pixelSize: 14
 
+                            textColor: textColor
+                            focusColor: brandColor
+                            hoverColor: brandColor
                             arrowIcon: "angle-down.png"
 
                             model: sessionModel
@@ -200,6 +202,7 @@ Rectangle {
                         Text {
                             id: lblLayout
                             width: parent.width
+                            color: textColor
                             text: textConstants.layout
                             wrapMode: TextEdit.WordWrap
                             font.bold: true
@@ -224,6 +227,7 @@ Rectangle {
                         id: errorMessage
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: textConstants.prompt
+                        color: textColor
                         font.pixelSize: 10
                     }
                 }
@@ -238,30 +242,36 @@ Rectangle {
                         id: loginButton
                         text: textConstants.login
                         width: parent.btnWidth
+                        color: brandColor
 
                         onClicked: sddm.login(name.text, password.text, session.index)
 
-                        KeyNavigation.backtab: layoutBox; KeyNavigation.tab: shutdownButton
+                        KeyNavigation.backtab: layoutBox
+                        KeyNavigation.tab: shutdownButton
                     }
 
                     Button {
                         id: shutdownButton
                         text: textConstants.shutdown
                         width: parent.btnWidth
+                        color: brandColor
 
                         onClicked: sddm.powerOff()
 
-                        KeyNavigation.backtab: loginButton; KeyNavigation.tab: rebootButton
+                        KeyNavigation.backtab: loginButton
+                        KeyNavigation.tab: rebootButton
                     }
 
                     Button {
                         id: rebootButton
                         text: textConstants.reboot
                         width: parent.btnWidth
+                        color: brandColor
 
                         onClicked: sddm.reboot()
 
-                        KeyNavigation.backtab: shutdownButton; KeyNavigation.tab: name
+                        KeyNavigation.backtab: shutdownButton
+                        KeyNavigation.tab: name
                     }
                 }
             }
@@ -269,7 +279,7 @@ Rectangle {
     }
 
     Component.onCompleted: {
-        if (name.text == "")
+        if (name.text === "")
             name.focus = true
         else
             password.focus = true
