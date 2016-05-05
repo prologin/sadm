@@ -27,6 +27,7 @@ setup(name='ProloginSADM',
       packages=find_packages(),
       scripts=['prologin/workernode/compile-champion.sh',
                'prologin/rpc/prolorpc',
+               'prologin/xhack.py',
                ],
       package_data={
           'prologin.concours': ['stechec/static/**/*.*',
