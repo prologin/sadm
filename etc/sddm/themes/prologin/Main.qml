@@ -70,6 +70,7 @@ Rectangle {
 
     Image {
         anchors.centerIn: parent
+        anchors.horizontalCenterOffset: -width / 2
         width: parent.width / 3
         height: parent.height / 3
         sourceSize.width: width
