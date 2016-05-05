@@ -693,6 +693,8 @@ def install_rfs():
 
 def install_sddmcfg():
     copy('etc/sddm/sddm.conf', '/export/nfsroot/etc/sddm.conf', mode=0o644)
+    copy('etc/sddm/scripts/Xsetup',
+         '/export/nfsroot/usr/share/sddm/scripts/Xsetup', mode=0o755)
     copytree('etc/sddm/themes/prologin',
              '/export/nfsroot/usr/share/sddm/themes/prologin',
              dir_mode=0o755, file_mode=0o644)
