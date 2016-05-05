@@ -52,6 +52,7 @@ import postgresql
 import prologin.config
 import prologin.log
 import prologin.mdb.client
+import pwd
 import random
 import signal
 import socket
@@ -259,6 +260,15 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
         if get_available_space(self.nbd_filename()) < self.get_nbd_size():
             raise RuntimeError('out of disk space')
 
+    def check_user_exists(self):
+        """Check that the specified user exists locally to avoid creating hfs
+        with invalid permissions."""
+        try:
+            pwd.getpwnam(self.user)
+        except KeyError:
+            raise RuntimeError('User {} does not exist on the rhfs. '
+                               'Is udbsync_passwd working?'.format(self.user))
+
     def start_nbd_server(self, filename):
         """Starts the NBD server for a given filename. Allocates a random port
         between CFG['start_port_range'] and CFG['end_port_range'] (excl).
@@ -295,6 +305,7 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
         creation_script = os.path.join(code_dir, 'create_nbd.sh')
 
         self.check_available_space()
+        self.check_user_exists()
 
         quota = self.get_nbd_size()
         group = self.get_user_group()
