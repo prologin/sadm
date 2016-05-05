@@ -139,7 +139,7 @@ Rectangle {
 
                     KeyNavigation.backtab: rebootButton
                     KeyNavigation.tab: password
-                    Keys.onPressed: login(event)
+                    Keys.onPressed: inputKeyEvent(event)
                 }
 
                 PasswordInput {
@@ -151,7 +151,7 @@ Rectangle {
 
                     KeyNavigation.backtab: name
                     KeyNavigation.tab: session
-                    Keys.onPressed: login(event)
+                    Keys.onPressed: inputKeyEvent(event)
                 }
 
                 // separator
