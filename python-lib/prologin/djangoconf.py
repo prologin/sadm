@@ -73,6 +73,6 @@ def _load_config(cfg, out):
     out['DATABASES'] = cfg.get('db')
 
     # Optional with sane defaults
-    out['DEBUG'] = out['TEMPLATE_DEBUG'] = cfg.get('debug', False)
+    out['DEBUG'] = cfg.get('debug', False)
     out['TIME_ZONE'] = cfg.get('tz', _DEFAULT_TZ)
     out['LANGUAGE_CODE'] = cfg.get('lang', _DEFAULT_LANG)
