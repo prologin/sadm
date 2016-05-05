@@ -19,6 +19,7 @@ import ipaddress
 
 from django.core.validators import RegexValidator
 from django.db import models
+from django.db.models import F
 
 from django_prometheus.models import ExportModelOperationsMixin
 
@@ -90,8 +91,9 @@ class Machine(ExportModelOperationsMixin('machine'), models.Model):
         else:
             pooltype = self.mtype
         pool = IPPool.objects.get(mtype=pooltype)
-        pool.last += 1
+        pool.last = F('last') + 1  # Atomic increment
         pool.save()
+        pool.refresh_from_db()
 
         net = ipaddress.IPv4Network(pool.network)
         self.ip = str(net.network_address + pool.last)

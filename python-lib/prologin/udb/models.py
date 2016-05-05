@@ -16,6 +16,7 @@
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 from django.db import models
+from django.db.models import F
 
 from django_prometheus.models import ExportModelOperationsMixin
 
@@ -62,8 +63,9 @@ class User(ExportModelOperationsMixin('user'), models.Model):
 
     def allocate_uid(self):
         pool = UIDPool.objects.get(group=self.group)
-        pool.last += 1
+        pool.last = F('last') + 1  # Atomic increment
         pool.save()
+        pool.refresh_from_db()
         self.uid = pool.base + pool.last
 
     class Meta:
