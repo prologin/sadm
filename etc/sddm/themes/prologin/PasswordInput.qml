@@ -8,6 +8,8 @@ FocusScope {
     property alias input: txtMain.input
     property alias image: txtMain.image
 
+    property alias text: txtMain.text
+
     height: 30
 
     Input {

@@ -31,11 +31,15 @@ Rectangle {
     property color textColor: '#fafafa'
     property color brandColor: '#33449d'
 
-    function login(event) {
+    function inputKeyEvent(event) {
         if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-            sddm.login(name.text, password.text, session.index)
+            login();
             event.accepted = true
         }
+    }
+
+    function login() {
+        sddm.login(name.text, password.text, session.index);
     }
 
     LayoutMirroring.enabled: Qt.locale().textDirection === Qt.RightToLeft
@@ -179,7 +183,8 @@ Rectangle {
 
                         ComboBox {
                             id: session
-                            width: parent.width; height: 30
+                            width: parent.width
+                            height: 30
                             font.pixelSize: 14
 
                             textColor: textColor
@@ -190,7 +195,8 @@ Rectangle {
                             model: sessionModel
                             index: sessionModel.lastIndex
 
-                            KeyNavigation.backtab: password; KeyNavigation.tab: layoutBox
+                            KeyNavigation.backtab: password
+                            KeyNavigation.tab: layoutBox
                         }
                     }
 
@@ -212,12 +218,14 @@ Rectangle {
 
                         LayoutBox {
                             id: layoutBox
-                            width: parent.width; height: 30
+                            width: parent.width
+                            height: 30
                             font.pixelSize: 14
 
                             arrowIcon: "angle-down.png"
 
-                            KeyNavigation.backtab: session; KeyNavigation.tab: loginButton
+                            KeyNavigation.backtab: session
+                            KeyNavigation.tab: loginButton
                         }
                     }
                 }
@@ -245,7 +253,7 @@ Rectangle {
                         width: parent.btnWidth
                         color: brandColor
 
-                        onClicked: sddm.login(name.text, password.text, session.index)
+                        onClicked: login()
 
                         KeyNavigation.backtab: layoutBox
                         KeyNavigation.tab: shutdownButton

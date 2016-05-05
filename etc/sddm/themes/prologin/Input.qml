@@ -3,11 +3,13 @@ import QtQuick 2.0
 FocusScope {
     height: 30
 
-    property alias image: image
-    property alias input: txtMain
     property color textColor: '#fafafa'
     property color lineColor: '#77fafafa'
     property int lineWidth: 1
+
+    property alias image: image
+    property alias input: txtMain
+    property alias text: txtMain.text
 
     MouseArea {
         id: mouseArea
