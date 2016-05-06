@@ -140,8 +140,6 @@ Setup postgresql on gw
 Install and enable postgresql::
 
   python install.py postgresql
-  mv /var/lib/postgres/data/postgresql.conf{.new,}
-  mv /var/lib/postgres/data/pg_hba.conf{.new,}
   systemctl enable postgresql && systemctl start postgresql
 
 
@@ -597,8 +595,6 @@ Setup postgresql on web
 Install and enable postgresql::
 
   python install.py postgresql
-  mv /var/lib/postgres/data/postgresql.conf{.new,}
-  mv /var/lib/postgres/data/pg_hba.conf{.new,}
   systemctl enable postgresql && systemctl start postgresql
 
 concours

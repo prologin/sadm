@@ -340,9 +340,9 @@ def install_postgresql():
         system('su - postgres -c "initdb --locale en_US.UTF-8 -D {}"'
                 .format(pg_path))
     install_cfg('postgres/pg_hba.conf', pg_path,
-            owner='postgres:postgres', mode=0o600)
+                owner='postgres:postgres', mode=0o600, replace=True)
     install_cfg('postgres/postgresql.conf', pg_path,
-            owner='postgres:postgres', mode=0o600)
+                owner='postgres:postgres', mode=0o600, replace=True)
 
 
 def install_nginxcfg():
