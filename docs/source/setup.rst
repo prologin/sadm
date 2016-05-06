@@ -648,7 +648,6 @@ Then, still for the users machines, install ``workernode``::
   arch-chroot /export/nfsroot/
   cd sadm
   python install.py workernode
-  cp python-lib/prologin/workernode/compile-champion.sh /usr/bin/compile-champion.sh
   systemctl enable workernode
   exit # get out of the chroot
 

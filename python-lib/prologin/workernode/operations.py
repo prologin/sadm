@@ -74,8 +74,9 @@ def compile_champion(config, champion_path):
     Returns a tuple (ok, output), with ok = True/False and output being the
     output of the compilation script.
     """
-    cmd = [config['path']['compile_script'], config['path']['makefiles'],
-           champion_path]
+    code_dir = os.path.abspath(os.path.dirname(__file__))
+    compile_script = os.path.join(code_dir, 'compile-champion.sh')
+    cmd = [compile_script, config['path']['makefiles'], champion_path]
     retcode, _ = yield from tools.communicate(cmd)
     return retcode == 0
 

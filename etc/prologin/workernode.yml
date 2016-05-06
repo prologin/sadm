@@ -15,7 +15,6 @@ worker:
 
 # Paths of some needed tools
 path:
-    compile_script: /usr/bin/compile-champion.sh
     stechec_server: /usr/bin/stechec2-server
     stechec_client: /usr/bin/stechec2-client
     rules: /usr/lib/libCHANGEME.so                    # Stechec's rules library
