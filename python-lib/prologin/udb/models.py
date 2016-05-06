@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
+from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import F
 
@@ -27,7 +28,10 @@ class User(ExportModelOperationsMixin('user'), models.Model):
         ('root', 'root'),
     )
 
-    login = models.CharField(max_length=64, unique=True, db_index=True)
+    LOGIN_REGEX = r'^([a-z_][a-z0-9_]{0,30})$'
+
+    login = models.CharField(max_length=32, unique=True, db_index=True,
+                             validators=[RegexValidator(regex=LOGIN_REGEX)])
     firstname = models.CharField(max_length=64, verbose_name='First name')
     lastname = models.CharField(max_length=64, verbose_name='Last name')
     uid = models.IntegerField(unique=True, db_index=True, verbose_name='UID')
