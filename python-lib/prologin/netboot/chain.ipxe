@@ -1,0 +1,10 @@
+#!ipxe
+
+echo Getting our IP from DHCP
+dhcp || goto reboot
+chain http://netboot/bootstrap
+
+:reboot
+echo Waiting 10 seconds before rebooting...
+prompt --key 0x02 --timeout 10000 Press Ctrl-B for the iPXE command line... && goto shell ||
+reboot
