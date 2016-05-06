@@ -25,6 +25,7 @@ set_admin_title(admin, "Machine Database")
 
 urlpatterns = [
     url(r'^query$', views.query, name='mdbapi-query'),
+    url(r'^switches$', views.switches, name='mdbapi-switches'),
     url(r'^register$', views.register, name='mdbapi-register'),
     url(r'', include('django_prometheus.urls')),
     url(r'', include(admin.site.urls)),

@@ -21,7 +21,7 @@ import prologin.mdb.receivers  # To connect our receivers
 from django.http import HttpResponse, HttpResponseForbidden
 from django.http import HttpResponseBadRequest, HttpResponseServerError
 from django.views.decorators.csrf import csrf_exempt
-from prologin.mdb.models import Machine, VolatileSetting
+from prologin.mdb.models import Machine, Switch, VolatileSetting
 from prologin.utils.django import get_request_args
 
 
@@ -31,6 +31,14 @@ def query(request):
     machines = Machine.objects.filter(**args)  # TODO(delroth): secure?
     machines = [m.to_dict() for m in machines]
     return HttpResponse(json.dumps(machines), content_type='application/json')
+
+
+@csrf_exempt
+def switches(request):
+    args = get_request_args(request)
+    switches = Switch.objects.filter(**args)  # TODO(delroth): secure?
+    switches = [s.to_dict() for s in switches]
+    return HttpResponse(json.dumps(switches), content_type='application/json')
 
 
 @csrf_exempt

@@ -77,6 +77,27 @@ class _MDBClient:
             raise ValueError('non serializable argument type')
         return self._submit_rpc('/query', data=kwargs)
 
+    def switches(self, **kwargs):
+        """Query the MDB for switches using the Django query syntax. The
+        possible fields are:
+
+          name: the name of the switch
+          chassis: the chassis ID
+          rfs: associated root file server
+          hfs: associated home file server
+          room: physical room location, either pasteur/alt/cluster/other
+        """
+        fields = {'name', 'chassis', 'rfs', 'hfs', 'room'}
+        for q in kwargs:
+            base = q.split('_')[0]
+            if base not in fields:
+                raise ValueError('%r is not a valid query argument' % q)
+        try:
+            post_data = json.dumps(kwargs)
+        except TypeError:
+            raise ValueError('non serializable argument type')
+        return self._submit_rpc('/switches', data=kwargs)
+
     def register(self, qs):
         """Register a machine to MDB, transmitting the query string.
 

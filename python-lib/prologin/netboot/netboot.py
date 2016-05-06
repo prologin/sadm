@@ -62,6 +62,7 @@ reboot
 """
 
 class BootHandler(tornado.web.RequestHandler):
+    '''Send the initrd and kernel urls to registered machines.'''
     def get(self, mac):
         self.content_type = 'text/plain; charset=utf-8'
         # TODO(delroth): This is blocking - not perfect... should be fast
@@ -88,7 +89,49 @@ class BootHandler(tornado.web.RequestHandler):
         self.finish(script)
 
 
+class BootstrapHandler(tornado.web.RequestHandler):
+    '''Send the base IPXE script with switches names for LLDP.
+
+       This is the expected format (sw_name_X is the corresponding switch
+       chassis ID):
+
+       set sw_name_0 02:99:71:f6:c6:5a
+       set sw_rfs_0  0
+       set sw_hfs_0  0
+       set sw_room_0 pasteur
+
+       set sw_name_1 02:99:71:f6:c6:5b
+       set sw_rfs_1  1
+       set sw_hfs_1  1
+       set sw_room_1 alt
+    '''
+
+    def get(self):
+        self.content_type = 'text/plain; charset=utf-8'
+        code_dir = os.path.abspath(os.path.dirname(__file__))
+        creation_script = os.path.join(code_dir, 'script.ipxe')
+        switches = prologin.mdb.client.connect().switches()
+
+        fragments = []
+        for i, s in enumerate(switches):
+            fragment = (
+                'set sw_name_{count} {chassis}\n'
+                'set sw_rfs_{count} {rfs}\n'
+                'set sw_hfs_{count} {hfs}\n'
+                'set sw_room_{count} {room}'
+            ).format(count=i, chassis=s['chassis'], rfs=s['rfs'], hfs=s['hfs'],
+                     room=s['room'])
+            fragments.append(fragment)
+
+        with open(creation_script) as script:
+            content = script.read()
+            content = content.replace('#%%NETBOOT_REPLACE_SWITCH_INFO%%',
+                                      '\n\n'.join(fragments))
+            self.finish(content)
+
+
 class RegisterHandler(tornado.web.RequestHandler):
+    '''Register an alien machine in mdb.'''
     def get(self):
         self.content_type = 'text/plain; charset=utf-8'
         qs = self.request.query
@@ -105,6 +148,7 @@ prologin.log.setup_logging('netboot')
 static_path = CFG['static_path']
 application = tornado.wsgi.WSGIApplication([
     (r'/boot/(.*)/', BootHandler),
+    (r'/bootstrap', BootstrapHandler),
     (r'/register', RegisterHandler),
     (r'/static/(.*)', tornado.web.StaticFileHandler, { 'path': static_path }),
 ])

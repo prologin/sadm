@@ -38,6 +38,12 @@ class MachineAdmin(admin.ModelAdmin):
             return ['ip']
 
 
+class SwitchAdmin(admin.ModelAdmin):
+    list_display = ('name', 'room', 'rfs', 'hfs')
+    list_filter = ('room',)
+    search_fields = ('name', 'rfs', 'hfs', 'room')
+
+
 class VolatileSettingAdmin(admin.ModelAdmin):
     list_display = ('key', 'value_bool', 'value_str', 'value_int')
     search_fields = ('key', 'value_str')
@@ -45,4 +51,5 @@ class VolatileSettingAdmin(admin.ModelAdmin):
 
 admin.site.register(models.IPPool, IPPoolAdmin)
 admin.site.register(models.Machine, MachineAdmin)
+admin.site.register(models.Switch, SwitchAdmin)
 admin.site.register(models.VolatileSetting, VolatileSettingAdmin)

@@ -23,27 +23,28 @@ from django.db.models import F
 
 from django_prometheus.models import ExportModelOperationsMixin
 
+TYPES = (
+    ('user', 'Contestant machine'),
+    ('orga', 'Organizer machine'),
+    ('cluster', 'Matches cluster node'),
+    ('service', 'Server'),
+)
+
+ROOMS = (
+    ('pasteur', 'Pasteur'),
+    ('alt', 'Supplementary room'),
+    ('cluster', 'Cluster'),
+    ('other', 'Other/Unknown'),
+)
+
+# Vaguely inaccurate, KISS.
+HOSTNAME_REGEX = r'^[a-z0-9-]*(?:\.[a-z0-9]*)?$'
+ALIASES_REGEX = r'^{0}(?:,{0})*$'.format(HOSTNAME_REGEX[1:-1])
+MAC_REGEX = r'[0-9a-zA-Z]{2}(?::[0-9a-zA-Z]{2}){5}'
+
+
 
 class Machine(ExportModelOperationsMixin('machine'), models.Model):
-    TYPES = (
-        ('user', 'Contestant machine'),
-        ('orga', 'Organizer machine'),
-        ('cluster', 'Matches cluster node'),
-        ('service', 'Server'),
-    )
-
-    ROOMS = (
-        ('pasteur', 'Pasteur'),
-        ('alt', 'Supplementary room'),
-        ('cluster', 'Cluster'),
-        ('other', 'Other/Unknown'),
-    )
-
-    # Vaguely inaccurate, KISS.
-    HOSTNAME_REGEX = r'^[a-z0-9-]*(?:\.[a-z0-9]*)?$'
-    ALIASES_REGEX = r'^{0}(?:,{0})*$'.format(HOSTNAME_REGEX[1:-1])
-    MAC_REGEX = r'[0-9a-zA-Z]{2}(?::[0-9a-zA-Z]{2}){5}'
-
     hostname = models.CharField(max_length=64, unique=True,
                                 verbose_name='Host name',
                                 validators=[RegexValidator(regex=HOSTNAME_REGEX)],
@@ -103,7 +104,7 @@ class Machine(ExportModelOperationsMixin('machine'), models.Model):
 
 
 class IPPool(ExportModelOperationsMixin('ippool'), models.Model):
-    mtype = models.CharField(max_length=20, choices=Machine.TYPES, unique=True,
+    mtype = models.CharField(max_length=20, choices=TYPES, unique=True,
                              verbose_name='For type')
     network = models.CharField(max_length=32, unique=True, verbose_name='CIDR')
     last = models.IntegerField(blank=True, default=0,
@@ -116,6 +117,36 @@ class IPPool(ExportModelOperationsMixin('ippool'), models.Model):
         ordering = ('mtype',)
         verbose_name = 'IP Pool'
         verbose_name_plural = 'IP Pools'
+
+
+class Switch(ExportModelOperationsMixin('switch'), models.Model):
+    '''Used for automatic registering with LLDP'''
+    name = models.CharField(max_length=64, verbose_name='Name')
+    chassis = models.CharField(max_length=17, unique=True,
+                               verbose_name='Chassis ID',
+                               validators=[RegexValidator(regex=MAC_REGEX)],
+                               help_text='aa:bb:cc:dd:ee:ff')
+    room = models.CharField(max_length=20, choices=ROOMS,
+                            default='other')
+    rfs = models.IntegerField(verbose_name='RFS', default=0)
+    hfs = models.IntegerField(verbose_name='HFS', default=0)
+
+    def __str__(self):
+        return self.name
+
+    def to_dict(self):
+        return {
+            'name': self.name,
+            'chassis': self.chassis,
+            'room': self.room,
+            'rfs': self.rfs,
+            'hfs': self.hfs,
+        }
+
+    class Meta:
+        ordering = ('rfs', 'hfs', 'name')
+        verbose_name = 'Switch'
+        verbose_name_plural = 'Switches'
 
 
 class VolatileSetting(ExportModelOperationsMixin('volatile'), models.Model):

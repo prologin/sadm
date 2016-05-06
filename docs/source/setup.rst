@@ -323,14 +323,14 @@ Then compile time settings need to be modified. Add the following lines::
   #define PING_CMD
   #define NET_PROTO_LLDP
 
-You should then edit ``/root/sadm/python-lib/prologin/netboot/script.ipxe`` to
-add the switches.
+You should then go to ``http://mdb/mdb/switch/`` add the switches with their
+names, chassis ID, rooms and nearest rfs and hfs.
 
 You can now build iPXE: go to ``src/`` and build the bootrom, embedding our
 script::
 
   cd src/
-  make bin/undionly.kpxe EMBED=/root/sadm/python-lib/prologin/netboot/script.ipxe NO_WERROR=1
+  make bin/undionly.kpxe EMBED=/root/sadm/python-lib/prologin/netboot/chain.ipxe NO_WERROR=1
   cp bin/undionly.kpxe /srv/tftp/prologin.kpxe
 
 udb
