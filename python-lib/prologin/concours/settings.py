@@ -34,6 +34,8 @@ USE_I18N = True
 # calendars according to the current locale
 USE_L10N = True
 
+STATIC_ROOT = ''
+
 # URL prefix for static files.
 STATIC_URL = '/static/'
 
