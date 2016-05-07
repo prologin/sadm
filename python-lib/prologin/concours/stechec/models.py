@@ -212,7 +212,10 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
     @property
     def dump(self):
         dump_path = os.path.join(self.directory, "dump.json.gz")
-        return open(dump_path, "rb").read()
+        try:
+            return open(dump_path, "rb").read()
+        except FileNotFoundError:
+            return None
 
     @property
     def options_dict(self):

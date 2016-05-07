@@ -3,9 +3,11 @@ from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.db.models import Max, Min
-from django.http import HttpResponseRedirect, HttpResponse, HttpResponseForbidden
+from django.http import (HttpResponseRedirect, HttpResponse,
+                         HttpResponseForbidden, Http404)
 from django.shortcuts import get_object_or_404
-from django.views.generic import DetailView, ListView, FormView, TemplateView, RedirectView
+from django.views.generic import (DetailView, ListView, FormView, TemplateView,
+                                  RedirectView)
 from django.views.generic.base import View
 from django.views.generic.detail import SingleObjectMixin
 
@@ -264,8 +266,14 @@ class MatchDumpView(SingleObjectMixin, View):
         if (settings.STECHEC_FIGHT_ONLY_OWN_CHAMPIONS and not
             self.request.user.is_staff) and match.author != request.user:
             return HttpResponseForbidden()
-        h = HttpResponse(match.dump, content_type="application/stechec-dump")
-        h['Content-Disposition'] = 'attachment; filename=dump-%s.json' % self.kwargs[self.pk_url_kwarg]
+
+        dump = match.dump
+        if dump is None:
+            raise Http404()
+
+        h = HttpResponse(dump, content_type="application/stechec-dump")
+        h['Content-Disposition'] = ('attachment; filename=dump-%s.json' %
+                                    self.kwargs[self.pk_url_kwarg])
         h['Content-Encoding'] = 'gzip'
         return h
 
