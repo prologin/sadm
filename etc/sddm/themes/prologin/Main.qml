@@ -111,6 +111,7 @@ Rectangle {
             Column {
                 id: mainColumn
                 anchors.centerIn: parent
+                width: parent.width
                 spacing: 12
 
                 Text {
@@ -162,12 +163,12 @@ Rectangle {
 
                 Row {
                     spacing: 4
-                    width: parent.width / 2
-                    z: 100
+                    width: parent.width
+                    z: 200
 
                     Column {
-                        z: 100
-                        width: parent.width * 1.3
+                        z: 201
+                        width: parent.width
                         spacing : 4
                         anchors.bottom: parent.bottom
 
@@ -199,10 +200,16 @@ Rectangle {
                             KeyNavigation.tab: layoutBox
                         }
                     }
+                }
+
+                Row {
+                    spacing: 4
+                    width: parent.width
+                    z: 100
 
                     Column {
                         z: 101
-                        width: parent.width * 0.7
+                        width: parent.width
                         spacing : 4
                         anchors.bottom: parent.bottom
 
@@ -216,7 +223,7 @@ Rectangle {
                             font.pixelSize: 12
                         }
 
-                        LayoutBox {
+                        LayoutBoxProlo {
                             id: layoutBox
                             width: parent.width
                             height: 30
