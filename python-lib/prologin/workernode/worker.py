@@ -207,7 +207,8 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         # Players
         tasks_players = {}
         champion_dirs = []
-        for pl_id, (c_id, ctgz) in players.items():
+        # Sort by MatchPlayer id
+        for oid, (pl_id, (c_id, ctgz)) in enumerate(sorted(players.items()), 1):
             ctgz = b64decode(ctgz)
             cdir = tempfile.TemporaryDirectory()
             champion_dirs.append(cdir)
@@ -215,7 +216,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
                                                  ctgz, cdir.name)
             tasks_players[pl_id] = asyncio.Task(operations.spawn_client(
                 self.config, s_reqrep, s_pubsub, pl_id, cdir.name,
-                socket_dir.name, opts, file_opts))
+                socket_dir.name, opts, file_opts, order_id=oid))
 
         # Wait for the match to complete
         yield from asyncio.wait([task_server] +
