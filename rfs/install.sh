@@ -90,7 +90,7 @@ mount /dev/disk/by-label/boot /mnt/boot
 mount /dev/mapper/data-export /mnt/export
 
 echo 'Installing base system and prologin-sadm dependencies'
-pacstrap /mnt base syslinux \
+pacstrap /mnt base syslinux vim \
     base-devel git python python-pip python-virtualenv libyaml libxslt postgresql-libs \
     postgresql openssh dnsutils rsync tcpdump strace wget ethtool atop htop
 
