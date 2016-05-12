@@ -117,3 +117,21 @@ files in ``/export/hfs/`` on all HFS servers and delete entries in the
 
   echo 'delete from user_location;' | su - postgres -c 'psql hfs'
 
+Remove a RAID 1
+~~~~~~~~~~~~~~~
+
+The first step is to deactivate and remove the volume group::
+
+  vgchange -a n data
+  vgremove data
+
+Then you have to actually deconstruct the RAID array and zero the superblock
+of each device::
+
+  mdadm --stop /dev/md0
+  mdadm --remove /dev/md0
+  mdadm --zero-superblock /dev/sda2
+  mdadm --zero-superblock /dev/sdb2
+
+If you want to erase the remaining ext4 filesystem on thoses devices, you can
+use fdisk.
