@@ -2,6 +2,7 @@ import argparse
 import json
 import subprocess
 
+from django.db import transaction
 from django.core.management import BaseCommand
 
 from prologin.udb.models import User
@@ -33,22 +34,20 @@ class Command(BaseCommand):
             "not present in the file"),
 
     def handle(self, *args, **options):
-        users = []
-        for item in json.load(options['file']):
-            try:
-                pswd = item['password']
-            except KeyError:
-                pswd = generate_password(options['pwdlen'])
-            user = User(pk=item['id'],
-                        login=item['username'],
-                        password=pswd,
-                        firstname=item['first_name'].title(),
-                        lastname=item['last_name'].title(),
-                        group=options['type'])
-            users.append(user)
-            self.stdout.write("Adding {} {:>8} {:<20} {:<20} {}".format(
-                options['type'], user.id, user.login, user.lastname,
-                user.firstname))
-
-        User.objects.bulk_create(users)
+        with transaction.atomic():
+            for item in json.load(options['file']):
+                try:
+                    pswd = item['password']
+                except KeyError:
+                    pswd = generate_password(options['pwdlen'])
+                user = User(pk=item['id'],
+                            login=item['username'],
+                            password=pswd,
+                            firstname=item['first_name'].title(),
+                            lastname=item['last_name'].title(),
+                            group=options['type'])
+                self.stdout.write("Adding {} {:>8} {:<20} {:<20} {}".format(
+                    options['type'], user.id, user.login, user.lastname,
+                    user.firstname))
+                user.save()
         self.stdout.write("All users added successfully.")
