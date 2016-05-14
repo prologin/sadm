@@ -51,6 +51,7 @@ if __name__ == '__main__':
     prologin.log.setup_logging('masternode', verbose=options.verbose,
                                local=options.local_logging)
     logging.getLogger('asyncio').setLevel(logging.WARNING)
+    logging.getLogger('tornado').setLevel(logging.WARNING)
 
     # Config
     config = prologin.config.load('masternode')
