@@ -30,7 +30,9 @@
         <td>{{ match.ts|naturalday }} à {{ match.ts|time:"H:i:s" }}</td>
         <td>{% include "stechec/stub_status_match.html" %}</td>
         {% if show_creator %}
-          <td{% if request.user == match.author %} class="itsme"{% endif %}>{{ match.author }}</td>{% endif %}
+          <td{% if request.user == match.author %} class="itsme"{% endif %}>
+            <a href="{% url 'matches-all' %}?author={{ match.author.pk }}">{{ match.author }}</a>
+          </td>{% endif %}
         {% if settings.STECHEC_USE_MAPS %}
           <td class="text-ellipsis" style="max-width: 10em;" title="{{ map_name }}">
             {% if map_id != None %}

@@ -134,6 +134,19 @@ class AllMatchesView(MatchesListView):
     explanation_text = "Voici la liste de tous les matches ayant été réalisés."
     show_creator = True
 
+    def get_queryset(self):
+        qs = models.Match.objects.all()
+        authors = self.request.GET.getlist('author')
+        if authors:
+            qs = qs.filter(author__pk__in=authors)
+        champions = self.request.GET.getlist('champion')
+        if champions:
+            qs = qs.filter(players__pk__in=champions)
+        champion_authors = self.request.GET.getlist('champion-author')
+        if champion_authors:
+            qs = qs.filter(players__author__pk__in=champion_authors)
+        return qs
+
     def get(self, request, *args, **kwargs):
         if (settings.STECHEC_FIGHT_ONLY_OWN_CHAMPIONS and not
             self.request.user.is_staff):
@@ -141,22 +154,20 @@ class AllMatchesView(MatchesListView):
         return super().get(request, *args, **kwargs)
 
 
-class MyMatchesView(MatchesListView):
-    title = "Mes matches"
-    explanation_text = "Voici la liste des matches que vous avez lancé."
-    show_creator = False
+class MyMatchesView(RedirectView):
+    permanent = False
 
-    def get_queryset(self):
-        return models.Match.objects.filter(author=self.request.user)
+    def get_redirect_url(self, *args, **kwargs):
+        return '{}?author={}'.format(reverse('matches-all'),
+                                     self.request.user.pk)
 
 
-class MyChampionMatchesView(MatchesListView):
-    title = "Les matches de mes champions"
-    explanation_text = ""
-    show_creator = False
+class MyChampionMatchesView(RedirectView):
+    permanent = False
 
-    def get_queryset(self):
-        return models.Match.objects.filter(players__author=self.request.user)
+    def get_redirect_url(self, *args, **kwargs):
+        return '{}?champion-author={}'.format(reverse('matches-all'),
+                                              self.request.user.pk)
 
 
 class AllMapsView(ListView):

@@ -58,7 +58,7 @@
     {% for player in match.matchplayer_set.all %}
       <tr>
         <td>{{ player.id }}</td>
-        <td>{{ player.champion.id }}</td>
+        <td><a href="{% url 'matches-all' %}?champion={{ player.champion.id }}">{{ player.champion.id }}</a></td>
         <td>{{ player.champion }}</td>
         {% if match.is_done %}
           <td>{{ player.score }}</td>
