@@ -20,6 +20,7 @@
 
 import aiopg
 import asyncio
+import psycopg2
 
 REQUESTS = {
     'get_champions': '''
@@ -131,8 +132,6 @@ class ConcoursQuery:
                     host=self.host,
                     port=self.port)
 
-    # Each time we want to make a request, we establish a new connection, in
-    # order to prevent issues if DB reboots
     @asyncio.coroutine
     def execute(self, name, params):
         if name not in REQUESTS:
@@ -141,7 +140,10 @@ class ConcoursQuery:
         yield from self.connect()
         cursor = yield from self.conn.cursor()
         yield from cursor.execute(REQUESTS[name], params)
-        return (yield from cursor.fetchall())
+        try:
+            return (yield from cursor.fetchall())
+        except psycopg2.ProgrammingError:  # No results
+            return None
 
     @asyncio.coroutine
     def executemany(self, name, seq_of_params):
