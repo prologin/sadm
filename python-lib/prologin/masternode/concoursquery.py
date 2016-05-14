@@ -152,4 +152,3 @@ class ConcoursQuery:
         cursor = yield from self.conn.cursor()
         for p in seq_of_params:
             yield from cursor.execute(REQUESTS[name], p)
-        return (yield from cursor.fetchall())
