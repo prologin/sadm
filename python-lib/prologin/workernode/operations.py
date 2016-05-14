@@ -122,6 +122,10 @@ def spawn_client(config, req_addr, sub_addr, pl_id, champion_path, sockets_dir,
     env = os.environ.copy()
     env['CHAMPION_PATH'] = champion_path + '/'
 
+    # java fix for isolate (WTF)
+    # see http://bugs.java.com/view_bug.do?bug_id=8043516
+    env['MALLOC_ARENA_MAX'] = '1'
+
     cmd = [config['path']['stechec_client'],
                 "--name", str(pl_id),
                 "--rules", config['path']['rules'],
