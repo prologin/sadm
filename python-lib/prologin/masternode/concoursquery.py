@@ -120,17 +120,18 @@ class ConcoursQuery:
         self.user = config['sql']['user']
         self.password = config['sql']['password']
         self.database = config['sql']['database']
-        self.conn = None
+        self.pool = None
 
     @asyncio.coroutine
     def connect(self):
-        if self.conn is None or self.conn.closed:
-            self.conn = yield from aiopg.connect(
+        if self.pool is None:
+            self.pool = yield from aiopg.create_pool(
                     database=self.database,
                     user=self.user,
                     password=self.password,
                     host=self.host,
-                    port=self.port)
+                    port=self.port,
+                    maxsize=0)
 
     @asyncio.coroutine
     def execute(self, name, params):
@@ -138,12 +139,13 @@ class ConcoursQuery:
             raise AttributeError('No such request')
 
         yield from self.connect()
-        cursor = yield from self.conn.cursor()
-        yield from cursor.execute(REQUESTS[name], params)
-        try:
-            return (yield from cursor.fetchall())
-        except psycopg2.ProgrammingError:  # No results
-            return None
+        with (yield from self.pool) as conn:
+            cursor = yield from conn.cursor()
+            yield from cursor.execute(REQUESTS[name], params)
+            try:
+                return (yield from cursor.fetchall())
+            except psycopg2.ProgrammingError:  # No results
+                return None
 
     @asyncio.coroutine
     def executemany(self, name, seq_of_params):
@@ -151,6 +153,7 @@ class ConcoursQuery:
             raise AttributeError('No such request')
 
         yield from self.connect()
-        cursor = yield from self.conn.cursor()
-        for p in seq_of_params:
-            yield from cursor.execute(REQUESTS[name], p)
+        with (yield from self.pool) as conn:
+            cursor = yield from conn.cursor()
+            for p in seq_of_params:
+                yield from cursor.execute(REQUESTS[name], p)
