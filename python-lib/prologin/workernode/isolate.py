@@ -52,9 +52,9 @@ class Isolator:
         ]
         isolate_run += cmdline
 
-        yield from asyncio.create_subprocess_exec(*isolate_init)
+        yield from tools.communicate(isolate_init)
         exitcode, stdout = yield from tools.communicate(isolate_run, **kwargs)
-        yield from asyncio.create_subprocess_exec(*isolate_cleanup)
+        yield from tools.communicate(isolate_cleanup)
         return exitcode, stdout
 
 
