@@ -1,26 +1,23 @@
-<p class="pagination">
-   {% if page.has_previous %}
-      <span class="page">
-      <a href="?page={{ page.previous_page_number }}">&lt; Prev</a>
-      </span>
-   {% endif %}
+<ul class="pagination">
+  <li class="page {% if not page.has_previous %}disabled{% endif %}">
+    <a href="{% if page.has_previous %}?page={{ page.previous_page_number }}{% else %}#{% endif %}">&lt; Prev</a>
+  </li>
 
-   {% if show_first %}
-      <span class="page"><a href="?page=1">1</a></span>
-      <span class="ellipsis">...</span>
-   {% endif %}
-   {% for linkpage in page_numbers %}
-      {% ifequal linkpage page %}
-         <span class="current">{{ page.number }}</span>
-      {% else %}
-         <span class="page"><a href="?page={{ linkpage }}">{{ linkpage }}</a></span>
-      {% endifequal %}
-   {% endfor %}
-   {% if show_last %}
-      <span class="ellipsis">...</span>
-      <span class="page"><a href="?page=last">{{ paginator.num_pages }}</a></span>
-   {% endif %}
-   {% if page.has_next %}
-      <span class="page"><a href="?page={{ page.next_page_number }}">Next &gt;</a></span>
-   {% endif %}
-</p>
+  {% if show_first %}
+    <li><a href="?page=1">1</a></li>
+    <li class="ellipsis disabled"><a href="#">…</a></li>
+  {% endif %}
+  {% for linkpage in page_numbers %}
+  <li class="{% ifequal linkpage page %}active{% endifequal %}">
+    <a href="{% ifequal linkpage page %}#{% else %}?page={{ linkpage }}{% endifequal %}">{{ linkpage }}</a>
+  </li>
+  {% endfor %}
+  {% if show_last %}
+    <li class="ellipsis disabled"><a href="#">…</a></li>
+    <li><a href="?page=last">{{ paginator.num_pages }}</a></li>
+  {% endif %}
+
+  <li class="page {% if not page.has_next %}disabled{% endif %}">
+    <a href="{% if page.has_next %}?page={{ page.next_page_number }}{% else %}#{% endif %}">Next &gt;</a>
+  </li>
+</ul>
