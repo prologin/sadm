@@ -106,7 +106,7 @@ def spawn_server(config, rep_addr, pub_addr, nb_players, opts, file_opts):
                 coro_timeout=config['timeout'].get('server', 400))
     except asyncio.TimeoutError:
         logging.error("Server timeout")
-        return "workernode: Server timeout"
+        return "workernode: Server timeout", b''
 
     stdout = stdout.decode()
     gzdump = yield from ioloop.run_in_executor(None, gzip.compress, dump.read())
