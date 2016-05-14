@@ -120,10 +120,9 @@ class ConcoursQuery:
         self.password = config['sql']['password']
         self.database = config['sql']['database']
         self.conn = None
-        self.cursor = None
 
     @asyncio.coroutine
-    def get_cursor(self):
+    def connect(self):
         if self.conn is None or self.conn.closed:
             self.conn = yield from aiopg.connect(
                     database=self.database,
@@ -131,9 +130,6 @@ class ConcoursQuery:
                     password=self.password,
                     host=self.host,
                     port=self.port)
-        if self.cursor is None or self.cursor.closed:
-            self.cursor = yield from conn.cursor()
-        return self.cursor
 
     # Each time we want to make a request, we establish a new connection, in
     # order to prevent issues if DB reboots
@@ -142,7 +138,8 @@ class ConcoursQuery:
         if name not in REQUESTS:
             raise AttributeError('No such request')
 
-        cursor = yield from self.get_cursor()
+        yield from self.connect()
+        cursor = yield from self.conn.cursor()
         yield from cursor.execute(REQUESTS[name], params)
         return cursor
 
@@ -151,7 +148,8 @@ class ConcoursQuery:
         if name not in REQUESTS:
             raise AttributeError('No such request')
 
-        cursor = yield from self.get_cursor()
+        yield from self.connect()
+        cursor = yield from self.conn.cursor()
         for p in seq_of_params:
             yield from cursor.execute(REQUESTS[name], p)
         return cursor
