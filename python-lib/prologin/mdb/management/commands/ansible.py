@@ -37,8 +37,13 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         ret = { k: { 'hosts': [],
-                     'vars': { 'ansible_python_interpreter': 'python2' } }
+                     'vars': { 'ansible_python_interpreter': 'python2',
+                               'remote_tmp': '/tmp/.ansible/tmp' } }
                 for k in ('orga', 'user', 'service') }
+        # If this field is not present in the --list output ansible will iterate
+        # very slowly over all the hosts and call this script to get their
+        # hostvars. See https://github.com/ansible/ansible/issues/9291
+        ret['_meta'] = {'hostvars': {}}
 
         machines = Machine.objects.all()
         for machine in machines:
