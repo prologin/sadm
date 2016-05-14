@@ -204,13 +204,16 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
     @asyncio.coroutine
     def janitor_task(self):
         while True:
-            for worker in list(self.workers.values()):
-                if not worker.is_alive(self.config['worker']['timeout_secs']):
-                    masternode_worker_timeout.inc()
-                    logging.warn("timeout detected for worker {}".format(
-                                worker))
-                    self.redispatch_worker(worker)
-                self.redispatch_timeout_tasks(worker)
+            try:
+                for worker in list(self.workers.values()):
+                    if not worker.is_alive(self.config['worker']['timeout_secs']):
+                        masternode_worker_timeout.inc()
+                        logging.warn("timeout detected for worker {}".format(
+                                    worker))
+                        self.redispatch_worker(worker)
+                    self.redispatch_timeout_tasks(worker)
+            except:
+                logging.exception('Janitor task triggered an exception')
             yield from asyncio.sleep(1)
 
     @asyncio.coroutine
@@ -270,8 +273,11 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                 'match_id': mid,
                 'match_status': 'pending',
             })
-            t = MatchTask(self.config, mid, players, opts, file_opts)
-            self.worker_tasks.append(t)
+            try:
+                t = MatchTask(self.config, mid, players, opts, file_opts)
+                self.worker_tasks.append(t)
+            except Exception:
+                logging.exception('Unable to create task for match {}'.format(mid))
 
         if to_set_pending:
             self.to_dispatch.set()
@@ -279,12 +285,18 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
 
     @asyncio.coroutine
     def dbwatcher_task(self):
-        yield from self.check_requested_compilations('pending')
-        yield from self.check_requested_matches('pending')
         while True:
-            yield from self.check_requested_compilations()
-            yield from self.check_requested_matches()
-            yield from asyncio.sleep(1)
+            try:
+                yield from self.check_requested_compilations('pending')
+                yield from self.check_requested_matches('pending')
+                while True:
+                    yield from self.check_requested_compilations()
+                    yield from self.check_requested_matches()
+                    yield from asyncio.sleep(1)
+            except:
+                logging.exception('DB Watcher task triggered an exception')
+                yield from asyncio.sleep(5)
+                continue
 
     def find_worker_for(self, task):
         available = list(self.workers.values())
@@ -299,22 +311,29 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
     @asyncio.coroutine
     def dispatcher_task(self):
         while True:
-            yield from self.to_dispatch.wait()
-            if self.worker_tasks:
-                task = self.worker_tasks[0]
-                w = self.find_worker_for(task)
-                if w is None:
-                    logging.info("no worker available for task {}".format(task))
+            try:
+                logging.info('Dispatcher task: %d tasks in queue',
+                        len(self.worker_tasks))
+                yield from self.to_dispatch.wait()
+                if self.worker_tasks:
+                    task = self.worker_tasks[0]
+                    w = self.find_worker_for(task)
+                    if w is None:
+                        logging.info("no worker available for task {}".format(task))
+                    else:
+                        w.add_task(self, task)
+                        logging.debug("task {} got to {}".format(task, w))
+                        self.worker_tasks = self.worker_tasks[1:]
+                if not self.worker_tasks:
+                    self.to_dispatch.clear()
                 else:
-                    w.add_task(self, task)
-                    logging.debug("task {} got to {}".format(task, w))
-                    self.worker_tasks = self.worker_tasks[1:]
-            if not self.worker_tasks:
-                self.to_dispatch.clear()
-            else:
-                yield from asyncio.sleep(1) # No worker available, wait 1s
+                    yield from asyncio.sleep(1) # No worker available, wait 1s
 
-            # Give the hand back to the event loop to avoid being blocking,
-            # but be called as soon as all the functions at the top of the heap
-            # have been executed
-            yield from asyncio.sleep(0)
+                # Give the hand back to the event loop to avoid being blocking,
+                # but be called as soon as all the functions at the top of the heap
+                # have been executed
+                yield from asyncio.sleep(0)
+            except:
+                logging.exception('Dispatcher task triggered an exception')
+                yield from asyncio.sleep(3)
+                continue
