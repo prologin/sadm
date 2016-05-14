@@ -28,6 +28,7 @@ urlpatterns = [
     url(r'^matches/(?P<pk>[0-9]+?)/$', views.MatchView.as_view(), name="match-detail"),
     url(r'^matches/(?P<pk>[0-9]+?)/dump/$', views.MatchDumpView.as_view(), name="match-dump"),
     url(r'^matches/all/$', views.AllMatchesView.as_view(), name="matches-all"),
+    url(r'^matches/mine/by-champion/$', login_required(views.MyChampionMatchesView.as_view()), name="matches-mine-by-champion"),
     url(r'^matches/mine/$', login_required(views.MyMatchesView.as_view()), name="matches-mine"),
     url(r'^matches/new/$', login_required(views.NewMatchView.as_view()), name="match-new"),
 

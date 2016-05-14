@@ -23,10 +23,12 @@
     <h4>Matches</h4>
     <ul class="nav nav-pills nav-stacked">
       {% url 'matches-mine' as u_matches_mine %}
+      {% url 'matches-mine-by-champion' as u_matches_mine_by_champion %}
       {% url 'match-new' as u_matches_new %}
       {% url 'matches-all' as u_matches_all %}
       {% if request.user.is_authenticated %}
         <li class="{% active u_matches_mine %}"><a href="{{ u_matches_mine }}">Mes matches</a></li>
+        <li class="{% active u_matches_mine_by_champion %}"><a href="{{ u_matches_mine_by_champion }}">Les matches des mes champions</a></li>
         <li class="{% active u_matches_new %}"><a href="{{ u_matches_new }}">Lancer un match</a></li>
       {% endif %}
       {% if not settings.STECHEC_FIGHT_ONLY_OWN_CHAMPIONS or request.user.is_staff %}

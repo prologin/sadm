@@ -150,6 +150,15 @@ class MyMatchesView(MatchesListView):
         return models.Match.objects.filter(author=self.request.user)
 
 
+class MyChampionMatchesView(MatchesListView):
+    title = "Les matches de mes champions"
+    explanation_text = ""
+    show_creator = False
+
+    def get_queryset(self):
+        return models.Match.objects.filter(players__author=self.request.user)
+
+
 class AllMapsView(ListView):
     context_object_name = "maps"
     paginate_by = 100
