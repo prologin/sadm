@@ -141,7 +141,7 @@ class ConcoursQuery:
         yield from self.connect()
         cursor = yield from self.conn.cursor()
         yield from cursor.execute(REQUESTS[name], params)
-        return cursor
+        return (yield from cursor.fetchall())
 
     @asyncio.coroutine
     def executemany(self, name, seq_of_params):
@@ -152,4 +152,4 @@ class ConcoursQuery:
         cursor = yield from self.conn.cursor()
         for p in seq_of_params:
             yield from cursor.execute(REQUESTS[name], p)
-        return cursor
+        return (yield from cursor.fetchall())

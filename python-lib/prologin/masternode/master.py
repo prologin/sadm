@@ -216,10 +216,10 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
     @asyncio.coroutine
     def check_requested_compilations(self, status='new'):
         to_set_pending = []
-        cur = yield from self.db.execute('get_champions',
+        res = yield from self.db.execute('get_champions',
             { 'champion_status': status })
 
-        for r in (yield from cur.fetchall()):
+        for r in res:
             logging.info('requested compilation for {} / {}'.format(r[1], r[0]))
             masternode_request_compilation_task.inc()
             to_set_pending.append({
@@ -237,8 +237,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
     def check_requested_matches(self, status='new'):
         to_set_pending = []
         c = yield from self.db.execute('get_matches', {'match_status': status})
-
-        for r in (yield from c.fetchall()):
+        for r in c:
             logging.info('request match id {} launch'.format(r[0]))
             mid = r[0]
             opts_json = r[1]
