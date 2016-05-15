@@ -49,15 +49,18 @@ if 'shared_secret' not in CLT_CFG:
 def get_logged_prologin_users():
     """Return the list of logged user that are handled by Prologin."""
     result = set()
-
-    users = subprocess.check_output(['ps', '-axho', '%U'])
-    for line in set(users.split(b'\n')):
+    # FIXME: we used to use who(1) but sddm does not use utmp to log
+    # session opening, hence the hack with ps
+    users = set(subprocess.check_output(['ps', '-axho', '%U']).split(b'\n'))
+    for line in users:
         if not line.strip():
             continue
         login = line.decode('ascii')
-        if prologin.presenced.client.is_prologin_user(login):
-            result.add(login)
-
+        try:
+            if prologin.presenced.client.is_prologin_user(login):
+                result.add(login)
+        except KeyError:
+            pass
     return result
 
 
@@ -65,6 +68,7 @@ class SendHeartbeatHandler(tornado.web.RequestHandler):
     @prologin.tornadauth.signature_checked('secret', check_msg=True)
     def post(self, msg):
         logins = get_logged_prologin_users()
+        logging.debug("Heartbeat: logged-in users: %s", logins)
         if len(logins) == 0:
             self.set_status(200, 'OK, no one logged in')
         elif len(logins) == 1:
