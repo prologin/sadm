@@ -57,7 +57,11 @@ if __name__ == '__main__':
 
     if hasattr(args, 'tarball'):
         while not args.name:
-            args.name = input("Provide a name for your champion: ").strip()
+            try:
+                args.name = input("Provide a name for your champion: ").strip()
+            except KeyboardInterrupt:
+                print()
+                sys.exit(1)
         ret = champion_upload(args.root, args.tarball, args.name, args.comment)
     elif hasattr(args, 'id'):
         ret = map_get(args.root, args.id)
