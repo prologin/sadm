@@ -50,15 +50,11 @@ def get_logged_prologin_users():
     """Return the list of logged user that are handled by Prologin."""
     result = set()
 
-    with open(os.devnull, 'r') as devnull:
-        who = subprocess.Popen(
-            ['who'], stdin=devnull, stdout=subprocess.PIPE
-        )
-        out, err = who.communicate()
-    for line in out.split(b'\n'):
+    users = subprocess.check_output(['ps', '-axho', '%U'])
+    for line in set(users.split(b'\n')):
         if not line.strip():
             continue
-        login = line.split()[0].decode('ascii')
+        login = line.decode('ascii')
         if prologin.presenced.client.is_prologin_user(login):
             result.add(login)
 
@@ -81,6 +77,7 @@ class SendHeartbeatHandler(tornado.web.RequestHandler):
                 ', '.join(logins)
             ))
             self.set_status(500, 'Too many users logged in')
+
 
 class LoginHandler(tornado.web.RequestHandler):
     @prologin.tornadauth.signature_checked('secret', check_msg=True)
