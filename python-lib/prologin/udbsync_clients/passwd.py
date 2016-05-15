@@ -55,6 +55,7 @@ GROUP_PATTERN = re.compile(
 )
 
 PROLOGIN_GROUPS = {
+    'wheel': 10,
     'user': 10000,
     'orga': 10001,
 }
@@ -166,7 +167,7 @@ def callback(root_path, users, updates_metadata):
         utype_to_groups = {
             'user': ['user'],
             'orga': ['orga', 'user'],
-            'root': ['orga', 'user'],
+            'root': ['wheel', 'orga', 'user'],
         }
         user_groups = utype_to_groups[udb_user['group']]
         user = User(
