@@ -131,7 +131,7 @@ class ConcoursQuery:
                     password=self.password,
                     host=self.host,
                     port=self.port,
-                    maxsize=0)
+                    maxsize=1000)
 
     @asyncio.coroutine
     def execute(self, name, params):
