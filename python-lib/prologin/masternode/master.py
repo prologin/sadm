@@ -315,11 +315,17 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                 logging.info('Dispatcher task: %d tasks in queue',
                         len(self.worker_tasks))
                 yield from self.to_dispatch.wait()
-                if self.worker_tasks:
+
+                # Try to schedule up to 25 tasks. The throttling is in place to
+                # avoid potential overload.
+                for i in range(25):
+                    if not self.worker_tasks:
+                        break
                     task = self.worker_tasks[0]
                     w = self.find_worker_for(task)
                     if w is None:
                         logging.info("no worker available for task {}".format(task))
+                        break
                     else:
                         w.add_task(self, task)
                         logging.debug("task {} got to {}".format(task, w))
