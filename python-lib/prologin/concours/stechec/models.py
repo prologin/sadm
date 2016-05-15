@@ -3,6 +3,7 @@
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
+from django.utils import timezone
 
 from django_prometheus.models import ExportModelOperationsMixin
 import json
@@ -185,7 +186,7 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
                                    related_name='matches', null=True, blank=True)
     players = models.ManyToManyField(Champion, verbose_name="participants",
                                      related_name='matches', through='MatchPlayer')
-    ts = models.DateTimeField("date", auto_now_add=True)
+    ts = models.DateTimeField("date", default=timezone.now)
     options = models.CharField("options", max_length=500, default="{}")
     file_options = models.CharField("file_options", max_length=500, default="{}")
 
