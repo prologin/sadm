@@ -8,6 +8,9 @@ User=cluster
 # TODO(seirl): this should be done in the makefiles
 Environment=JAVA_HOME=/usr/lib/jvm/default
 ExecStart=/var/prologin/venv/bin/python -m prologin.workernode
+Nice=10
+IOSchedulingClass=idle
+IOSchedulingPriority=7
 
 [Install]
 WantedBy=multi-user.target
