@@ -12,6 +12,10 @@ ln -sf /usr/share/zoneinfo/Europe/Paris /etc/localtime
 echo '[Time]
 NTP=ntp.prolo' > /etc/systemd/timesyncd.conf
 
+echo 'Setting systemd-logind'
+sed -e 's:^#KillUserProcesses=no:KillUserProcesses=yes:' -e \
+'s:^#KillExcludeUsers=root:KillExcludeUsers=root:' -i /etc/systemd/logind.conf
+
 echo 'Setting locales'
 sed -e 's:^#en_US:en_US:g' -e 's:^#fr_FR:fr_FR:g' -i /etc/locale.gen
 locale-gen
