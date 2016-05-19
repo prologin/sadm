@@ -194,6 +194,8 @@ def symlink(dest, path):
         if e.errno == errno.EEXIST:
             os.remove(path)
             os.symlink(dest, path)
+        else:
+            raise e
 
 
 def system(command):
@@ -737,6 +739,10 @@ def install_networkd():
     symlink('/dev/null', '/etc/systemd/network/99-default.link')
 
 
+def install_nic_configuration():
+    install_systemd_unit('nic-configuration@')
+
+
 def install_firewall():
     system('systemctl restart systemd-sysctl')
 
@@ -787,6 +793,7 @@ COMPONENTS = [
     'netboot',
     'networkd',
     'nginxcfg',
+    'nic_configuration',
     'paste',
     'postgresql',
     'presenced',

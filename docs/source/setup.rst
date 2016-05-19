@@ -123,9 +123,11 @@ For more information, see the `systemd-networkd documentation
 
 Then, install them::
 
-  python install.py networkd resolved
+  python install.py networkd resolved nic_configuration
   systemctl enable --now systemd-networkd
   systemctl enable --now systemd-resolved
+  # `prologin` is the name of the interface to apply the configuration
+  systemctl enable --now nic_configuration@prologin
 
 At this point you should reboot and test your network configuration:
 
