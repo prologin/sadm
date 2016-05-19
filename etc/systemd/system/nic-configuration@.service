@@ -1,0 +1,17 @@
+[Unit]
+Description=Configuration of the %I NIC
+After=network.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# Offloading makes some of the NIC we use flap
+ExecStart=/usr/bin/ethtool --offload %I rx off tx off tso off gso off
+# Ethernet PAUSE frame should not be used because it confuses TCP flow control.
+# Some switches emit them, we disable their support on our systems.  Some NIC do
+# not implement this feature, so this commmand may fail with "Operation not
+# supported". This is totally fine.
+ExecStart=/usr/bin/ethtool --pause %I rx off tx off
+
+[Install]
+WantedBy=multi-user.target
