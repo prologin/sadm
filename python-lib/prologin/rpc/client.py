@@ -153,22 +153,21 @@ class Client:
         """Return a callable to invoke a remote procedure."""
 
         if self.coro:
-            @asyncio.coroutine
-            def proxy(*args, max_retries=0, retry_delay=10, **kwargs):
+            async def proxy(*args, max_retries=0, retry_delay=10, **kwargs):
                 # TODO: use a requests-like library that supports asyncio
                 # instead of run_in_executor?
 
                 i = 0
                 while True:
                     try:
-                        return (yield from self.ioloop.run_in_executor(None,
+                        return (await self.ioloop.run_in_executor(None,
                             self._call_method, method, args, kwargs))
                     except socket.error:
                         if i < max_retries:
                             logging.warning('<{}> down, cannot call {}. '
                                 'Retrying in {}s...'.format(self.base_url,
                                     method, retry_delay))
-                            yield from asyncio.sleep(retry_delay)
+                            await asyncio.sleep(retry_delay)
                         else:
                             raise
                     i += 1

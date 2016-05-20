@@ -122,10 +122,9 @@ class ConcoursQuery:
         self.database = config['sql']['database']
         self.pool = None
 
-    @asyncio.coroutine
-    def connect(self):
+    async def connect(self):
         if self.pool is None:
-            self.pool = yield from aiopg.create_pool(
+            self.pool = await aiopg.create_pool(
                     database=self.database,
                     user=self.user,
                     password=self.password,
@@ -133,27 +132,25 @@ class ConcoursQuery:
                     port=self.port,
                     maxsize=64)
 
-    @asyncio.coroutine
-    def execute(self, name, params):
+    async def execute(self, name, params):
         if name not in REQUESTS:
             raise AttributeError('No such request')
 
-        yield from self.connect()
-        with (yield from self.pool) as conn:
-            cursor = yield from conn.cursor()
-            yield from cursor.execute(REQUESTS[name], params)
+        await self.connect()
+        with (await self.pool) as conn:
+            cursor = await conn.cursor()
+            await cursor.execute(REQUESTS[name], params)
             try:
-                return (yield from cursor.fetchall())
+                return (await cursor.fetchall())
             except psycopg2.ProgrammingError:  # No results
                 return None
 
-    @asyncio.coroutine
-    def executemany(self, name, seq_of_params):
+    async def executemany(self, name, seq_of_params):
         if name not in REQUESTS:
             raise AttributeError('No such request')
 
-        yield from self.connect()
-        with (yield from self.pool) as conn:
-            cursor = yield from conn.cursor()
+        await self.connect()
+        with (await self.pool) as conn:
+            cursor = await conn.cursor()
             for p in seq_of_params:
-                yield from cursor.execute(REQUESTS[name], p)
+                await cursor.execute(REQUESTS[name], p)

@@ -56,10 +56,9 @@ class RedmineIssuePlugin:
         logging.debug("Sending message to %s: %s", self.channel, msg)
         self.bot.privmsg(self.channel, msg)
 
-    @asyncio.coroutine
-    def handle_incoming_issue(self, reader, writer):
+    async def handle_incoming_issue(self, reader, writer):
         logging.debug("Incoming issue from %r", writer.get_extra_info('peername'))
-        data = yield from reader.readline()
+        data = await reader.readline()
         try:
             data = json.loads(data.decode())
             logging.debug("Incoming issue data: %r", data)

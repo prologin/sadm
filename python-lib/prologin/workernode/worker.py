@@ -50,21 +50,20 @@ def async_work(func=None, slots=0):
         return functools.partial(async_work, slots=slots)
     @functools.wraps(func)
     def mktask(self, *args, **kwargs):
-        @asyncio.coroutine
-        def wrapper(self, *wargs, **wkwargs):
+        async def wrapper(self, *wargs, **wkwargs):
             if self.slots < slots:
                 logging.warn('not enough slots to start the required job')
                 return
             logging.debug('starting a job for {} slots'.format(slots))
             self.slots -= slots
             workernode_slots.set(self.slots)
-            yield from self.update_master()
+            await self.update_master()
             try:
-                r = yield from func(self, *wargs, **wkwargs)
+                r = await func(self, *wargs, **wkwargs)
             finally:
                 self.slots += slots
                 workernode_slots.set(self.slots)
-                yield from self.update_master()
+                await self.update_master()
         asyncio.Task(wrapper(self, *args, **kwargs), loop=self.loop)
         return slots
     return mktask
@@ -103,36 +102,34 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
                 secret=config['master']['shared_secret'].encode('utf-8'),
                 coro=True)
 
-    @asyncio.coroutine
-    def update_master(self):
+    async def update_master(self):
         try:
-            yield from self.master.update_worker(self.get_worker_infos())
+            await self.master.update_worker(self.get_worker_infos())
         except socket.error:
             logging.warn('master down, cannot update it')
 
-    @asyncio.coroutine
-    def send_heartbeat(self):
+    async def send_heartbeat(self):
         logging.debug('sending heartbeat to the server, {}/{} slots'.format(
             self.slots, self.max_slots))
         first_heartbeat = True
         while True:
             try:
-                yield from self.master.heartbeat(self.get_worker_infos(),
+                await self.master.heartbeat(self.get_worker_infos(),
                                                  first_heartbeat)
                 first_heartbeat = False
             except socket.error:
                 logging.warn('master down, retrying heartbeat in {}s'.format(
                         self.interval))
 
-            yield from asyncio.sleep(self.interval)
+            await asyncio.sleep(self.interval)
 
     @prologin.rpc.remote_method
-    def reachable(self):
+    async def reachable(self):
         return True
 
     @prologin.rpc.remote_method
     @async_work(slots=1)
-    def compile_champion(self, user, cid, ctgz):
+    async def compile_champion(self, user, cid, ctgz):
         compile_champion_start = time.monotonic()
 
         ctgz = b64decode(ctgz)
@@ -144,7 +141,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
             with open(os.path.join(cpath, 'champion.tgz'), 'wb') as f:
                 f.write(ctgz)
 
-            ret = yield from operations.compile_champion(self.config, cpath)
+            ret = await operations.compile_champion(self.config, cpath)
 
             compilation_content = b''
             log = ''
@@ -162,7 +159,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
 
         b64compiled = b64encode(compilation_content).decode()
         try:
-            yield from self.master.compilation_result(self.get_worker_infos(),
+            await self.master.compilation_result(self.get_worker_infos(),
                     cid, user, ret, b64compiled, log,
                     max_retries=self.config['master']['max_retries'],
                     retry_delay=self.config['master']['retry_delay'])
@@ -175,7 +172,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
 
     @prologin.rpc.remote_method
     @async_work(slots=5)
-    def run_match(self, match_id, players, opts=None, file_opts=None):
+    async def run_match(self, match_id, players, opts=None, file_opts=None):
         logging.info('starting match {}'.format(match_id))
         run_match_start = time.monotonic()
 
@@ -191,7 +188,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         # Server
         task_server = asyncio.Task(operations.spawn_server(self.config,
             s_reqrep, s_pubsub, len(players), opts, file_opts))
-        yield from asyncio.sleep(0.1) # Let the server start
+        await asyncio.sleep(0.1) # Let the server start
 
         for i in range(5):
             try:
@@ -199,7 +196,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
                 os.chmod(f_pubsub, 0o777)
                 break
             except FileNotFoundError:
-                yield from asyncio.sleep(1)
+                await asyncio.sleep(1)
         else:
             logging.error("Server socket was never created")
             return
@@ -212,14 +209,14 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
             ctgz = b64decode(ctgz)
             cdir = tempfile.TemporaryDirectory()
             champion_dirs.append(cdir)
-            yield from self.loop.run_in_executor(None, operations.untar,
+            await self.loop.run_in_executor(None, operations.untar,
                                                  ctgz, cdir.name)
             tasks_players[pl_id] = asyncio.Task(operations.spawn_client(
                 self.config, s_reqrep, s_pubsub, pl_id, cdir.name,
                 socket_dir.name, opts, file_opts, order_id=oid))
 
         # Wait for the match to complete
-        yield from asyncio.wait([task_server] +
+        await asyncio.wait([task_server] +
                                 list(tasks_players.values()))
         logging.info('match {} done'.format(match_id))
 
@@ -241,7 +238,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         socket_dir.cleanup()
 
         try:
-            yield from self.master.match_done(self.get_worker_infos(),
+            await self.master.match_done(self.get_worker_infos(),
                     match_id, server_result, dumper_stdout, server_stdout,
                     players_stdout,
                     max_retries=self.config['master']['max_retries'],

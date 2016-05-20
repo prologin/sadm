@@ -21,19 +21,17 @@ import functools
 import subprocess
 
 def add_coro_timeout(coro):
-    @asyncio.coroutine
-    def coro_(*args, coro_timeout=None, **kwargs):
-        return (yield from asyncio.wait_for(coro(*args, **kwargs),
+    async def coro_(*args, coro_timeout=None, **kwargs):
+        return (await asyncio.wait_for(coro(*args, **kwargs),
                                             timeout=coro_timeout))
     return coro_
 
 
-@asyncio.coroutine
-def communicate_process(proc, *, data=None, max_len=None, truncate_message=''):
+async def communicate_process(proc, *, data=None, max_len=None, truncate_message=''):
     # Send stdin
     if data:
         proc.stdin.write(data.encode())
-        yield from proc.stdin.drain()
+        await proc.stdin.drain()
         proc.stdin.close()
 
     # Receive stdout
@@ -44,7 +42,7 @@ def communicate_process(proc, *, data=None, max_len=None, truncate_message=''):
             to_read = min(to_read, max_len - len(stdout))
             if not to_read:
                 break
-        chunk = yield from proc.stdout.read(to_read)
+        chunk = await proc.stdout.read(to_read)
         if not chunk:
             break
         stdout.extend(chunk)
@@ -52,19 +50,17 @@ def communicate_process(proc, *, data=None, max_len=None, truncate_message=''):
     if not to_read:
         stdout += truncate_message.encode()
 
-    exitcode = yield from proc.wait()
+    exitcode = await proc.wait()
     return (exitcode, stdout)
 
-@asyncio.coroutine
-def create_process(cmdline, *, data=None, **kwargs):
-    return (yield from asyncio.create_subprocess_exec(*cmdline,
+async def create_process(cmdline, *, data=None, **kwargs):
+    return (await asyncio.create_subprocess_exec(*cmdline,
             stdin=subprocess.PIPE, stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT, **kwargs))
 
 @add_coro_timeout
-@asyncio.coroutine
-def communicate(cmdline, *, data=None, max_len=None,
+async def communicate(cmdline, *, data=None, max_len=None,
                 truncate_message='', **kwargs):
-    proc = yield from create_process(cmdline, **kwargs)
-    return (yield from communicate_process(proc, data=data, max_len=max_len,
+    proc = await create_process(cmdline, **kwargs)
+    return (await communicate_process(proc, data=data, max_len=max_len,
             truncate_message=''))

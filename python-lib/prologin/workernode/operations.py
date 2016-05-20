@@ -65,8 +65,7 @@ def create_file_opts(file_opts):
     return opts, files
 
 
-@asyncio.coroutine
-def compile_champion(config, champion_path):
+async def compile_champion(config, champion_path):
     """
     Compiles the champion at $champion_path/champion.tgz to
     $champion_path/champion-compiled.tar.gz
@@ -77,12 +76,11 @@ def compile_champion(config, champion_path):
     code_dir = os.path.abspath(os.path.dirname(__file__))
     compile_script = os.path.join(code_dir, 'compile-champion.sh')
     cmd = [compile_script, config['path']['makefiles'], champion_path]
-    retcode, _ = yield from tools.communicate(cmd)
+    retcode, _ = await tools.communicate(cmd)
     return retcode == 0
 
 
-@asyncio.coroutine
-def spawn_server(config, rep_addr, pub_addr, nb_players, opts, file_opts):
+async def spawn_server(config, rep_addr, pub_addr, nb_players, opts, file_opts):
     dump = tempfile.NamedTemporaryFile()
 
     cmd = [config['path']['stechec_server'],
@@ -102,22 +100,21 @@ def spawn_server(config, rep_addr, pub_addr, nb_players, opts, file_opts):
         cmd.extend(fopts)
 
     try:
-        retcode, stdout = yield from tools.communicate(cmd,
+        retcode, stdout = await tools.communicate(cmd,
                 coro_timeout=config['timeout'].get('server', 400))
     except asyncio.TimeoutError:
         logging.error("Server timeout")
         return "workernode: Server timeout", b''
 
     stdout = stdout.decode()
-    gzdump = yield from ioloop.run_in_executor(None, gzip.compress, dump.read())
+    gzdump = await ioloop.run_in_executor(None, gzip.compress, dump.read())
 
     if retcode != 0:
         logging.error(stdout.strip())
     return stdout, gzdump
 
 
-@asyncio.coroutine
-def spawn_client(config, req_addr, sub_addr, pl_id, champion_path, sockets_dir,
+async def spawn_client(config, req_addr, sub_addr, pl_id, champion_path, sockets_dir,
                  opts, file_opts=None, order_id=None):
     env = os.environ.copy()
     env['CHAMPION_PATH'] = champion_path + '/'
@@ -146,7 +143,7 @@ def spawn_client(config, req_addr, sub_addr, pl_id, champion_path, sockets_dir,
         cmd.extend(fopts)
 
     try:
-        retcode, stdout = yield from isolate.communicate(cmd, env=env,
+        retcode, stdout = await isolate.communicate(cmd, env=env,
                 max_len=2 ** 18,
                 truncate_message='\n\nLog truncated to stay below 256K.\n',
                 coro_timeout=config['timeout'].get('client', 400),

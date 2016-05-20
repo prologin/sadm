@@ -77,13 +77,12 @@ class CompilationTask(Task):
     def slots_taken(self):
         return 1
 
-    @asyncio.coroutine
-    def execute(self, master, worker):
+    async def execute(self, master, worker):
         super().execute()
         ctgz = ''
         with open(self.champ_path, 'rb') as f:
             ctgz = b64encode(f.read()).decode()
-        yield from worker.rpc.compile_champion(self.user,
+        await worker.rpc.compile_champion(self.user,
                 self.champ_id, ctgz)
 
     def __repr__(self):
@@ -110,13 +109,12 @@ class MatchTask(Task):
     def slots_taken(self):
         return 5
 
-    @asyncio.coroutine
-    def execute(self, master, worker):
+    async def execute(self, master, worker):
         super().execute()
         try:
             os.makedirs(self.match_path)
         except OSError:
             pass
 
-        yield from worker.rpc.run_match(self.mid, self.players, self.opts,
+        await worker.rpc.run_match(self.mid, self.players, self.opts,
                                         self.file_opts)

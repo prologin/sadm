@@ -27,8 +27,7 @@ class Isolator:
     def __init__(self):
         self.last_box_id = 0
 
-    @asyncio.coroutine
-    def communicate(self, cmdline, time_limit=None, mem_limit=None,
+    async def communicate(self, cmdline, time_limit=None, mem_limit=None,
                     allowed_dirs=None, processes=1, **kwargs):
         if allowed_dirs is None:
             allowed_dirs = []
@@ -52,15 +51,14 @@ class Isolator:
         ]
         isolate_run += cmdline
 
-        yield from tools.communicate(isolate_init)
-        exitcode, stdout = yield from tools.communicate(isolate_run, **kwargs)
-        yield from tools.communicate(isolate_cleanup)
+        await tools.communicate(isolate_init)
+        exitcode, stdout = await tools.communicate(isolate_run, **kwargs)
+        await tools.communicate(isolate_cleanup)
         return exitcode, stdout
 
 
 isolator = Isolator()
 
 @tools.add_coro_timeout
-@asyncio.coroutine
-def communicate(*args, **kwargs):
-    return (yield from isolator.communicate(*args, **kwargs))
+async def communicate(*args, **kwargs):
+    return (await isolator.communicate(*args, **kwargs))

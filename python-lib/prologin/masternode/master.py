@@ -66,9 +66,8 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             d.append((host, port, w.slots, w.max_slots))
         return d
 
-    @asyncio.coroutine
-    def register_worker(self, key, w):
-        if (yield from w.reachable()):
+    async def register_worker(self, key, w):
+        if (await w.reachable()):
             logging.warn("registered new worker: {}:{}".format(w.hostname,
                 w.port))
             self.workers[key] = w
@@ -100,7 +99,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
 
     @prologin.rpc.remote_method
     def compilation_result(self, worker, cid, user, ret, b64compiled, log):
-        def complete_compilation(cid, user, ret):
+        async def complete_compilation(cid, user, ret):
             status = 'ready' if ret else 'error'
             if ret:
                 with open(champion_compiled_path(self.config, user, cid),
@@ -109,7 +108,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             with open(clog_path(self.config, user, cid), 'w') as f:
                 f.write(log)
             logging.info('compilation of champion {}: {}'.format(cid, status))
-            yield from self.db.execute('set_champion_status',
+            await self.db.execute('set_champion_status',
                     {'champion_id': cid, 'champion_status': status})
 
         hostname, port, slots, max_slots = worker
@@ -152,12 +151,11 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                 fdump.write(b64decode(dumper_stdout))
 
         # Update the database with the results
-        @asyncio.coroutine
-        def match_done_db(mid, mstatus, pscores, tscores):
+        async def match_done_db(mid, mstatus, pscores, tscores):
             start = time.monotonic()
-            yield from self.db.execute('set_match_status', mstatus)
-            yield from self.db.executemany('set_player_score', pscores)
-            yield from self.db.executemany('update_tournament_score', tscores)
+            await self.db.execute('set_match_status', mstatus)
+            await self.db.executemany('set_player_score', pscores)
+            await self.db.executemany('update_tournament_score', tscores)
             masternode_match_done_db.observe(time.monotonic() - start)
 
         try:
@@ -201,8 +199,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                     msg = "maximum number of retries exceeded, bailing out"
                 logging.info("task {} of {} timeout: {}".format(t, worker, msg))
 
-    @asyncio.coroutine
-    def janitor_task(self):
+    async def janitor_task(self):
         while True:
             try:
                 for worker in list(self.workers.values()):
@@ -214,12 +211,11 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                     self.redispatch_timeout_tasks(worker)
             except:
                 logging.exception('Janitor task triggered an exception')
-            yield from asyncio.sleep(1)
+            await asyncio.sleep(1)
 
-    @asyncio.coroutine
-    def check_requested_compilations(self, status='new'):
+    async def check_requested_compilations(self, status='new'):
         to_set_pending = []
-        res = yield from self.db.execute('get_champions',
+        res = await self.db.execute('get_champions',
             { 'champion_status': status })
 
         for r in res:
@@ -234,12 +230,11 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
 
         if to_set_pending:
             self.to_dispatch.set()
-        yield from self.db.executemany('set_champion_status', to_set_pending)
+        await self.db.executemany('set_champion_status', to_set_pending)
 
-    @asyncio.coroutine
-    def check_requested_matches(self, status='new'):
+    async def check_requested_matches(self, status='new'):
         to_set_pending = []
-        c = yield from self.db.execute('get_matches', {'match_status': status})
+        c = await self.db.execute('get_matches', {'match_status': status})
         for r in c:
             logging.info('request match id {} launch'.format(r[0]))
             mid = r[0]
@@ -281,21 +276,20 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
 
         if to_set_pending:
             self.to_dispatch.set()
-        yield from self.db.executemany('set_match_status', to_set_pending)
+        await self.db.executemany('set_match_status', to_set_pending)
 
-    @asyncio.coroutine
-    def dbwatcher_task(self):
+    async def dbwatcher_task(self):
         while True:
             try:
-                yield from self.check_requested_compilations('pending')
-                yield from self.check_requested_matches('pending')
+                await self.check_requested_compilations('pending')
+                await self.check_requested_matches('pending')
                 while True:
-                    yield from self.check_requested_compilations()
-                    yield from self.check_requested_matches()
-                    yield from asyncio.sleep(1)
+                    await self.check_requested_compilations()
+                    await self.check_requested_matches()
+                    await asyncio.sleep(1)
             except:
                 logging.exception('DB Watcher task triggered an exception')
-                yield from asyncio.sleep(5)
+                await asyncio.sleep(5)
                 continue
 
     def find_worker_for(self, task):
@@ -308,13 +302,12 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         else:
             return available[0]
 
-    @asyncio.coroutine
-    def dispatcher_task(self):
+    async def dispatcher_task(self):
         while True:
             try:
                 logging.info('Dispatcher task: %d tasks in queue',
                         len(self.worker_tasks))
-                yield from self.to_dispatch.wait()
+                await self.to_dispatch.wait()
 
                 # Try to schedule up to 25 tasks. The throttling is in place to
                 # avoid potential overload.
@@ -333,13 +326,13 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                 if not self.worker_tasks:
                     self.to_dispatch.clear()
                 else:
-                    yield from asyncio.sleep(1) # No worker available, wait 1s
+                    await asyncio.sleep(1) # No worker available, wait 1s
 
                 # Give the hand back to the event loop to avoid being blocking,
                 # but be called as soon as all the functions at the top of the heap
                 # have been executed
-                yield from asyncio.sleep(0)
+                await asyncio.sleep(0)
             except:
                 logging.exception('Dispatcher task triggered an exception')
-                yield from asyncio.sleep(3)
+                await asyncio.sleep(3)
                 continue
