@@ -1,6 +1,6 @@
 [Unit]
 Description=User Database
-After=network-online.target
+After=network-online.target postgresql.service
 
 [Service]
 Type=simple
