@@ -5,28 +5,17 @@ set -e
 cd $(dirname -- "$0")
 trap "exit 1" 1 2 3 15
 
-PYTHON3_VERSION=3.4.3
-PYTHON2_VERSION=2.7.9
-OCAML_VERSION=4.02
-
-# Oracle sux
-if [ ! -f java.zip ]; then
-    echo 'For the java documentation:'
-    echo '- Go to http://www.oracle.com/technetwork/java/javase/downloads/index.html'
-    echo '- Go to the download page of "Java SE 8 Documentation"'
-    echo '- Accept the license'
-    echo '- Download the doc to "java.zip"'
-    exit 0
-fi
+PYTHON_VERSION=$( python3 --version | cut -d' ' -f2)
+OCAML_VERSION=$( ocaml -vnum | cut -f1-2 -d. )
 
 # Download doc
-wget -nv http://www.acm.uiuc.edu/webmonkeys/book/c_guide.tar.gz -O c.tar.gz
-wget -nv http://upload.cppreference.com/mwiki/images/6/6c/html_book_20141118.tar.gz -O cpp.tar.gz
-wget -nv http://caml.inria.fr/distrib/ocaml-${OCAML_VERSION}/ocaml-${OCAML_VERSION}-refman-html.tar.gz -O ocaml.tar.gz
-wget -nv https://docs.python.org/3/archives/python-${PYTHON3_VERSION}-docs-html.tar.bz2 -O python3.tar.bz2
-wget -nv https://docs.python.org/2/archives/python-${PYTHON2_VERSION}-docs-html.tar.bz2 -O python2.tar.bz2
-wget -nv http://fr.php.net/get/php_manual_fr.tar.gz/from/this/mirror -O php.tar.gz
-wget -nv http://www.haskell.org/ghc/docs/latest/libraries.html.tar.bz2 -O haskell.tar.gz
+wget -c -nv http://www.acm.uiuc.edu/webmonkeys/book/c_guide.tar.gz -O c.tar.gz
+wget -c -nv http://upload.cppreference.com/mwiki/images/6/6c/html_book_20141118.tar.gz -O cpp.tar.gz
+wget -c -nv http://caml.inria.fr/distrib/ocaml-${OCAML_VERSION}/ocaml-${OCAML_VERSION}-refman-html.tar.gz -O ocaml.tar.gz
+wget -c -nv https://docs.python.org/3/archives/python-${PYTHON_VERSION}-docs-html.tar.bz2 -O python.tar.bz2
+wget -c -nv http://fr.php.net/get/php_manual_fr.tar.gz/from/this/mirror -O php.tar.gz
+wget -c -nv https://downloads.haskell.org/~ghc/latest/docs/libraries.html.tar.xz -O haskell.tar.gz
+wget -c -nv --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/8u121-b13/e9e7ea248e2c4826b92b3f075a80e441/jdk-8u121-docs-all.zip -O java.zip
 
 # C
 if [ -f c.tar.gz ]; then
@@ -58,21 +47,12 @@ else
 fi
 
 # Python3
-if [ -f python3.tar.bz2 ]; then
+if [ -f python.tar.bz2 ]; then
     echo "Installing Python3 doc"
-    tar xf python3.tar.bz2
-    mv python-${PYTHON3_VERSION}-docs-html python3
+    tar xf python.tar.bz2
+    mv python-${PYTHON_VERSION}-docs-html python
 else
-    echo "** No Python3 doc installed"
-fi
-
-# Python2
-if [ -f python2.tar.bz2 ]; then
-    echo "Installing Python2 doc"
-    tar xf python2.tar.bz2
-    mv python-${PYTHON2_VERSION}-docs-html python2
-else
-    echo "** No Python2 doc installed"
+    echo "** No Python doc installed"
 fi
 
 # PHP
