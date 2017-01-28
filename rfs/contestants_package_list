@@ -38,8 +38,10 @@ List of packages for contestants' environment
 * mg
 * monodevelop
 * netbeans
+* atom
 
 (aur)* codelite
+(aur)* pycharm-community
 
 # Additional config
 
