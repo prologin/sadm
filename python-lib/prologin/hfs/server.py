@@ -171,9 +171,8 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
                                     'backup_' + os.path.basename(fname))
         os.rename(fname, backup_fname)
 
-        labels = {'user': self.user, 'hfs': self.hfs}
         delta = time.monotonic() - migrate_user_start
-        hfs_migrate_user.labels(labels).observe(delta)
+        hfs_migrate_user.labels(user=self.user, hfs=self.hfs).observe(delta)
 
     def get_hfs(self):
         get_hfs_start = time.monotonic()
@@ -216,9 +215,8 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
         self.wfile.write(json.dumps({ 'port': port }).encode('utf-8'))
 
         delta = time.monotonic() - get_hfs_start
-        labels = {'user': self.user, 'user_type': self.user_type,
-                  'hfs': self.hfs}
-        hfs_get_hfs.labels(labels).observe(delta)
+        hfs_get_hfs.labels(user=self.user, user_type=self.user_type,
+                           hfs=self.hfs).observe(delta)
 
     def nbd_filename(self):
         """Returns the filename for the NBD."""
@@ -327,8 +325,8 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
             raise RuntimeError('creation script failed!')
 
         delta = time.monotonic() - new_user_start
-        labels = {'user': self.user, 'user_type': self.user_type}
-        hfs_new_user.labels(labels).observe(delta)
+        hfs_new_user.labels(user=self.user, user_type=self.user_type) \
+            .observe(delta)
 
     def remote_user_handler(self, peer_id):
         """Transfers the data from a remote HFS to the current HFS."""
@@ -353,8 +351,8 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
                         fp.write(block)
 
         delta = time.monotonic() - remote_user_start
-        labels = {'user': self.user, 'hfs': peer_id}
-        hfs_migrate_remote_user.labels(labels).observe(delta)
+        hfs_migrate_remote_user.labels(user=self.user, hfs=peer_id) \
+            .observe(delta)
 
 class ThHTTPServer(http.server.HTTPServer, ThreadingMixIn):
     pass

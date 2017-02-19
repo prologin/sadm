@@ -26,10 +26,11 @@ rpc_call_in = Summary(
         'Summary of the rpc calls received',
         ['method'])
 
+
 def _observe_rpc_call_in(f):
     @wraps(f)
     def _wrapper(self, method_name):
-        with rpc_call_in.labels({'method': method_name}).time():
+        with rpc_call_in.labels(method=method_name).time():
             return f(self, method_name)
 
     return _wrapper

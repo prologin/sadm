@@ -173,8 +173,8 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
 
         # 1 - The user is already logged on `hostname`
         if self.backlog.get(login, (None, None))[1] == hostname:
-            labels = {'user': login, 'reason': 'already_logged'}
-            presencesync_login_failed.labels(labels).inc()
+            presencesync_login_failed.labels(user=login,
+                                             reason='already_logged').inc()
 
             logging.debug('{} is already logged on {}'.format(login, hostname))
             return None
@@ -183,13 +183,13 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
         #     `hostname` and the user is allowed to log on `hostname` (a
         #     contestant cannot log on an organizer host.
         if login in self.backlog:
-            labels = {'user': login, 'reason': 'already_logged'}
-            presencesync_login_failed.labels(labels).inc()
+            presencesync_login_failed.labels(user=login,
+                                             reason='already_logged').inc()
 
             return fail('{} is already logged somewhere else'.format(login))
         elif hostname in self.reverse_backlog:
-            labels = {'user': login, 'reason': 'busy'}
-            presencesync_login_failed.labels(labels).inc()
+            presencesync_login_failed.labels(user=login,
+                                             reason='busy').inc()
 
             return fail('{} is busy'.format(hostname))
         else:
@@ -203,16 +203,16 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
                 # Either there is no such hostname: refuse it, either there are
                 # many machine for a single hostname, which should never
                 # happen, or we have a big problem!
-                labels = {'user': login, 'reason': 'machine_not_registered'}
-                presencesync_login_failed.labels(labels).inc()
+                presencesync_login_failed \
+                    .labels(user=login, reason='machine_not_registered').inc()
 
                 return fail('{} is not a registered machine'.format(hostname))
             machine = match[0]
 
             match = self.udb.query(login=login)
             if len(match) != 1:
-                labels = {'user': login, 'reason': 'user_not_registered'}
-                presencesync_login_failed.labels(labels).inc()
+                presencesync_login_failed \
+                    .labels(user=login, reason='user_not_registered').inc()
 
                 return fail('{} is not a registered user'.format(login))
             user = match[0]
@@ -224,8 +224,9 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
                 hostname, machine['mtype']
             ))
             if user['group'] == 'user' and machine['mtype'] != 'user':
-                labels = {'user': login, 'reason': 'user_not_allowed'}
-                presencesync_login_failed.labels(labels).inc()
+                presencesync_login_failed.labels(user=login,
+                                                 reason='user_not_allowed') \
+                    .inc()
 
                 return fail(
                     '{} is not a kind of user'
@@ -235,8 +236,7 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
             return None
 
         # By default, refuse the login.
-        labels = {'user': login, 'reason': 'default'}
-        presencesync_login_failed.labels(labels).inc()
+        presencesync_login_failed.labels(user=login, reason='default').inc()
 
         return fail('Default for {} on {}: refuse'.format(login, hostname))
 
@@ -277,8 +277,8 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
                 logging.debug('Still have to wait for {} seconds'.format(
                     int(self.start_ts + self.TIMEOUT - time.time())
                 ))
-            labels = {'user': login, 'reason': 'too_early'}
-            presencesync_login_failed.labels(labels).inc()
+            presencesync_login_failed.labels(user=login, reason='too_early')\
+                .inc()
             return 'Too early login: try again later'
 
         failure_reason = self.is_login_allowed(login, hostname)
