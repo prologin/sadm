@@ -7,6 +7,12 @@ PKG=${1?Usage: $0 package.pkg.tar.xz}
 
 set -e
 
+echo "[+] System checks"
+
+test -e /etc/arch-release || (echo >&2 'This is script should be run on Arch Linux'; exit 1)
+which >/dev/null gpg || (echo >&2 'Please install gnupg'; exit 1)
+which >/dev/null rsync || (echo >&2 'Please install rsync'; exit 1)
+
 echo "[+] Checking gpg key store"
 
 if ! gpg --list-secret-keys $SADM_FGP >/dev/null 2>&1; then
