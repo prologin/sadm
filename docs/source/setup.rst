@@ -263,7 +263,8 @@ on the same interface as 192.168.0.0/23, add it inside the ``shared-network``
 The DHCP server will provide the Arch Linux install media for all the servers,
 for that, download the Netboot Live System::
 
-  wget https://releng.archlinux.org/pxeboot/ipxe.pxe -O /srv/tftp/arch.kpxe
+  # See https://www.archlinux.org/releng/netboot/
+  wget https://www.archlinux.org/static/netboot/ipxe.pxe -O /srv/tftp/arch.kpxe
 
 Start the DHCP server::
 
