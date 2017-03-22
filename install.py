@@ -371,6 +371,8 @@ def install_bindcfg():
                     owner='named:named', mode=0o640)
     install_cfg('named/root.hint', '/etc/named', owner='named:named',
                 mode=0o640)
+    if not os.path.exists('/etc/rndc.key'):
+        system('rndc-confgen -a -r /dev/urandom')
     shutil.chown('/etc/rndc.key', 'named', 'mdbdns')
     install_systemd_unit('named')
     touch('/var/log/named.log', owner='named:root', mode=0o640)
