@@ -371,7 +371,9 @@ def install_bindcfg():
                     owner='named:named', mode=0o640)
     install_cfg('named/root.hint', '/etc/named', owner='named:named',
                 mode=0o640)
+    # named (8) emits a warning if this file is not present
     if not os.path.exists('/etc/rndc.key'):
+        # The following command generates it
         system('rndc-confgen -a -r /dev/urandom')
     shutil.chown('/etc/rndc.key', 'named', 'mdbdns')
     install_systemd_unit('named')
