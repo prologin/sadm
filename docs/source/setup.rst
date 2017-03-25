@@ -124,8 +124,8 @@ For more information, see the `systemd-networkd documentation
 Then, install them::
 
   python install.py networkd resolved
-  systemctl enable systemd-networkd && systemctl start systemd-networkd
-  systemctl enable systemd-resolved && systemctl start systemd-resolved
+  systemctl enable --now systemd-networkd
+  systemctl enable --now systemd-resolved
 
 At this point you should reboot and test your network configuration:
 
@@ -140,7 +140,7 @@ Setup postgresql on gw
 Install and enable postgresql::
 
   python install.py postgresql
-  systemctl enable postgresql && systemctl start postgresql
+  systemctl enable --now postgresql
 
 
 mdb
@@ -182,8 +182,8 @@ application.
 
 You should be able to start ``mdb`` and ``nginx`` like this::
 
-  systemctl enable mdb && systemctl start mdb
-  systemctl enable nginx && systemctl start nginx
+  systemctl enable --now mdb
+  systemctl enable --now nginx
 
 Now you should get an empty list when querying ``/query``::
 
@@ -206,7 +206,7 @@ config generation scripts use it to automatically update the configuration when
 ``mdb`` changes. Once again, setting up ``mdbsync`` is pretty easy::
 
   python install.py mdbsync
-  systemctl enable mdbsync && systemctl start mdbsync
+  systemctl enable --now mdbsync
   systemctl reload nginx
   echo '127.0.0.1 mdbsync' >> /etc/hosts
 
@@ -224,8 +224,8 @@ Once again, an installation script is provided::
   python install.py mdbdns
   mv /etc/named.conf{.new,}
   # ^ To replace the default configuration by our own.
-  systemctl enable mdbdns && systemctl start mdbdns
-  systemctl enable named && systemctl start named
+  systemctl enable --now mdbdns
+  systemctl enable --now named
 
 We now need to add a record in ``mdb`` for our current machine, ``gw``,
 so that DNS configuration can be generated::
@@ -258,7 +258,7 @@ on the same interface as 192.168.0.0/23, add it inside the ``shared-network``
   mv /etc/dhcpd.conf{.new,}
   # ^ To replace the default configuration by our own.
   $EDITOR /etc/dhcpd.conf
-  systemctl enable mdbdhcp && systemctl start mdbdhcp
+  systemctl enable --now mdbdhcp
 
 The DHCP server will provide the Arch Linux install media for all the servers,
 for that, download the Netboot Live System::
@@ -268,7 +268,7 @@ for that, download the Netboot Live System::
 
 Start the DHCP server::
 
-  systemctl enable dhcpd4 && systemctl start dhcpd4
+  systemctl enable --now dhcpd4
 
 .. note::
 
@@ -283,7 +283,7 @@ script: machine registration and serving kernel files. Once again, very simple
 setup::
 
   python install.py netboot
-  systemctl enable netboot && systemctl start netboot
+  systemctl enable --now netboot
   systemctl reload nginx
 
 TFTP
@@ -293,7 +293,7 @@ The TFTP server is used by the PXE clients to fetch the first stage of the boot
 chain: the iPXE binary (more on that in the next section). We simply setup
 ``tftp-hpa``::
 
-  systemctl enable tftpd.socket && systemctl start tftpd.socket
+  systemctl enable --now tftpd.socket
 
 The TFTP server will serve files from ``/srv/tftp``.
 
@@ -343,7 +343,7 @@ Install ``udb`` using the ``install.py`` recipe::
 
 Enable the service::
 
-  systemctl enable udb && systemctl start udb
+  systemctl enable --now udb
   systemctl reload nginx
 
 You can then import all contestants information to ``udb`` using the
@@ -378,15 +378,15 @@ Again, use the ``install.py`` recipe::
 
   python install.py udbsync
 
-  systemctl enable udbsync && systemctl start udbsync
+  systemctl enable --now udbsync
   systemctl reload nginx
 
 We can then configure udbsync clients::
 
   python install.py udbsync_django udbsync_rootssh
-  systemctl enable udbsync_django@mdb && systemctl start udbsync_django@mdb
-  systemctl enable udbsync_django@udb && systemctl start udbsync_django@udb
-  systemctl enable udbsync_rootssh && systemctl start udbsync_rootssh
+  systemctl enable --now udbsync_django@mdb
+  systemctl enable --now udbsync_django@udb
+  systemctl enable --now udbsync_rootssh
 
 .. note::
 
@@ -402,7 +402,7 @@ Once again::
 
   python install.py presencesync
 
-  systemctl enable presencesync && systemctl start presencesync
+  systemctl enable --now presencesync
   systemctl reload nginx
 
 
@@ -417,10 +417,9 @@ such mapping to work, and it is rather costly to query both *presencesync* and
 
 On all machines with nginx (openresty) installed that require SSO::
 
-    python install.py presencesync_cacheserver
-    systemctl enable presencesync_cacheserver
-    systemctl start presencesync_cacheserver
-    $EDITOR /etc/nginx/nginx.conf
+  python install.py presencesync_cacheserver
+  systemctl enable --now presencesync_cacheserver
+  $EDITOR /etc/nginx/nginx.conf
 
 Enable SSO on the services where it is needed. See the sample `server` block
 in `/etc/nginx/nginx.conf` (look for *SSO*).
@@ -442,12 +441,12 @@ must edit it to match your setup::
 Setup the iptables rules and ipset creation for users allowed internet acces::
 
   python install.py firewall
-  systemctl enable firewall && systemctl start firewall
+  systemctl enable --now firewall
 
 And the service that updates these rules::
 
   python install.py presencesync_firewall
-  systemctl enable presencesync_firewall && systemctl start presencesync_firewall
+  systemctl enable --now presencesync_firewall
 
 Step 2: file storage
 --------------------
@@ -532,7 +531,7 @@ On every ``rhfs`` machine, install the hfs server::
 
   python install.py hfs
   # Change HFS_ID to what you need
-  systemctl enable hfs@HFS_ID && systemctl start hfs@HFS_ID
+  systemctl enable --now hfs@HFS_ID
 
 Then, setup the skeleton of a user home:
 
@@ -577,7 +576,7 @@ following alliases on ``mdb`` ::
 You will want to ssh at this machine, so enable ``udbync_rootssh``::
 
   python install.py udbsync_rootssh
-  systemctl enable udbsync_rootssh && systemctl start udbsync_rootssh
+  systemctl enable --now udbsync_rootssh
 
 We'll now compile our custom version of openresty, or if it was already done
 during gw setup, install it directly. For this step, see
@@ -587,7 +586,7 @@ Then, install the ``nginx`` configuration from the repository::
 
   python install.py nginxcfg
   mv /etc/nginx/nginx.conf{.new,}
-  systemctl enable nginx && systemctl start nginx
+  systemctl enable --now nginx
 
 
 Setup postgresql on web
@@ -596,7 +595,7 @@ Setup postgresql on web
 Install and enable postgresql::
 
   python install.py postgresql
-  systemctl enable postgresql && systemctl start postgresql
+  systemctl enable --now postgresql
 
 concours
 ~~~~~~~~
@@ -609,8 +608,8 @@ concours
 Installation::
 
   python install.py concours
-  systemctl enable concours && systemctl start concours
-  systemctl enable udbsync_django@concours && systemctl start udbsync_django@concours
+  systemctl enable --now concours
+  systemctl enable --now udbsync_django@concours
   systemctl reload nginx
 
 Step 5: Setting up masternode and workernode
@@ -619,7 +618,7 @@ Step 5: Setting up masternode and workernode
 On ``masternode``::
 
   python install.py masternode
-  systemctl enable masternode && systemctl start masternode
+  systemctl enable --now masternode
 
 On another machine (because ``makepkg`` won't let you build packages as
 ``root``), build ``stechec2`` and ``stechec2-makefiles``::
