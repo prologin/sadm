@@ -1,0 +1,14 @@
+# Maintainer: Rémi Audebert <rflah0@gmail.com>
+pkgname=bash-eternal-history
+pkgver=2
+pkgrel=1
+pkgdesc="Configure bash to log all the executed commands"
+arch=('any')
+license=('WTFPL')
+depends=('bash')
+source=("$pkgname.sh")
+sha256sums=('4ccf7f7d79604640c5bb64a5c66334fa77bd0434c9e7abd0d16f7a47cea5a71c')
+
+package() {
+	install $srcdir/$pkgname.sh -D --target-directory $pkgdir/etc/profile.d/
+}
