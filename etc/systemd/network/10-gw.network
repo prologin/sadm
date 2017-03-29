@@ -1,9 +1,10 @@
 [Match]
-Name=lan
+Name=prologin host0
 
 [Network]
+DHCP=yes
 Address=192.168.1.254/23
 Address=192.168.250.254/24
-Domains=prolo
-DNS=127.0.0.1
+
+# gw.prolo is the main IP gateway during the contest
 IPForward=yes

@@ -123,9 +123,8 @@ For more information, see the `systemd-networkd documentation
 
 Then, install them::
 
-  python install.py networkd resolved nic_configuration
+  python install.py networkd nic_configuration
   systemctl enable --now systemd-networkd
-  systemctl enable --now systemd-resolved
   # `prologin` is the name of the interface to apply the configuration
   systemctl enable --now nic_configuration@prologin
 
@@ -244,9 +243,11 @@ configuration::
   # Should return 192.168.1.254
 
 You can now remove the two lines related to ``mdb`` and ``mdbsync`` from your
-``/etc/hosts`` file. The networkd config file we installed have already
-instructed ``systemd-resolved`` that our nameserver is ``127.0.0.1``. You can
-check by looking in ``/etc/resolv.conf``.
+``/etc/hosts`` file. You can now set the content of ``/etc/resolv.conf`` to::
+
+  # /etc/resolv.conf
+  search prolo
+  nameserver 127.0.0.1
 
 mdbdhcp
 ~~~~~~~
