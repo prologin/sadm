@@ -1,0 +1,5 @@
+*.pub
+*.gz
+*.xz
+*.sig
+repo.prologin.org
