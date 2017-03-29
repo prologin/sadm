@@ -2,8 +2,10 @@
 
 
 SADM_FGP=F4592F5F00D9EA8279AE25190312438E8809C743
+WORKDIR=repo.prologin.org
 
-PKG=${1?Usage: $0 package.pkg.tar.xz}
+PKG_PATH=${1?Usage: $0 package.pkg.tar.xz}
+PKG=$(basename $PKG_PATH)
 
 set -e
 
@@ -26,11 +28,13 @@ EOF
     exit 1
 fi
 
-echo "[+] Signing the package"
-gpg --sign --local-user $SADM_FGP --detach-sign --output $PKG.sig $PKG
+mkdir -p $WORKDIR
+echo "[+] Copying and signing the package"
+cp -v $PKG_PATH $WORKDIR/$PKG
+gpg --sign --local-user $SADM_FGP --detach-sign --output $WORKDIR/$PKG.sig $WORKDIR/$PKG
 echo "[+] Retrieving the database"
-rsync -Pha repo@prologin.org:www/{prologin.db,prologin.db.sig,prologin.db.tar.gz,prologin.db.tar.gz.sig,prologin.pub} .
+rsync -Pha repo@prologin.org:www/{prologin.db,prologin.db.sig,prologin.db.tar.gz,prologin.db.tar.gz.sig,prologin.pub} $WORKDIR/
 echo "[+] Adding the package to the database"
-repo-add --sign --verify --key $SADM_FGP prologin.db.tar.gz $PKG
+repo-add --sign --verify --key $SADM_FGP $WORKDIR/prologin.db.tar.gz $WORKDIR/$PKG
 echo "[+] Uploading the package and the database"
-rsync -Pha $PKG $PKG.sig prologin.{db,db.sig,db.tar.gz,db.tar.gz.sig,pub} repo@prologin.org:www/
+rsync -Pha $WORKDIR/$PKG{,.sig} $WORKDIR/prologin.{db,db.sig,db.tar.gz,db.tar.gz.sig,pub} repo@prologin.org:www/
