@@ -725,14 +725,8 @@ def install_hfs():
         )
 
 
-def install_resolved():
-    install_cfg('systemd/resolved.conf', '/etc/systemd', mode=0o644)
-    install_cfg('resolv.conf', '/etc', mode=0o644, replace=True)
-
-
 def install_networkd():
-    for networkd_file in ['lan.link', 'lan.network', 'uplink.link',
-                          'uplink.network']:
+    for networkd_file in ['10-gw.link', '10-gw.network']:
         copy('etc/systemd/network/' + networkd_file,
              '/etc/systemd/network/' + networkd_file,
              mode=0o644)
@@ -803,7 +797,6 @@ COMPONENTS = [
     'presencesync_usermap',
     'pull_secret',
     'redmine',
-    'resolved',
     'rfs',
     'sddmcfg',
     'sshdcfg',
