@@ -6,6 +6,8 @@ After=network-online.target
 Type=simple
 User=presencesync_cacheserver
 ExecStart=/var/prologin/venv/bin/python -m prologin.presencesync_clients.cacheserver 20131
+Restart=always
+RestartSec=2
 
 [Install]
 WantedBy=multi-user.target

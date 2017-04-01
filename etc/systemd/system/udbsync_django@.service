@@ -7,6 +7,8 @@ Type=simple
 User=%i
 WorkingDirectory=/var/prologin/%i
 ExecStart=/var/prologin/venv/bin/python -m prologin.udbsync_clients.django %i
+Restart=always
+RestartSec=2
 
 [Install]
 WantedBy=multi-user.target

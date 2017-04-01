@@ -6,6 +6,8 @@ After=mdb.service
 Type=simple
 User=mdbsync
 ExecStart=/var/prologin/venv/bin/python -m prologin.mdbsync.server 20010
+Restart=always
+RestartSec=2
 
 [Install]
 WantedBy=multi-user.target

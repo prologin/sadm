@@ -6,6 +6,8 @@ After=mdbsync.service
 Type=simple
 User=root
 ExecStart=/var/prologin/venv/bin/python -m prologin.mdbsync_clients.dhcp
+Restart=always
+RestartSec=2
 
 [Install]
 WantedBy=multi-user.target
