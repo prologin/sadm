@@ -103,24 +103,15 @@ GROUPS = {
     'cluster_public': 20161,
 }
 
+# Location of the SADM master secret
+SECRET_PATH = '/etc/prologin/sadm-secret'
 
 # Helper functions for installation procedures.
 
 def replace_secrets(string):
-    mkdir('/etc/prologin', mode=0o755, owner='root:root')
-    secret_path = '/etc/prologin/sadm-secret'
-    if not os.path.exists(secret_path):
-        print('We need to set the Prologin SADM master secret.\n'
-              'This secret has to be shared across all the machines.')
-        secret1 = getpass.getpass('Enter ProloginSADM master secret: ')
-        secret2 = getpass.getpass('Enter ProloginSADM master secret again: ')
-        if secret1 != secret2:
-            raise RuntimeError("Master secrets do not match, aborting.")
-        with open(secret_path, 'w') as secret_file:
-            secret_file.write(secret1 + '\n')
-        os.chmod(secret_path, 0o600)
+    requires('sadm_secret')
 
-    with open(secret_path) as secret_file:
+    with open(SECRET_PATH) as secret_file:
         secret = secret_file.read().strip()
     def secret_regex_callback(match):
         return hmac.new(secret.encode(), match.group(1).encode()).hexdigest()
@@ -336,6 +327,25 @@ def install_libprologin():
     install_cfg_profile('udb-client-auth', group='udb')
     install_cfg_profile('udbsync-pub', group='udbsync')
     install_cfg_profile('udbsync-sub', group='udbsync_public')
+
+
+def install_sadm_secret():
+    if not os.path.exists(SECRET_PATH):
+
+        print('We need to set the Prologin SADM master secret.\n'
+              'This secret has to be shared across all the machines.')
+        # The master secret can be configured from the environment or from user input
+        secret = os.environ.get('PROLOGIN_SADM_MASTER_SECRET', None)
+        if secret is None:
+            secret = getpass.getpass('Enter ProloginSADM master secret: ')
+            secret_check = getpass.getpass('Enter ProloginSADM master secret again: ')
+            if secret != secret_check:
+                raise RuntimeError("Master secrets do not match, aborting.")
+
+        mkdir('/etc/prologin', mode=0o755, owner='root:root')
+        with open(SECRET_PATH, 'w') as secret_file:
+            secret_file.write(secret + '\n')
+        os.chmod(SECRET_PATH, 0o600)
 
 
 def install_postgresql():
@@ -803,6 +813,7 @@ COMPONENTS = [
     'pull_secret',
     'redmine',
     'rfs',
+    'sadm_secret',
     'sddmcfg',
     'sshdcfg',
     'udb',
