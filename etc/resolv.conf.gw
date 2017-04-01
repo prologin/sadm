@@ -1,0 +1,6 @@
+search prolo
+# gw.prolo is its own namesever
+# uncomment when named is started
+#nameserver 127.0.0.1
+# fallback nameserver, used when the local dns server is not setup
+nameserver 8.8.8.8
