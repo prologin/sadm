@@ -6,6 +6,8 @@ After=network-online.target
 Type=simple
 User=root
 ExecStart=/var/prologin/venv/bin/python -m prologin.udbsync_clients.passwd /export/nfsroot
+Restart=always
+RestartSec=2
 
 [Install]
 WantedBy=multi-user.target

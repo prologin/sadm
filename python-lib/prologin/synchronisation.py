@@ -31,6 +31,7 @@ import tornado.ioloop
 import tornado.web
 import urllib.parse
 import urllib.request
+import sys
 
 
 def apply_updates(pk, backlog, updates, watch=None):
@@ -310,6 +311,6 @@ class Client(prologin.webapi.Client):
                                 'callback: %s' % e
                             )
             except Exception as e:
-                logging.exception('connection lost to synchronisation server, '
-                                  'retrying in 2s: %s (url: %s)' % (e, poll_url))
-                time.sleep(2)
+                logging.exception('connection lost to synchronisation server:'
+                                  ' %s (url: %s)' % (e, poll_url))
+                sys.exit(1)

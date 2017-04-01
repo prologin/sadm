@@ -5,6 +5,8 @@ Description=User map generation daemon
 Type=simple
 User=presencesync_usermap
 ExecStart=/var/prologin/venv/bin/python -m prologin.presencesync_clients.usermap
+Restart=always
+RestartSec=2
 
 [Install]
 WantedBy=multi-user.target

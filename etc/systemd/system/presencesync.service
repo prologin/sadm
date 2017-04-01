@@ -6,6 +6,8 @@ After=mdb.service
 Type=simple
 User=presencesync
 ExecStart=/var/prologin/venv/bin/python -m prologin.presencesync.server 20060
+Restart=always
+RestartSec=2
 
 [Install]
 WantedBy=multi-user.target
