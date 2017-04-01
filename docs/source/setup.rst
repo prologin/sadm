@@ -123,8 +123,8 @@ For more information, see the `systemd-networkd documentation
 
 Then, install them::
 
-  python install.py networkd nic_configuration
-  systemctl enable --now systemd-networkd
+  python install.py networkd nic_configuration conntrack
+  systemctl enable --now systemd-networkd conntrack
   # `prologin` is the name of the interface to apply the configuration
   systemctl enable --now nic_configuration@prologin
 
