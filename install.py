@@ -737,6 +737,10 @@ def install_nic_configuration():
     install_systemd_unit('nic-configuration@')
 
 
+def install_conntrack():
+    install_systemd_unit('conntrack')
+
+
 def install_firewall():
     system('systemctl restart systemd-sysctl')
 
@@ -770,6 +774,7 @@ COMPONENTS = [
     'base',
     'bindcfg',
     'concours',
+    'conntrack',
     'dhcpdcfg',
     'docs',
     'firewall',
