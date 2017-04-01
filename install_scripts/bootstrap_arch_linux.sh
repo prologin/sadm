@@ -1,0 +1,92 @@
+#!/bin/bash
+
+# Get shared functions
+source ./common.sh
+
+# Configuration
+SADM_LOCALE='en_US.UTF-8'
+SADM_CHARSET='UTF-8'
+SADM_TIMEZONE='Europe/Paris'
+
+# Usage
+if [ $# -ne 3 ]; then
+    echo >&2 "Usage: $0 ROOT_DIR HOSTNAME PLAINTEXT_ROOT_PASSWORD_FILE"
+    echo >&2 ""
+    echo >&2 "Install and configure Arch Linux in the ROOT_DIR folder."
+    echo >&2 "Example (as root):"
+    echo >&2 "  $ echo my_root_password_is_pretty_long > plaintext_root_pass"
+    echo >&2 "  $ mkdir gw"
+    echo >&2 "  $ ./bootstrap_arch_linux.sh ./gw gw ./plaintest_root_pass¬"
+    exit 1
+fi
+
+# Requirements checks
+if ! which arch-chroot >/dev/null; then
+    echo >&2 "Error: This script requires arch-install-scripts, please run:"
+    echo >&2 "> pacman -S arch-install-scripts"
+    exit 1
+fi
+
+# This script creates a filesystem as root
+this_script_must_be_run_as_root
+
+# Get command line args
+root_dir="$(readlink --canonicalize $1)"
+hostname="$2"
+root_password_file="$3"
+
+# Check the args
+if [ ! -d $root_dir ]; then
+    echo >&2 "Error: '$root_dir': no such directory"
+    exit 1
+fi
+
+if [ -z $hostname ]; then
+    echo >&2 "Error: hostname is empty"
+    exit 1
+fi
+
+if [ ! -r $root_password_file ]; then
+    echo >&2 "Error: password file '$root_password_file' must be readable"
+    exit 1
+fi
+
+# The actual Arch Linux setup starts here
+echo "[+] Installing base Arch Linux"
+pacstrap -c -d "$root_dir" base vim openssh
+
+echo "[+] Configuring base system"
+echo [+] "Setting timezone to $SADM_TIMEZONE"
+ln -sf "/usr/share/zoneinfo/$SADM_TIMEZONE" "$root_dir/etc/localtime"
+
+echo "[+] Setting hostname to $hostname"
+echo "$hostname" > "$root_dir/etc/hostname"
+
+echo "[+] Configuring locale to $SADM_LOCALE $SADM_CHARSET"
+echo "LANG=$SADM_LOCALE" > "$root_dir/etc/locale.conf"
+echo "$SADM_LOCALE $SADM_CHARSET" >> "$root_dir/etc/locale.gen"
+# There is not `locale-gen --root`, we have to use a chroot
+arch-chroot "$root_dir" locale-gen
+
+echo "[+] Setting root password"
+root_password=$(cat $root_password_file)
+echo "root:$root_password" | chpasswd --root "$root_dir"
+
+echo "[+] Disabling pam_securetty, see https://github.com/systemd/systemd/issues/852#issuecomment-127759667"
+sed -i '/pam_securetty.so/s/^/#/' $root_dir/etc/pam.d/login
+
+echo "[+] Setting up NTP"
+echo "[Time]
+NTP=ntp.prolo" > "$root_dir/etc/systemd/timesyncd.conf"
+
+echo "[+] Configuring DHCP for all interfaces"
+echo "[Match]
+Name=*
+
+[Network]
+DHCP=yes" > /etc/systemd/network/50-dhcp.network
+
+echo "[+] Enabling base services"
+systemctl --root "$root_dir" enable sshd systemd-timesyncd systemd-networkd
+
+echo "[+] Basic Arch Linux setup done!"
