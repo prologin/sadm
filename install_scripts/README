@@ -1,0 +1,14 @@
+Overview
+========
+
+There are two kinds of scripts. Depending on the kind of your are doing you will use different scripts.
+
+Bootstrap scripts
+-----------------
+
+The scripts named boostrap_*.sh are used on baremetal systems.
+
+Setup scripts
+-------------
+
+Meant to be used on the live system, in a container or when the system is installed.
