@@ -2,6 +2,27 @@
 
 set -e
 
+echo -n 'Select root password: ' && read -s root_password
+echo -n 'First RHFS id (eg. 0, 2, 4, ...): ' && read rhfs_id
+
+rhfs_id_0=$rhfs_id
+rhfs_id_1=$((rhfs_id+1))
+base_machine_name=rhfs${rhfs_id_0}${rhfs_id_1}
+
+echo 'Summary'
+echo '======='
+echo "Machine name: ${base_machine_name}"
+echo "RHFS ids: ${rhfs_id_0} ${rhfs_id_1}"
+echo
+
+./bootstrap_fs_raid1.sh "$rhfs_id"
+./bootstrap_arch_linux.sh /mnt "$rhfs_id" <(echo "$root_password")
+./bootstrap_fs_raid1_post.sh "$rhfs_id"
+
+echo "You can reboot now!"
+
+set -e
+
 echo "This script will start the RAID1 bootstrap script and install Arch Linux."
 echo
 echo "Press enter to start..."
