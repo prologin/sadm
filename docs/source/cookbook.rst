@@ -12,21 +12,22 @@ Here is a list of things to remember when setting up servers:
 - Use ssh as soon as possible.
 - Work in a tmux session, this allows any other root to take over your work if
   needed.
-- Use only one shell (bash) and setup an infinite history. This,
+- Use only one user and one shell (bash) and setup an infinite history. This,
   http://stackoverflow.com/a/19533853 is already installed by the rfs scripts.
-  Doing that will document what you did during the contest.
+  Doing that will document what you and the other admins are doing during the
+  contest.
 
 Testing on qemu/libvirt
 -----------------------
 
-Here are some ideas:
+Here are some notes:
 
 - Do not use the spice graphical console for setting up servers, use the serial
   line. For syslinux it is ``serial 0`` at the top of ``syslinux.cfg`` and for
   Linux ``console=ttyS0`` on the cmd line of the kernel in ``syslinux.cfg``.
-- For best performance use the VirtIO devices (disk, NIC).
+- For best performance use the VirtIO devices (disk, NIC), this should already
+  be configured if you used ``virt-install`` to create the machine.
 - For user machines, use the QXL driver for best performance with SPICE.
-- Servers need at least 2048MiB of RAM in order to compile the dependencies
 
 User related operations
 -----------------------
@@ -88,3 +89,31 @@ Adding a machine we don't manage to the user network
     the IP address you manually allocated (if you set the last allocation to
     100, you should assign the IP .100). Wait a minute for the DHCP
     configuration to be synced, and connect the laptop to the network.
+
+Network FS related operations
+-----------------------------
+
+Two kind of network file systems are used during the finals, the first one is
+the Root File System: RFS, the second is the Home File System: HFS.  The current
+setup is that a server is both a RFS and a HFS node.
+
+The RFS is a read-only NFS mounted as a rootnfs in Linux. It is replicated over
+multiple servers to ensure minimum latency over the network.
+
+The HFS is a read-write,
+exclusive, user-specific export of their home. In other words, each user has
+it's own personal space that can only be mounted once at a time. The HFS exports
+are sharded over multiple servers.
+
+Resetting the hfs
+~~~~~~~~~~~~~~~~~
+
+If you need to delete every ``/home`` created by the hfs, simply delete all nbd
+files in ``/export/hfs/`` on all HFS servers and delete entries in the
+``user_location`` table of the hfs' database::
+
+  # For each hfs instance
+  rm /export/hfs/*.nbd
+
+  echo 'delete from user_location;' | su - postgres -c 'psql hfs'
+

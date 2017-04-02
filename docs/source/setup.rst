@@ -76,47 +76,142 @@ All these core services will be running on ``gw``, the network gateway.
 They could run elsewhere but we don't have a lot of free machines and the core
 is easier to set up at one single place.
 
-Basic system
-~~~~~~~~~~~~
+The very first step is to install an Arch Linux system for ``gw``.  We have
+scripts to make this task fast and easy.
 
-The very first step is to install an Arch Linux system. In order to do that,
-use the ``install_gw.sh`` script.
+Basic system: file system setup
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Recent Archlinux ISO images are provided with a very limited *cowspace* size,
-which prevents installing git in the first place. To work around the issue,
-first run::
+Let's start with the hardware setup. You can skip this section if you are
+doing a containerized install or if you already have a file system ready.
 
-  mount -o remount,size=2G /run/archiso/cowspace
+For ``gw`` and other critical systems such as ``web``, we setup a `RAID1
+(mirroring)<https://en.wikipedia.org/wiki/Standard_RAID_levels#RAID_1>`_ over
+two discs. Because the RAID will be the size of the smallest disc, they have to
+be of the same capacity. We use regular 500GBytes SATA, which is usually more
+than enough. It is a good idea to choose two different disks (brand, age, batch)
+to reduce the chance to have them failing at the same time.
 
-You can then proceed with the automated setup::
+On top of the RAID1, our standard setup uses `LVM
+<https://wiki.archlinux.org/index.php/LVM>`_ to create and manage the system
+partition. For bootloading the system we use the good old BIOS and ``syslinux``.
+
+All this setup is automated by our bootstrap scripts, but to run them you will
+need a bootstrap Linux distribution. The easiest solution is to boot on the `Arch Linux's
+install medium
+<https://wiki.archlinux.org/index.php/beginners'_guide#Boot_the_installation_medium>`_.
+
+.. note::
+    Recent Arch Linux install media are provided with a very limited *cowspace*
+    size, which prevents installing git. To work around the issue, first run::
+
+      mount -o remount,size=2G /run/archiso/cowspace
+
+Once the bootstrap system is started, you can start the install using::
 
   pacman -Sy git
-  git clone http://bitbucket.org/prologin/sadm
-  cd sadm/bootstrap
+  git clone http://github.com/prologin/sadm
+  cd sadm/install_scripts
   # Keep an eye on the install process in case of breakage
-  ./install_gw.sh
-  # If the install goes without trouble the system will reboot
+  ./bootstrap.sh
 
-After the reboot, and for each new shell, activate the virtualenv::
+The system is now configured and bootable, you can restart the machine::
+
+  reboot
+
+The machine should reboot and display the login tty. To test this step:
+
+- The system must boot
+- Systemd should start without any ``[FAILED]`` item.
+- Log into the machine as ``root`` with the password you configured.
+- Check that the hostname is ``gw`` by invoking ``hostnamectl``::
+
+     Static hostname: gw
+           Icon name: computer-container
+             Chassis: container
+          Machine ID: 603218907b0f49a696e6363323cb1833
+             Boot ID: 65c57ca80edc464bb83295ccc4014ef6
+      Virtualization: systemd-nspawn
+    Operating System: Arch Linux
+              Kernel: Linux 4.6.2-1-ARCH
+        Architecture: x86-64
+
+- Check that the timezone is ``Europe/Paris`` and `NTP
+  <https://wiki.archlinux.org/index.php/Time#Time_synchronization>`_ is enabled
+  using ``timedatectl``::
+
+          Local time: Fri 2016-06-24 08:53:03 CEST
+      Universal time: Fri 2016-06-24 06:53:03 UTC
+            RTC time: n/a
+           Time zone: Europe/Paris (CEST, +0200)
+     Network time on: yes
+    NTP synchronized: yes
+     RTC in local TZ: no
+
+- Check the NTP server used::
+
+    systemctl status systemd-timesyncd
+    Sep 25 13:49:28 halfr-thinkpad-e545 systemd-timesyncd[13554]: Synchronized to time server 212.47.239.163:123 (0.arch.pool.ntp.org).
+
+
+- Check that the locale is ``en_US.UTF8`` with the ``UTF8`` charset using
+  ``localectl``::
+
+    System Locale: LANG=en_US.UTF-8
+        VC Keymap: n/a
+       X11 Layout: n/a
+
+- You should get an IP from DHCP if you are on a network that has such a setup,
+  else you can add a static IP using a ``systemd-network`` .network
+  configuration file.
+
+Basic system: SADM
+~~~~~~~~~~~~~~~~~~
+
+We will now start to install and configure everything that is Prologin-specific.
+
+  curl https://bitbucket.org/prologin/sadm/raw/master/install_scripts/bootstrap_sadm.sh | bash
+
+This script will install packages required by sadm and create a python virtual
+environment. Each time you log into a new system, activate the virtualenv::
 
   source /var/prologin/venv/bin/activate
 
 Gateway network configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``gw`` has three static IPs, the first two are on the interface named ``lan``
-and the last one on ``uplink``:
+``gw`` has multiple static IPs used in our local network:
 
 - 192.168.1.254/23 used to communicate with both the services and the users
 - 192.168.250.254/24 used to communicate with aliens (aka. machines not in mdb)
-- ?.?.?.?/? static IP given by the bocal to communicate with the bocal gateway
 
-In order to setup the network interfaces, we use ``systemd-networkd``. The
-configuration files are located in ``etc/systemd/network/``. You have to:
+It also has IP to communicate with the outside world:
 
-- For each of your NIC(s), edit the ``MACAddress`` field of the ``.link`` file.
-- Set the static IP, gateway and DNS given by the bocal in ``upstream.netowrk``
-  (default is to use DHCP).
+- 10.?.?.?/8 static IP given by the bocal to communicate with the bocal gateway
+- 163.5.??.??/16 WAN IP given by the CRI
+
+The network interface(s) are configured using ``systemd-networkd``. Our
+configuration files are stored in ``etc/systemd/network/`` and are installed in
+``/etc/systemd/network``.
+
+Two files must be modified to match the hardware of the machine:
+
+- ``etc/systemd/network/10-prologin.link``: edit the ``MACAddress`` field of
+  the  file to set the MAC address of your NIC.
+- ``etc/systemd/network/10-prologin.network``: we enable DHCP configuration and
+  set the local network static IPs. You can edit this file to add more static
+  IPs or set the gateway you want to use.
+
+For this step, we use the following systemd services:
+
+- From systemd: ``systemd-networkd.service``: does the network configuration, interface
+  renaming, IP setting, DHCP getting, gateway configuring, you get the idea.
+  This service is enabled by the Arch Linux bootstrap script.
+- From sadm: ``nic-configuration@.service``: interface configuration, this
+  service should be enabled for each of the interface on the system.
+- From sadm: ``conntack.service``: does the necessary logging to comply with
+  the fact that we are responsible for what the users are doing when using our
+  gateway to the internet.
 
 For more information, see the `systemd-networkd documentation
 <http://www.freedesktop.org/software/systemd/man/systemd-networkd.html>`_.
@@ -130,19 +225,54 @@ Then, install them::
 
 At this point you should reboot and test your network configuration:
 
-- There should be two interfaces: ``lan`` and ``uplink``.
-- ``lan`` should have two IPs: ``192.168.250.254/24`` and ``192.168.1.254/23``
-- ``uplink`` should be configured as you wanted.
-- DNS is not working until you setup ``mdbdns``, so keep on!
+- Your network interfaces should be up.
+- The IP addresses are correctly set.
+- Default route should be the bocal's gateway.
+- **DNS is not working until you setup ``mdbdns``, so keep on!**
 
 Setup postgresql on gw
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Install and enable postgresql::
+First we need a database to store all kind of data we have to manipulate. There
+are two main PostgreSQL databases systems running the final, the first is on
+``gw`` and the second is on ``web``. The one on ``gw`` is used for sadm critical
+data such as the list of machines and users, while the one on ``web`` is used
+for contest related data.
 
+By running this command, you will install the configuration files and start the
+database system::
+
+  cd sadm
   python install.py postgresql
   systemctl enable --now postgresql
 
+To test this step::
+
+  $ systemctl status postgresql.service
+  ● postgresql.service - PostgreSQL database server
+     Loaded: loaded (/usr/lib/systemd/system/postgresql.service; enabled; vendor preset: disabled)
+     Active: active (running) since Sun 2016-09-25 15:36:43 CEST; 2h 29min ago
+   Main PID: 34 (postgres)
+     CGroup: /machine.slice/machine-gw.scope/system.slice/postgresql.service
+             ├─34 /usr/bin/postgres -D /var/lib/postgres/data
+             ├─36 postgres: checkpointer process   
+             ├─37 postgres: writer process   
+             ├─38 postgres: wal writer process   
+             ├─39 postgres: autovacuum launcher process   
+             └─40 postgres: stats collector process   
+  $ ss -nltp | grep postgres
+  LISTEN     0      128          *:5432                     *:*                   users:(("postgres",pid=34,fd=3))
+  LISTEN     0      128         :::5432                    :::*                   users:(("postgres",pid=34,fd=4))
+  $ su - postgres -c 'psql -c \\l'
+                                      List of databases
+     Name    |  Owner   | Encoding |   Collate   |    Ctype    |   Access privileges   
+  -----------+----------+----------+-------------+-------------+-----------------------
+   postgres  | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 | 
+   template0 | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 | =c/postgres          +
+             |          |          |             |             | postgres=CTc/postgres
+   template1 | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 | =c/postgres          +
+             |          |          |             |             | postgres=CTc/postgres
+  (3 rows)
 
 mdb
 ~~~
@@ -151,9 +281,18 @@ We now have a basic environment to start setting up services on our gateway
 server. We're going to start by installing ``mdb`` and configuring ``nginx`` as
 a reverse proxy for this application.
 
-First, we need to install ``Openresty`` which provides a version of ``nginx``
-that supports lua scripting. For this step, see :ref:`openresty in the common
-tasks section <common-openresty>`
+First, we need to install ``Openresty``, a nginx extension with lua scripting.
+This is primarily used for Single Sign-On (SSO). The Prologin Arch Linux
+repository contains a pre-build package that you can install with ``pacman``::
+
+    $ pacman -S openresty
+
+.. note::
+
+    This package is a drop-in replacement for nginx. Even though the package
+    is called ``openresty``, all paths and configuration files are the same
+    as the official ``nginx`` package, so you should be able to switch between
+    the two without changing anything.
 
 In order to test if ``mdb`` is working properly, we need to go to query
 ``http://mdb/`` with a command line tool like ``curl``. However, to get DNS
@@ -193,10 +332,20 @@ Now you should get an empty list when querying ``/query``::
 
 Congratulations, ``mdb`` is installed and working properly!
 
+You can check the journal for nginx, and should see::
+
+  journalctl -fu nginx
+  ...
+  Mar 22 20:12:12 gw systemd[1]: Started Openresty, a powerful web app server, extending nginx with lua scripting.
+  Mar 22 20:14:13 gw nginx[46]: 2017/03/22 20:14:13 [error] 137#0: *1 connect() failed (111: Connection refused), client: 127.0.0.1, server: mdb, request: "GET /query HTTP/1.1", host: "mdb"
+  Mar 22 20:14:13 gw nginx[46]: 2017/03/22 20:14:13 [error] 137#0: *1 [lua] access.lua:77: SSO: could not query presenced: failed to join remote: connection refused, client: 127.0.0.1, server: mdb, request: "GET /query HTTP/1.1", host: "mdb"
+
 .. note::
 
-  nginx will log an error when attempting to connect to the upstream, this is
-  normal and should only happen for the first time you connect to a service.
+  nginx will log an error (``connect() failed (111: Connection refused),
+  client: 127.0.0.1, server: mdb``) when attempting to connect to the upstream,
+  this is normal and should only happen for the first time you connect to a
+  service.
 
 mdbsync
 ~~~~~~~
@@ -278,6 +427,33 @@ Start the DHCP server::
   ``gw`` needs to have ``192.168.1.254/23`` as a static IP or else
   ``dhcpd`` will not start.
 
+To test this step::
+
+  $ systemctl status dhcpd4
+  ● dhcpd4.service - IPv4 DHCP server
+     Loaded: loaded (/usr/lib/systemd/system/dhcpd4.service; enabled; vendor preset: disabled)
+     Active: active (running) since Sun 2016-09-25 18:41:57 CEST; 6s ago
+    Process: 1552 ExecStart=/usr/bin/dhcpd -4 -q -cf /etc/dhcpd.conf -pf /run/dhcpd4.pid (code=exited, status=0/SUCCESS)
+   Main PID: 1553 (dhcpd)
+     CGroup: /machine.slice/machine-gw.scope/system.slice/dhcpd4.service
+             └─1553 /usr/bin/dhcpd -4 -q -cf /etc/dhcpd.conf -pf /run/dhcpd4.pid
+  
+  Sep 25 18:41:57 gw systemd[1]: Starting IPv4 DHCP server...
+  Sep 25 18:41:57 gw dhcpd[1552]: Source compiled to use binary-leases
+  Sep 25 18:41:57 gw dhcpd[1552]: Wrote 0 deleted host decls to leases file.
+  Sep 25 18:41:57 gw dhcpd[1552]: Wrote 0 new dynamic host decls to leases file.
+  Sep 25 18:41:57 gw dhcpd[1552]: Wrote 0 leases to leases file.
+  Sep 25 18:41:57 gw dhcpd[1553]: Server starting service.
+  Sep 25 18:41:57 gw systemd[1]: Started IPv4 DHCP server.
+  $ ss -a -p | grep dhcpd
+  p_raw  UNCONN     0      0       *:host0                  *                      users:(("dhcpd",pid=1553,fd=5))
+  u_dgr  UNCONN     0      0       * 7838541               * 7790415               users:(("dhcpd",pid=1553,fd=3))
+  raw    UNCONN     0      0       *:icmp                  *:*                     users:(("dhcpd",pid=1553,fd=4))
+  udp    UNCONN     0      0       *:64977                 *:*                     users:(("dhcpd",pid=1553,fd=20))
+  udp    UNCONN     0      0       *:bootps                *:*                     users:(("dhcpd",pid=1553,fd=7))
+  udp    UNCONN     0      0      :::57562                :::*                     users:(("dhcpd",pid=1553,fd=21))
+
+
 netboot
 ~~~~~~~
 
@@ -309,33 +485,12 @@ kernel using the nearest RFS. It also handles registering the machine in the
 MDB if needed. These instructions need to be run on ``gw``.
 
 We need a special version of iPXE supporting the LLDP protocol to speed up
-machine registration.
+machine registration. We have a pre-built version of the PXE image in our Arch
+Linux repository::
 
-iPXE is an external open source project, clone it first::
+  pacman -S ipxe-sadm-git
 
-  git clone git://git.ipxe.org/people/mareo/ipxe.git
-
-Swith to the ``lldp`` branch::
-
-  cd ipxe
-  git checkout lldp
-
-Then compile time settings need to be modified. Add the following lines::
-
-  // in src/config/general.h
-  #define REBOOT_CMD
-  #define PING_CMD
-  #define NET_PROTO_LLDP
-
-You should then go to ``http://mdb/mdb/switch/`` add the switches with their
-names, chassis ID, rooms and nearest rfs and hfs.
-
-You can now build iPXE: go to ``src/`` and build the bootrom, embedding our
-script::
-
-  cd src/
-  make bin/undionly.kpxe EMBED=/root/sadm/python-lib/prologin/netboot/chain.ipxe NO_WERROR=1
-  cp bin/undionly.kpxe /srv/tftp/prologin.kpxe
+This package installs the PXE image as ``/srv/tftp/prologin.kpxe``.
 
 udb
 ~~~
@@ -408,7 +563,6 @@ Once again::
   systemctl enable --now presencesync
   systemctl reload nginx
 
-
 presencesync_cacheserver
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -426,7 +580,6 @@ On all machines with nginx (openresty) installed that require SSO::
 
 Enable SSO on the services where it is needed. See the sample `server` block
 in `/etc/nginx/nginx.conf` (look for *SSO*).
-
 
 iptables
 ~~~~~~~~
@@ -623,24 +776,12 @@ On ``masternode``::
   python install.py masternode
   systemctl enable --now masternode
 
-On another machine (because ``makepkg`` won't let you build packages as
-``root``), build ``stechec2`` and ``stechec2-makefiles``::
+``workernode`` must be running on all the users machine, to do that we install
+it in the NFS export.  The required packages are ``stechec`` and
+``stechec2-makefiles``. We will intall them using the ``prologin`` Arch
+Linux repository::
 
-  git clone https://bitbucket.org/prologin/stechec2
-  cd stechec2/pkg/stechec2
-  makepkg
-  scp stechec2-prologin2015-1-x86_64.pkg.tar.xz rhfs:
-  cd ../stechec2-makefiles
-  makepkg
-  scp stechec2-makefiles-prologin2015-1-any.pkg.tar.xz rhfs:
-
-Then copy the packages onto ``rhfs``, and install them in the exported
-``nfsroot``. They will be used by workernode to compile the champions.
-
-::
-
-  pacman -U stechec2-prologin2015-1-x86_64.pkg.tar.xz -r /export/nfsroot
-  pacman -U stechec2-makefiles-prologin2015-1-any.pkg.tar.xz -r /export/nfsroot
+  pacman -S prologin/stechec2 prologin/stechec2-makefiles -r /export/nfsroot_staging
 
 Then, still for the users machines, install ``workernode``::
 
@@ -660,6 +801,9 @@ it see , see :ref:`enable_contest_services`), see them dispatched by
 Step 6: Switching to contest mode
 ---------------------------------
 
+Contest mode is the set of switches to block internet access to the users and
+give them access to the contest ressources.
+
 Block internet access
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -678,6 +822,9 @@ Edit ``/etc/nginx/nginx.conf``, uncomment the following line::
 
   # include services_contest/*.nginx;
 
+Common tasks
+------------
+
 Enable Single Sign-On
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -689,51 +836,3 @@ Edit ``/etc/nginx/nginx.conf``, uncomment the following lines::
   # lua_package_path '/etc/nginx/sso/?.lua;;';
   # init_by_lua_file sso/init.lua;
   # access_by_lua_file sso/access.lua;
-
-Test the contest
-~~~~~~~~~~~~~~~~
-
-TODO
-
-Reset the hfs
-~~~~~~~~~~~~~
-
-If you need to delete every ``/home`` created by the hfs, simply delete all nbd
-files in ``/export/hfs/`` and delete entries in the ``user_location`` table of
-the hfs' database::
-
-  # For each hfs instance
-  rm /export/hfs/*.nbd
-
-  echo 'delete from user_location;' | su - postgres -c 'psql hfs'
-
-Common tasks
-------------
-
-.. _common-openresty:
-
-Openresty
-~~~~~~~~~
-
-Openresty, a nginx extension with lua scripting. This is primarily used for
-Single Sign-On (SSO). Because ``makepkg`` won't let you build packages as root,
-you either have to create a new user or build the package on another machine and
-then transfer it over.
-
-Build the package::
-
-  cd pkg/openresty
-  make all
-
-You should get a tarball named like ``openresty-version.pkg.tar.xz``. Proceed
-to its installation on the target machine::
-
-  pacman -U openresty-*.pkg.tar.xz
-
-.. note::
-
-    This package is a drop-in replacement for nginx. Even though the package
-    is called ``openresty``, all paths and configuration files are the same
-    as the official ``nginx`` package, so you should be able to switch between
-    the two without changing anything.
-
