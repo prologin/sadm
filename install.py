@@ -69,7 +69,9 @@ USERS = {
                                              'udb_public', 'mdb_public') },
     'concours': { 'uid': 20150, 'groups': ('concours', 'udbsync_public',
                                            'cluster_public') },
-    'cluster': { 'uid': 20160, 'groups': ('cluster', 'cluster_public') },
+    'cluster': { 'uid': 20160, 'groups': ('cluster',
+                                          'cluster_public',
+                                          'isolate') },
 }
 
 # Same with groups. *_public groups are used for services that need to access
