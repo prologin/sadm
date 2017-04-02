@@ -1,3 +1,5 @@
+.. _arch-linux-repository:
+
 Arch Linux repository
 =====================
 
@@ -24,8 +26,20 @@ Finally, test the repository::
 
 You should see "prologin" in the list of synchronized package databases.
 
-Uploading packages to the reposityory
--------------------------------------
+SADM related packages
+---------------------
+
+Some packages are key parts of the SADM architecture. They should always be the
+lastest revision possible.
+
+- ``stechec2``, ``stechec2-makefiles`` and ``stechec2-sphinxdoc``: built from
+  `prologin/stechec2 <https://bitbucket.org/prologin/stechec2>`_ git repository
+  in the ``pkg/`` folder.
+- ``openresty``: built from the `prologin/sadm
+  <https://bitbucket.org/prologin/sadm>`_ git repository in the ``pkg/`` folder.
+
+Uploading packages
+------------------
 
 Only the owner of the repository's private key and ssh access to
 repo@prologin.org can upload packages.

@@ -19,6 +19,7 @@ hardware and network, which explains why some things seem very complicated.
    misc_services
    repo
    cookbook
+   containers
    tests
 
 Indices and tables
