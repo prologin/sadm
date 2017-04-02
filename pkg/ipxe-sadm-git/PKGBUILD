@@ -1,0 +1,65 @@
+# Maintainer: sadm@prologin.org
+
+pkgname=ipxe-sadm-git
+pkgver=1.0.0.r1812.g20bebe0c
+pkgrel=1
+pkgdesc='iPXE open source boot firmware - prologin SADM'
+arch=('any')
+url='http://www.ipxe.org/'
+license=('GPL')
+makedepends=('git')
+provides=('ipxe')
+conflicts=('ipxe')
+source=('git://git.ipxe.org/people/mareo/ipxe.git'
+  'chain.ipxe')
+sha256sums=('SKIP'
+  '1335d7d4058006b2dc2869fa903bc34df6b3e922014444345c5f83ddbf44eb4d')
+
+pkgver() {
+  cd ipxe/
+
+  if GITTAG="$(git describe --abbrev=0 --tags 2>/dev/null)"; then
+    printf '%s.r%s.g%s' \
+      "$(sed -e "s/^${pkgname%%-git}//" -e 's/^[-_/a-zA-Z]\+//' -e 's/[-_+]/./g' <<< ${GITTAG})" \
+      "$(git rev-list --count ${GITTAG}..)" \
+      "$(git log -1 --format='%h')"
+  else
+    printf '0.r%s.g%s' \
+      "$(git rev-list --count master)" \
+      "$(git log -1 --format='%h')"
+  fi
+}
+
+prepare() {
+  cd ipxe/
+
+  git checkout lldp
+
+  cd src/
+
+  # enable neighbour command
+  sed -i "/NEIGHBOUR_CMD/c #define NEIGHBOUR_CMD" config/general.h
+
+  # enable ping command
+  sed -i "/PING_CMD/c #define PING_CMD" config/general.h
+
+  # enable reboot and poweroff
+  sed -i -e "/REBOOT_CMD/c #define REBOOT_CMD" \
+    -e "/POWEROFF_CMD/c #define POWEROFF_CMD" config/general.h
+
+  # enable LLDP
+  sed -i -e "/NET_PROTO_LLDP/c #define NET_PROTO_LLDP" config/general.h
+}
+
+build() {
+  cd ipxe/src/
+
+  make bin/undionly.kpxe EMBED=${srcdir}/chain.ipxe NO_WERROR=1
+}
+
+package() {
+  cd ipxe/src
+
+  # iPXE UNDI-only targets
+  install -D -m0644 bin/undionly.kpxe ${pkgdir}/srv/tftp/prologin.kpxe
+}
