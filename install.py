@@ -735,11 +735,12 @@ def install_hfs():
         )
 
 
-def install_networkd():
+def install_systemd_networkd():
     for networkd_file in ['10-gw.link', '10-gw.network']:
         copy('etc/systemd/network/' + networkd_file,
              '/etc/systemd/network/' + networkd_file,
              mode=0o644)
+    # Disable default naming configuration
     symlink('/dev/null', '/etc/systemd/network/99-default.link')
 
 
@@ -800,7 +801,6 @@ COMPONENTS = [
     'mdbdns',
     'mdbsync',
     'netboot',
-    'networkd',
     'nginxcfg',
     'nic_configuration',
     'paste',
@@ -816,6 +816,7 @@ COMPONENTS = [
     'sadm_secret',
     'sddmcfg',
     'sshdcfg',
+    'systemd_networkd',
     'udb',
     'udbsync',
     'udbsync_django',
