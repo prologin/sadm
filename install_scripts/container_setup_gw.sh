@@ -1,69 +1,45 @@
 #!/bin/bash
 
 source ./common.sh
-source ./container_setup_common.sh
 
 this_script_must_be_run_as_root
 
-cat <<EOF
-[+] Welcome to the container setup of SADM!
-EOF
-
 # Configuration variables
-USE_BTRFS=true
-
+CONTAINER_HOSTNAME=gw.prolo
 CONTAINER_NAME=mygw
-NETWORK_ZONE=prolo
 
-# Secrets
-ROOT_PASSWORD=101010
-SADM_MASTER_SECRET=lesgerbillescesttropfantastique
+source ./container_setup_common.sh
 
-# Other variables
-CONTAINER_ROOT=/var/lib/machines/$CONTAINER_NAME
-SADM_ROOT_DIR=$(dirname $PWD)
+container_script_header
 
 # Setup stages
-function stage_setup_host {
-  echo "[+] Override systemd-nspawn configuration with --network-zone=$NETWORK_ZONE"
-  cat >/etc/systemd/system/systemd-nspawn@$CONTAINER_NAME.service <<EOF
-.include /usr/lib/systemd/system/systemd-nspawn@.service
+function stage_container_gw_network {
+  echo '[+] Stage setup basic container network'
 
-[Service]
-ExecStart=
-ExecStart=/usr/bin/systemd-nspawn --quiet --keep-unit --boot --link-journal=try-guest --network-zone=$NETWORK_ZONE -U --settings=override --machine=%i
+  echo "[-] Write static ip container network systemd-networkd configuration"
+  cat >$CONTAINER_ROOT/etc/systemd/network/40-gw-container-static.network <<EOF
+[Match]
+Name=host0
+
+[Network]
+Gateway=10.0.0.1
+Address=10.0.0.254/24
 EOF
 
-  echo "[-] Create $CONTAINER_ROOT"
-  if $USE_BTRFS; then
-    if [ -d $CONTAINER_ROOT ]; then
-      btrfs subvolume delete $CONTAINER_ROOT/var/lib/machines || true  # this can fail if we restored a snapshot
-      btrfs subvolume delete $CONTAINER_ROOT
-    fi
-    btrfs subvolume create $CONTAINER_ROOT
-  else
-    mkdir -p $CONTAINER_ROOT
-  fi
-
-  echo $ROOT_PASSWORD > ./plaintext_root_pass
+  container_run_simple /usr/bin/systemctl restart systemd-networkd
 
   container_snapshot $FUNCNAME
 }
 
-function stage_boostrap_arch_linux {
-  ./bootstrap_arch_linux.sh $CONTAINER_ROOT gw ./plaintext_root_pass
+function test_container_gw_network {
+  echo '[>] Test gw container network... '
 
-  container_snapshot $FUNCNAME
+  container_run_simple /usr/bin/ping -c 1 8.8.8.8
 }
 
 function stage_setup_sadm {
   echo "[+] Copy $SADM_ROOT_DIR to the container"
   cp -r $SADM_ROOT_DIR $CONTAINER_ROOT/root/sadm
-
-  echo "[-] Configure DNS resolver"
-  # No need to setup systemd-network, it has already been enabled by the setup
-  # script and systemd has a default network file for containers.
-  cp -v ../etc/resolv.conf.gw $CONTAINER_ROOT/etc/resolv.conf
 
   echo "[-] Start sadm setup script"
   container_run /root/sadm/install_scripts/setup_sadm.sh
@@ -81,10 +57,23 @@ function test_sadm {
 function stage_setup_network {
   echo '[+] Stage setup network'
 
-  container_run /var/prologin/venv/bin/python /root/sadm/install.py systemd_networkd nic_configuration conntrack
+  echo '[-] Install SADM network setup'
+  container_run /var/prologin/venv/bin/python /root/sadm/install.py systemd_networkd_gw nic_configuration conntrack
+
   # Skipped as the container's virtual interface does not support the tweaks we apply
   skip container_run /usr/bin/systemctl enable --now nic-configuration@host0
+
+  echo '[-] Enable conntrack'
   container_run /usr/bin/systemctl enable --now conntrack
+
+  echo '[-] Add static ip for container setup'
+  cat > $CONTAINER_ROOT/etc/systemd/network/10-gw.network <<EOF
+# Extra static ip and route to communicate with the outside world
+Gateway=10.0.0.1
+Address=10.0.0.254/24
+EOF
+
+  echo '[-] Restart systemd-networkd'
   container_run /usr/bin/systemctl restart systemd-networkd
 
   container_snapshot $FUNCNAME
@@ -110,25 +99,6 @@ function test_network {
   else
     echo_ok "PASS"
   fi
-}
-
-
-function stage_setup_libprologin {
-  echo '[+] Stage setup libprologin and SADM master secret'
-
-  echo '[-] Install master secret'
-  container_run --setenv=PROLOGIN_SADM_MASTER_SECRET="$SADM_MASTER_SECRET" /var/prologin/venv/bin/python install.py sadm_secret
-  echo '[-] Install libprologin'
-  container_run /var/prologin/venv/bin/python install.py libprologin
-
-  container_snapshot $FUNCNAME
-}
-
-function test_libprologin {
-  echo '[>] Test libprologin... '
-
-  echo '[>] Import prologin'
-  container_run /var/prologin/venv/bin/python -c 'import prologin'
 }
 
 function stage_setup_postgresql {
@@ -405,15 +375,15 @@ function test_udb {
   test_service_is_enabled_active udb
 
   echo '[-] Generate password sheet data for users'
-  container_run /var/prologin/venv/bin/python /var/prologin/udb/manage.py \
+  container_run_verbose /var/prologin/venv/bin/python /var/prologin/udb/manage.py \
     pwdsheetdata --type=user
 
   echo '[-] Generate password sheet data for orgas'
-  container_run /var/prologin/venv/bin/python /var/prologin/udb/manage.py \
+  container_run_verbose /var/prologin/venv/bin/python /var/prologin/udb/manage.py \
     pwdsheetdata --type=orga
 
   echo '[-] Generate password sheet data for roots'
-  container_run /var/prologin/venv/bin/python /var/prologin/udb/manage.py \
+  container_run_verbose /var/prologin/venv/bin/python /var/prologin/udb/manage.py \
     pwdsheetdata --type=root
 }
 
@@ -558,6 +528,9 @@ run stage_setup_host
 run stage_boostrap_arch_linux
 run container_start
 
+run stage_container_gw_network
+run test_container_gw_network
+
 run stage_setup_sadm
 run test_sadm
 
@@ -614,3 +587,6 @@ run test_sso
 
 run stage_firewall
 run test_firewall
+
+# Get passwords
+run test_udb
