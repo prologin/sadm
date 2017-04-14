@@ -2,9 +2,17 @@
 Name=prologin host0
 
 [Network]
+# Try to get a dynamic address
 DHCP=yes
+
+# also set static addresses for SADM
 Address=192.168.1.254/23
 Address=192.168.250.254/24
 
 # gw.prolo is the main IP gateway during the contest
 IPForward=yes
+
+# Gather LLDP packets
+LLDP=yes
+# Broadcast LLDP information
+EmitLLDP=customer-bridge

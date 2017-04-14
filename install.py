@@ -735,13 +735,27 @@ def install_hfs():
         )
 
 
-def install_systemd_networkd():
-    for networkd_file in ['10-gw.link', '10-gw.network']:
+def install_systemd_networkd_gw():
+    _install_systemd_networkd(['10-gw.link', '10-gw.network'])
+
+
+def install_systemd_networkd_rhfs():
+    _install_systemd_networkd(['10-rhfs-a.link',
+                               '10-rhfs-b.link',
+                               '10-rhfs.network'])
+
+def install_systemd_networkd_web():
+    _install_systemd_networkd(['10-web.link', '10-web.network'])
+
+
+def _install_systemd_networkd(configuration_filenames):
+    for networkd_file in configuration_filenames:
         copy('etc/systemd/network/' + networkd_file,
              '/etc/systemd/network/' + networkd_file,
              mode=0o644)
     # Disable default naming configuration
     symlink('/dev/null', '/etc/systemd/network/99-default.link')
+    system('systemctl restart systemd-networkd')
 
 
 def install_nic_configuration():
@@ -816,7 +830,9 @@ COMPONENTS = [
     'sadm_secret',
     'sddmcfg',
     'sshdcfg',
-    'systemd_networkd',
+    'systemd_networkd_gw',
+    'systemd_networkd_rhfs',
+    'systemd_networkd_web',
     'udb',
     'udbsync',
     'udbsync_django',
