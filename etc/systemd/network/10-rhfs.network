@@ -1,0 +1,10 @@
+[Match]
+Name=rhfs* host0
+
+[Network]
+DHCP=yes
+
+# Gather LLDP packets
+LLDP=yes
+# Broadcast LLDP information
+EmitLLDP=customer-bridge
