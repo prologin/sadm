@@ -67,8 +67,8 @@ function stage_setup_network {
   container_run /usr/bin/systemctl enable --now conntrack
 
   echo '[-] Add static ip for container setup'
-  cat > $CONTAINER_ROOT/etc/systemd/network/10-gw.network <<EOF
-# Extra static ip and route to communicate with the outside world
+  cat >> $CONTAINER_ROOT/etc/systemd/network/10-gw.network <<EOF
+# Extra static ip and route to communicate with the outside world from within the container
 Gateway=10.0.0.1
 Address=10.0.0.254/24
 EOF
@@ -522,6 +522,22 @@ function test_firewall {
   test_service_is_enabled_active presencesync_firewall
 }
 
+function stage_hfsdb {
+  echo '[+] Install hfsdb'
+
+  echo '[-] Configure hfsdb'
+  container_run /var/prologin/venv/bin/python /root/sadm/install.py hfsdb
+
+  container_snapshot $FUNCNAME
+}
+
+function test_hfsdb {
+  echo '[>] Test hfsdb... '
+
+  #TODO
+}
+
+
 # "container" script
 run container_stop
 run stage_setup_host
@@ -530,6 +546,8 @@ run container_start
 
 run stage_container_gw_network
 run test_container_gw_network
+
+run stage_copy_sadm
 
 run stage_setup_sadm
 run test_sadm
@@ -587,6 +605,9 @@ run test_sso
 
 run stage_firewall
 run test_firewall
+
+run stage_hfsdb
+run test_hfsdb
 
 # Get passwords
 run test_udb
