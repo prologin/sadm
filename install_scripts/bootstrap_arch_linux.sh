@@ -31,16 +31,16 @@ fi
 this_script_must_be_run_as_root
 
 # Get command line args
+if [ ! -d $1 ]; then
+    echo >&2 "Error: '$root_dir': no such directory"
+    exit 1
+fi
+
 root_dir="$(readlink --canonicalize $1)"
 hostname="$2"
 root_password_file="$3"
 
 # Check the args
-if [ ! -d $root_dir ]; then
-    echo >&2 "Error: '$root_dir': no such directory"
-    exit 1
-fi
-
 if [ -z $hostname ]; then
     echo >&2 "Error: hostname is empty"
     exit 1
@@ -70,21 +70,37 @@ arch-chroot "$root_dir" locale-gen
 
 echo "[+] Setting root password"
 root_password=$(cat $root_password_file)
-echo "root:$root_password" | chpasswd --root "$root_dir"
+if [[ -n $root_password ]]; then
+  echo "root:$root_password" | chpasswd --root "$root_dir"
+else
+  echo "[+] Root password file empty, not setting root password"
+fi
 
 echo "[+] Disabling pam_securetty, see https://github.com/systemd/systemd/issues/852#issuecomment-127759667"
 sed -i '/pam_securetty.so/s/^/#/' $root_dir/etc/pam.d/login
 
 echo "[+] Setting up NTP"
+# TOOD(halfr): move this to a dedicated conf file in the repo
 echo "[Time]
 NTP=ntp.prolo" > "$root_dir/etc/systemd/timesyncd.conf"
 
-echo "[+] Configuring DHCP for all interfaces"
+echo "[+] Configuring DHCP for all en* interfaces"
+# TOOD(halfr): move this to a dedicated conf file in the repo
 echo "[Match]
-Name=*
+Name=en* host*
 
 [Network]
-DHCP=yes" > /etc/systemd/network/50-dhcp.network
+DHCP=yes
+LLDP=yes
+EmitLLDP=customer-bridge" > "$root_dir/etc/systemd/network/50-dhcp.network"
+
+echo "[+] Copying resolv.conf"
+if [[ $hostname == gw.prolo ]]; then
+  resolvconf_file=../etc/resolv.conf.gw
+else
+  resolvconf_file=../etc/resolv.conf.servers_users
+fi
+cp -v $resolvconf_file "$root_dir/etc/resolv.conf"
 
 echo "[+] Enabling base services"
 systemctl --root "$root_dir" enable sshd systemd-timesyncd systemd-networkd
