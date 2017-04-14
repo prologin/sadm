@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This script must be run at the root of the sadm/ repository
+# Setup common SADM setup for all systems
 
 set -e
 
@@ -25,7 +25,7 @@ echo '[+] Installing packages from the Arch Linux repositories'
 pacman -S --needed --noconfirm base-devel                                   \
     git python python2 python-pip python-virtualenv libyaml libxslt         \
     postgresql-libs dhcp bind sqlite postgresql-libs pwgen ipset postgresql \
-    nbd tftp-hpa openssh dnsutils rsync tcpdump strace wget ethtool         \
+    nbd tftp-hpa dnsutils rsync tcpdump strace wget ethtool tree            \
     mtr iperf atop htop iotop iftop nethogs conntrack-tools
 
 echo '[+] Installing packages from the Prologin Arch Linux repository'
