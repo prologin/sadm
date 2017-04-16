@@ -4,6 +4,9 @@
 # It does a standalone clone and setup of sadm from the main git repository. If
 # you are developping on SADM, directly use install_scripts/setup_sadm.sh
 
+REPO_URL=https://github.com/prologin/sadm
+BRANCH=master
+
 if mount | grep --quiet archiso; then
   # When running on the Arch Linux install media, increase the overlay work dir
   # size
@@ -16,7 +19,7 @@ pacman -Sy --needed --noconfirm git
 
 echo '[+] Cloning sadm'
 cd /root
-git clone https://github.com/prologin/sadm
+git clone --branch $BRANCH $REPO_URL sadm
 
 echo '[+] Starting Arch Linux bootstrap script'
 ./sadm/install_scripts/bootstrap.sh
