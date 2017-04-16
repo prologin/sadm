@@ -12,7 +12,7 @@ if mount | grep --quiet archiso; then
 fi
 
 echo '[+] Installing dependencies'
-pacman -S --needed --noconfirm git
+pacman -Sy --needed --noconfirm git
 
 echo '[+] Cloning sadm'
 cd /root
