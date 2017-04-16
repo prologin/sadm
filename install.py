@@ -33,6 +33,7 @@ import os.path
 import pwd
 import re
 import shutil
+import subprocess
 import sys
 import tempfile
 
@@ -191,7 +192,7 @@ def symlink(dest, path):
 
 def system(command):
     print('Executing "%s"' % command)
-    return os.system(command)
+    return subprocess.check_call(command, shell=True)
 
 
 def touch(path, mode=0o600, owner='root:root'):
