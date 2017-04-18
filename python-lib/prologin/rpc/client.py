@@ -12,6 +12,7 @@
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 import asyncio
+import aiohttp
 import json
 import prologin.timeauth
 import socket
@@ -40,75 +41,35 @@ class RemoteError(BaseError):
 class Client:
     """RPC client: connect to a server and perform remote calls."""
 
-    def __init__(self, base_url, secret=None, coro=False, ioloop=None):
+    def __init__(self, base_url, secret=None, loop=None):
         self.base_url = base_url
         self.secret = secret
-        self.coro = coro
-        if coro:
-            self.ioloop = (ioloop if ioloop is not None else
-                           asyncio.get_event_loop())
-
-    def _extract_result(self, req):
-        """Get a response line from a request, parse it and return it.
-        """
-        line = req.readline()
-        return json.loads(line.strip().decode('ascii'))
-
-    def _handle_generator(self, req):
-        """Handle a remote generator call, return a generator for its results.
-
-        The first line for the remote call must have already been got and
-        parsed. Raise a RemoteError if the remote call raises an error. Raise
-        an InternalError for anything else.
-        """
-        while True:
-            result = self._extract_result(req)
-
-            if result['type'] == 'result':
-                # There is nothing more to do than returning the actual
-                # result.
-                yield result['data']
-
-            elif result['type'] == 'stop':
-                break
-
-            elif result['type'] == 'exception':
-                # Just raise a RemoteError with interesting data.
-                self._handle_exception(result)
-
-            else:
-                # There should not be any other possibility.
-                raise InternalError(
-                    'Invalid result type: {}'.format(result['type'])
-                )
+        self.loop = loop
 
     def _handle_exception(self, data):
         """Handle an exception from a remote call."""
         raise RemoteError(data['exn_type'], data['exn_message'])
 
-    def _call_method(self, method, args, kwargs):
+    async def _call_method(self, method, args, kwargs):
         """Call the remote `method` passing `args` and `kwargs` to it.
 
         `args` must be a JSON-serializable list of positional arguments while
         `kwargs` must be a JSON-serializable dictionary of keyword arguments.
 
-        Depending on what happens in the remote method, return a result, a
-        generator or raise a RemoteError. Raise an InternalError for anything
-        else.
+        Depending on what happens in the remote method, return a result, or
+        raise a RemoteError. Raise an InternalError for anything else.
         """
-
-        # Generate the timeauth token
-        if self.secret:
-            token = prologin.timeauth.generate_token(self.secret, method)
-        else:
-            token = ''
 
         # Serialize arguments and send the request...
         arguments = {
             'args': args,
             'kwargs': kwargs,
-            'hmac': token,
         }
+
+        # Generate the timeauth token
+        if self.secret:
+            arguments['hmac'] = prologin.timeauth.generate_token(self.secret,
+                                                                 method)
         try:
             req_data = json.dumps(arguments)
         except (TypeError, ValueError):
@@ -117,24 +78,21 @@ class Client:
         url = urljoin(self.base_url, 'call/{}'.format(method))
         data = '{}\n'.format(req_data).encode('ascii')
 
-        with urllib.request.urlopen(url, data) as req:
-            return self._request_work(req)
+        # FIXME(seirl): use a global session and async with?
+        # This would require to have client as a context manager :/
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, data=data) as req:
+                return (await self._request_work(req))
 
-    def _request_work(self, req):
-        if req.getcode() == 200:
-            # The remote call returned: we can have a result, a generator
-            # or an exception.
-            result = self._extract_result(req)
+    async def _request_work(self, req):
+        if req.headers['Content-Type'] == 'application/json':
+            # The remote call returned: we can have a result or an exception.
+            result = await req.json()
 
             if result['type'] == 'result':
                 # There is nothing more to do than returning the actual
                 # result.
                 return result['data']
-
-            elif result['type'] == 'generator':
-                # Returning a generator that do the work is not
-                # straightforward: delegate it.
-                return self._handle_generator(req)
 
             elif result['type'] == 'exception':
                 # Just raise a RemoteError with interesting data.
@@ -151,34 +109,34 @@ class Client:
 
     def __getattr__(self, method):
         """Return a callable to invoke a remote procedure."""
+        async def proxy(*args, max_retries=0, retry_delay=10, **kwargs):
+            for i in range(max_retries + 1):
+                try:
+                    return (await self._call_method(method, args, kwargs))
+                except socket.error:
+                    if i < max_retries:
+                        logging.warning('<{}> down, cannot call {}. '
+                            'Retrying in {}s...'.format(self.base_url,
+                                method, retry_delay))
+                        await asyncio.sleep(retry_delay)
+                    else:
+                        raise
 
-        if self.coro:
-            async def proxy(*args, max_retries=0, retry_delay=10, **kwargs):
-                # TODO: use a requests-like library that supports asyncio
-                # instead of run_in_executor?
+        return proxy
 
-                i = 0
-                while True:
-                    try:
-                        return (await self.ioloop.run_in_executor(None,
-                            self._call_method, method, args, kwargs))
-                    except socket.error:
-                        if i < max_retries:
-                            logging.warning('<{}> down, cannot call {}. '
-                                'Retrying in {}s...'.format(self.base_url,
-                                    method, retry_delay))
-                            await asyncio.sleep(retry_delay)
-                        else:
-                            raise
-                    i += 1
 
-        else:
-            def proxy(*args, **kwargs):
-                return self._call_method(method, args, kwargs)
+class SyncClient(Client):
+    def __getattr__(self, method):
+        coro = super().__getattr__(method)
+
+        def proxy(*args, **kwargs):
+            loop = asyncio.get_event_loop()
+            res = loop.run_until_complete(coro(*args, **kwargs))
+            return res
+
         return proxy
 
 
 class MetaClient:
-
     def __init__(self, client):
         self.client = client

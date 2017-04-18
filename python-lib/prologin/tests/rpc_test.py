@@ -7,67 +7,51 @@ import prologin.rpc.server
 import unittest
 import threading
 import time
-import tornado
 
 
 class RpcServer(prologin.rpc.server.BaseRPCApp):
-
     @prologin.rpc.remote_method
-    def return_number(self):
+    async def return_number(self):
         return 42
 
     @prologin.rpc.remote_method
-    def return_string(self):
+    async def return_string(self):
         return 'prologin'
 
     @prologin.rpc.remote_method
-    def return_list(self):
+    async def return_list(self):
         return list(range(10))
 
     @prologin.rpc.remote_method
-    def generate_numbers(self):
-        for i in range(10):
-            time.sleep(0.1)
-            yield i
+    async def return_input(self, inp):
+        return inp
 
     @prologin.rpc.remote_method
-    def long_generator(self):
-        yield True
-        time.sleep(15)
-        yield True
-
-    @prologin.rpc.remote_method
-    def instant_generator(self):
-        yield True
-        yield True
-
-    @prologin.rpc.remote_method
-    def long_polling(self):
-        time.sleep(5)
-        return 42
+    async def return_args_kwargs(self, arg1, arg2, *, kw1=None, kw2=None):
+        return [[arg1, arg2], {'kw1': kw1, 'kw2': kw2}]
 
 class RpcServerInstance(threading.Thread):
-    def __init__(self, port):
+    def __init__(self, port, secret=None):
         super().__init__()
         self.port = port
+        self.secret = secret
 
     def run(self):
-        self.app = RpcServer('test-rpc')
-        self.app.listen(self.port)
-        self.ioloop = tornado.ioloop.IOLoop.instance()
-        self.ioloop.start()
+        self.loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self.loop)
+        self.app = RpcServer('test-rpc', secret=self.secret, loop=self.loop)
+        self.app.run(port=42545, print=lambda *_:None)
 
     def stop(self):
-        self.ioloop.stop()
+        self.loop.call_soon_threadsafe(self.loop.stop)
 
 class RpcTest(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
-        cls.c = prologin.rpc.client.Client('http://127.0.0.1:42545')
+        cls.c = prologin.rpc.client.SyncClient('http://127.0.0.1:42545')
         cls.s = RpcServerInstance(42545)
         cls.s.start()
-        time.sleep(1)
+        time.sleep(0.5) # Let it start
 
     @classmethod
     def tearDownClass(cls):
@@ -82,30 +66,21 @@ class RpcTest(unittest.TestCase):
     def test_list(self):
         self.assertEqual(self.c.return_list(), list(range(10)))
 
-    @unittest.skip("readline() returns nothing, to investigate")
-    def test_generator(self):
-        self.assertEqual(list(self.c.generate_numbers()), list(range(10)))
+    def test_nested(self):
+        obj = {'test': 72, 'list': [1, 42, 33, {'object': '3'}]}
+        self.assertEqual(self.c.return_input(obj), obj)
 
-    @unittest.skip("we need a thread pool for these")
-    def test_parallel_generators(self):
-        before = time.time()
-        g1 = self.c.long_generator()
-        g2 = self.c.instant_generator()
-        next(g1)
-        next(g2)
-        self.assertTrue(time.time() - before < 10)
-
-    def test_long_polling(self):
-        self.assertEqual(self.c.long_polling(), 42)
+    def test_args_kwargs(self):
+        res = self.c.return_args_kwargs(1, 'c', kw1='a', kw2=None)
+        self.assertEqual(res, [[1, 'c'], {'kw1': 'a', 'kw2': None}])
 
 
 class RpcAsyncTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.c = prologin.rpc.client.Client('http://127.0.0.1:42546',
-                coro=True)
-        cls.s = RpcServerInstance(42546)
+        cls.c = prologin.rpc.client.Client('http://127.0.0.1:42545')
+        cls.s = RpcServerInstance(42545)
         cls.s.start()
         time.sleep(1)
 
@@ -116,3 +91,36 @@ class RpcAsyncTest(unittest.TestCase):
     def test_async_number(self):
         loop = asyncio.get_event_loop()
         self.assertEqual(loop.run_until_complete(self.c.return_number()), 42)
+
+
+class RpcSecretTest(unittest.TestCase):
+    GOOD_SECRET = b'secret42'
+    BAD_SECRET = b'secret51'
+
+    @classmethod
+    def setUpClass(cls):
+        cls.s = RpcServerInstance(42545, secret=cls.GOOD_SECRET)
+        cls.s.start()
+        time.sleep(0.5) # Let it start
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.s.stop()
+
+    def test_good_secret(self):
+        c = prologin.rpc.client.SyncClient('http://127.0.0.1:42545',
+                                           secret=self.GOOD_SECRET)
+        self.assertEqual(c.return_number(), 42)
+
+    def test_bad_secret(self):
+        c = prologin.rpc.client.SyncClient('http://127.0.0.1:42545',
+                                           secret=self.BAD_SECRET)
+        with self.assertRaises(prologin.rpc.client.RemoteError) as e:
+            c.return_number()
+        self.assertEqual(e.exception.type, 'BadToken')
+
+    def test_missing_secret(self):
+        c = prologin.rpc.client.SyncClient('http://127.0.0.1:42545')
+        with self.assertRaises(prologin.rpc.client.RemoteError) as e:
+            c.return_number()
+        self.assertEqual(e.exception.type, 'MissingToken')

@@ -1,4 +1,5 @@
 aiopg==0.13.0
+aiohttp==2.0.7
 django-crispy-forms==1.6.1
 django-prometheus==1.0.8
 Django<1.12

@@ -11,8 +11,9 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
+import aiohttp.web
+import inspect
 import json
-import tornado.web
 import sys
 import traceback
 import types
@@ -20,7 +21,7 @@ import logging
 
 import prologin.web
 
-from .monitoring import _observe_rpc_call_in
+from . import monitoring
 
 
 class MethodError(Exception):
@@ -65,138 +66,120 @@ class MethodCollection(type):
         remote_methods = {}
         for name, obj in dct.items():
             if is_remote_method(obj):
+                if not inspect.iscoroutinefunction(obj):
+                    raise RuntimeError("Remote method {} is not a coroutine"
+                                       .format(obj))
                 remote_methods[name] = obj
         cls.REMOTE_METHODS = remote_methods
 
 
-class RemoteCallHandler(tornado.web.RequestHandler):
-
-    def initialize(self, secret=None):
-        self.secret = secret
+class RemoteCallHandler:
+    def __init__(self, request):
+        self.request = request
+        self.secret = self.request.app.secret
+        self.method_name = request.match_info['name']
 
     @property
     def rpc_object(self):
         """RPC object: contains method that can be called remotely."""
-        return self.application
+        return self.request.app.rpc_object
 
-    @tornado.web.asynchronous
-    @_observe_rpc_call_in
-    def post(self, method_name):
-        # This is an asynchronous handler, since
-        request = json.loads(self.request.body.strip().decode('ascii'))
+    @monitoring._observe_rpc_call_in
+    async def __call__(self):
+        data = await self.request.json()
+        self._log_call(data)
+
+        await self._check_secret(data)
+        method = await self._get_method()
+        result = await self._call_method(method, data)
+
+        return (await self._send_result_data(result))
+
+    def _log_call(self, data):
+        peername = self.request.transport.get_extra_info('peername')
 
         def farg(a):
-            if isinstance(a, (bytes, str)) and len(a) > 10:
+            if isinstance(a, str) and len(a) > 10:
                 a = a[:10] + '…'
             return repr(a)
 
-        # Log the call
-        logging.debug('RPC <{}> {}({}{})'.format(self.request.host, method_name,
-            ', '.join([farg(a) for a in request['args']]),
+        logging.debug('RPC <{}> {}({}{})'.format(
+            peername,
+            self.method_name,
+            ', '.join([farg(a) for a in data['args']]),
             ', '.join([farg(a) + '=' + farg(b)
-                       for a, b in request['kwargs'].items()])))
+                       for a, b in data['kwargs'].items()])))
 
-        # First get the method to call.
-        try:
-            method = self.rpc_object.REMOTE_METHODS[method_name]
-        except KeyError:
-            self.set_status(404)
-            return self._send_exception(MethodError(method_name))
-
-        args = request['args']
-        kwargs = request['kwargs']
-
-        if self.secret:
-            if 'hmac' not in request:
-                self.set_status(400)
-                return self._send_exception(MissingToken(method_name))
-            token = request['hmac']
-            r = prologin.timeauth.check_token(token, self.secret, method_name)
+    async def _check_secret(self, data):
+        if self.secret is not None:
+            if 'hmac' not in data:
+                self._raise_exception(MissingToken(self.method_name),
+                                      http_error=aiohttp.web.HTTPBadRequest)
+            token = data['hmac']
+            r = prologin.timeauth.check_token(token, self.secret,
+                                              self.method_name)
             if not r:
-                self.set_status(403)
-                return self._send_exception(BadToken(method_name))
+                self._raise_exception(BadToken(self.method_name),
+                                      http_error=aiohttp.web.HTTPForbidden)
 
-        self.set_status(200)
-
-        # Actually call it.
+    async def _get_method(self):
         try:
-            result = method(self.rpc_object, *args, **kwargs)
+            return self.rpc_object.REMOTE_METHODS[self.method_name]
+        except KeyError:
+            self._raise_exception(MethodError(self.method_name),
+                                  http_error=aiohttp.web.HTTPNotFound)
+
+    async def _call_method(self, method, data):
+        args = data['args']
+        kwargs = data['kwargs']
+
+        try:
+            return (await method(self.rpc_object, *args, **kwargs))
         except Exception as exn:
+            logging.exception('Remote method %s raised:', self.method_name)
             tb = sys.exc_info()[2]
-            for line in traceback.format_tb(tb):
-                logging.warning(line)
-            return self._send_exception(exn, tb)
+            self._raise_exception(exn, tb)
 
-        # The remote method can be a generator (returns a sequence of values),
-        # or just some regular function (returns only one value).
-        if isinstance(result, types.GeneratorType):
-            # If it is a generator, notice the client.
-            self._send_json_line({'type': 'generator'})
+    async def _send_json(self, data):
+        return aiohttp.web.Response(body=json.dumps(data).encode() + b'\n',
+                                    content_type='application/json')
 
-            # Then yield successive values.
-            while True:
-                try:
-                    value = next(result)
-                except StopIteration:
-                    # The generator stopped: notice the client and stop, too.
-                    self._send_json_line({'type': 'stop'})
-                    return self.finish()
-                except Exception as exn:
-                    # The generator raised an error: transmit it to the client
-                    # and stop.
-                    tb = sys.last_traceback
-                    for line in traceback.format_tb(tb):
-                        logging.warning(line)
-                    return self._send_exception(exn, tb)
-                else:
-                    # The generator simply yielded a value: transmit it to the
-                    # client, or stop there if this is some non-JSON data.
-                    if not self._send_result_data(value):
-                        return
-
-        else:
-            # Otherwise, just return the single value.
-            if self._send_result_data(result):
-                self.finish()
-
-    def _send_json_line(self, data):
-        self.write(json.dumps(data).encode('ascii'))
-        self.write(b'\n')
-        self.flush()
-
-    def _send_exception(self, exn, tb=None):
-        self._send_json_line({
+    def _raise_exception(self, exn, tb=None,
+                               http_error=aiohttp.web.HTTPServerError):
+        data = {
             'type': 'exception',
             'exn_type': type(exn).__name__,
             'exn_message': str(exn),
             'exn_traceback': traceback.format_tb(tb),
-        })
-        # Exceptions always end the communication.
-        self.finish()
+        }
+        body = json.dumps(data).encode() + b'\n'
+        raise http_error(body=body, content_type='application/json')
 
-    def _send_result_data(self, data):
-        success = True
+    async def _send_result_data(self, data):
         try:
-            self._send_json_line({
+            return (await self._send_json({
                 'type': 'result',
                 'data': data,
-            })
+            }))
         except (TypeError, ValueError):
-            self._send_exception(
+            self._raise_exception(
                 ValueError('The remote method returned something not JSON'),
             )
-            success = False
-        return success
 
 
-class BaseRPCApp(prologin.web.TornadoApp, metaclass=MethodCollection):
+class BaseRPCApp(prologin.web.AiohttpApp, metaclass=MethodCollection):
     """RPC base application: let clients call remotely subclasses methods.
 
     Just subclass me, add some remote methods using the `remote_method`
     decorator and instanciate me!
     """
 
-    def __init__(self, app_name, secret=None):
-        super(prologin.web.TornadoApp, self).__init__([
-            (r'/call/([0-9a-zA-Z_]+)', RemoteCallHandler, {'secret': secret}),
-        ], app_name)
+    def __init__(self, app_name, secret=None, **kwargs):
+        async def handler(request):
+            return (await RemoteCallHandler(request)())
+
+        super().__init__([
+            ('*', r'/call/{name:[0-9a-zA-Z_]+}', handler),
+        ], app_name, **kwargs)
+        self.app.secret = secret
+        self.app.rpc_object = self

@@ -29,9 +29,9 @@ rpc_call_in = Summary(
 
 def _observe_rpc_call_in(f):
     @wraps(f)
-    def _wrapper(self, method_name):
-        with rpc_call_in.labels(method=method_name).time():
-            return f(self, method_name)
+    async def _wrapper(self):
+        with rpc_call_in.labels(method=self.method_name).time():
+            return (await f(self))
 
     return _wrapper
 

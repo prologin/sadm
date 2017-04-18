@@ -39,6 +39,8 @@ useful pages:
     Exports monitoring values for outside use.
 """
 
+import asyncio
+import aiohttp.web
 import sys
 import tornado.web
 import traceback
@@ -128,3 +130,16 @@ class TornadoApp(tornado.web.Application):
                 self.write(content.encode('utf-8'))
 
         return SpecialHandler
+
+
+class AiohttpApp:
+    def __init__(self, routes, app_name, loop=None):
+        self.app = aiohttp.web.Application()
+        self.app_name = app_name
+        # TODO(seirl): integrate with HANDLED_URLS
+        for route in routes:
+            self.app.router.add_route(*route)
+        self.loop = loop or asyncio.get_event_loop()
+
+    def run(self, **kwargs):
+        aiohttp.web.run_app(self.app, loop=self.loop, **kwargs)
