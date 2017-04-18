@@ -145,7 +145,7 @@ class RemoteCallHandler:
                                     content_type='application/json')
 
     def _raise_exception(self, exn, tb=None,
-                               http_error=aiohttp.web.HTTPServerError):
+                               http_error=aiohttp.web.HTTPInternalServerError):
         data = {
             'type': 'exception',
             'exn_type': type(exn).__name__,

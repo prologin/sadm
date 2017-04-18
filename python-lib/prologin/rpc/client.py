@@ -41,10 +41,9 @@ class RemoteError(BaseError):
 class Client:
     """RPC client: connect to a server and perform remote calls."""
 
-    def __init__(self, base_url, secret=None, loop=None):
+    def __init__(self, base_url, secret=None):
         self.base_url = base_url
         self.secret = secret
-        self.loop = loop
 
     def _handle_exception(self, data):
         """Handle an exception from a remote call."""

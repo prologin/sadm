@@ -2,14 +2,25 @@
 # -*- encoding: utf-8 -*-
 
 import asyncio
-import prologin.rpc.client
-import prologin.rpc.server
-import unittest
+import contextlib
+import logging
+import socket
 import threading
 import time
+import unittest
+
+import prologin.rpc.client
+import prologin.rpc.server
+
+@contextlib.contextmanager
+def disable_logging():
+    logger = logging.getLogger()
+    logger.disabled = True
+    yield
+    logger.disabled = False
 
 
-class RpcServer(prologin.rpc.server.BaseRPCApp):
+class RPCServer(prologin.rpc.server.BaseRPCApp):
     @prologin.rpc.remote_method
     async def return_number(self):
         return 42
@@ -30,32 +41,44 @@ class RpcServer(prologin.rpc.server.BaseRPCApp):
     async def return_args_kwargs(self, arg1, arg2, *, kw1=None, kw2=None):
         return [[arg1, arg2], {'kw1': kw1, 'kw2': kw2}]
 
-class RpcServerInstance(threading.Thread):
-    def __init__(self, port, secret=None):
+    @prologin.rpc.remote_method
+    async def raises_valueerror(self):
+        # we disable exception logging to avoid seeing the intentional raise
+        with disable_logging():
+            raise ValueError("Monde de merde.")
+
+
+URL = 'http://127.0.0.1:42545'
+
+class RPCServerInstance(threading.Thread):
+    def __init__(self, port=42545, secret=None, delay=0):
         super().__init__()
         self.port = port
         self.secret = secret
+        self.delay = delay
 
     def run(self):
+        time.sleep(self.delay)
         self.loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self.loop)
-        self.app = RpcServer('test-rpc', secret=self.secret, loop=self.loop)
-        self.app.run(port=42545, print=lambda *_:None)
+        self.app = RPCServer('test-rpc', secret=self.secret, loop=self.loop)
+        self.app.run(port=self.port, print=lambda *_:None)
 
     def stop(self):
         self.loop.call_soon_threadsafe(self.loop.stop)
 
-class RpcTest(unittest.TestCase):
+class RPCTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.c = prologin.rpc.client.SyncClient('http://127.0.0.1:42545')
-        cls.s = RpcServerInstance(42545)
+        cls.c = prologin.rpc.client.SyncClient(URL)
+        cls.s = RPCServerInstance()
         cls.s.start()
         time.sleep(0.5) # Let it start
 
     @classmethod
     def tearDownClass(cls):
         cls.s.stop()
+        time.sleep(0.5)
 
     def test_number(self):
         self.assertEqual(self.c.return_number(), 42)
@@ -74,32 +97,44 @@ class RpcTest(unittest.TestCase):
         res = self.c.return_args_kwargs(1, 'c', kw1='a', kw2=None)
         self.assertEqual(res, [[1, 'c'], {'kw1': 'a', 'kw2': None}])
 
+    def test_missing_method(self):
+        with self.assertRaises(prologin.rpc.client.RemoteError) as e:
+            self.c.missing_method()
+        self.assertEqual(e.exception.type, 'MethodError')
 
-class RpcAsyncTest(unittest.TestCase):
+    def test_raises_valueerror(self):
+        with self.assertRaises(prologin.rpc.client.RemoteError) as e:
+            self.c.raises_valueerror()
+        self.assertEqual(e.exception.type, 'ValueError')
+        self.assertEqual(e.exception.message, 'Monde de merde.')
+
+
+class RPCAsyncTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.c = prologin.rpc.client.Client('http://127.0.0.1:42545')
-        cls.s = RpcServerInstance(42545)
+        cls.c = prologin.rpc.client.Client(URL)
+        cls.s = RPCServerInstance()
         cls.s.start()
         time.sleep(1)
 
     @classmethod
     def tearDownClass(cls):
         cls.s.stop()
+        time.sleep(0.5)
 
     def test_async_number(self):
         loop = asyncio.get_event_loop()
         self.assertEqual(loop.run_until_complete(self.c.return_number()), 42)
 
 
-class RpcSecretTest(unittest.TestCase):
+class RPCSecretTest(unittest.TestCase):
     GOOD_SECRET = b'secret42'
     BAD_SECRET = b'secret51'
 
     @classmethod
     def setUpClass(cls):
-        cls.s = RpcServerInstance(42545, secret=cls.GOOD_SECRET)
+        cls.s = RPCServerInstance(secret=cls.GOOD_SECRET)
         cls.s.start()
         time.sleep(0.5) # Let it start
 
@@ -108,19 +143,46 @@ class RpcSecretTest(unittest.TestCase):
         cls.s.stop()
 
     def test_good_secret(self):
-        c = prologin.rpc.client.SyncClient('http://127.0.0.1:42545',
-                                           secret=self.GOOD_SECRET)
+        c = prologin.rpc.client.SyncClient(URL, secret=self.GOOD_SECRET)
         self.assertEqual(c.return_number(), 42)
 
     def test_bad_secret(self):
-        c = prologin.rpc.client.SyncClient('http://127.0.0.1:42545',
-                                           secret=self.BAD_SECRET)
+        c = prologin.rpc.client.SyncClient(URL, secret=self.BAD_SECRET)
         with self.assertRaises(prologin.rpc.client.RemoteError) as e:
             c.return_number()
         self.assertEqual(e.exception.type, 'BadToken')
 
     def test_missing_secret(self):
-        c = prologin.rpc.client.SyncClient('http://127.0.0.1:42545')
+        c = prologin.rpc.client.SyncClient(URL)
         with self.assertRaises(prologin.rpc.client.RemoteError) as e:
             c.return_number()
         self.assertEqual(e.exception.type, 'MissingToken')
+
+
+@unittest.skip("FIXME: Race conditions, address already in use")
+class RPCRetryTest(unittest.TestCase):
+    def test_retry_enough(self):
+        s = RPCServerInstance(delay=1) # 1 second to start
+        s.start()
+        c = prologin.rpc.client.SyncClient(URL)
+        with disable_logging():
+            self.assertEqual(c.return_number(max_retries=1, retry_delay=2), 42)
+        s.stop()
+
+    def test_retry_notenough(self):
+        s = RPCServerInstance(delay=1)
+        s.start()
+        c = prologin.rpc.client.SyncClient(URL)
+        with self.assertRaises(socket.error) as e:
+            with disable_logging():
+                c.return_number(max_retries=0)
+        s.stop()
+
+    def test_retry_tooslow(self):
+        s = RPCServerInstance(delay=1)
+        s.start()
+        c = prologin.rpc.client.SyncClient(URL)
+        with self.assertRaises(socket.error) as e:
+            with disable_logging():
+                c.return_number(max_retries=1, retry_delay=0.2)
+        s.stop()
