@@ -35,7 +35,6 @@ import tornado
 import tornado.platform.asyncio
 import yaml
 
-from base64 import b64decode, b64encode
 from . import operations
 
 from .monitoring import (
@@ -49,7 +48,7 @@ def async_work(func=None, slots=0):
     if func is None:
         return functools.partial(async_work, slots=slots)
     @functools.wraps(func)
-    def mktask(self, *args, **kwargs):
+    async def mktask(self, *args, **kwargs):
         async def wrapper(self, *wargs, **wkwargs):
             if self.slots < slots:
                 logging.warn('not enough slots to start the required job')
@@ -71,7 +70,8 @@ def async_work(func=None, slots=0):
 
 class WorkerNode(prologin.rpc.server.BaseRPCApp):
     def __init__(self, *args, config=None, **kwargs):
-        super().__init__(*args, **kwargs)
+        secret = config['master']['shared_secret'].encode()
+        super().__init__(*args, secret=secret, **kwargs)
         self.config = config
         self.interval = config['master']['heartbeat_secs']
         self.hostname = socket.gethostname()
@@ -132,37 +132,14 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
     async def compile_champion(self, user, cid, ctgz):
         compile_champion_start = time.monotonic()
 
-        ctgz = b64decode(ctgz)
-
-        with tempfile.TemporaryDirectory() as cpath:
-            compiled_path = os.path.join(cpath, 'champion-compiled.tar.gz')
-            log_path = os.path.join(cpath, 'compilation.log')
-
-            with open(os.path.join(cpath, 'champion.tgz'), 'wb') as f:
-                f.write(ctgz)
-
-            ret = await operations.compile_champion(self.config, cpath)
-
-            compilation_content = b''
-            log = ''
-            if ret:
-                try:
-                    with open(compiled_path, 'rb') as f:
-                        compilation_content = f.read()
-                except FileNotFoundError:
-                    ret = False
-            try:
-                with open(log_path, 'r') as f:
-                    log = f.read()
-            except FileNotFoundError:
-                pass
-
-        b64compiled = b64encode(compilation_content).decode()
+        ret, compiled, log = await operations.compile_champion(self.config,
+                                                               ctgz)
         try:
-            await self.master.compilation_result(self.get_worker_infos(),
-                    cid, user, ret, b64compiled, log,
-                    max_retries=self.config['master']['max_retries'],
-                    retry_delay=self.config['master']['retry_delay'])
+            await self.master.compilation_result(
+                self.get_worker_infos(),
+                cid, user, ret, compiled, log,
+                max_retries=self.config['master']['max_retries'],
+                retry_delay=self.config['master']['retry_delay'])
         except socket.error:
             logging.warning('master down, cannot send compiled {}'.format(
                 cid))
@@ -176,73 +153,17 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         logging.info('starting match {}'.format(match_id))
         run_match_start = time.monotonic()
 
-        socket_dir = tempfile.TemporaryDirectory(prefix='workernode-')
-        os.chmod(socket_dir.name, 0o777)
-        f_reqrep = socket_dir.name + '/' + 'reqrep'
-        f_pubsub = socket_dir.name + '/' + 'pubsub'
-        s_reqrep = 'ipc://' + f_reqrep
-        s_pubsub = 'ipc://' + f_pubsub
-
-        opts = list(itertools.chain(opts.items()))
-
-        # Server
-        task_server = asyncio.Task(operations.spawn_server(self.config,
-            s_reqrep, s_pubsub, len(players), opts, file_opts))
-        await asyncio.sleep(0.1) # Let the server start
-
-        for i in range(5):
-            try:
-                os.chmod(f_reqrep, 0o777)
-                os.chmod(f_pubsub, 0o777)
-                break
-            except FileNotFoundError:
-                await asyncio.sleep(1)
-        else:
-            logging.error("Server socket was never created")
-            return
-
-        # Players
-        tasks_players = {}
-        champion_dirs = []
-        # Sort by MatchPlayer id
-        for oid, (pl_id, (c_id, ctgz)) in enumerate(sorted(players.items()), 1):
-            ctgz = b64decode(ctgz)
-            cdir = tempfile.TemporaryDirectory()
-            champion_dirs.append(cdir)
-            await self.loop.run_in_executor(None, operations.untar,
-                                                 ctgz, cdir.name)
-            tasks_players[pl_id] = asyncio.Task(operations.spawn_client(
-                self.config, s_reqrep, s_pubsub, pl_id, cdir.name,
-                socket_dir.name, opts, file_opts, order_id=oid))
-
-        # Wait for the match to complete
-        await asyncio.wait([task_server] +
-                                list(tasks_players.values()))
+        server_result, dump, server_info, players_info = await (
+            operations.spawn_match(self.config, players, opts, file_opts))
         logging.info('match {} done'.format(match_id))
 
-        # Get the output of the tasks
-        server_stdout, dumper_stdout = task_server.result()
-        dumper_stdout = b64encode(dumper_stdout).decode()
-        players_stdout = {pl_id: (players[pl_id][0], # champion_id
-                                  b64encode(t.result()[1]).decode()) # output
-                          for pl_id, t in tasks_players.items()}
-
-        # Extract the match result from the server stdout
-        # stechec2 rules can output non-dict data, discard it
-        server_result = yaml.safe_load_all(server_stdout)
-        server_result = [r for r in server_result if isinstance(r, dict)]
-
-        # Remove the champion temporary directories
-        for tmpdir in champion_dirs:
-            tmpdir.cleanup()
-        socket_dir.cleanup()
-
         try:
-            await self.master.match_done(self.get_worker_infos(),
-                    match_id, server_result, dumper_stdout, server_stdout,
-                    players_stdout,
-                    max_retries=self.config['master']['max_retries'],
-                    retry_delay=self.config['master']['retry_delay'])
+            await self.master.match_done(
+                self.get_worker_infos(),
+                match_id, server_result, dump, server_info,
+                players_info,
+                max_retries=self.config['master']['max_retries'],
+                retry_delay=self.config['master']['retry_delay'])
         except socket.error:
             logging.warning('master down, cannot send match {} result'.format(
                 match_id))

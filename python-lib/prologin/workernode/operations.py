@@ -19,36 +19,33 @@
 
 import asyncio
 import gzip
+import io
 import itertools
 import logging
 import os
 import os.path
-import subprocess
 import tarfile
 import tempfile
+import yaml
 
-from base64 import b64decode
+from base64 import b64decode, b64encode
 
-from . import tools
 from . import isolate
 
 ioloop = asyncio.get_event_loop()
 
+
 def tar(path, compression='gz'):
-    with tempfile.NamedTemporaryFile() as temp:
-        with tarfile.open(fileobj=temp, mode='w:' + compression) as tar:
-            tar.add(path)
-        temp.flush()
-        temp.seek(0)
-        return temp.read()
+    obj = io.BytesIO()
+    with tarfile.open(fileobj=obj, mode='w:' + compression) as tar:
+        tar.add(path)
+    return obj.getvalue()
 
 
 def untar(content, path, compression='gz'):
-    with tempfile.NamedTemporaryFile() as temp:
-        temp.write(content)
-        temp.seek(0)
-        with tarfile.open(fileobj=temp, mode='r:' + compression) as tar:
-            tar.extractall(path)
+    obj = io.BytesIO(content)
+    with tarfile.open(fileobj=obj, mode='r:' + compression) as tar:
+        tar.extractall(path)
 
 
 def create_file_opts(file_opts):
@@ -65,33 +62,70 @@ def create_file_opts(file_opts):
     return opts, files
 
 
-async def compile_champion(config, champion_path):
-    """
-    Compiles the champion at $champion_path/champion.tgz to
-    $champion_path/champion-compiled.tar.gz
+async def isolate_communicate(cmdline, limits=None, allowed_dirs=None,
+                              **kwargs):
+    isolator = isolate.Isolator(limits, allowed_dirs=allowed_dirs)
+    async with isolator:
+        await isolator.run(cmdline, **kwargs)
+    return isolator.isolate_retcode, isolator.info
 
-    Returns a tuple (ok, output), with ok = True/False and output being the
-    output of the compilation script.
+
+async def compile_champion(config, ctgz):
     """
+    Compiles the champion contained in ctgz and returns a tuple TODO
+
+    """
+    ctgz = b64decode(ctgz)
     code_dir = os.path.abspath(os.path.dirname(__file__))
     compile_script = os.path.join(code_dir, 'compile-champion.sh')
-    cmd = [compile_script, config['path']['makefiles'], champion_path]
-    retcode, _ = await tools.communicate(cmd)
-    return retcode == 0
+
+    limits = {'wall-time': config['timeout'].get('compile', 400),
+              'fsize': 50 * 1024}
+    allowed_dirs = ['/tmp:rw', code_dir]
+
+    isolator = isolate.Isolator(limits, allowed_dirs=allowed_dirs)
+    async with isolator:
+        compiled_path = isolator.path / 'champion-compiled.tar.gz'
+        log_path = isolator.path / 'compilation.log'
+        with (isolator.path / 'champion.tgz').open('wb') as f:
+            f.write(ctgz)
+
+        cmd = [compile_script, config['path']['makefiles'], '/box']
+        await isolator.run(cmd)
+        ret = isolator.isolate_retcode == 0
+
+        compilation_content = b''
+        if ret:
+            try:
+                with compiled_path.open('rb') as f:
+                    compilation_content = f.read()
+            except FileNotFoundError:
+                ret = False
+
+        log = ''
+        try:
+            with log_path.open('r') as f:
+                log = f.read()
+        except FileNotFoundError:
+            pass
+
+    b64compiled = b64encode(compilation_content).decode()
+    return ret, b64compiled, log, isolator.info
 
 
-async def spawn_server(config, rep_addr, pub_addr, nb_players, opts, file_opts):
+async def spawn_server(config, rep_addr, pub_addr, nb_players,
+                       opts, file_opts):
     dump = tempfile.NamedTemporaryFile()
 
     cmd = [config['path']['stechec_server'],
-            "--rules", config['path']['rules'],
-            "--rep_addr", rep_addr,
-            "--pub_addr", pub_addr,
-            "--nb_clients", str(nb_players),
-            "--time", "3000",
-            "--socket_timeout", "45000",
-            "--verbose", "1",
-            "--dump", dump.name]
+           "--rules", config['path']['rules'],
+           "--rep_addr", rep_addr,
+           "--pub_addr", pub_addr,
+           "--nb_clients", str(nb_players),
+           "--time", "3000",
+           "--socket_timeout", "45000",
+           "--verbose", "1",
+           "--dump", dump.name]
 
     if opts is not None:
         cmd += opts
@@ -99,23 +133,19 @@ async def spawn_server(config, rep_addr, pub_addr, nb_players, opts, file_opts):
         fopts, tmp_files = create_file_opts(file_opts)
         cmd.extend(fopts)
 
-    try:
-        retcode, stdout = await tools.communicate(cmd,
-                coro_timeout=config['timeout'].get('server', 400))
-    except asyncio.TimeoutError:
-        logging.error("Server timeout")
-        return "workernode: Server timeout", b''
+    limits = {'wall-time': config['timeout'].get('server', 400)}
+    retcode, info = await isolate_communicate(cmd, limits)
 
-    stdout = stdout.decode()
-    gzdump = await ioloop.run_in_executor(None, gzip.compress, dump.read())
+    gzdump = gzip.compress(dump.read())
 
     if retcode != 0:
-        logging.error(stdout.strip())
-    return stdout, gzdump
+        logging.error(info)
+
+    return info, gzdump
 
 
-async def spawn_client(config, req_addr, sub_addr, pl_id, champion_path, sockets_dir,
-                 opts, file_opts=None, order_id=None):
+async def spawn_client(config, req_addr, sub_addr, pl_id, champion_path,
+                       sockets_dir, opts, file_opts=None, order_id=None):
     env = os.environ.copy()
     env['CHAMPION_PATH'] = champion_path + '/'
 
@@ -124,16 +154,16 @@ async def spawn_client(config, req_addr, sub_addr, pl_id, champion_path, sockets
     env['MALLOC_ARENA_MAX'] = '1'
 
     cmd = [config['path']['stechec_client'],
-                "--name", str(pl_id),
-                "--rules", config['path']['rules'],
-                "--champion", champion_path + '/champion.so',
-                "--req_addr", req_addr,
-                "--sub_addr", sub_addr,
-                "--memory", "250000",
-                "--socket_timeout", "45000",
-                "--time", "1500",
-                "--verbose", "1",
-        ]
+           "--name", str(pl_id),
+           "--rules", config['path']['rules'],
+           "--champion", champion_path + '/champion.so',
+           "--req_addr", req_addr,
+           "--sub_addr", sub_addr,
+           "--memory", "250000",
+           "--socket_timeout", "45000",
+           "--time", "1500",
+           "--verbose", "1",
+           ]
     cmd += ["--client_id", str(order_id)] if order_id is not None else []
 
     if opts is not None:
@@ -142,20 +172,78 @@ async def spawn_client(config, req_addr, sub_addr, pl_id, champion_path, sockets
         fopts, tmp_files = create_file_opts(file_opts)
         cmd.extend(fopts)
 
-    try:
-        retcode, stdout = await isolate.communicate(cmd, env=env,
-                max_len=2 ** 18,
-                truncate_message='\n\nLog truncated to stay below 256K.\n',
-                coro_timeout=config['timeout'].get('client', 400),
-                time_limit=config['isolate'].get('time_limit_secs', 350),
-                mem_limit=config['isolate'].get('mem_limit_MiB', 500) * 1000,
-                processes=config['isolate'].get('processes', 20),
-                allowed_dirs=['/var', '/tmp', sockets_dir + ':rw'],
-        )
-        return retcode, stdout
-    except asyncio.TimeoutError:
-        logging.error("client timeout")
-        return 1, b"workernode: Client timeout"
-    except Exception as e:
-        logging.exception(e)
-        return 1, str(e).encode()
+    limits = {
+        'wall-time': config['isolate'].get('time_limit_secs', 350),
+        'mem': config['isolate'].get('mem_limit_MiB', 500) * 1000,
+        'processes': config['isolate'].get('processes', 50),
+        'fsize': 256,
+    }
+
+    retcode, info = await isolate.communicate(
+        cmd, limits, env=env,
+        allowed_dirs=['/var', '/tmp', sockets_dir + ':rw'],
+    )
+    return retcode, info
+
+
+async def spawn_match(config, players, opts=None, file_opts=None):
+    socket_dir = tempfile.TemporaryDirectory(prefix='workernode-')
+    os.chmod(socket_dir.name, 0o777)
+    f_reqrep = socket_dir.name + '/' + 'reqrep'
+    f_pubsub = socket_dir.name + '/' + 'pubsub'
+    s_reqrep = 'ipc://' + f_reqrep
+    s_pubsub = 'ipc://' + f_pubsub
+
+    opts = list(itertools.chain(opts.items()))
+
+    # Server
+    task_server = asyncio.Task(
+        spawn_server(config, s_reqrep, s_pubsub, len(players), opts,
+                     file_opts))
+    await asyncio.sleep(0.1)  # Let the server start
+
+    # Retry every seconds for 5 seconds
+    for i in range(5):
+        try:
+            os.chmod(f_reqrep, 0o777)
+            os.chmod(f_pubsub, 0o777)
+            break
+        except FileNotFoundError:
+            await asyncio.sleep(1)
+    else:
+        raise RuntimeError("Server socket was never created")
+
+    # Players
+    tasks_players = {}
+    champion_dirs = []
+    # Sort by MatchPlayer id
+    for oid, (pl_id, (c_id, ctgz)) in enumerate(sorted(players.items()), 1):
+        ctgz = b64decode(ctgz)
+        cdir = tempfile.TemporaryDirectory()
+        champion_dirs.append(cdir)
+        untar(ctgz, cdir.name)
+        tasks_players[pl_id] = asyncio.Task(spawn_client(
+            config, s_reqrep, s_pubsub, pl_id, cdir.name,
+            socket_dir.name, opts, file_opts, order_id=oid))
+
+    # Wait for the match to complete
+    await asyncio.wait([task_server] + list(tasks_players.values()))
+
+    # Get the output of the tasks
+    server_info, dump = task_server.result()
+    dump = b64encode(dump).decode()
+    players_info = {pl_id: (players[pl_id][0],  # champion_id
+                            b64encode(t.result()[1]))  # output
+                    for pl_id, t in tasks_players.items()}
+
+    # Extract the match result from the server stdout
+    # stechec2 rules can output non-dict data, discard it
+    server_result = yaml.safe_load_all(server_info['stdout'])
+    server_result = [r for r in server_result if isinstance(r, dict)]
+
+    # Remove the champion temporary directories
+    for tmpdir in champion_dirs:
+        tmpdir.cleanup()
+    socket_dir.cleanup()
+
+    return server_info, dump, players_info

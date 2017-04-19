@@ -17,17 +17,18 @@
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 import asyncio
-import functools
 import subprocess
+
 
 def add_coro_timeout(coro):
     async def coro_(*args, coro_timeout=None, **kwargs):
         return (await asyncio.wait_for(coro(*args, **kwargs),
-                                            timeout=coro_timeout))
+                                       timeout=coro_timeout))
     return coro_
 
 
-async def communicate_process(proc, *, data=None, max_len=None, truncate_message=''):
+async def communicate_process(proc, *, data=None, max_len=None,
+                              truncate_message=''):
     # Send stdin
     if data:
         proc.stdin.write(data.encode())
@@ -53,14 +54,16 @@ async def communicate_process(proc, *, data=None, max_len=None, truncate_message
     exitcode = await proc.wait()
     return (exitcode, stdout)
 
+
 async def create_process(cmdline, *, data=None, **kwargs):
     return (await asyncio.create_subprocess_exec(*cmdline,
             stdin=subprocess.PIPE, stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT, **kwargs))
 
+
 @add_coro_timeout
 async def communicate(cmdline, *, data=None, max_len=None,
-                truncate_message='', **kwargs):
+                      truncate_message='', **kwargs):
     proc = await create_process(cmdline, **kwargs)
     return (await communicate_process(proc, data=data, max_len=max_len,
             truncate_message=''))
