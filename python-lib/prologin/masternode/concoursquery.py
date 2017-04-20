@@ -137,20 +137,21 @@ class ConcoursQuery:
             raise AttributeError('No such request')
 
         await self.connect()
-        async with (await self.pool.acquire()) as conn:
-            cursor = await conn.cursor()
-            await cursor.execute(REQUESTS[name], params)
-            try:
-                return (await cursor.fetchall())
-            except psycopg2.ProgrammingError:  # No results
-                return None
+        async with self.pool.acquire() as conn:
+            async with conn.cursor() as cursor:
+                await cursor.execute(REQUESTS[name], params)
+                try:
+                    res = (await cursor.fetchall())
+                except psycopg2.ProgrammingError:  # No results
+                    return None
+        return res
 
     async def executemany(self, name, seq_of_params):
         if name not in REQUESTS:
             raise AttributeError('No such request')
 
         await self.connect()
-        async with (await self.pool.acquire()) as conn:
-            cursor = await conn.cursor()
-            for p in seq_of_params:
-                await cursor.execute(REQUESTS[name], p)
+        async with self.pool.acquire() as conn:
+            async with conn.cursor() as cursor:
+                for p in seq_of_params:
+                    await cursor.execute(REQUESTS[name], p)
