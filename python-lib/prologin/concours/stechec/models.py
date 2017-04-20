@@ -287,6 +287,6 @@ class MatchPlayer(ExportModelOperationsMixin('match_player'), models.Model):
 
 
 def master_status():
-    rpc = prologin.rpc.client.Client(settings.STECHEC_MASTER,
-                                     secret=settings.STECHEC_MASTER_SECRET)
+    rpc = prologin.rpc.client.SyncClient(settings.STECHEC_MASTER,
+                                         secret=settings.STECHEC_MASTER_SECRET)
     return rpc.status()

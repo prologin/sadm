@@ -18,7 +18,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
-import asyncio
 import logging
 import optparse
 import prologin.config
@@ -59,7 +58,6 @@ if __name__ == '__main__':
     # RPC Service
     s = MasterNode(config=config, app_name='masternode',
                    secret=config['master']['shared_secret'].encode('utf-8'))
-    s.listen(config['master']['port'])
 
     # Monitoring
     masternode_tasks.set_function(lambda: len(s.worker_tasks))
@@ -67,6 +65,6 @@ if __name__ == '__main__':
     monitoring_start()
 
     try:
-        asyncio.get_event_loop().run_forever()
+        s.run()
     except KeyboardInterrupt:
         pass

@@ -19,7 +19,6 @@
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 import asyncio
-import copy
 import json
 import logging
 import os.path
@@ -28,7 +27,6 @@ import random
 import time
 
 from base64 import b64decode, b64encode
-from pathlib import Path
 
 from .concoursquery import ConcoursQuery
 from .monitoring import (
@@ -44,6 +42,7 @@ from .task import MatchTask, CompilationTask
 from .task import champion_compiled_path, match_path, clog_path
 from .worker import Worker
 
+
 class MasterNode(prologin.rpc.server.BaseRPCApp):
     def __init__(self, *args, config=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -51,16 +50,18 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         self.workers = {}
         self.worker_tasks = []
         self.db = ConcoursQuery(config)
-        self.spawn_tasks()
 
-    def spawn_tasks(self):
+    def run(self):
+        logging.info('master listening on {}'
+                     .format(self.config['master']['port']))
         self.to_dispatch = asyncio.Event()
         self.janitor = asyncio.Task(self.janitor_task())
         self.dbwatcher = asyncio.Task(self.dbwatcher_task())
         self.dispatcher = asyncio.Task(self.dispatcher_task())
+        super().run(port=self.config['master']['port'])
 
     @prologin.rpc.remote_method
-    def status(self):
+    async def status(self):
         d = []
         for (host, port), w in self.workers.items():
             d.append((host, port, w.slots, w.max_slots))
@@ -68,49 +69,38 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
 
     async def register_worker(self, key, w):
         if (await w.reachable()):
-            logging.warn("registered new worker: {}:{}".format(w.hostname,
-                w.port))
+            logging.warn("registered new worker: {}:{}"
+                         .format(w.hostname, w.port))
             self.workers[key] = w
         else:
-            logging.warn("drop unreachable worker: {}:{}".format(w.hostname,
-                w.port))
+            logging.warn("drop unreachable worker: {}:{}"
+                         .format(w.hostname, w.port))
 
     @prologin.rpc.remote_method
-    def update_worker(self, worker):
+    async def update_worker(self, worker):
         hostname, port, slots, max_slots = worker
         key = hostname, port
         if key not in self.workers:
             w = Worker(hostname, port, slots, max_slots, self.config)
-            asyncio.Task(self.register_worker(key, w))
+            await self.register_worker(key, w)
         else:
             logging.debug("updating worker: {}:{} {}/{}".format(
                               hostname, port, slots, max_slots))
             self.workers[key].update(slots, max_slots)
 
     @prologin.rpc.remote_method
-    def heartbeat(self, worker, first):
+    async def heartbeat(self, worker, first):
         hostname, port, slots, max_slots = worker
         usage = (1.0 - slots / max_slots)
         logging.debug('received heartbeat from {}:{}, usage is {:.2%}'.format(
                          hostname, port, usage))
         if first and (hostname, port) in self.workers:
             self.redispatch_worker(self.workers[(hostname, port)])
-        self.update_worker(worker)
+        await self.update_worker(worker)
 
     @prologin.rpc.remote_method
-    def compilation_result(self, worker, cid, user, ret, b64compiled, log):
-        async def complete_compilation(cid, user, ret):
-            status = 'ready' if ret else 'error'
-            if ret:
-                with open(champion_compiled_path(self.config, user, cid),
-                          'wb') as f:
-                    f.write(b64decode(b64compiled))
-            with open(clog_path(self.config, user, cid), 'w') as f:
-                f.write(log)
-            logging.info('compilation of champion {}: {}'.format(cid, status))
-            await self.db.execute('set_champion_status',
-                    {'champion_id': cid, 'champion_status': status})
-
+    async def compilation_result(self, worker, cid, user, ret, b64compiled,
+                                 log):
         hostname, port, slots, max_slots = worker
         w = self.workers[(hostname, port)]
 
@@ -119,11 +109,21 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             return
 
         w.remove_compilation_task(cid)
-        asyncio.Task(complete_compilation(cid, user, ret))
+        status = 'ready' if ret else 'error'
+        if ret:
+            with open(champion_compiled_path(self.config, user, cid),
+                      'wb') as f:
+                f.write(b64decode(b64compiled))
+        with open(clog_path(self.config, user, cid), 'w') as f:
+            f.write(log)
+        logging.info('compilation of champion {}: {}'.format(cid, status))
+        await self.db.execute(
+            'set_champion_status',
+            {'champion_id': cid, 'champion_status': status})
 
     @prologin.rpc.remote_method
-    def match_done(self, worker, mid, result, dumper_stdout, server_stdout,
-                   players_stdout):
+    async def match_done(self, worker, mid, result, dumper_stdout,
+                         server_stdout, players_stdout):
         hostname, port, slots, max_slots = worker
         w = self.workers[(hostname, port)]
 
@@ -138,7 +138,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             logname = 'log-champ-{}-{}.log'.format(pl_id, champ_id)
             logpath = os.path.join(match_path(self.config, mid), logname)
             with masternode_client_done_file.time(), \
-                 open(logpath, 'wb') as fplayer:
+                open(logpath, 'wb') as fplayer:
                 fplayer.write(b64decode(log))
 
         # Write server logs and dumper log
@@ -147,31 +147,27 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         with masternode_match_done_file.time(), \
              open(serverpath, 'w') as fserver, \
              open(dumppath, 'wb') as fdump:
-                fserver.write(server_stdout)
-                fdump.write(b64decode(dumper_stdout))
-
-        # Update the database with the results
-        async def match_done_db(mid, mstatus, pscores, tscores):
-            start = time.monotonic()
-            await self.db.execute('set_match_status', mstatus)
-            await self.db.executemany('set_player_score', pscores)
-            await self.db.executemany('update_tournament_score', tscores)
-            masternode_match_done_db.observe(time.monotonic() - start)
+            fserver.write(server_stdout)
+            fdump.write(b64decode(dumper_stdout))
 
         try:
-            match_status = { 'match_id': mid, 'match_status': 'done' }
-            player_scores = [{ 'player_id': r['player'],
-                   'player_score': r['score'] }
-                    for r in result]
-            tournament_scores = [{ 'match_id': mid,
-                       'champion_score': r['score'],
-                       'player_id': r['player'] }
-                    for r in result]
-            asyncio.Task(match_done_db(mid, match_status, player_scores,
-                                       tournament_scores))
+            match_status = {'match_id': mid, 'match_status': 'done'}
+            player_scores = [{'player_id': r['player'],
+                              'player_score': r['score']}
+                             for r in result]
+            tournament_scores = [{'match_id': mid,
+                                  'champion_score': r['score'],
+                                  'player_id': r['player']}
+                                 for r in result]
         except KeyError:
             masternode_bad_result.inc()
             return
+
+        start = time.monotonic()
+        await self.db.execute('set_match_status', match_status)
+        await self.db.executemany('set_player_score', player_scores)
+        await self.db.executemany('update_tournament_score', tournament_scores)
+        masternode_match_done_db.observe(time.monotonic() - start)
 
         # Remove task from worker
         w.remove_match_task(mid)
@@ -197,13 +193,15 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                                                              max_tries)
                 else:
                     msg = "maximum number of retries exceeded, bailing out"
-                logging.info("task {} of {} timeout: {}".format(t, worker, msg))
+                    logging.info("task {} of {} timeout: {}"
+                                 .format(t, worker, msg))
 
     async def janitor_task(self):
         while True:
             try:
                 for worker in list(self.workers.values()):
-                    if not worker.is_alive(self.config['worker']['timeout_secs']):
+                    if not worker.is_alive(
+                            self.config['worker']['timeout_secs']):
                         masternode_worker_timeout.inc()
                         logging.warn("timeout detected for worker {}".format(
                                     worker))
@@ -216,10 +214,11 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
     async def check_requested_compilations(self, status='new'):
         to_set_pending = []
         res = await self.db.execute('get_champions',
-            { 'champion_status': status })
+                                    {'champion_status': status})
 
         for r in res:
-            logging.info('requested compilation for {} / {}'.format(r[1], r[0]))
+            logging.info('requested compilation for {} / {}'
+                         .format(r[1], r[0]))
             masternode_request_compilation_task.inc()
             to_set_pending.append({
                 'champion_id': r[0],
@@ -272,7 +271,8 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                 t = MatchTask(self.config, mid, players, opts, file_opts)
                 self.worker_tasks.append(t)
             except Exception:
-                logging.exception('Unable to create task for match {}'.format(mid))
+                logging.exception('Unable to create task for match {}'
+                                  .format(mid))
 
         if to_set_pending:
             self.to_dispatch.set()
@@ -306,7 +306,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         while True:
             try:
                 logging.info('Dispatcher task: %d tasks in queue',
-                        len(self.worker_tasks))
+                             len(self.worker_tasks))
                 await self.to_dispatch.wait()
 
                 # Try to schedule up to 25 tasks. The throttling is in place to
@@ -317,7 +317,8 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                     task = self.worker_tasks[0]
                     w = self.find_worker_for(task)
                     if w is None:
-                        logging.info("no worker available for task {}".format(task))
+                        logging.info("no worker available for task {}"
+                                     .format(task))
                         break
                     else:
                         w.add_task(self, task)
@@ -326,11 +327,11 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                 if not self.worker_tasks:
                     self.to_dispatch.clear()
                 else:
-                    await asyncio.sleep(1) # No worker available, wait 1s
+                    await asyncio.sleep(1)  # No worker available, wait 1s
 
                 # Give the hand back to the event loop to avoid being blocking,
-                # but be called as soon as all the functions at the top of the heap
-                # have been executed
+                # but be called as soon as all the functions at the top of the
+                # heap have been executed
                 await asyncio.sleep(0)
             except:
                 logging.exception('Dispatcher task triggered an exception')

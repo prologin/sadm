@@ -12,6 +12,7 @@ import unittest
 import prologin.rpc.client
 import prologin.rpc.server
 
+
 @contextlib.contextmanager
 def disable_logging():
     logger = logging.getLogger()
@@ -50,6 +51,7 @@ class RPCServer(prologin.rpc.server.BaseRPCApp):
 
 URL = 'http://127.0.0.1:42545'
 
+
 class RPCServerInstance(threading.Thread):
     def __init__(self, port=42545, secret=None, delay=0):
         super().__init__()
@@ -62,10 +64,11 @@ class RPCServerInstance(threading.Thread):
         self.loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self.loop)
         self.app = RPCServer('test-rpc', secret=self.secret, loop=self.loop)
-        self.app.run(port=self.port, print=lambda *_:None)
+        self.app.run(port=self.port)
 
     def stop(self):
         self.loop.call_soon_threadsafe(self.loop.stop)
+
 
 class RPCTest(unittest.TestCase):
     @classmethod
@@ -73,7 +76,7 @@ class RPCTest(unittest.TestCase):
         cls.c = prologin.rpc.client.SyncClient(URL)
         cls.s = RPCServerInstance()
         cls.s.start()
-        time.sleep(0.5) # Let it start
+        time.sleep(0.5)  # Let it start
 
     @classmethod
     def tearDownClass(cls):
@@ -136,7 +139,7 @@ class RPCSecretTest(unittest.TestCase):
     def setUpClass(cls):
         cls.s = RPCServerInstance(secret=cls.GOOD_SECRET)
         cls.s.start()
-        time.sleep(0.5) # Let it start
+        time.sleep(0.5)  # Let it start
 
     @classmethod
     def tearDownClass(cls):
@@ -162,7 +165,7 @@ class RPCSecretTest(unittest.TestCase):
 @unittest.skip("FIXME: Race conditions, address already in use")
 class RPCRetryTest(unittest.TestCase):
     def test_retry_enough(self):
-        s = RPCServerInstance(delay=1) # 1 second to start
+        s = RPCServerInstance(delay=1)  # 1 second to start
         s.start()
         c = prologin.rpc.client.SyncClient(URL)
         with disable_logging():
@@ -173,7 +176,7 @@ class RPCRetryTest(unittest.TestCase):
         s = RPCServerInstance(delay=1)
         s.start()
         c = prologin.rpc.client.SyncClient(URL)
-        with self.assertRaises(socket.error) as e:
+        with self.assertRaises(socket.error):
             with disable_logging():
                 c.return_number(max_retries=0)
         s.stop()
@@ -182,7 +185,7 @@ class RPCRetryTest(unittest.TestCase):
         s = RPCServerInstance(delay=1)
         s.start()
         c = prologin.rpc.client.SyncClient(URL)
-        with self.assertRaises(socket.error) as e:
+        with self.assertRaises(socket.error):
             with disable_logging():
                 c.return_number(max_retries=1, retry_delay=0.2)
         s.stop()

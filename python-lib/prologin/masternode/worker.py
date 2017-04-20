@@ -24,6 +24,7 @@ import time
 
 from . import task
 
+
 class Worker(object):
     def __init__(self, hostname, port, slots, max_slots, config):
         self.hostname = hostname
@@ -35,8 +36,7 @@ class Worker(object):
         self.config = config
         self.rpc = prologin.rpc.client.Client("http://{}:{}/".format(
             self.hostname, self.port),
-            secret=self.config['master']['shared_secret'].encode('utf-8'),
-            coro=True)
+            secret=self.config['master']['shared_secret'].encode())
 
     @property
     def usage(self):
@@ -80,13 +80,13 @@ class Worker(object):
 
     def remove_compilation_task(self, champ_id):
         self.tasks = [t for t in self.tasks
-                        if not (isinstance(t, task.CompilationTask) and
-                                t.champ_id == champ_id)]
+                      if not (isinstance(t, task.CompilationTask) and
+                              t.champ_id == champ_id)]
 
     def remove_match_task(self, mid):
         self.tasks = [t for t in self.tasks
-                        if not (isinstance(t, task.MatchTask) and
-                                t.mid == mid)]
+                      if not (isinstance(t, task.MatchTask) and
+                              t.mid == mid)]
 
     def __repr__(self):
         return '<Worker: {}:{}>'.format(self.hostname, self.port)

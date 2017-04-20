@@ -19,21 +19,14 @@
 
 import asyncio
 import functools
-import itertools
 import logging
 import logging.handlers
-import os
-import os.path
 import prologin.rpc.client
 import prologin.rpc.server
-import re
 import socket
-import sys
-import tempfile
 import time
 import tornado
 import tornado.platform.asyncio
-import yaml
 
 from . import operations
 
@@ -44,9 +37,11 @@ from .monitoring import (
 
 tornado.platform.asyncio.AsyncIOMainLoop().install()
 
+
 def async_work(func=None, slots=0):
     if func is None:
         return functools.partial(async_work, slots=slots)
+
     @functools.wraps(func)
     async def mktask(self, *args, **kwargs):
         async def wrapper(self, *wargs, **wkwargs):
@@ -58,7 +53,7 @@ def async_work(func=None, slots=0):
             workernode_slots.set(self.slots)
             await self.update_master()
             try:
-                r = await func(self, *wargs, **wkwargs)
+                await func(self, *wargs, **wkwargs)
             finally:
                 self.slots += slots
                 workernode_slots.set(self.slots)
@@ -82,11 +77,10 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         self.master = self.get_master()
 
     def run(self):
-        logging.info('worker listening on {}'.format(
-            self.config['worker']['port']))
-        self.listen(self.config['worker']['port'])
+        logging.info('worker listening on {}'
+                     .format(self.config['worker']['port']))
         asyncio.Task(self.send_heartbeat())
-        self.loop.run_forever()
+        super().run(port=self.config['worker']['port'])
 
     def stop(self):
         self.loop.stop()
@@ -98,9 +92,8 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         config = self.config
         host, port = (config['master']['host'], config['master']['port'])
         url = "http://{}:{}/".format(host, port)
-        return prologin.rpc.client.Client(url,
-                secret=config['master']['shared_secret'].encode('utf-8'),
-                coro=True)
+        return prologin.rpc.client.Client(
+            url, secret=config['master']['shared_secret'].encode('utf-8'))
 
     async def update_master(self):
         try:
@@ -109,17 +102,17 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
             logging.warn('master down, cannot update it')
 
     async def send_heartbeat(self):
-        logging.debug('sending heartbeat to the server, {}/{} slots'.format(
-            self.slots, self.max_slots))
+        logging.debug('sending heartbeat to the server, {}/{} slots'
+                      .format(self.slots, self.max_slots))
         first_heartbeat = True
         while True:
             try:
                 await self.master.heartbeat(self.get_worker_infos(),
-                                                 first_heartbeat)
+                                            first_heartbeat)
                 first_heartbeat = False
             except socket.error:
-                logging.warn('master down, retrying heartbeat in {}s'.format(
-                        self.interval))
+                logging.warn('master down, retrying heartbeat in {}s'
+                             .format(self.interval))
 
             await asyncio.sleep(self.interval)
 
@@ -153,15 +146,14 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         logging.info('starting match {}'.format(match_id))
         run_match_start = time.monotonic()
 
-        server_result, dump, server_info, players_info = await (
+        server_result, server_out, dump, players_info = await (
             operations.spawn_match(self.config, players, opts, file_opts))
         logging.info('match {} done'.format(match_id))
 
         try:
             await self.master.match_done(
                 self.get_worker_infos(),
-                match_id, server_result, dump, server_info,
-                players_info,
+                match_id, server_result, dump, server_out, players_info,
                 max_retries=self.config['master']['max_retries'],
                 retry_delay=self.config['master']['retry_delay'])
         except socket.error:

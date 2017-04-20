@@ -142,4 +142,5 @@ class AiohttpApp:
         self.loop = loop or asyncio.get_event_loop()
 
     def run(self, **kwargs):
-        aiohttp.web.run_app(self.app, loop=self.loop, **kwargs)
+        aiohttp.web.run_app(self.app, loop=self.loop,
+                            print=lambda *_: None, **kwargs)

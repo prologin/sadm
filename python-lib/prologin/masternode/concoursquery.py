@@ -19,7 +19,6 @@
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 import aiopg
-import asyncio
 import psycopg2
 
 REQUESTS = {
@@ -113,6 +112,7 @@ REQUESTS = {
     ''',
 }
 
+
 class ConcoursQuery:
     def __init__(self, config):
         self.host = config['sql']['host']
@@ -137,7 +137,7 @@ class ConcoursQuery:
             raise AttributeError('No such request')
 
         await self.connect()
-        with (await self.pool) as conn:
+        async with (await self.pool.acquire()) as conn:
             cursor = await conn.cursor()
             await cursor.execute(REQUESTS[name], params)
             try:
@@ -150,7 +150,7 @@ class ConcoursQuery:
             raise AttributeError('No such request')
 
         await self.connect()
-        with (await self.pool) as conn:
+        async with (await self.pool.acquire()) as conn:
             cursor = await conn.cursor()
             for p in seq_of_params:
                 await cursor.execute(REQUESTS[name], p)
