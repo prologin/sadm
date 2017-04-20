@@ -22,7 +22,7 @@ cd /root
 git clone --branch $BRANCH $REPO_URL sadm
 
 echo '[+] Starting Arch Linux bootstrap script'
-./sadm/install_scripts/bootstrap.sh
+( cd ./sadm/install_scripts; /bootstrap.sh )
 
 echo '[+] Copying SADM install'
 cp -r sadm /mnt/root/sadm
