@@ -234,12 +234,9 @@ async def spawn_match(config, players, opts=None, file_opts=None):
 
     # Retry every seconds for 5 seconds
     for i in range(5):
-        try:
-            os.chmod(f_reqrep, 0o777)
-            os.chmod(f_pubsub, 0o777)
+        if os.access(f_reqrep, os.R_OK):
             break
-        except FileNotFoundError:
-            await asyncio.sleep(1)
+        await asyncio.sleep(1)
     else:
         raise RuntimeError("Server socket was never created")
 
