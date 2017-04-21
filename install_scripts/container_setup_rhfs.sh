@@ -190,38 +190,38 @@ if ! machinectl >/dev/null status $GW_CONTAINER_NAME; then
   exit 1
 fi
 
-skip container_stop
-skip stage_setup_host
-skip stage_boostrap_arch_linux
-skip container_start
+run container_stop
+run stage_setup_container
+run stage_boostrap_arch_linux
+run container_start
 
-skip stage_copy_sadm
+run stage_copy_sadm
 
-skip stage_add_to_mdb
-skip stage_allow_root_ssh
+run stage_add_to_mdb
+run stage_allow_root_ssh
 
-skip stage_setup_sadm
-skip test_sadm
+run stage_setup_sadm
+run test_sadm
 
-skip stage_setup_libprologin
-skip test_libprologin
+run stage_setup_libprologin
+run test_libprologin
 
-skip stage_setup_network
-skip test_network
+run stage_setup_network
+run test_network
 
-skip stage_setup_rfs
-skip test_setup_rfs
+run stage_setup_rfs
+run test_setup_rfs
 
-skip stage_setup_rfs_nfs_archlinux
-skip test_rfs_nfs_archlinux
+run stage_setup_rfs_nfs_archlinux
+run test_rfs_nfs_archlinux
 
-skip stage_setup_rfs_nfs_sadm
-skip test_rfs_nfs_sadm
+run stage_setup_rfs_nfs_sadm
+run test_rfs_nfs_sadm
 
-skip stage_install_rfs
-skip test_install_rfs
+run stage_install_rfs
+run test_install_rfs
 
-restore stage_install_hfs
+run stage_install_hfs
 run test_install_hfs
 
 run stage_copy_sadm # XXX

@@ -3,15 +3,9 @@ if [[ -z $CONTAINER_NAME || -z $GW_CONTAINER_NAME ]]; then
   exit 1
 fi
 
-USE_BTRFS=true
-SADM_ROOT_DIR=$(dirname $PWD)
-
-# Secrets
-ROOT_PASSWORD=101010
-SADM_MASTER_SECRET=lesgerbillescesttropfantastique
+source ./container_setup_config.sh
 
 # Other container-related variables
-NETWORK_ZONE=prolo
 CONTAINER_ROOT=/var/lib/machines/$CONTAINER_NAME
 CONTAINER_ROOT_GW=/var/lib/machines/$GW_CONTAINER_NAME
 
@@ -111,17 +105,19 @@ function restore {
   snapshot_name=$1
   snapshot_root=${CONTAINER_ROOT}_$snapshot_name
 
-  echo_status "Snapshot restore of $snapshot_root"
-  container_stop
+  if $USE_BTRFS; then
+	  echo_status "Snapshot restore of $snapshot_root"
+	  container_stop
 
-  if [ -d $CONTAINER_ROOT ]; then
-    btrfs 2>&- subvolume delete $CONTAINER_ROOT/var/lib/machines || true  # this can fail if we restored a snapshot
-    btrfs subvolume delete $CONTAINER_ROOT
+	  if [ -d $CONTAINER_ROOT ]; then
+	    btrfs 2>&- subvolume delete $CONTAINER_ROOT/var/lib/machines || true  # this can fail if we restored a snapshot
+	    btrfs subvolume delete $CONTAINER_ROOT
+	  fi
+	  # restore the snapshot as read+write
+	  btrfs subvolume snapshot $snapshot_root $CONTAINER_ROOT
+
+	  container_start
   fi
-  # restore the snapshot as read+write
-  btrfs subvolume snapshot $snapshot_root $CONTAINER_ROOT
-
-  container_start
 }
 
 # Test functions

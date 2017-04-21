@@ -38,23 +38,6 @@ function test_container_gw_network {
   container_run_simple /usr/bin/ping -c 1 8.8.8.8
 }
 
-function stage_setup_sadm {
-  echo_status "[+] Copy $SADM_ROOT_DIR to the container"
-  cp -r $SADM_ROOT_DIR $CONTAINER_ROOT/root/sadm
-
-  echo "[-] Start sadm setup script"
-  container_run /root/sadm/install_scripts/setup_sadm.sh
-
-  container_snapshot $FUNCNAME
-}
-
-function test_sadm {
-  echo '[>] Test SADM... '
-
-  echo '[>] sadm directory exists'
-  test_file_present /root/sadm
-}
-
 function stage_setup_network {
   echo_status 'Stage setup network'
 
@@ -107,6 +90,9 @@ function stage_setup_mdb {
 
   echo '[-] Reload nginx'
   container_run /usr/bin/systemctl reload nginx
+
+  # Wait for mdb to start
+  sleep 3
 
   container_snapshot $FUNCNAME
 }
@@ -535,32 +521,34 @@ function test_hfsdb {
 
 
 # "container" script
-skip container_stop
-skip stage_setup_host
-skip stage_boostrap_arch_linux
-skip container_start
+run container_stop
+run stage_setup_container
+run stage_boostrap_arch_linux
+run container_start
 
-skip stage_container_gw_network
-skip test_container_gw_network
+run stage_container_gw_network
+run test_container_gw_network
 
-skip stage_copy_sadm
+run stage_copy_sadm
 
-skip stage_setup_sadm
-skip test_sadm
+run stage_setup_sadm
+run test_sadm
 
-skip stage_setup_libprologin
-skip test_libprologin
+run stage_setup_gw
 
-skip stage_setup_network
-skip test_network
+run stage_setup_libprologin
+run test_libprologin
 
-skip stage_setup_postgresql
-skip test_postgresql
+run stage_setup_network
+run test_network
 
-skip stage_setup_nginx
-skip test_nginx
+run stage_setup_postgresql
+run test_postgresql
 
-restore stage_setup_mdb
+run stage_setup_nginx
+run test_nginx
+
+run stage_setup_mdb
 run test_mdb
 
 run stage_setup_mdbsync
