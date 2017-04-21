@@ -134,12 +134,12 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         logging.info('match {} ended'.format(mid))
 
         # Write player logs
-        for pl_id, (champ_id, log) in players_stdout.items():
+        for pl_id, (champ_id, retcode, log) in players_stdout.items():
             logname = 'log-champ-{}-{}.log'.format(pl_id, champ_id)
             logpath = os.path.join(match_path(self.config, mid), logname)
             with masternode_client_done_file.time(), \
-                open(logpath, 'wb') as fplayer:
-                fplayer.write(b64decode(log))
+                open(logpath, 'w') as fplayer:
+                fplayer.write(log)
 
         # Write server logs and dumper log
         serverpath = os.path.join(match_path(self.config, mid), 'server.log')
