@@ -1,14 +1,7 @@
+source ./container_setup_config.sh
+
 # Common setup stages
-function stage_setup_host {
-  echo_status "Override systemd-nspawn configuration with --network-zone=$NETWORK_ZONE"
-  cat >/etc/systemd/system/systemd-nspawn@$CONTAINER_NAME.service <<EOF
-.include /usr/lib/systemd/system/systemd-nspawn@.service
-
-[Service]
-ExecStart=
-ExecStart=/usr/bin/systemd-nspawn --quiet --keep-unit --boot --link-journal=try-guest --network-zone=$NETWORK_ZONE -U --settings=override --machine=%i
-EOF
-
+function stage_setup_container {
   echo "[-] Create $CONTAINER_ROOT"
   if $USE_BTRFS; then
     if [ -d $CONTAINER_ROOT ]; then
@@ -19,32 +12,12 @@ EOF
   else
     mkdir -p $CONTAINER_ROOT
   fi
-
-  echo $ROOT_PASSWORD > ./plaintext_root_pass
-
-  echo "[-] Disable DHCP server for our network zone"
-  cat >/etc/systemd/network/80-container-vz-prolo.network <<EOF
-[Match]
-Name=vz-$NETWORK_ZONE
-Driver=bridge
-
-[Network]
-# Default to using a /24 prefix, giving up to 253 addresses per virtual network.
-Address=0.0.0.0/24
-LinkLocalAddressing=yes
-IPMasquerade=yes
-LLDP=yes
-EmitLLDP=customer-bridge
-EOF
-
-  echo "[-] Restart systemd-networkd"
-  systemctl restart systemd-networkd
-
-  container_snapshot $FUNCNAME
 }
 
 function stage_boostrap_arch_linux {
-  ./bootstrap_arch_linux.sh $CONTAINER_ROOT ${CONTAINER_HOSTNAME}.prolo ./plaintext_root_pass
+  echo_status "Bootstrap Arch Linux"
+
+  ./bootstrap_arch_linux.sh $CONTAINER_ROOT ${CONTAINER_HOSTNAME}.prolo <(echo $ROOT_PASSWORD)
 
   container_snapshot $FUNCNAME
 }
