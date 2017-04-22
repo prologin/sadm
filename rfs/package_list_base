@@ -1,6 +1,12 @@
 Basic list of packages for contestants' environment
 ===================================================
 
+# Graphical
+
+* xorg
+* xorg-drivers
+* sddm
+
 # Shells
 
 * bash
@@ -13,12 +19,15 @@ Basic list of packages for contestants' environment
 
 * vim
 
-# Additional config
-
-# Graphical environments
+# Window manager
 
 * i3
+
+# Graphical tools
+
 * zenity
+* zathura
+* sxiv
 
 # Browsers
 
@@ -28,9 +37,7 @@ Basic list of packages for contestants' environment
 
 * htop
 * git
-* zathura
 * tmux
-* feh
 * netcat
 * valgrind
 * gdb
