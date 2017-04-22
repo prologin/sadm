@@ -285,6 +285,7 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
         if failure_reason:
             return failure_reason
         else:
+            logging.info('Login request accepted: {}@{}'.format(login, hostname))
             self.update_backlog(login, hostname)
             return None
 
