@@ -50,6 +50,38 @@ Overview
 This guides starts by discussing the virtual network setup, then we build and
 start the systems.
 
+Automated container setup
+-------------------------
+
+If you want to setup SADM in containers to test something else than the install
+procedure, you can use the automated container install scripts. They will
+create and manage the containers for you and perform a full SADM install as you
+would do manually. They are intended for automated and end-to-end tests of SADM.
+
+Requirements:
+
+- The host system should be Arch Linux. Experimental support has been added for
+  non Arch Linux hosts and will be used if the script detects you are not
+  running Arch.  
+- For convenience, ``/var/lib/machines`` should be a btrfs volume. The scripts
+  will run without that but you will not have the ability to restore intermediate
+  snapshots of the install.
+
+To start, run the host setup script, you are strongly advised to check its
+content beforehand, as it does quite substantial changes to your system setup::
+
+  cd install_scripts
+  ./container_setup_host.sh
+
+Then, run the container install scripts::
+
+  cd install_scripts
+  ./container_setup_gw.sh
+  ./container_setup_rhfs.sh
+  ./container_setup_web.sh
+
+Thats it! The next sections discuss the internals of these scripts.
+
 Virtual network setup
 ---------------------
 
