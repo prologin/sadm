@@ -22,7 +22,6 @@ import logging
 import optparse
 import prologin.config
 import prologin.log
-import tornado.platform.asyncio
 
 from .monitoring import (
     monitoring_start,
@@ -43,14 +42,10 @@ if __name__ == '__main__':
                       help='Verbose mode.')
     options, args = parser.parse_args()
 
-    # Use the asyncio backend for tornado
-    tornado.platform.asyncio.AsyncIOMainLoop().install()
-
     # Logging
     prologin.log.setup_logging('masternode', verbose=options.verbose,
                                local=options.local_logging)
     logging.getLogger('asyncio').setLevel(logging.WARNING)
-    logging.getLogger('tornado').setLevel(logging.WARNING)
 
     # Config
     config = prologin.config.load('masternode')

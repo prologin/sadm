@@ -25,8 +25,6 @@ import prologin.rpc.client
 import prologin.rpc.server
 import socket
 import time
-import tornado
-import tornado.platform.asyncio
 
 from . import operations
 
@@ -34,8 +32,6 @@ from .monitoring import (
     workernode_slots,
     workernode_compile_champion_summary,
     workernode_run_match_summary)
-
-tornado.platform.asyncio.AsyncIOMainLoop().install()
 
 
 def async_work(func=None, slots=0):
