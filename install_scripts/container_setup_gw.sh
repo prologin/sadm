@@ -1,9 +1,5 @@
 #!/bin/bash
 
-source ./common.sh
-
-this_script_must_be_run_as_root
-
 # Configuration variables
 CONTAINER_HOSTNAME=gw
 GW_CONTAINER_NAME=gw
@@ -78,6 +74,14 @@ function test_network {
   else
     echo_ok "PASS"
   fi
+}
+
+function stage_setup_gw {
+  echo_status 'Run gw setup script'
+
+  container_run /root/sadm/install_scripts/setup_gw.sh
+
+  container_snapshot $FUNCNAME
 }
 
 function stage_setup_mdb {
@@ -251,7 +255,7 @@ function test_tftpd {
 function stage_ipxe {
   echo_status 'Install ipxe'
 
-  container_run /usr/bin/pacman -S --noconfirm ipxe-sadm-git
+  # Nothing to do here, the package is already installed
 
   container_snapshot $FUNCNAME
 }
@@ -380,7 +384,6 @@ function stage_udbsync {
 
   echo '[-] Reload nginx'
   container_run /usr/bin/systemctl reload nginx
-
 
   container_snapshot $FUNCNAME
 }
@@ -542,6 +545,9 @@ run test_libprologin
 run stage_setup_network
 run test_network
 
+run stage_setup_gw
+run test_gw
+
 run stage_setup_postgresql
 run test_postgresql
 
@@ -572,11 +578,11 @@ run test_ipxe
 run stage_udb
 run test_udb
 
-run stage_create_root_ssh_key
-run test_root_ssh_key
-
 run stage_add_users_to_udb
 run test_users_in_udb
+
+run stage_create_root_ssh_key
+run test_root_ssh_key
 
 run stage_add_ssh_key_to_udb
 run test_ssh_key_udb

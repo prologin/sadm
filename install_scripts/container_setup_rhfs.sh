@@ -1,9 +1,5 @@
 #!/bin/bash
 
-source ./common.sh
-
-this_script_must_be_run_as_root
-
 # Configuration variables
 RHFS_ID=1
 CONTAINER_NAME=myrhfs$RHFS_ID

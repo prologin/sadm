@@ -1,3 +1,7 @@
+source ./common.sh
+
+this_script_must_be_run_as_root
+
 if [[ -z $CONTAINER_NAME || -z $GW_CONTAINER_NAME ]]; then
   echo >&2 "Please define \$CONTAINER_NAME and \$GW_CONTAINER_NAME before sourcing this script"
   exit 1

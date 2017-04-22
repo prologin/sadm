@@ -84,6 +84,11 @@ scripts to make this task fast and easy.
 Basic system: file system setup
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. note::
+    The installation process is partially automated with scripts. You are
+    strongly advised to read them and make sure you understand what they are
+    doing.
+
 Let's start with the hardware setup. You can skip this section if you are
 doing a containerized install or if you already have a file system ready.
 
@@ -103,21 +108,16 @@ need a bootstrap Linux distribution. The easiest solution is to boot on the `Arc
 install medium
 <https://wiki.archlinux.org/index.php/beginners'_guide#Boot_the_installation_medium>`_.
 
-.. note::
-    Recent Arch Linux install media are provided with a very limited *cowspace*
-    size, which prevents installing git. To work around the issue, first run::
-
-      mount -o remount,size=2G /run/archiso/cowspace
-
 Once the bootstrap system is started, you can start the install using::
 
-  pacman -Sy git
-  git clone http://github.com/prologin/sadm
-  cd sadm/install_scripts
-  # Keep an eye on the install process in case of breakage
-  ./bootstrap.sh
+  curl https://raw.githubusercontent.com/prologin/sadm/master/install_scripts/bootstrap_from_install_medium.sh | bash
 
-The system is now configured and bootable, you can restart the machine::
+This script checks out sadm, then does the RAID1 setup, installs Arch Linux and
+configures it for RAID1 boot. So far nothing is specific to sadm and you could
+almost use this script to install yourself an Arch Linux.
+
+When the script finishes the system is configured and bootable, you can restart
+the machine::
 
   reboot
 
@@ -126,9 +126,9 @@ The machine should reboot and display the login tty. To test this step:
 - The system must boot
 - Systemd should start without any ``[FAILED]`` item.
 - Log into the machine as ``root`` with the password you configured.
-- Check that the hostname is ``gw`` by invoking ``hostnamectl``::
+- Check that the hostname is ``gw.prolo`` by invoking ``hostnamectl``::
 
-     Static hostname: gw
+     Static hostname: gw.prolo
            Icon name: computer-container
              Chassis: container
           Machine ID: 603218907b0f49a696e6363323cb1833
@@ -155,7 +155,6 @@ The machine should reboot and display the login tty. To test this step:
     systemctl status systemd-timesyncd
     Sep 25 13:49:28 halfr-thinkpad-e545 systemd-timesyncd[13554]: Synchronized to time server 212.47.239.163:123 (0.arch.pool.ntp.org).
 
-
 - Check that the locale is ``en_US.UTF8`` with the ``UTF8`` charset using
   ``localectl``::
 
@@ -164,20 +163,33 @@ The machine should reboot and display the login tty. To test this step:
        X11 Layout: n/a
 
 - You should get an IP from DHCP if you are on a network that has such a setup,
-  else you can add a static IP using a ``systemd-network`` .network
+  else you can add a static IP using a ``systemd-network`` ``.network``
   configuration file.
 
 Basic system: SADM
 ~~~~~~~~~~~~~~~~~~
 
 We will now start to install and configure everything that is Prologin-specific.
+The bootstrap script has already copied the sadm repository to ``/root/sadm``.
+We will now use a script that installs the dependencies that have to be present
+on all system using sadm. We are running the script on ``gw.prolo`` and it will
+executed on every systems: ``rhfs``, ``web``, ``rfs``.
 
-  curl https://raw.githubusercontent.com/prologin/sadm/master/install_scripts/bootstrap_sadm.sh | bash
+::
+    cd /root/sadm/install_scripts
+    ./setup_sadm.sh
 
-This script will install packages required by sadm and create a python virtual
-environment. Each time you log into a new system, activate the virtualenv::
+This script also create a python virtual environment. Each time you log into a
+new system, activate the virtualenv::
 
   source /var/prologin/venv/bin/activate
+
+Basic system: gw
+~~~~~~~~~~~~~~~~
+
+Once the system is SADM-ready, perform installs specific to ``gw.prolo``::
+
+    ./setup_gw.sh
 
 Gateway network configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -198,9 +210,9 @@ configuration files are stored in ``etc/systemd/network/`` and are installed in
 
 Two files must be modified to match the hardware of the machine:
 
-- ``etc/systemd/network/10-prologin.link``: edit the ``MACAddress`` field of
+- ``etc/systemd/network/10-gw.link``: edit the ``MACAddress`` field of
   the  file to set the MAC address of your NIC.
-- ``etc/systemd/network/10-prologin.network``: we enable DHCP configuration and
+- ``etc/systemd/network/10-gw.network``: we enable DHCP configuration and
   set the local network static IPs. You can edit this file to add more static
   IPs or set the gateway you want to use.
 
@@ -636,8 +648,6 @@ To bootstrap a rhfs, ``rhfs01`` for example, follow this procedure:
    ``hfs1,rfs1``.
 #. Reboot the machine and boot an Arch Linux install media.
 #. Follow the same file system setup step as for GW: see :ref:`basic_fs_setup`.
-#. Run ``install_scripts/setup_rfs.sh`` to finish perform the last bits of
-   configuration.
 
 Step 3: booting the user machines
 ---------------------------------
@@ -653,9 +663,31 @@ Installing the RHFS
 The basic install process is already documented through the
 `ArchLinux Diskless Installation`_. For conveniance, use::
 
-  # Install Arch Linux packages for RFS
-  ./install_scripts/setup_rfs.sh
   # Setup the rhfs server, install the exported rootfs
+  ( cd ./install_scripts; ./setup_rfs.sh )
+  # Setup the exported rootfs
+  python install.py rfs_nfs_archlinux
+
+Configure the exported rootfs for SADM and network booting. This scripts will
+chroot into the exported file system and run the ``setup_sadm.sh`` script.
+
+::
+  python install.py rfs_nfs_sadm
+
+The installation script will bootstrap a basic Arch Linux system in
+``/export/nfsroot`` using the common Arch Linux install script you already used
+for bootstraping ``gw`` and ``rhfs``. It also adds a prologin hook that creates
+tmpfs at ``/var/{log,tmp,spool/mail}``, installs libprologin and enable some
+sadm services.
+
+Copy the the kernel and initramfs from ``rhfs`` to ``gw``, where they will be
+fetched by the machines during PXE::
+
+  scp rhfs:/export/nfsroot/boot/vmlinuz-linux /srv/tftp/kernel
+  scp rhfs:/export/nfsroot/boot/initramfs-linux.img /srv/tftp/initrd
+
+We can now finish the basic RFS setup and export the NFS::
+
   python install.py rfs
   # Enable the services we just installed:
   for svc in {udbsync_passwd{,_nfsroot},udbsync_rootssh,rpcbind,nfs-server}.service rootssh.path; do
@@ -663,17 +695,28 @@ The basic install process is already documented through the
     systemctl enable --now "$svc"
   done
 
-The installation script will bootstrap a basic archlinux system in
-``/export/nfsroot`` with a few packages, a prologin hook that creates tmpfs at
-``/var/{log,tmp,spool/mail}``, libprologin and some sadm services
-(udbsync_passwd, udbsync_rootssh and presenced)
+At this point the machines should boot and drop you to a login shell. We can
+now start to install a basic graphical session, with nice fonts and graphics::
 
-You should then install some useful packages for the contestants (see
-``rfs/contestants_package_list`` file).
+  python install.py rfs_nfs_packages_base
 
-To install a new package (*never* use arch-chroot on a live nfs export)::
+You can reboot a machine and it should display a graphical login manager. You
+still need to install the ``hfs`` to login as a user.
+
+If you want a full RFS install, with all the code editors you can think of and
+awesome games, install the extra package list::
+
+  python install.py rfs_nfs_packages_extra
+
+To install a new package::
 
   pacman --root /export/nfsroot -Sy package
+
+.. note::
+
+    *Never* use arch-chroot on a live NFS export. This will bind the runtime
+    server directories, which will be picked up by the NFS clients resulting in
+    great and glorious system failures.
 
 Once SDDM is installed (the login manager we use for sadm), you can use this
 command to generate the default Prologin SDDM config and theme::
@@ -681,11 +724,6 @@ command to generate the default Prologin SDDM config and theme::
   python install.py sddmcfg
 
 TODO: How to sync, hook to generate /var...
-
-Copy the the kernel and initramfs from ``rhfs``::
-
-  scp rhfs:/export/nfsroot/boot/vmlinuz-linux /srv/tftp/kernel
-  scp rhfs:/export/nfsroot/boot/initramfs-linux.img /srv/tftp/initrd
 
 Setting up hfs
 ~~~~~~~~~~~~~~
@@ -758,7 +796,6 @@ Then, install the ``nginx`` configuration from the repository::
   python install.py nginxcfg
   mv /etc/nginx/nginx.conf{.new,}
   systemctl enable --now nginx
-
 
 Setup postgresql on web
 ~~~~~~~~~~~~~~~~~~~~~~~
