@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # This file is part of Prologin-SADM.
 #
 # Copyright (c) 2015 Rémi Audebert <remi.audebert@prologin.org>

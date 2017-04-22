@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
@@ -13,6 +11,8 @@ import re
 import prologin.rpc.client
 
 stripper_re = re.compile(r'\033\[.*?m')
+
+
 def strip_ansi_codes(t):
     return stripper_re.sub('', t)
 
@@ -258,6 +258,7 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
         ordering = ["-ts"]
         verbose_name = "match"
         verbose_name_plural = "matches"
+
 
 class MatchPlayer(ExportModelOperationsMixin('match_player'), models.Model):
     champion = models.ForeignKey(Champion, verbose_name="champion")

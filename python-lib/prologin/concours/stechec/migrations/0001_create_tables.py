@@ -1,12 +1,11 @@
-# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
 from django.db import models, migrations
 from django.conf import settings
+import django.utils.timezone
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
@@ -49,7 +48,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True, serialize=False)),
                 ('status', models.CharField(verbose_name='statut', max_length=100, choices=[('creating', 'En cours de création'), ('new', 'En attente de lancement'), ('pending', 'En cours de calcul'), ('done', 'Terminé')], default='creating')),
-                ('ts', models.DateTimeField(verbose_name='date', auto_now_add=True)),
+                ('ts', models.DateTimeField(default=django.utils.timezone.now, verbose_name='date')),
                 ('options', models.CharField(verbose_name='options', max_length=500, default='{}')),
                 ('file_options', models.CharField(verbose_name='file_options', max_length=500, default='{}')),
                 ('author', models.ForeignKey(verbose_name='lancé par', related_name='matches', to=settings.AUTH_USER_MODEL)),
