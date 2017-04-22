@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.conf.urls import url, include
 from rest_framework import routers
 
@@ -8,7 +9,9 @@ router.register(r'users', views.UserViewSet)
 router.register(r'champions', views.ChampionViewSet)
 router.register(r'tournaments', views.TournamentViewSet)
 router.register(r'matches', views.MatchViewSet)
-router.register(r'maps', views.MapViewSet)
+
+if settings.STECHEC_USE_MAPS:
+    router.register(r'maps', views.MapViewSet)
 
 urlpatterns = [
     # Namespace is important so URLs don't conflict with non-API views
