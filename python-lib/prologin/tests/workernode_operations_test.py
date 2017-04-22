@@ -121,8 +121,10 @@ print('some log on stderr', file=sys.stderr)
 # Test sockets
 pubsub = sys.argv[sys.argv.index('--pub_addr') + 1][len('ipc://'):]
 reqrep = sys.argv[sys.argv.index('--rep_addr') + 1][len('ipc://'):]
+old_umask = os.umask(0)
 open(pubsub, 'w').write('pubsub_server')
 open(reqrep, 'w').write('reqrep_server')
+os.umask(old_umask)
 
 # Test libraries
 rules = sys.argv[sys.argv.index('--rules') + 1]

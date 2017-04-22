@@ -234,7 +234,7 @@ async def spawn_match(config, players, opts=None, file_opts=None):
 
     # Retry every seconds for 5 seconds
     for i in range(5):
-        if os.access(f_reqrep, os.R_OK):
+        if all(os.access(f, os.R_OK | os.W_OK) for f in (f_reqrep, f_pubsub)):
             break
         await asyncio.sleep(1)
     else:
