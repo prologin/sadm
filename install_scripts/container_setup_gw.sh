@@ -446,29 +446,6 @@ function test_presencesync {
   # TODO more test
 }
 
-function stage_presencesync_cacheserver {
-  echo_status 'Install presencesync cacheserver'
-
-  echo '[-] Configure presencesync cacheserver'
-  container_run /var/prologin/venv/bin/python /root/sadm/install.py presencesync_cacheserver
-
-  echo '[-] Enable and start the presencesync cacheserevr service'
-  container_run /usr/bin/systemctl enable --now presencesync_cacheserver
-
-  echo '[-] Reload nginx'
-  container_run /usr/bin/systemctl reload nginx
-
-  container_snapshot $FUNCNAME
-}
-
-function test_presencesync_cacheserver {
-  echo '[>] Test presencesync... '
-
-  test_service_is_enabled_active presencesync_cacheserver
-
-  # TODO more test
-}
-
 function stage_sso {
   echo_status 'Install sso'
 
@@ -491,6 +468,12 @@ function stage_firewall {
   echo '[-] Enable and start the firewall service'
   container_run /usr/bin/systemctl enable --now firewall
 
+  container_snapshot $FUNCNAME
+}
+
+function stage_setup_presencesync_firewall {
+  echo_status 'Install presencesync firewall'
+
   echo '[-] Configure firewall with presencesync'
   container_run /var/prologin/venv/bin/python /root/sadm/install.py presencesync_firewall
 
@@ -498,6 +481,9 @@ function stage_firewall {
   container_run /usr/bin/systemctl enable --now presencesync_firewall
 
   container_snapshot $FUNCNAME
+}
+
+function test_presencesync_firewall {
 }
 
 function test_firewall {
@@ -604,6 +590,9 @@ run test_sso
 
 run stage_firewall
 run test_firewall
+
+run stage_setup_presencesync_firewall
+run test_presencesync_firewall
 
 run stage_hfsdb
 run test_hfsdb

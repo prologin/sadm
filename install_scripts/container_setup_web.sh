@@ -228,6 +228,9 @@ run test_concours
 run stage_setup_masternode
 run test_masternode
 
+run stage_presencesync_cacheserver
+run test_presencesync_cacheserver
+
 # Skipped as not ready yet
 skip stage_setup_redmine
 skip test_redmine

@@ -148,3 +148,26 @@ function test_postgresql {
     echo_ok "PASS"
   fi
 }
+
+function stage_presencesync_cacheserver {
+  echo_status 'Install presencesync cacheserver'
+
+  echo '[-] Configure presencesync cacheserver'
+  container_run /var/prologin/venv/bin/python /root/sadm/install.py presencesync_cacheserver
+
+  echo '[-] Enable and start the presencesync cacheserevr service'
+  container_run /usr/bin/systemctl enable --now presencesync_cacheserver
+
+  echo '[-] Reload nginx'
+  container_run /usr/bin/systemctl reload nginx
+
+  container_snapshot $FUNCNAME
+}
+
+function test_presencesync_cacheserver {
+  echo '[>] Test presencesync... '
+
+  test_service_is_enabled_active presencesync_cacheserver
+
+  # TODO more test
+}
