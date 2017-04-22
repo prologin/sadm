@@ -43,6 +43,14 @@ function test_network {
   fi
 }
 
+function stage_setup_web {
+  echo_status 'Run web setup script'
+
+  container_run /root/sadm/install_scripts/setup_web.sh
+
+  container_snapshot $FUNCNAME
+}
+
 function stage_setup_udbsync_rootssh {
   echo_status "Setup udbsync_rootssh"
 
@@ -99,6 +107,87 @@ function test_masternode {
   test_service_is_enabled_active masternode
 }
 
+function stage_setup_redmine {
+  echo_status "Setup redmine"
+
+  container_run /var/prologin/venv/bin/python /root/sadm/install.py redmine
+
+  cat > $CONTAINER_ROOT/root/setup_redmine.sh <<EOF
+#!/bin/bash
+
+set -e
+
+export PHOME=/var/prologin
+export PGHOST=web  # postgres host
+export RUBYV=2.2.1
+export RAILS_ENV=production
+export REDMINE_LANG=fr
+export RMPSWD=$ROOT_PASSWORD
+
+cd /tmp
+wget --continue http://www.redmine.org/releases/redmine-3.0.1.tar.gz
+tar -xvz -C \$PHOME -f redmine*.tar.gz
+mv \$PHOME/{redmine*,redmine}
+
+curl -sSL https://rvm.io/mpapis.asc | gpg2 --import -
+curl -sSL https://get.rvm.io | bash -s stable
+source /etc/profile.d/rvm.sh
+echo "gem: --no-document" >>\$HOME/.gemrc
+rvm install \$RUBYV  # can be rather long
+rvm alias create redmine \$RUBYV
+gem install bundler unicorn
+
+# TODO move this to install.py to replace secret
+sed -e s/DEFAULT_PASSWORD/\$RMPSWD/ /root/sadm/sql/redmine.sql | su - postgres -c psql
+
+cat >\$PHOME/redmine/config/database.yml <<EOFF
+# prologin redmine database
+production:
+  adapter: postgresql
+  jdatabase: redmine
+  host: \$PGHOST
+  username: redmine
+  password: \$RMPSWD
+  encoding: utf8
+EOFF
+
+cd \$PHOME/redmine
+bundle install --without development test rmagick
+
+bundle exec rake generate_secret_token
+bundle exec rake db:migrate
+bundle exec rake redmine:load_default_data
+
+mkdir -p \$PHOME/redmine/{tmp,tmp/pdf,public/plugin_assets}
+chown -R redmine:http \$PHOME/redmine
+chmod -R o-rwx \$PHOME/redmine
+chmod -R 755 \$PHOME/redmine/{files,log,tmp,public/plugin_assets}
+
+( cd \$PHOME/redmine/plugins && git clone https://Zopieux@bitbucket.org/Zopieux/redmine_sso_auth.git )
+
+cd /root/sadm
+python install.py redmine udbsync_redmine
+
+( cd \$PHOME/redmine && exec rake redmine:plugins:migrate )
+
+systemctl enable redmine && systemctl start redmine
+systemctl enable udbsync_redmine && systemctl start udbsync_redmine
+systemctl reload nginx
+EOF
+
+  chmod +x $CONTAINER_ROOT/root/setup_redmine.sh
+  container_run /root/setup_redmine.sh
+
+  container_snapshot $FUNCNAME
+}
+
+function test_redmine {
+  echo "[>] Test redmine..."
+
+  test_service_is_enabled_active redmine udbsync_redmine
+}
+
+
 # "container" script
 if ! machinectl >/dev/null status $GW_CONTAINER_NAME; then
   echo >&2 "Please start the GW container"
@@ -106,29 +195,31 @@ if ! machinectl >/dev/null status $GW_CONTAINER_NAME; then
   exit 1
 fi
 
-skip container_stop
-skip stage_setup_container
-skip stage_boostrap_arch_linux
-skip container_start
+run container_stop
+run stage_setup_container
+run stage_boostrap_arch_linux
+run container_start
 
-skip stage_add_to_mdb
-skip stage_allow_root_ssh
+run stage_add_to_mdb
+run stage_allow_root_ssh
 
-skip stage_copy_sadm
+run stage_copy_sadm
 
-skip stage_setup_sadm
-skip test_sadm
+run stage_setup_sadm
+run test_sadm
 
-skip stage_setup_libprologin
-skip test_libprologin
+run stage_setup_web
 
-skip stage_setup_network
-skip test_network
+run stage_setup_libprologin
+run test_libprologin
 
-skip stage_setup_nginx
-skip test_nginx
+run stage_setup_network
+run test_network
 
-restore stage_setup_postgresql
+run stage_setup_nginx
+run test_nginx
+
+run stage_setup_postgresql
 run test_postgresql
 
 run stage_setup_concours
@@ -136,3 +227,7 @@ run test_concours
 
 run stage_setup_masternode
 run test_masternode
+
+# Skipped as not ready yet
+skip stage_setup_redmine
+skip test_redmine

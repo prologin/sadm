@@ -62,7 +62,7 @@ else
     tar --strip-components=1 --directory="$root_dir" -xf archlinux-bootstrap-$ARCH_RELEASE_DATE-x86_64.tar.gz
   )
 
-  systemd-nspawn --quiet --directory "$root_dir" /usr/bin/pacman-key --init
+  systemd-nspawn --quiet --directory "$root_dir" --bind /dev/urandom:/dev/random /usr/bin/pacman-key --init
   systemd-nspawn --quiet --directory "$root_dir" /usr/bin/pacman-key --populate archlinux
 fi
 

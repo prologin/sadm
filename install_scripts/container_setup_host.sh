@@ -32,9 +32,6 @@ EOF
 
   echo "[-] Restart systemd-networkd"
   systemctl restart systemd-networkd
-
-  echo "[-] Generate almost infinite amount of good enough pseudorandom numbers"
-  ln -sf /dev/urandom /dev/random
 }
 
 container_setup_host
