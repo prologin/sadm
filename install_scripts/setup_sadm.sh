@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Setup common SADM setup for all systems
+# Install common SADM setup for all systems
 
 set -e
 
@@ -22,14 +22,16 @@ pacman -Sy
 
 # Packages we expect to have installed on all the systems
 echo '[+] Installing packages from the Arch Linux repositories'
-pacman -S --needed --noconfirm base-devel                                   \
-    git python python2 python-pip python-virtualenv libyaml libxslt         \
-    postgresql-libs dhcp bind sqlite postgresql-libs pwgen ipset postgresql \
-    nbd tftp-hpa dnsutils rsync tcpdump strace wget ethtool tree            \
-    mtr iperf atop htop iotop iftop nethogs conntrack-tools
+pacman -S --needed --noconfirm base-devel git python python2 python-pip \
+    python-virtualenv libyaml libxslt postgresql-libs sqlite postgresql-libs \
+    pwgen dnsutils rsync tcpdump strace wget ethtool tree mtr iperf atop htop \
+    iotop iftop nethogs
 
 echo '[+] Installing packages from the Prologin Arch Linux repository'
 pacman -S --needed --noconfirm bash-eternal-history
+
+echo '[+] Installing packages required for monitoring'
+pacman -S --needed --noconfirm prometheus-node-exporter-git
 
 echo '[+] Installing sadm'
 mkdir -p /var/prologin

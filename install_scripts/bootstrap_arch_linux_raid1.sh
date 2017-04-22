@@ -7,7 +7,7 @@ echo
 echo "Press enter to start..."
 read
 
-echo -n '[?] Type new system hostname (e.g. gw or rhfsAB): ' && read hostname
+echo -n '[?] Type new system hostname (e.g. gw or rhfsA): ' && read hostname
 echo -n '[?] Type new system root password: ' && read -s root_password
 echo
 

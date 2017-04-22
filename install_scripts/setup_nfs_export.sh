@@ -32,9 +32,6 @@ mkinitcpio -p linux || true  # some hooks are really missing (e.g. fsck.brtfs)
 echo '[+] Load nbd driver at startup'
 echo nbd > /etc/modules-load.d/nbd.conf
 
-echo '[+] Install base userspace packages'
-pacman -Sy --needed --noconfirm xorg xorg-drivers sddm
-
 echo '[+] Configure the system for SADM (setup_sadm.sh)'
 ./install_scripts/setup_sadm.sh
 
