@@ -164,6 +164,9 @@ function stage_install_hfs {
   echo "[-] Enable and start hfs@$RHFS_ID"
   container_run /usr/bin/systemctl enable --now hfs@$RHFS_ID
 
+  # Wait for HFS to start
+  sleep 3
+
   container_snapshot $FUNCNAME
 }
 
@@ -219,8 +222,6 @@ run test_install_rfs
 
 run stage_install_hfs
 run test_install_hfs
-
-run stage_copy_sadm # XXX
 
 run stage_install_rfs_nfs_packages_base
 run test_rfs_nfs_packages_base
