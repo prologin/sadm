@@ -15,7 +15,7 @@ echo '[+] Generate host ssh keys'
 ssh-keygen -A
 
 echo '[+] Install packages for diskless boot'
-pacman -Sy --needed --noconfirm mkinitcpio-nfs-utils
+pacman -Sy --needed --noconfirm mkinitcpio-nfs-utils nbd
 
 echo '[+] Install packages we will configure'
 pacman -Sy --needed --noconfirm sddm
