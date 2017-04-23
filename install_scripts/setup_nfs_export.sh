@@ -17,6 +17,9 @@ ssh-keygen -A
 echo '[+] Install packages for diskless boot'
 pacman -Sy --needed --noconfirm mkinitcpio-nfs-utils
 
+echo '[+] Install packages we will configure'
+pacman -Sy --needed --noconfirm sddm
+
 echo '[+] Add initrd hooks and modules'
 sed -e 's:^HOOKS.*:HOOKS="base udev autodetect modconf net block filesystems keyboard fsck prologin":g' \
     -e 's:^MODULES.*:MODULES="nfsv3":g' -i /etc/mkinitcpio.conf
