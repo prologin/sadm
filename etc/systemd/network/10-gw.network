@@ -14,5 +14,3 @@ IPForward=yes
 
 # Gather LLDP packets
 LLDP=yes
-# Broadcast LLDP information
-EmitLLDP=customer-bridge
