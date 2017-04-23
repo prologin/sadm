@@ -647,7 +647,7 @@ To bootstrap a rhfs, ``rhfs01`` for example, follow this procedure:
    address of the second NIC in the rhfs, it shoud have the following aliases:
    ``hfs1,rfs1``.
 #. Reboot the machine and boot an Arch Linux install media.
-#. Follow the same file system setup step as for GW: see :ref:`basic_fs_setup`.
+#. Follow the same first setup step as for ``gw``: see :ref:`basic_fs_setup`.
 
 Step 3: booting the user machines
 ---------------------------------
@@ -834,6 +834,11 @@ it in the NFS export.  The required packages are ``stechec`` and
 Linux repository::
 
   pacman -S prologin/stechec2 prologin/stechec2-makefiles -r /export/nfsroot_staging
+
+.. note::
+
+  The rfs setup script (``setup_nfs_export.sh``, ran by ``install.py
+  rfs_nfs_sadm``, alredy did this step.
 
 Then, still for the users machines, install ``workernode``::
 
