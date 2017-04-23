@@ -471,6 +471,12 @@ function stage_firewall {
   container_snapshot $FUNCNAME
 }
 
+function test_firewall {
+  echo '[>] Test firewall... '
+
+  test_service_is_enabled_active firewall
+}
+
 function stage_setup_presencesync_firewall {
   echo_status 'Install presencesync firewall'
 
@@ -484,13 +490,11 @@ function stage_setup_presencesync_firewall {
 }
 
 function test_presencesync_firewall {
-}
+  echo '[>] Test presencesync firewall... '
 
-function test_firewall {
-  echo '[>] Test firewall... '
-
-  test_service_is_enabled_active firewall
   test_service_is_enabled_active presencesync_firewall
+
+  #TODO
 }
 
 function stage_hfsdb {
