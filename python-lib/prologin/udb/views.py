@@ -19,6 +19,7 @@ import prologin.config
 import prologin.rpc.server
 import prologin.udb.receivers  # To connect our receivers
 from prologin.udb.models import User
+from prologin.utils.django import check_filter_fields
 
 CFG = prologin.config.load('udb-client-auth')
 
@@ -30,11 +31,7 @@ class UDBServer(prologin.rpc.server.BaseRPCApp):
 
     def get_users(self, **kwargs):
         fields = {'login', 'uid', 'group', 'shell', 'ssh_key'}
-        for q in kwargs:
-            base = q.split('_')[0]
-            if base not in fields:
-                raise ValueError('%r is not a valid query argument' % q)
-
+        check_filter_fields(fields, kwargs)
         users = User.objects.filter(**kwargs)
         users = [m.to_dict() for m in users]
         return users

@@ -18,3 +18,9 @@
 def get_request_args(request):
     '''Returns a dict containing the arguments of a request from GET/POST.'''
     return {k: v[0] for k, v in {**request.POST, **request.GET}.items() if v}
+
+def check_filter_fields(fields, kwargs):
+    for q in kwargs:
+        base = q.split('_')[0]
+        if base not in fields:
+            raise ValueError('%r is not a valid query argument' % q)
