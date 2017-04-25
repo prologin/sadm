@@ -92,7 +92,13 @@ class RemoteCallHandler:
 
     @monitoring._observe_rpc_call_in
     async def __call__(self):
-        data = await self.request.json()
+        data = {'args': [], 'kwargs': {}}
+        if self.request.method == 'POST':
+            try:
+                data.update(await self.request.json())
+            except json.decoder.JSONDecodeError as exn:
+                self._raise_exception(exn)
+
         self._log_call(data)
 
         method = await self._get_method()
