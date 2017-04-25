@@ -5,7 +5,8 @@ source ./common.sh
 this_script_must_be_run_as_root
 
 # Configuration variables
-CONTAINER_HOSTNAME=gw.prolo
+CONTAINER_HOSTNAME=gw
+GW_CONTAINER_NAME=gw
 CONTAINER_NAME=mygw
 
 source ./container_setup_common.sh
@@ -14,7 +15,7 @@ container_script_header
 
 # Setup stages
 function stage_container_gw_network {
-  echo '[+] Stage setup basic container network'
+  echo_status 'Stage setup basic container network'
 
   echo "[-] Write static ip container network systemd-networkd configuration"
   cat >$CONTAINER_ROOT/etc/systemd/network/40-gw-container-static.network <<EOF
@@ -38,7 +39,7 @@ function test_container_gw_network {
 }
 
 function stage_setup_sadm {
-  echo "[+] Copy $SADM_ROOT_DIR to the container"
+  echo_status "[+] Copy $SADM_ROOT_DIR to the container"
   cp -r $SADM_ROOT_DIR $CONTAINER_ROOT/root/sadm
 
   echo "[-] Start sadm setup script"
@@ -51,11 +52,11 @@ function test_sadm {
   echo '[>] Test SADM... '
 
   echo '[>] sadm directory exists'
-  container_run_quiet /usr/bin/test -d /root/sadm
+  test_file_present /root/sadm
 }
 
 function stage_setup_network {
-  echo '[+] Stage setup network'
+  echo_status 'Stage setup network'
 
   echo '[-] Install SADM network setup'
   container_run /var/prologin/venv/bin/python /root/sadm/install.py systemd_networkd_gw nic_configuration conntrack
@@ -85,70 +86,19 @@ function test_network {
   test_service_is_enabled_active conntrack
 
   echo -n '[>] Check internet access '
-  if ! container_run_quiet /usr/bin/curl https://gstatic.com/generate_204; then
-    echo_ko "FAIL"
-    return 1
-  else
-    echo_ok "PASS"
-  fi
+  test_url https://gstatic.com/generate_204
 
   echo -n '[>] Check gw.prolo IPs '
-  if ! container_run_quiet /usr/bin/ip address show host0 | grep -q 192.168.1.254; then
+  if ! machinectl status $CONTAINER_NAME | grep -q '192.168.1.254'; then
     echo_ko "FAIL"
     return 1
   else
     echo_ok "PASS"
   fi
-}
-
-function stage_setup_postgresql {
-  echo '[+] Stage setup postgresql'
-
-  echo '[-] Configure postgresql'
-  container_run /var/prologin/venv/bin/python install.py postgresql
-
-  echo '[-] Enable and start the postgresql service'
-  container_run /usr/bin/systemctl enable --now postgresql
-
-  container_snapshot $FUNCNAME
-}
-
-function test_postgresql {
-  echo '[>] Test postgresql... '
-
-  test_service_is_enabled_active postgresql
-
-  echo -n '[>] Connect to postgresql '
-  if ! container_run_quiet /usr/bin/psql -U postgres -c '\l'; then
-    echo_ko "FAIL"
-    return 1
-  else
-    echo_ok "PASS"
-  fi
-}
-
-function stage_setup_nginx {
-  echo '[+] Stage setup nginx'
-
-  container_run /usr/bin/pacman -S --noconfirm openresty
-
-  container_run /var/prologin/venv/bin/python install.py nginxcfg
-  container_run /usr/bin/mv /etc/nginx/nginx.conf{.new,}
-
-  echo '[-] Enable nginx'
-  container_run /usr/bin/systemctl enable --now nginx
-
-  container_snapshot $FUNCNAME
-}
-
-function test_nginx {
-  echo '[>] Test nginx... '
-
-  test_service_is_enabled_active nginx
 }
 
 function stage_setup_mdb {
-  echo '[+] Install mdb'
+  echo_status 'Install mdb'
   echo '127.0.0.1 mdb' >> $CONTAINER_ROOT/etc/hosts
   container_run /var/prologin/venv/bin/python install.py mdb
 
@@ -176,7 +126,7 @@ function test_mdb {
 }
 
 function stage_setup_mdbsync {
-  echo '[+] Install mdbsync'
+  echo_status 'Install mdbsync'
   container_run /var/prologin/venv/bin/python install.py mdbsync
   echo '127.0.0.1 mdbsync' >> $CONTAINER_ROOT/etc/hosts
 
@@ -196,7 +146,7 @@ function test_mdbsync {
 }
 
 function stage_setup_mdbdns {
-  echo '[+] Install mdbdns'
+  echo_status 'Install mdbdns'
   container_run /var/prologin/venv/bin/python install.py mdbdns
 
   container_run /usr/bin/mv /etc/named.conf{.new,}
@@ -247,7 +197,7 @@ function test_mdbdns {
 }
 
 function stage_setup_mdbdhcp {
-  echo '[+] Install mdbdhcp'
+  echo_status 'Install mdbdhcp'
   container_run /var/prologin/venv/bin/python install.py mdbdhcp
 
   echo '[-] Enable and start the mdbdhcp service'
@@ -275,7 +225,7 @@ function test_mdbdhcp {
 }
 
 function stage_netboot {
-  echo '[+] Install netboot'
+  echo_status 'Install netboot'
   container_run /var/prologin/venv/bin/python install.py netboot
 
   echo '[-] Enable and start the netboot service'
@@ -293,7 +243,7 @@ function test_netboot {
 }
 
 function stage_tftpd {
-  echo '[+] Install tftpd'
+  echo_status 'Install tftpd'
 
   echo '[-] Enable and start the tftpd socket'
   container_run /usr/bin/systemctl enable --now tftpd.socket
@@ -307,13 +257,13 @@ function test_tftpd {
   test_service_is_enabled_active tftpd.socket
 
   echo '[>] tftpd directory exists'
-  container_run_quiet /usr/bin/test -d /srv/tftp
+  test_file_present /srv/tftp
 
   # TODO test tftp
 }
 
 function stage_ipxe {
-  echo '[+] Install ipxe'
+  echo_status 'Install ipxe'
 
   container_run /usr/bin/pacman -S --noconfirm ipxe-sadm-git
 
@@ -324,11 +274,11 @@ function test_ipxe {
   echo '[>] Test ipxe... '
 
   echo '[>] ipxe image file exists'
-  container_run_quiet /usr/bin/test -e /srv/tftp/prologin.kpxe
+  test_file_present /srv/tftp/prologin.kpxe
 }
 
 function stage_udb {
-  echo '[+] Install udb'
+  echo_status 'Install udb'
 
   echo '[-] Configure udb'
   container_run /var/prologin/venv/bin/python /root/sadm/install.py udb
@@ -338,33 +288,6 @@ function stage_udb {
 
   echo '[-] Reload nginx'
   container_run /usr/bin/systemctl reload nginx
-
-  echo '[-] Create dummy user files'
-  cat >$CONTAINER_ROOT/root/finalistes.txt <<EOF
-Alain	Proviste
-Joseph	Marchand
-EOF
-
-  cat >$CONTAINER_ROOT/root/orgas.txt <<EOF
-cana_p
-login_x
-EOF
-
-  cat >$CONTAINER_ROOT/root/roots.txt <<EOF
-lu_k
-EOF
-
-  echo '[-] Start batch import for users'
-  container_run /var/prologin/venv/bin/python /var/prologin/udb/manage.py \
-    batchimport --file=/root/finalistes.txt
-
-  echo '[-] Start batch import for orgas'
-  container_run /var/prologin/venv/bin/python /var/prologin/udb/manage.py \
-    batchimport --logins --type=orga --pwdlen=10 --file=/root/orgas.txt
-
-  echo '[-] Start batch import for root'
-  container_run /var/prologin/venv/bin/python /var/prologin/udb/manage.py \
-    batchimport --logins --type=root --pwdlen=10 --file=/root/roots.txt
 
   container_snapshot $FUNCNAME
 }
@@ -387,8 +310,81 @@ function test_udb {
     pwdsheetdata --type=root
 }
 
+function stage_add_users_to_udb {
+  echo_status "Add users to udb"
+
+  echo '[-] Create dummy user files'
+  cat >$CONTAINER_ROOT/root/finalistes.txt <<EOF
+Alain	Proviste
+Joseph	Marchand
+EOF
+
+  cat >$CONTAINER_ROOT/root/orgas.txt <<EOF
+cana_p
+login_x
+EOF
+
+  cat >$CONTAINER_ROOT/root/roots.txt <<EOF
+root_gw
+nathalie
+krisboul
+marwan
+EOF
+
+  echo '[-] Start batch import for users'
+  container_run /var/prologin/venv/bin/python /var/prologin/udb/manage.py \
+    batchimport --file=/root/finalistes.txt
+
+  echo '[-] Start batch import for orgas'
+  container_run /var/prologin/venv/bin/python /var/prologin/udb/manage.py \
+    batchimport --logins --type=orga --pwdlen=10 --file=/root/orgas.txt
+
+  echo '[-] Start batch import for root'
+  container_run /var/prologin/venv/bin/python /var/prologin/udb/manage.py \
+    batchimport --logins --type=root --pwdlen=10 --file=/root/roots.txt
+
+  container_snapshot $FUNCNAME
+}
+
+function test_users_in_udb {
+  echo '[>] Test users in udb'
+
+  #TODO
+}
+
+function stage_create_root_ssh_key {
+  echo_status 'Create root@gw.prolo ssh credentials'
+
+  # quiet, empty passphrase
+  container_run_simple /usr/bin/ssh-keygen -t rsa -f /root/.ssh/id_rsa -q -N ''
+
+  container_snapshot $FUNCNAME
+}
+
+function test_root_ssh_key {
+  echo '[>] Test root@gw.prolo ssh files... '
+
+  test_file_present /root/.ssh/id_rsa
+  test_file_present /root/.ssh/id_rsa.pub
+}
+
+function stage_add_ssh_key_to_udb {
+  echo_status 'Add root@gw.prolo ssh fingerprint key to udb'
+
+  container_run /var/prologin/venv/bin/python /var/prologin/udb/manage.py \
+    usermod root_gw --ssh-pubkey-file /root/.ssh/id_rsa.pub
+
+  container_snapshot $FUNCNAME
+}
+
+function test_ssh_key_udb {
+  echo '[>] Test root@gw.prolo udb ssh fingerprint... '
+
+  #TODO
+}
+
 function stage_udbsync {
-  echo '[+] Install udbsync'
+  echo_status 'Install udbsync'
 
   echo '[-] Configure udbsync'
   container_run /var/prologin/venv/bin/python /root/sadm/install.py udbsync
@@ -411,7 +407,7 @@ function test_udbsync {
 }
 
 function stage_udbsync_clients {
-  echo '[+] Install udbsync clients'
+  echo_status 'Install udbsync clients'
 
   echo '[-] Configure udbsync_django udbsync_rootssh'
   container_run /var/prologin/venv/bin/python /root/sadm/install.py udbsync_django udbsync_rootssh
@@ -439,7 +435,7 @@ function test_udbsync_clients {
 }
 
 function stage_presencesync {
-  echo '[+] Install presencesync'
+  echo_status 'Install presencesync'
 
   echo '[-] Configure presencesync'
   container_run /var/prologin/venv/bin/python /root/sadm/install.py presencesync
@@ -462,7 +458,7 @@ function test_presencesync {
 }
 
 function stage_presencesync_cacheserver {
-  echo '[+] Install presencesync cacheserver'
+  echo_status 'Install presencesync cacheserver'
 
   echo '[-] Configure presencesync cacheserver'
   container_run /var/prologin/venv/bin/python /root/sadm/install.py presencesync_cacheserver
@@ -485,7 +481,7 @@ function test_presencesync_cacheserver {
 }
 
 function stage_sso {
-  echo '[+] Install sso'
+  echo_status 'Install sso'
 
   #TODO edit nginx.conf and enable SSO
 
@@ -498,7 +494,7 @@ function test_sso {
 }
 
 function stage_firewall {
-  echo '[+] Install firewall'
+  echo_status 'Install firewall'
 
   echo '[-] Configure firewall'
   container_run /var/prologin/venv/bin/python /root/sadm/install.py firewall
@@ -523,7 +519,7 @@ function test_firewall {
 }
 
 function stage_hfsdb {
-  echo '[+] Install hfsdb'
+  echo_status 'Install hfsdb'
 
   echo '[-] Configure hfsdb'
   container_run /var/prologin/venv/bin/python /root/sadm/install.py hfsdb
@@ -539,32 +535,32 @@ function test_hfsdb {
 
 
 # "container" script
-run container_stop
-run stage_setup_host
-run stage_boostrap_arch_linux
-run container_start
+skip container_stop
+skip stage_setup_host
+skip stage_boostrap_arch_linux
+skip container_start
 
-run stage_container_gw_network
-run test_container_gw_network
+skip stage_container_gw_network
+skip test_container_gw_network
 
-run stage_copy_sadm
+skip stage_copy_sadm
 
-run stage_setup_sadm
-run test_sadm
+skip stage_setup_sadm
+skip test_sadm
 
-run stage_setup_libprologin
-run test_libprologin
+skip stage_setup_libprologin
+skip test_libprologin
 
-run stage_setup_network
-run test_network
+skip stage_setup_network
+skip test_network
 
-run stage_setup_postgresql
-run test_postgresql
+skip stage_setup_postgresql
+skip test_postgresql
 
-run stage_setup_nginx
-run test_nginx
+skip stage_setup_nginx
+skip test_nginx
 
-run stage_setup_mdb
+restore stage_setup_mdb
 run test_mdb
 
 run stage_setup_mdbsync
@@ -588,6 +584,15 @@ run test_ipxe
 run stage_udb
 run test_udb
 
+run stage_create_root_ssh_key
+run test_root_ssh_key
+
+run stage_add_users_to_udb
+run test_users_in_udb
+
+run stage_add_ssh_key_to_udb
+run test_ssh_key_udb
+
 run stage_udbsync
 run test_udbsync
 
@@ -609,5 +614,7 @@ run test_firewall
 run stage_hfsdb
 run test_hfsdb
 
-# Get passwords
+container_run_verbose /root/sadm/checks/check_gw.sh
+
+# Display passwords
 run test_udb

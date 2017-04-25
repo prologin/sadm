@@ -79,6 +79,8 @@ is easier to set up at one single place.
 The very first step is to install an Arch Linux system for ``gw``.  We have
 scripts to make this task fast and easy.
 
+.. _basic_fs_setup:
+
 Basic system: file system setup
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -170,7 +172,7 @@ Basic system: SADM
 
 We will now start to install and configure everything that is Prologin-specific.
 
-  curl https://bitbucket.org/prologin/sadm/raw/master/install_scripts/bootstrap_sadm.sh | bash
+  curl https://raw.githubusercontent.com/prologin/sadm/master/install_scripts/bootstrap_sadm.sh | bash
 
 This script will install packages required by sadm and create a python virtual
 environment. Each time you log into a new system, activate the virtualenv::
@@ -218,7 +220,7 @@ For more information, see the `systemd-networkd documentation
 
 Then, install them::
 
-  python install.py networkd nic_configuration conntrack
+  python install.py networkd_gw nic_configuration conntrack
   systemctl enable --now systemd-networkd conntrack
   # `prologin` is the name of the interface to apply the configuration
   systemctl enable --now nic_configuration@prologin
@@ -614,10 +616,18 @@ Step 2: file storage
     hostname of the rhfs that hosts hfs ``0`` and hfs ``1`` will have the
     following hostname: ``rhfs01``.
 
-The ``rfs/install.sh`` script will configure a rhfs automatically. You should
-edit it to set the ``root`` password.
+A RHFS, for "root/home file server", has the following specifications:
 
-In order to add a rhfs, ``rhfs01`` for example, follow this procedure:
+- It is connected to two switches, handling two separates L2 segments. As such,
+  the machine on a L2 segment is only 1 switch away from it RHFS. This is a
+  good thing as it reduces the network latency, reduces the risk if one the
+  switches in the room fails and simplyfies debugging network issues.
+  It also mean that a RHFS will be physically near the machines it handles,
+  pretty useful for debugging, although you will mostly work using SSH.
+- Two NICs configured using DHCP, each of them connected to a different switch.
+- Two disks in RAID1 setup, same as gw.
+
+To bootstrap a rhfs, ``rhfs01`` for example, follow this procedure:
 
 #. Boot the machine using PXE and register it into ``mdb`` as ``rhfs01``.
 #. Go to ``mdb/`` and add aliases for the NIC you just registered:
@@ -625,8 +635,9 @@ In order to add a rhfs, ``rhfs01`` for example, follow this procedure:
    address of the second NIC in the rhfs, it shoud have the following aliases:
    ``hfs1,rfs1``.
 #. Reboot the machine and boot an Arch Linux install media.
-#. Download ``rfs/install.sh`` and run it.
-#. Reboot
+#. Follow the same file system setup step as for GW: see :ref:`basic_fs_setup`.
+#. Run ``install_scripts/setup_rfs.sh`` to finish perform the last bits of
+   configuration.
 
 Step 3: booting the user machines
 ---------------------------------
@@ -642,12 +653,15 @@ Installing the RHFS
 The basic install process is already documented through the
 `ArchLinux Diskless Installation`_. For conveniance, use::
 
-  # Install the udbsync clients for rhfs
-  python install.py udbsync_rfs
-  # Edit the root password of the users machines
-  $EDITOR rfs/rfs.sh
+  # Install Arch Linux packages for RFS
+  ./install_scripts/setup_rfs.sh
   # Setup the rhfs server, install the exported rootfs
   python install.py rfs
+  # Enable the services we just installed:
+  for svc in {udbsync_passwd{,_nfsroot},udbsync_rootssh,rpcbind,nfs-server}.service rootssh.path; do
+    echo "[-] Enable $svc"
+    systemctl enable --now "$svc"
+  done
 
 The installation script will bootstrap a basic archlinux system in
 ``/export/nfsroot`` with a few packages, a prologin hook that creates tmpfs at
@@ -689,7 +703,7 @@ On every ``rhfs`` machine, install the hfs server::
   # Change HFS_ID to what you need
   systemctl enable --now hfs@HFS_ID
 
-Then, setup the skeleton of a user home:
+Then, setup the skeleton of a user home::
 
   cp -r STECHEC_BUILD_DIR/home_env /export/skeleton
 
@@ -725,7 +739,7 @@ so you wouldn't want to mount a NFS on it for example). This machine is named
 ``web.prolo``.
 
 Once again, register a server on mdb and set up a standard Arch system. Add the
-following alliases on ``mdb`` ::
+following alliases in ``mdb``::
 
   db,concours,wiki,bugs,redmine,docs,home,paste,map,masternode
 
@@ -734,9 +748,10 @@ You will want to ssh at this machine, so enable ``udbync_rootssh``::
   python install.py udbsync_rootssh
   systemctl enable --now udbsync_rootssh
 
-We'll now compile our custom version of openresty, or if it was already done
-during gw setup, install it directly. For this step, see
-:ref:`openresty in the common tasks section <common-openresty>`.
+Then install another openresty instance from the Prologin Arch Linux
+repository::
+
+  pacman -S openresty
 
 Then, install the ``nginx`` configuration from the repository::
 

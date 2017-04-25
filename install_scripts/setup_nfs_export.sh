@@ -5,6 +5,8 @@
 
 set -e
 
+cd /root/sadm
+
 echo '[+] Configure systemd-logind'
 sed -e 's:^#KillUserProcesses=no:KillUserProcesses=yes:' \
     -e 's:^#KillExcludeUsers=root:KillExcludeUsers=root:' -i /etc/systemd/logind.conf
@@ -12,23 +14,38 @@ sed -e 's:^#KillUserProcesses=no:KillUserProcesses=yes:' \
 echo '[+] Generate host ssh keys'
 ssh-keygen -A
 
+echo '[+] Install packages for diskless boot'
+pacman -Sy --needed --noconfirm mkinitcpio-nfs-utils
+
 echo '[+] Add initrd hooks and modules'
-sed -e 's:^HOOKS.*:HOOKS="base udev autodetect modconf block filesystems keyboard fsck prologin":g' \
+sed -e 's:^HOOKS.*:HOOKS="base udev autodetect modconf net block filesystems keyboard fsck prologin":g' \
     -e 's:^MODULES.*:MODULES="nfsv3":g' -i /etc/mkinitcpio.conf
 
-echo '[+] Regenerate an initramfs with SADM configuration'
-mkinitcpio -p linux
+echo '[+] Copy initrd configuration for diskless boot'
+# TODO: use relative paths
+cp rfs/initcpio/hooks/prologin /lib/initcpio/hooks/prologin
+cp rfs/initcpio/install/prologin /lib/initcpio/install/prologin
+
+echo '[+] Regenerate an initramfs for diskless boot'
+mkinitcpio -p linux || true  # some hooks are really missing (e.g. fsck.brtfs)
 
 echo '[+] Load nbd driver at startup'
 echo nbd > /etc/modules-load.d/nbd.conf
 
+echo '[+] Install base userspace packages'
+pacman -Sy --needed --noconfirm xorg xorg-drivers sddm
+
 echo '[+] Configure the system for SADM (setup_sadm.sh)'
-./setup_sadm.sh
+./install_scripts/setup_sadm.sh
 
 source /var/prologin/venv/bin/activate
 python install.py libprologin
 python install.py presenced
+python install.py workernode
 python install.py sddmcfg
 
-echo 'Enable some services'
-systemctl enable presenced sddm
+echo '[+] Enable systemd services'
+systemctl enable presenced sddm workernode
+
+echo '[+] Disable systemd-networkd, use static IP from NFS boot'
+systemctl disable systemd-networkd
