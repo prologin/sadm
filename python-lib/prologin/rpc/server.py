@@ -12,12 +12,12 @@
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 import aiohttp.web
+import functools
 import inspect
 import json
+import logging
 import sys
 import traceback
-import types
-import logging
 
 import prologin.web
 
@@ -30,11 +30,13 @@ class MethodError(Exception):
     """
     pass
 
+
 class BadToken(Exception):
     """Exception used to notice the remote callers that the timeauth token
     is wrong or has expired.
     """
     pass
+
 
 class MissingToken(Exception):
     """Exception used to notice the remote callers that the timeauth token
@@ -43,10 +45,14 @@ class MissingToken(Exception):
     pass
 
 
-def remote_method(func):
+def remote_method(func=None, *, auth_required=True):
     """Decorator for methods to be callable remotely."""
+    if func is None:
+        return functools.partial(remote_method, auth_required=auth_required)
     func.remote_method = True
+    func.auth_required = auth_required
     return func
+
 
 def is_remote_method(obj):
     """Return if a random object is a remote method."""
@@ -89,8 +95,10 @@ class RemoteCallHandler:
         data = await self.request.json()
         self._log_call(data)
 
-        await self._check_secret(data)
         method = await self._get_method()
+        if method.auth_required:
+            await self._check_secret(data)
+
         result = await self._call_method(method, data)
 
         return (await self._send_result_data(result))
@@ -145,7 +153,7 @@ class RemoteCallHandler:
                                     content_type='application/json')
 
     def _raise_exception(self, exn, tb=None,
-                               http_error=aiohttp.web.HTTPInternalServerError):
+                         http_error=aiohttp.web.HTTPInternalServerError):
         data = {
             'type': 'exception',
             'exn_type': type(exn).__name__,
