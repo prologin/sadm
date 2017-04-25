@@ -17,98 +17,14 @@
 
 """Client library for the Machine Database (MDB)."""
 
-import json
 import logging
 import prologin.config
-import requests
-import urllib.parse
+import prologin.rpc.client
 
 CFG = prologin.config.load('mdb-client')
-
-
-class RegistrationError(Exception):
-    def __init__(self, message):
-        super(RegistrationError, self).__init__()
-        self.message = message
-
-
-class _MDBClient:
-    """Internal MDB client class. Use mdb.connect() to create a MDB client
-    object.
-    """
-
-    def __init__(self, url):
-        self.url = url
-
-    def _submit_rpc(self, path, data=None):
-        """Sends a RPC to the mdb. Passes authentication data if available.
-
-        Args:
-          path: Server path of the RPC (from self.url).
-          data: Optional data dictionary to POST.
-        """
-        url = urllib.parse.urljoin(self.url, path)
-        params = { 'data': data }
-        r = requests.post(url, **params)
-        r.raise_for_status()
-        return r.json()
-
-    def query(self, **kwargs):
-        """Query the MDB using the Django query syntax. The possible fields
-        are:
-          hostname: the machine name and any of its aliases
-          ip: the machine IP address
-          aliases: the machine aliases
-          mac: the machine MAC address
-          rfs: nearest root file server
-          hfs: nearest home file server
-          mtype: machine type, either user/orga/cluster/service
-          room: physical room location, either pasteur/alt/cluster/other
-        """
-        fields = { 'hostname', 'ip', 'aliases', 'mac', 'rfs', 'hfs', 'mtype',
-                   'room' }
-        for q in kwargs:
-            base = q.split('_')[0]
-            if base not in fields:
-                raise ValueError('%r is not a valid query argument' % q)
-        try:
-            post_data = json.dumps(kwargs)
-        except TypeError:
-            raise ValueError('non serializable argument type')
-        return self._submit_rpc('/query', data=kwargs)
-
-    def switches(self, **kwargs):
-        """Query the MDB for switches using the Django query syntax. The
-        possible fields are:
-
-          name: the name of the switch
-          chassis: the chassis ID
-          rfs: associated root file server
-          hfs: associated home file server
-          room: physical room location, either pasteur/alt/cluster/other
-        """
-        fields = {'name', 'chassis', 'rfs', 'hfs', 'room'}
-        for q in kwargs:
-            base = q.split('_')[0]
-            if base not in fields:
-                raise ValueError('%r is not a valid query argument' % q)
-        try:
-            post_data = json.dumps(kwargs)
-        except TypeError:
-            raise ValueError('non serializable argument type')
-        return self._submit_rpc('/switches', data=kwargs)
-
-    def register(self, qs):
-        """Register a machine to MDB, transmitting the query string.
-
-        Raise a RegistrationError on failure. Return None if successful.
-        """
-        r = requests.get(self.url + 'register?' + qs)
-        if r.status_code != 200:
-            raise RegistrationError(r.text)
 
 
 def connect():
     url = CFG['url']
     logging.info('Creating MDB connection object: url=%s' % url)
-    return _MDBClient(url)
+    return prologin.rpc.client.SyncClient(CFG['url'])

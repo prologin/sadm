@@ -15,68 +15,77 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
-import json
+import prologin.rpc.server
 import prologin.mdb.receivers  # To connect our receivers
-
-from django.http import HttpResponse, HttpResponseForbidden
-from django.http import HttpResponseBadRequest, HttpResponseServerError
-from django.views.decorators.csrf import csrf_exempt
 from prologin.mdb.models import Machine, Switch, VolatileSetting
-from prologin.utils.django import get_request_args
+from prologin.utils.django import check_filter_fields
 
 
-@csrf_exempt
-def query(request):
-    args = get_request_args(request)
-    machines = Machine.objects.filter(**args)  # TODO(delroth): secure?
-    machines = [m.to_dict() for m in machines]
-    return HttpResponse(json.dumps(machines), content_type='application/json')
+class MDBServer(prologin.rpc.server.BaseRPCApp):
+    @prologin.rpc.remote_method(auth_required=False)
+    async def query(self, **kwargs):
+        """Query the MDB using the Django query syntax. The possible fields
+        are:
+          hostname: the machine name and any of its aliases
+          ip: the machine IP address
+          aliases: the machine aliases
+          mac: the machine MAC address
+          rfs: nearest root file server
+          hfs: nearest home file server
+          mtype: machine type, either user/orga/cluster/service
+          room: physical room location, either pasteur/alt/cluster/other
+        """
+        fields = {'hostname', 'ip', 'aliases', 'mac', 'rfs', 'hfs', 'mtype',
+                  'room'}
+        check_filter_fields(fields, kwargs)
 
+        machines = Machine.objects.filter(**kwargs)
+        machines = [m.to_dict() for m in machines]
+        return machines
 
-@csrf_exempt
-def switches(request):
-    args = get_request_args(request)
-    switches = Switch.objects.filter(**args)  # TODO(delroth): secure?
-    switches = [s.to_dict() for s in switches]
-    return HttpResponse(json.dumps(switches), content_type='application/json')
+    @prologin.rpc.remote_method(auth_required=False)
+    async def switches(self, **kwargs):
+        """Query the MDB for switches using the Django query syntax. The
+        possible fields are:
 
+          name: the name of the switch
+          chassis: the chassis ID
+          rfs: associated root file server
+          hfs: associated home file server
+          room: physical room location, either pasteur/alt/cluster/other
+        """
+        fields = {'name', 'chassis', 'rfs', 'hfs', 'room'}
+        check_filter_fields(fields, kwargs)
+        switches = Switch.objects.filter(**kwargs)
+        switches = [s.to_dict() for s in switches]
+        return switches
 
-@csrf_exempt
-def register(request):
-    try:
-        key = VolatileSetting.objects.get(key='allow_self_registration')
-        authorized = key.value_bool
-    except VolatileSetting.DoesNotExist:
-        authorized = False
+    @prologin.rpc.remote_method(auth_required=False)
+    async def register(self, hostname, mac, rfs, hfs, room, mtype):
+        try:
+            key = VolatileSetting.objects.get(key='allow_self_registration')
+            authorized = key.value_bool
+        except VolatileSetting.DoesNotExist:
+            authorized = False
 
-    args = get_request_args(request)
+        if not authorized:
+            raise RuntimeError('self registration is disabled')
 
-    if not authorized:
-        return HttpResponseForbidden('self registration is disabled',
-                                     content_type='text/plain')
+        machine = Machine()
+        machine.hostname = hostname
+        machine.mac = mac
+        machine.rfs = rfs
+        machine.hfs = hfs
+        machine.room = room
+        machine.mtype = mtype
+        try:
+            machine.allocate_ip()
+        except Exception:
+            raise RuntimeError('unable to allocate an IP address')
 
-    for field in ('hostname', 'mac', 'rfs', 'hfs', 'room', 'mtype'):
-        if field not in args:
-            return HttpResponseBadRequest('missing field %r' % field,
-                                          content_type='text/plain')
+        try:
+            machine.save()
+        except Exception:
+            raise RuntimeError('unable to register, duplicate name?')
 
-    machine = Machine()
-    machine.hostname = args['hostname']
-    machine.mac = args['mac']
-    machine.rfs = int(args['rfs'])
-    machine.hfs = int(args['hfs'])
-    machine.room = args['room']
-    machine.mtype = args['mtype']
-    try:
-        machine.allocate_ip()
-    except Exception:
-        return HttpResponseServerError('unable to allocate an IP address',
-                                       content_type='text/plain')
-
-    try:
-        machine.save()
-    except Exception:
-        return HttpResponseServerError('unable to register, duplicate name?',
-                                       content_type='text/plain')
-
-    return HttpResponse(machine.ip, content_type='text/plain')
+        return machine.ip

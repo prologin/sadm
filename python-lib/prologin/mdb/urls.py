@@ -15,18 +15,14 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-from prologin.mdb import views
 
 from prologin.djangoconf import set_admin_title
 set_admin_title(admin, "Machine Database")
 
 urlpatterns = [
-    url(r'^query$', views.query, name='mdbapi-query'),
-    url(r'^switches$', views.switches, name='mdbapi-switches'),
-    url(r'^register$', views.register, name='mdbapi-register'),
     url(r'', include('django_prometheus.urls')),
     url(r'', include(admin.site.urls)),
 ]

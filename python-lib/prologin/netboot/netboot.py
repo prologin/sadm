@@ -27,7 +27,6 @@ import os
 import prologin.config
 import prologin.log
 import prologin.mdb.client
-import requests
 import tornado.ioloop
 import tornado.web
 import tornado.wsgi
@@ -60,6 +59,7 @@ echo Registration done! Waiting for 30s and rebooting.
 sleep 30
 reboot
 """
+
 
 class BootHandler(tornado.web.RequestHandler):
     '''Send the initrd and kernel urls to registered machines.'''
@@ -134,11 +134,22 @@ class RegisterHandler(tornado.web.RequestHandler):
     '''Register an alien machine in mdb.'''
     def get(self):
         self.content_type = 'text/plain; charset=utf-8'
-        qs = self.request.query
         try:
-            prologin.mdb.client.connect().register(qs)
-        except prologin.mdb.client.RegistrationError as e:
-            self.finish(REGISTER_ERROR_SCRIPT % { 'err': e.message })
+            kwargs = {
+                'hostname': self.get_query_argument('hostname'),
+                'mac': self.get_query_argument('mac'),
+                'rfs': int(self.get_query_argument('rfs')),
+                'hfs': int(self.get_query_argument('hfs')),
+                'room': self.get_query_argument('room'),
+                'mtype': self.get_query_argument('mtype'),
+            }
+            prologin.mdb.client.connect().register(**kwargs)
+        except Exception as e:
+            try:
+                message = e.message
+            except AttributeError:
+                message = str(e)
+            self.finish(REGISTER_ERROR_SCRIPT % {'err': message})
         else:
             self.finish(REGISTER_DONE_SCRIPT)
 
@@ -150,7 +161,7 @@ application = tornado.wsgi.WSGIApplication([
     (r'/boot/(.*)/', BootHandler),
     (r'/bootstrap', BootstrapHandler),
     (r'/register', RegisterHandler),
-    (r'/static/(.*)', tornado.web.StaticFileHandler, { 'path': static_path }),
+    (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': static_path}),
 ])
 
 if __name__ == '__main__':

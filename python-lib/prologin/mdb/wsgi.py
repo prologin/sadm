@@ -13,4 +13,9 @@ from django.core.wsgi import get_wsgi_application
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "prologin.mdb.settings")
 
-application = get_wsgi_application()
+wsgi_app = get_wsgi_application()
+
+from prologin.mdb.views import MDBServer
+
+application = MDBServer('mdb')
+application.add_wsgi_app(wsgi_app)
