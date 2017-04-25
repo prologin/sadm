@@ -1,47 +1,41 @@
+# Maintainer: Daichi Shinozaki <dseg@shield.jp>
 # Contributor: Jean-Sébastien Ney <jeansebastien.ney@gmail.com>
 # Contributor: James Cleveland <jc@blackflags.co.uk>
 # Contributor: Eimantas Bunevičius <eimantaster@gmail.com>
 
-_cfgdir=/etc/nginx
+_cfgdir=/etc/nginx # Prologin-SADM
 pkgname=openresty
-pkgver=1.9.7.4
+pkgver=1.11.2.2
 pkgrel=1
-pkgdesc='A powerful web app server, extending nginx with lua scripting'
+pkgdesc="A Fast and Scalable Web Platform by Extending NGINX with Lua"
 arch=('i686' 'x86_64')
-url='https://openresty.org/'
+url="http://openresty.org/"
 license=('BSD')
-depends=('perl>=5.6.1' 'readline' 'zlib' 'pcre' 'openssl')
-conflicts=('nginx')
-source=(https://openresty.org/download/$pkgname-$pkgver.tar.gz
-        lua-resty-extra-lib.tar.gz
-        configure-add-lua-packages.patch
+depends=('perl>=5.6.1' 'readline' 'pcre' 'openssl')
+source=(https://openresty.org/download/$pkgname-$pkgver.tar.gz{,.asc}
         service
-        logrotate)
-md5sums=('6e2d4a39c530524111ea50e3de67043a'
-         'SKIP' # lua-resty-extra-lib.tar.gz is built at make time
-         '58ae70888954db2c699b9be8caaedd19'
-         'c2a322f02abade747228f4dd14b40f60'
-         '19a26a61c8afe78defb8b4544f79a9a0')
-backup=('${_cfgdir:1}/fastcgi.conf'
-        '${_cfgdir:1}/fastcgi_params'
-        '${_cfgdir:1}/koi-win'
-        '${_cfgdir:1}/koi-utf'
-        '${_cfgdir:1}/mime.types'
-        '${_cfgdir:1}/nginx.conf'
-        '${_cfgdir:1}/scgi_params'
-        '${_cfgdir:1}/uwsgi_params'
-        '${_cfgdir:1}/win-utf'
-        'etc/logrotate.d/nginx')
-
-prepare() {
-  cd "$srcdir/$pkgname-$pkgver"
-  # patch configure to include lua_packages.tar.gz packages
-  patch -Np1 -i "$srcdir"/configure-add-lua-packages.patch
-}
+        $pkgname.logrotate)
+noextract=()
+validpgpkeys=('25451EB088460026195BD62CB550E09EA0E98066')
+sha256sums=('7f9ca62cfa1e4aedf29df9169aed0395fd1b90de254139996e554367db4d5a01'
+            'SKIP'
+            '7230ec16915bee37dda6d0928a533e6404c8cbe3fd778a88e0fb75530209a7dc'
+            '613b0ed3fe4b5ee505ddb5122ee41604f464a5049be81c97601ee93970763a23')
+backup=(${_cfgdir:1}/fastcgi.conf
+        ${_cfgdir:1}/fastcgi_params
+        ${_cfgdir:1}/koi-win
+        ${_cfgdir:1}/koi-utf
+        ${_cfgdir:1}/mime.types
+        ${_cfgdir:1}/nginx.conf
+        ${_cfgdir:1}/scgi_params
+        ${_cfgdir:1}/uwsgi_params
+        ${_cfgdir:1}/win-utf
+        etc/logrotate.d/openresty)
 
 build() {
   cd "$srcdir/$pkgname-$pkgver"
 
+  # Prologin-SADM
   ./configure \
     --prefix=${_cfgdir} \
     --conf-path=${_cfgdir}/nginx.conf \
@@ -99,9 +93,8 @@ package() {
   mv "$pkgdir"/etc/nginx/nginx/html/ "$pkgdir"/usr/share/nginx
 
   install -d "$pkgdir"/etc/logrotate.d
-  install -m644 "$srcdir"/logrotate "$pkgdir"/etc/logrotate.d/nginx
+  install -m644 "$srcdir/openresty.logrotate" "$pkgdir"/etc/logrotate.d/nginx
 
-  install -Dm644 "$srcdir/logrotate" "$pkgdir"/etc/logrotate.d/nginx
   install -Dm644 "$srcdir/service" "$pkgdir"/usr/lib/systemd/system/nginx.service
 
   rmdir "$pkgdir/run"
