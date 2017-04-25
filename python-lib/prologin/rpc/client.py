@@ -129,8 +129,9 @@ class SyncClient(Client):
         coro = super().__getattr__(method)
 
         def proxy(*args, **kwargs):
-            loop = asyncio.get_event_loop()
+            loop = asyncio.new_event_loop()
             res = loop.run_until_complete(coro(*args, **kwargs))
+            loop.close()
             return res
 
         return proxy
