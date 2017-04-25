@@ -48,6 +48,11 @@ class RPCServer(prologin.rpc.server.BaseRPCApp):
         with disable_logging():
             raise ValueError("Monde de merde.")
 
+    @prologin.rpc.remote_method(auth_required=False)
+    async def public_hello(self):
+        return 'hello'
+
+
 
 URL = 'http://127.0.0.1:42545'
 
@@ -160,6 +165,18 @@ class RPCSecretTest(unittest.TestCase):
         with self.assertRaises(prologin.rpc.client.RemoteError) as e:
             c.return_number()
         self.assertEqual(e.exception.type, 'MissingToken')
+
+    def test_public_good_secret(self):
+        c = prologin.rpc.client.SyncClient(URL, secret=self.GOOD_SECRET)
+        self.assertEqual(c.public_hello(), 'hello')
+
+    def test_public_bad_secret(self):
+        c = prologin.rpc.client.SyncClient(URL, secret=self.BAD_SECRET)
+        self.assertEqual(c.public_hello(), 'hello')
+
+    def test_public_missing_secret(self):
+        c = prologin.rpc.client.SyncClient(URL)
+        self.assertEqual(c.public_hello(), 'hello')
 
 
 @unittest.skip("FIXME: Race conditions, address already in use")
