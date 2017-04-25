@@ -52,7 +52,7 @@ if [ ! -r $root_password_file ]; then
 fi
 
 # The actual Arch Linux setup starts here
-echo "[+] Installing base Arch Linux"
+echo_status "Installing base Arch Linux"
 if test -e /etc/arch-release; then
   pacstrap -c -d "$root_dir" base
 else
@@ -66,47 +66,47 @@ else
   systemd-nspawn --quiet --directory "$root_dir" /usr/bin/pacman-key --populate archlinux
 fi
 
-echo "[+] Configure Arch Linux repository"
+echo_status "Configure Arch Linux repository"
 cat >"$root_dir/etc/pacman.d/mirrorlist" <<EOF
 Server = $ARCH_MIRROR/\$repo/os/\$arch
 EOF
 
 systemd-nspawn -D "$root_dir" /usr/bin/pacman -Syu --needed --noconfirm base vim openssh rxvt-unicode-terminfo
 
-echo "[+] Configuring base system"
-echo "[+] Setting timezone to $SADM_TIMEZONE"
+echo_status "Configuring base system"
+echo_status "Setting timezone to $SADM_TIMEZONE"
 ln -sf "/usr/share/zoneinfo/$SADM_TIMEZONE" "$root_dir/etc/localtime"
 
 if [[ -n $hostname ]]; then
-  echo "[+] Setting hostname to $hostname"
+  echo_status "Setting hostname to $hostname"
   echo "$hostname" > "$root_dir/etc/hostname"
 else
-  echo "[+] Not setting hostname: static configuration from kernel cmdline used"
+  echo_status "Not setting hostname: static configuration from kernel cmdline used"
 fi
 
-echo "[+] Configuring locale to $SADM_LOCALE $SADM_CHARSET"
+echo_status "Configuring locale to $SADM_LOCALE $SADM_CHARSET"
 echo "LANG=$SADM_LOCALE" > "$root_dir/etc/locale.conf"
 echo "$SADM_LOCALE $SADM_CHARSET" >> "$root_dir/etc/locale.gen"
 # There is not `locale-gen --root`, we have to use a chroot
 systemd-nspawn --quiet --directory "$root_dir" /usr/bin/locale-gen
 
-echo "[+] Setting root password"
+echo_status "Setting root password"
 root_password=$(cat $root_password_file)
 if [[ -n $root_password ]]; then
   echo "root:$root_password" | chpasswd --root "$root_dir"
 else
-  echo "[+] Warning: root password file empty, not setting any root password"
+  echo_status "Warning: root password file empty, not setting any root password"
 fi
 
-echo "[+] Disabling pam_securetty, see https://github.com/systemd/systemd/issues/852#issuecomment-127759667"
+echo_status "Disabling pam_securetty, see https://github.com/systemd/systemd/issues/852#issuecomment-127759667"
 sed -i '/pam_securetty.so/s/^/#/' $root_dir/etc/pam.d/login
 
-echo "[+] Setting up NTP"
+echo_status "Setting up NTP"
 # TOOD(halfr): move this to a dedicated conf file in the repo
 echo "[Time]
 NTP=ntp.prolo" > "$root_dir/etc/systemd/timesyncd.conf"
 
-echo "[+] Configuring DHCP for all en* interfaces"
+echo_status "Configuring DHCP for all en* interfaces"
 # TOOD(halfr): move this to a dedicated conf file in the repo
 echo "[Match]
 Name=eth* en* host*
@@ -116,7 +116,7 @@ DHCP=yes
 LLDP=yes
 EmitLLDP=customer-bridge" > "$root_dir/etc/systemd/network/50-dhcp.network"
 
-echo "[+] Copying resolv.conf"
+echo_status "Copying resolv.conf"
 if [[ $hostname == gw.prolo ]]; then
   resolvconf_file=../etc/resolv.conf.gw
 else
@@ -124,7 +124,7 @@ else
 fi
 cp -v $resolvconf_file "$root_dir/etc/resolv.conf"
 
-echo "[+] Enabling base services"
+echo_status "Enabling base services"
 systemctl --root "$root_dir" enable sshd systemd-timesyncd systemd-networkd
 
-echo "[+] Basic Arch Linux setup done!"
+echo_status "Basic Arch Linux setup done!"
