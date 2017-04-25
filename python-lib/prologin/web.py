@@ -41,6 +41,7 @@ useful pages:
 
 import asyncio
 import aiohttp.web
+import aiohttp_wsgi
 import sys
 import tornado.web
 import traceback
@@ -140,6 +141,10 @@ class AiohttpApp:
         for route in routes:
             self.app.router.add_route(*route)
         self.loop = loop or asyncio.get_event_loop()
+
+    def add_wsgi_app(self, wsgi_app):
+        wsgi_handler = aiohttp_wsgi.WSGIHandler(wsgi_app)
+        self.app.router.add_route('*', '/{path_info:.*}', wsgi_handler)
 
     def run(self, **kwargs):
         aiohttp.web.run_app(self.app, loop=self.loop,
