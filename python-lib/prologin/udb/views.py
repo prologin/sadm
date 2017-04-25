@@ -15,40 +15,37 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
-import json
 import prologin.config
-import prologin.timeauth
+import prologin.rpc.server
 import prologin.udb.receivers  # To connect our receivers
-
-from django.http import HttpResponse, HttpResponseForbidden
-from django.views.decorators.csrf import csrf_exempt
 from prologin.udb.models import User
-from prologin.utils.django import get_request_args
 
 CFG = prologin.config.load('udb-client-auth')
 
-@csrf_exempt
-def query(request):
-    args = get_request_args(request)
 
-    # If a HMAC is provided, check for authentication. If checking fails,
-    # return a HTTP 403 error.
-    hmac = args.pop('hmac', None)
-    auth_required = hmac is not None
-    if auth_required:
-        shared_secret = CFG['shared_secret'].encode('utf-8')
-        if not prologin.timeauth.check_token(hmac, shared_secret):
-            return HttpResponseForbidden(
-                'hmac is invalid',
-                content_type='text/plain'
-            )
+class UDBServer(prologin.rpc.server.BaseRPCApp):
+    def __init__(self, *args, **kwargs):
+        secret = CFG['shared_secret'].encode()
+        super().__init__(*args, secret=secret, **kwargs)
 
-    users = User.objects.filter(**args)  # TODO(delroth): secure?
-    users = [m.to_dict() for m in users]
+    def get_users(self, **kwargs):
+        fields = {'login', 'uid', 'group', 'shell', 'ssh_key'}
+        for q in kwargs:
+            base = q.split('_')[0]
+            if base not in fields:
+                raise ValueError('%r is not a valid query argument' % q)
 
-    # Only authenticated clients shall read passwords.
-    if not auth_required:
+        users = User.objects.filter(**kwargs)
+        users = [m.to_dict() for m in users]
+        return users
+
+    @prologin.rpc.remote_method(auth_required=False)
+    async def query(self, **kwargs):
+        users = self.get_users(**kwargs)
         for u in users:
             del u['password']
+        return users
 
-    return HttpResponse(json.dumps(users), content_type='application/json')
+    @prologin.rpc.remote_method
+    async def query_private(self, **kwargs):
+        return self.get_users(**kwargs)

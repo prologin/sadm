@@ -24,7 +24,6 @@ from prologin.djangoconf import set_admin_title
 set_admin_title(admin, "User Database")
 
 urlpatterns = [
-    url(r'^query$', views.query, name='udb-query'),
     url(r'', include('django_prometheus.urls')),
     url(r'', include(admin.site.urls)),
 ]
