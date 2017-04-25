@@ -15,6 +15,7 @@
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 from django.core.urlresolvers import reverse_lazy
+from pathlib import Path
 from prologin.djangoconf import use_profile_config
 
 cfg = use_profile_config('concours')
@@ -145,7 +146,7 @@ AUTH_USER_MODEL = 'auth.User'
 # crispy-forms shall use Bootstrap 3
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
-STECHEC_ROOT = cfg["contest"]["directory"]
+STECHEC_ROOT = Path(cfg["contest"]["directory"])
 STECHEC_CONTEST = cfg["contest"]["game"]
 STECHEC_MASTER = cfg["master"]["url"]
 STECHEC_MASTER_SECRET = cfg["master"]["shared_secret"].encode('utf-8')

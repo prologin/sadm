@@ -5,7 +5,6 @@ from django.utils import timezone
 
 from django_prometheus.models import ExportModelOperationsMixin
 import json
-import os.path
 import re
 
 import prologin.rpc.client
@@ -25,24 +24,23 @@ class Map(ExportModelOperationsMixin('map'), models.Model):
 
     @property
     def maps_dir(self):
-        contest_dir = os.path.join(settings.STECHEC_ROOT, settings.STECHEC_CONTEST)
-        return os.path.join(contest_dir, "maps")
+        return settings.STECHEC_ROOT / settings.STECHEC_CONTEST / 'maps'
 
     @property
     def path(self):
-        return os.path.join(self.maps_dir, "{}".format(self.id))
+        return self.maps_dir / str(self.id)
 
     @property
     def contents(self):
-        return open(self.path, encoding='utf-8').read()
+        return self.path.open().read()
 
     @contents.setter
     def contents(self, value):
         if value is None:
             return
-        if not os.path.isdir(self.maps_dir):
-            os.makedirs(self.maps_dir, mode=0o755, exist_ok=True)
-        open(self.path, 'w', encoding='utf-8').write(value)
+        if self.maps_dir.is_dir():
+            self.maps_dir.mkdir(mode=0o755, parents=True, exist_ok=True)
+        self.path.open('w').write(value)
 
     def get_absolute_url(self):
         return reverse("map-detail", kwargs={"pk": self.id})
@@ -59,6 +57,7 @@ class Map(ExportModelOperationsMixin('map'), models.Model):
 
 class Champion(ExportModelOperationsMixin('champion'), models.Model):
     SOURCES_FILENAME = 'champion.tgz'
+    LOG_FILENAME = 'compilation.log'
     STATUS_CHOICES = (
         ('new', 'En attente de compilation'),
         ('pending', 'En cours de compilation'),
@@ -75,39 +74,38 @@ class Champion(ExportModelOperationsMixin('champion'), models.Model):
     ts = models.DateTimeField("date", auto_now_add=True)
 
     @property
+    def directory(self):
+        if self.id is None:
+            raise RuntimeError("Champion must be saved before accessing its directory")
+        contest_dir = settings.STECHEC_ROOT / settings.STECHEC_CONTEST
+        return contest_dir / "champions" / self.author.username / str(self.id)
+
+    @property
+    def sources_path(self):
+        return self.directory / self.SOURCES_FILENAME
+
+    @property
     def sources(self):
-        return open(os.path.join(self.directory, Champion.SOURCES_FILENAME), 'rb')
+        return self.sources_path.open('rb')
 
     @sources.setter
     def sources(self, uploaded_file):
         if uploaded_file is None:
             return
-        directory = self.directory
-        os.makedirs(directory)
-        fp = open(os.path.join(directory, Champion.SOURCES_FILENAME), 'wb')
-        for chunk in uploaded_file.chunks():
-            fp.write(chunk)
-        fp.close()
-
-    @property
-    def directory(self):
-        if self.id is None:
-            raise RuntimeError("Champion must be saved before accessing its directory")
-        contest_dir = os.path.join(settings.STECHEC_ROOT, settings.STECHEC_CONTEST)
-        champions_dir = os.path.join(contest_dir, "champions")
-        return os.path.join(champions_dir, self.author.username, str(self.id))
+        self.sources_path.parent.resolve().mkdir(parents=True)
+        with self.sources_path.open('wb') as fp:
+            for chunk in uploaded_file.chunks():
+                fp.write(chunk)
 
     @property
     def compilation_log(self):
-        this_dir = self.directory
-        log_path = os.path.join(this_dir, "compilation.log")
-        if os.path.exists(log_path):
-            try:
-                return open(log_path, encoding='utf-8').read()
-            except Exception as e:
-                return str(e)
-        else:
+        log_path = self.directory / self.LOG_FILENAME
+        try:
+            return log_path.open().read()
+        except FileNotFoundError:
             return "Log de compilation introuvable."
+        except Exception as e:
+            return str(e)
 
     def get_absolute_url(self):
         return reverse('champion-detail', kwargs={'pk': self.id})
@@ -172,6 +170,8 @@ class TournamentMap(ExportModelOperationsMixin('tournament_map'), models.Model):
 
 
 class Match(ExportModelOperationsMixin('match'), models.Model):
+    DUMP_FILENAME = "dump.json.gz"
+    LOG_FILENAME = "server.log"
     STATUS_CHOICES = (
         ('creating', 'En cours de création'),
         ('new', 'En attente de lancement'),
@@ -192,31 +192,33 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
 
     @property
     def directory(self):
-        contest_dir = os.path.join(settings.STECHEC_ROOT, settings.STECHEC_CONTEST)
-        matches_dir = os.path.join(contest_dir, "matches")
-        hi_id = "%03d" % (self.id / 1000)
-        low_id = "%03d" % (self.id % 1000)
-        return os.path.join(matches_dir, hi_id, low_id)
+        hi_id, low_id = divmod(self.id, 1000)
+        return (settings.STECHEC_ROOT / settings.STECHEC_CONTEST / "matches" /
+                "{:03d}".format(hi_id) / "{:03d}".format(low_id))
+
+    @property
+    def log_path(self):
+        return self.directory / self.LOG_FILENAME
 
     @property
     def log(self):
-        log_path = os.path.join(self.directory, "server.log")
-        if os.path.exists(log_path):
-            try:
-                t = open(log_path, encoding='utf-8').read()
-                return strip_ansi_codes(t)
-            except Exception as e:
-                return str(e)
-        else:
+        try:
+            return strip_ansi_codes(self.log_path.open().read()).strip()
+        except FileNotFoundError:
             return "Log de match introuvable."
+        except Exception as e:
+            return str(e)
+
+    @property
+    def dump_path(self):
+        return self.directory / self.DUMP_FILENAME
 
     @property
     def dump(self):
-        dump_path = os.path.join(self.directory, "dump.json.gz")
         try:
-            return open(dump_path, "rb").read()
-        except FileNotFoundError:
-            return None
+            return self.dump_path.open('rb').read()
+        except Exception:
+            pass
 
     @property
     def options_dict(self):
@@ -266,16 +268,18 @@ class MatchPlayer(ExportModelOperationsMixin('match_player'), models.Model):
     score = models.IntegerField(default=0, verbose_name="score")
 
     @property
+    def log_path(self):
+        return (self.match.directory /
+                "log-champ-{}-{}.log".format(self.id, self.champion.id))
+
+    @property
     def log(self):
-        filename = "log-champ-%d-%d.log" % (self.id, self.champion.id)
-        log_path = os.path.join(self.match.directory, filename)
-        if os.path.exists(log_path):
-            try:
-                t = open(log_path, encoding='utf-8').read()
-                return strip_ansi_codes(t)
-            except Exception as e:
-                return str(e)
-        return "Log de match introuvable."
+        try:
+            return strip_ansi_codes(self.log_path.open().read()).strip()
+        except FileNotFoundError:
+            return "Log de match introuvable."
+        except Exception as e:
+            return str(e)
 
     def __str__(self):
         return "%s pour match %s" % (self.champion, self.match)
