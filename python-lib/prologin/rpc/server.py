@@ -126,7 +126,7 @@ class RemoteCallHandler:
 
     async def _check_secret(self, data):
         if self.secret is not None:
-            if 'hmac' not in data:
+            if 'hmac' not in data or not data['hmac']:
                 self._raise_exception(MissingToken(self.method_name),
                                       http_error=aiohttp.web.HTTPBadRequest)
             token = data['hmac']
