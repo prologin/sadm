@@ -103,6 +103,7 @@ GROUPS = {
     'concours': 20150,
     'cluster': 20160,
     'cluster_public': 20161,
+    'isolate': 20170,
 }
 
 # Location of the SADM master secret
