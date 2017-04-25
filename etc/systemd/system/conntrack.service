@@ -4,6 +4,7 @@ After=network-online.target
 
 [Service]
 ExecStart=/usr/bin/conntrack -E -e NEW
+Restart=always
 
 [Install]
 WantedBy=multi-user.target
