@@ -13,4 +13,9 @@ from django.core.wsgi import get_wsgi_application
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "prologin.udb.settings")
 
-application = get_wsgi_application()
+wsgi_app = get_wsgi_application()
+
+from prologin.udb.views import UDBServer
+
+application = UDBServer('udb')
+application.add_wsgi_app(wsgi_app)
