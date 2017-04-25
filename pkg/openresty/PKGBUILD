@@ -14,13 +14,15 @@ license=('BSD')
 depends=('perl>=5.6.1' 'readline' 'pcre' 'openssl')
 source=(https://openresty.org/download/$pkgname-$pkgver.tar.gz{,.asc}
         service
-        $pkgname.logrotate)
+        $pkgname.logrotate
+        git+https://boringssl.googlesource.com/boringssl)
 noextract=()
 validpgpkeys=('25451EB088460026195BD62CB550E09EA0E98066')
 sha256sums=('7f9ca62cfa1e4aedf29df9169aed0395fd1b90de254139996e554367db4d5a01'
             'SKIP'
             '7230ec16915bee37dda6d0928a533e6404c8cbe3fd778a88e0fb75530209a7dc'
-            '613b0ed3fe4b5ee505ddb5122ee41604f464a5049be81c97601ee93970763a23')
+            '613b0ed3fe4b5ee505ddb5122ee41604f464a5049be81c97601ee93970763a23'
+            'SKIP')
 backup=(${_cfgdir:1}/fastcgi.conf
         ${_cfgdir:1}/fastcgi_params
         ${_cfgdir:1}/koi-win
@@ -33,6 +35,13 @@ backup=(${_cfgdir:1}/fastcgi.conf
         etc/logrotate.d/openresty)
 
 build() {
+  export CXXFLAGS="$CXXFLAGS -fPIC"
+
+  cd ${srcdir}/boringssl
+  mkdir build && cd build && cmake ../ && make -j$(nproc) && cd ${srcdir}/boringssl
+  mkdir -p .openssl/lib && cd .openssl && ln -s ../include . && cd ../
+  cp ${srcdir}/boringssl/build/crypto/libcrypto.a ${srcdir}/boringssl/build/ssl/libssl.a .openssl/lib && cd ..
+
   cd "$srcdir/$pkgname-$pkgver"
 
   # Prologin-SADM
@@ -62,17 +71,19 @@ build() {
     --with-http_mp4_module \
     --with-http_realip_module \
     --with-http_secure_link_module \
-    --with-http_ssl_module \
     --with-http_stub_status_module \
     --with-http_sub_module \
     --with-http_v2_module \
     --with-imap \
-    --with-imap_ssl_module \
     --with-ipv6 \
     --with-luajit \
     --with-pcre-jit \
+    --without-http_ssl_module \
     --with-stream \
-    --with-stream_ssl_module \
+    --with-openssl=${srcdir}/boringssl \
+
+
+  touch ${srcdir}/boringssl/.openssl/include/openssl/ssl.h
 
   make -j$(nproc)
 }
