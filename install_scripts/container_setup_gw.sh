@@ -84,6 +84,12 @@ function stage_setup_gw {
   container_snapshot $FUNCNAME
 }
 
+function test_gw {
+  echo '[>] Test gw install... '
+
+  #TODO
+}
+
 function stage_setup_mdb {
   echo_status 'Install mdb'
   echo '127.0.0.1 mdb' >> $CONTAINER_ROOT/etc/hosts
