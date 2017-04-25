@@ -36,15 +36,10 @@ if [ ! -d $1 ]; then
     exit 1
 fi
 
+# Argument parsing
 root_dir="$(readlink --canonicalize $1)"
 hostname="$2"
 root_password_file="$3"
-
-# Check the args
-if [ -z $hostname ]; then
-    echo >&2 "Error: hostname is empty"
-    exit 1
-fi
 
 if [ ! -r $root_password_file ]; then
     echo >&2 "Error: password file '$root_password_file' must be readable"
@@ -59,8 +54,12 @@ echo "[+] Configuring base system"
 echo [+] "Setting timezone to $SADM_TIMEZONE"
 ln -sf "/usr/share/zoneinfo/$SADM_TIMEZONE" "$root_dir/etc/localtime"
 
-echo "[+] Setting hostname to $hostname"
-echo "$hostname" > "$root_dir/etc/hostname"
+if [[ -n $hostname ]]; then
+  echo "[+] Setting hostname to $hostname"
+  echo "$hostname" > "$root_dir/etc/hostname"
+else
+  echo "[+] Not setting hostname: static configuration from kernel cmdline used"
+fi
 
 echo "[+] Configuring locale to $SADM_LOCALE $SADM_CHARSET"
 echo "LANG=$SADM_LOCALE" > "$root_dir/etc/locale.conf"
@@ -87,7 +86,7 @@ NTP=ntp.prolo" > "$root_dir/etc/systemd/timesyncd.conf"
 echo "[+] Configuring DHCP for all en* interfaces"
 # TOOD(halfr): move this to a dedicated conf file in the repo
 echo "[Match]
-Name=en* host*
+Name=eth* en* host*
 
 [Network]
 DHCP=yes

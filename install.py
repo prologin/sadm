@@ -30,6 +30,7 @@ import grp
 import hmac
 import os
 import os.path
+import pathlib
 import pwd
 import re
 import shutil
@@ -106,6 +107,8 @@ GROUPS = {
 
 # Location of the SADM master secret
 SECRET_PATH = '/etc/prologin/sadm-secret'
+
+ROOTFS = '/export/nfsroot'
 
 # Helper functions for installation procedures.
 
@@ -391,6 +394,7 @@ def install_bindcfg():
         # The following command generates it
         system('rndc-confgen -a -r /dev/urandom')
     shutil.chown('/etc/rndc.key', 'named', 'mdbdns')
+    os.chmod('/etc/rndc.key', 0o640)  # Allow mdbdns read access
     install_systemd_unit('named')
     touch('/var/log/named.log', owner='named:root', mode=0o640)
 
@@ -620,7 +624,8 @@ def install_udbsync_rootssh():
 
 def install_presenced():
     requires('libprologin')
-    requires('nginxcfg')
+    # FIXME(halfr): remove if proven not useful
+    # requires('nginxcfg')
 
     install_service_dir('python-lib/prologin/presenced',
                         owner='presenced:presenced', mode=0o700)
@@ -692,26 +697,77 @@ def install_presencesync_firewall():
 
 
 def install_rfs():
+    requires('udbsync_passwd')
+    requires('udbsync_rfs')
+
+    # Dual NIC packet routing configuration setup
     copy('etc/sysctl/rp_filter.conf', '/etc/sysctl.d/rp_filter.conf')
     system('systemctl restart systemd-sysctl')
 
-    rootfs = '/export/nfsroot'
-    subnet = '192.168.0.0/24'
-    with cwd('rfs'):
-        os.environ['ROOTFS'] = rootfs
-        os.environ['SUBNET'] = subnet
-        with open('packages_lists') as f:
-            packages_lists = f.read()
-        os.environ['PACKAGES'] = ' '.join(packages_lists.split())
-        os.system('./init.sh')
+    # Configure NFS server
+    install_cfg('exports.d/rfs.exports', '/etc/exports.d', mode=0o640,
+            owner='root:root')
+    system('exportfs -arv')
+
+
+def install_rfs_nfs_archlinux():
+    # Bootstrap nfs exported Arch Linux
+    mkdir('/export', mode=0o755)
+    mkdir('/export/nfsroot', mode=0o755)
+
+    # TODO(halfr): replace /dev/null with file containing root password
+    with cwd('install_scripts'):
+        system('./bootstrap_arch_linux.sh {} {} {}'.format(
+            ROOTFS, '""', '/dev/null'))
+
+
+def install_rfs_nfs_sadm():
+    # Self copy into the exported system
+    rfs_sadm = ROOTFS + '/root/sadm'
+    if os.path.isdir(rfs_sadm):
+        shutil.rmtree(rfs_sadm)
+
+    sadm_root_dir = pathlib.Path(sys.argv[0]).parent.resolve()
+    # Use cp to keep +x bits
+    system('cp -r {} {}'.format(sadm_root_dir, rfs_sadm))
+
+    # Forward SADM secret
+    mkdir(ROOTFS + '/etc/prologin', mode=0o755)
+    copy(SECRET_PATH, ROOTFS + SECRET_PATH, mode=0o600)
+
+    # Spawn a chroot inside the nfs export
+    system('/usr/bin/arch-chroot {} /root/sadm/install_scripts/setup_nfs_export.sh'.format(ROOTFS))
+
+
+def install_rfs_nfs_packages_base():
+    raw_package_list = open('rfs/package_list_base').read().splitlines()
+    package_list = [line[len('* '):]
+                    for line in raw_package_list
+                    if line.startswith('* ')]
+    packages = ' '.join(package_list)
+    _install_rfs_nfs_packages(packages)
+
+
+def install_rfs_nfs_packages_extra():
+    raw_package_list = open('rfs/package_list_extra').read().splitlines()
+    package_list = [line[len('* '):]
+                    for line in raw_package_list
+                    if line.startswith('* ')]
+    packages = ' '.join(package_list)
+    _install_rfs_nfs_packages(packages)
+
+
+def _install_rfs_nfs_packages(packages):
+    # Install packages in a chroot
+    system('/usr/bin/arch-chroot {} /usr/bin/pacman -Sy --needed --noconfirm {}'.format(ROOTFS, packages))
 
 
 def install_sddmcfg():
-    copy('etc/sddm/sddm.conf', '/export/nfsroot/etc/sddm.conf', mode=0o644)
+    copy('etc/sddm/sddm.conf', '/etc/sddm.conf', mode=0o644)
     copy('etc/sddm/scripts/Xsetup',
-         '/export/nfsroot/usr/share/sddm/scripts/Xsetup', mode=0o755)
+         '/usr/share/sddm/scripts/Xsetup', mode=0o755)
     copytree('etc/sddm/themes/prologin',
-             '/export/nfsroot/usr/share/sddm/themes/prologin',
+             '/usr/share/sddm/themes/prologin',
              dir_mode=0o755, file_mode=0o644)
 
 
@@ -757,6 +813,10 @@ def _install_systemd_networkd(configuration_filenames):
     # Disable default naming configuration
     symlink('/dev/null', '/etc/systemd/network/99-default.link')
     system('systemctl restart systemd-networkd')
+
+    # Disable ICMP redirects
+    copy('etc/sysctl/no_icmp_redirect.conf', '/etc/sysctl.d/no_icmp_redirect.conf')
+    system('systemctl restart systemd-sysctl')
 
 
 def install_nic_configuration():
@@ -828,6 +888,10 @@ COMPONENTS = [
     'pull_secret',
     'redmine',
     'rfs',
+    'rfs_nfs_archlinux',
+    'rfs_nfs_packages_base',
+    'rfs_nfs_packages_extra',
+    'rfs_nfs_sadm',
     'sadm_secret',
     'sddmcfg',
     'sshdcfg',

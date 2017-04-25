@@ -1,5 +1,5 @@
-if [[ -z $CONTAINER_NAME ]]; then
-  echo >&2 "Please define $$CONTAINER_NAME before sourcing this script"
+if [[ -z $CONTAINER_NAME || -z $GW_CONTAINER_NAME ]]; then
+  echo >&2 "Please define \$CONTAINER_NAME and \$GW_CONTAINER_NAME before sourcing this script"
   exit 1
 fi
 
@@ -13,6 +13,7 @@ SADM_MASTER_SECRET=lesgerbillescesttropfantastique
 # Other container-related variables
 NETWORK_ZONE=prolo
 CONTAINER_ROOT=/var/lib/machines/$CONTAINER_NAME
+CONTAINER_ROOT_GW=/var/lib/machines/$GW_CONTAINER_NAME
 
 function container_script_header {
   cat <<EOF
@@ -29,7 +30,7 @@ function container_snapshot {
     snapshot_name=$1
     snapshot_root=${CONTAINER_ROOT}_$snapshot_name
 
-    echo "[+] Snapshot to $snapshot_root"
+    echo_status "Snapshot to $snapshot_root"
 
     if [ -d $snapshot_root ]; then
       # remove existing snapshot
@@ -41,7 +42,7 @@ function container_snapshot {
 }
 
 function container_stop {
-  echo "[+] Stop container"
+  echo_status "Stop container"
   if machinectl >&- status $CONTAINER_NAME; then
     machinectl stop $CONTAINER_NAME && sleep 1
     machinectl kill $CONTAINER_NAME && sleep 1
@@ -54,7 +55,7 @@ function container_stop {
 }
 
 function container_start {
-  echo "[+] Spawn container with 5 seconds delay to have systemd start"
+  echo_status "Spawn container with 5 seconds delay to have systemd start"
   machinectl start $CONTAINER_NAME && sleep 5
 
   echo '[-] Containers on this system:'
@@ -65,13 +66,15 @@ function container_start {
 }
 
 function container_run_simple {
-  # Send dummy input else systemd-run will wait for user input
-  systemd-run -M $CONTAINER_NAME --wait "$@"
+  machinectl -q shell $CONTAINER_NAME "$@" >/dev/null
+}
+
+function container_run_simple_verbose {
+  machinectl -q shell $CONTAINER_NAME "$@"
 }
 
 function container_run {
   # PATH is configured for the python virtualenv
-  # Send dummy input else systemd-run will wait for user input
   systemd-run -M $CONTAINER_NAME --wait \
     --property WorkingDirectory=/root/sadm \
     --setenv=PATH=/var/prologin/venv/bin:/usr/bin \
@@ -80,14 +83,14 @@ function container_run {
 
 function container_run_verbose {
   # PATH is configured for the python virtualenv
-  # Send dummy input else systemd-run will wait for user input
-  systemd-run -M $CONTAINER_NAME --wait --quiet --pty \
+  systemd-run -M $CONTAINER_NAME --wait --pty \
     --property WorkingDirectory=/root/sadm \
     --setenv=PATH=/var/prologin/venv/bin:/usr/bin \
     "$@"
 }
 
 function container_run_quiet {
+  # PATH is configured for the python virtualenv
   systemd-run --quiet -M $CONTAINER_NAME --pty --wait \
     --property WorkingDirectory=/root/sadm \
     --setenv=PATH=/var/prologin/venv/bin:/usr/bin \
@@ -97,7 +100,7 @@ function container_run_quiet {
 # Script directives
 function skip {
   # do nothing
-  echo "[+] Skip: $*"
+  echo_status "Skip: $*"
 }
 
 function run {
@@ -108,11 +111,11 @@ function restore {
   snapshot_name=$1
   snapshot_root=${CONTAINER_ROOT}_$snapshot_name
 
-  echo "[+] Snapshot restore of $snapshot_root"
+  echo_status "Snapshot restore of $snapshot_root"
   container_stop
 
   if [ -d $CONTAINER_ROOT ]; then
-    btrfs subvolume delete $CONTAINER_ROOT/var/lib/machines || true  # this can fail if we restored a snapshot
+    btrfs 2>&- subvolume delete $CONTAINER_ROOT/var/lib/machines || true  # this can fail if we restored a snapshot
     btrfs subvolume delete $CONTAINER_ROOT
   fi
   # restore the snapshot as read+write
@@ -153,88 +156,44 @@ function test_service_is_enabled_active {
   fi
 }
 
-# Common setup stages
-function stage_setup_host {
-  echo "[+] Override systemd-nspawn configuration with --network-zone=$NETWORK_ZONE"
-  cat >/etc/systemd/system/systemd-nspawn@$CONTAINER_NAME.service <<EOF
-.include /usr/lib/systemd/system/systemd-nspawn@.service
-
-[Service]
-ExecStart=
-ExecStart=/usr/bin/systemd-nspawn --quiet --keep-unit --boot --link-journal=try-guest --network-zone=$NETWORK_ZONE -U --settings=override --machine=%i
-EOF
-
-  echo "[-] Create $CONTAINER_ROOT"
-  if $USE_BTRFS; then
-    if [ -d $CONTAINER_ROOT ]; then
-      btrfs subvolume delete $CONTAINER_ROOT/var/lib/machines || true  # this can fail if we restored a snapshot
-      btrfs subvolume delete $CONTAINER_ROOT
-    fi
-    btrfs subvolume create $CONTAINER_ROOT
+function test_file_present {
+  filename=$1
+  echo -n "[>] $filename is "
+  if [[ -e "$CONTAINER_ROOT/$filename" ]]; then
+    echo_ok "present"
   else
-    mkdir -p $CONTAINER_ROOT
+    echo_ko "absent"
+    return 1
   fi
-
-  echo $ROOT_PASSWORD > ./plaintext_root_pass
-
-  echo "[-] Disable DHCP server for our network zone"
-  cat >/etc/systemd/network/80-container-vz-prolo.network <<EOF
-[Match]
-Name=vz-$NETWORK_ZONE
-Driver=bridge
-
-[Network]
-# Default to using a /24 prefix, giving up to 253 addresses per virtual network.
-Address=0.0.0.0/24
-LinkLocalAddressing=yes
-IPMasquerade=yes
-LLDP=yes
-EmitLLDP=customer-bridge
-EOF
-
-  echo "[-] Restart systemd-networkd"
-  systemctl restart systemd-networkd
-
-  container_snapshot $FUNCNAME
 }
 
-function stage_boostrap_arch_linux {
-  ./bootstrap_arch_linux.sh $CONTAINER_ROOT $CONTAINER_HOSTNAME ./plaintext_root_pass
-
-  container_snapshot $FUNCNAME
+function test_file_present_not_empty {
+  filename=$1
+  echo -n "[>] $filename is "
+  if [[ -s "$CONTAINER_ROOT/$filename" ]]; then
+    echo_ok "present, not empty"
+  else
+    if [[ -e "$CONTAINER_ROOT/$filename" ]]; then
+      echo_ko "present, empty"
+      return 1
+    else
+      echo_ko "absent"
+      return 1
+    fi
+  fi
 }
 
-function stage_setup_sadm {
-  echo "[+] Copy $SADM_ROOT_DIR to the container"
-  cp -r $SADM_ROOT_DIR $CONTAINER_ROOT/root/sadm
+function test_url {
+  URL=$1
 
-  echo "[-] Start sadm setup script"
-  container_run /root/sadm/install_scripts/setup_sadm.sh
-
-  container_snapshot $FUNCNAME
+  echo -n "[>] Check $URL "
+  if ! container_run /usr/bin/curl --fail $URL; then
+    container_run /usr/bin/curl $URL || true
+    echo_ko "FAIL"
+    return 1
+  else
+    echo_ok "PASS"
+  fi
 }
 
-function test_sadm {
-  echo '[>] Test SADM... '
-
-  echo '[>] sadm directory exists'
-  container_run_quiet /usr/bin/test -d /root/sadm
-}
-
-function stage_setup_libprologin {
-  echo '[+] Stage setup libprologin and SADM master secret'
-
-  echo '[-] Install master secret'
-  container_run --setenv=PROLOGIN_SADM_MASTER_SECRET="$SADM_MASTER_SECRET" /var/prologin/venv/bin/python install.py sadm_secret
-  echo '[-] Install libprologin'
-  container_run /var/prologin/venv/bin/python install.py libprologin
-
-  container_snapshot $FUNCNAME
-}
-
-function test_libprologin {
-  echo '[>] Test libprologin... '
-
-  echo '[>] Import prologin'
-  container_run /var/prologin/venv/bin/python -c 'import prologin'
-}
+source ./container_common_stages.sh

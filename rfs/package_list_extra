@@ -24,7 +24,7 @@ List of packages for contestants' environment
 # Editors & IDE
 
 * nano
-* gvim
+(conflicts with vim)* gvim
 * neovim
 * emacs
 * qtcreator
@@ -53,9 +53,7 @@ List of packages for contestants' environment
 
 # Graphical environments
 
-* i3-wm
-* i3status
-* i3lock
+* i3
 * awesome
 * gnome
 * xfce4
@@ -120,7 +118,7 @@ List of packages for contestants' environment
 
 * irssi
 * weechat
-* xchat
+* hexchat
 
 
 # Games
@@ -134,7 +132,7 @@ List of packages for contestants' environment
 * openttd
 * openttd-opengfx
 * openttd-opensfx
-
+* stone-soup
 
 # Other additional dependencies
 

@@ -1,0 +1,69 @@
+Basic list of packages for contestants' environment
+===================================================
+
+# Shells
+
+* bash
+
+# Terminal emulators
+
+* xterm
+
+# Editors & IDE
+
+* vim
+
+# Additional config
+
+# Graphical environments
+
+* i3
+* zenity
+
+# Browsers
+
+* chromium
+
+# Tools
+
+* htop
+* git
+* zathura
+* tmux
+* feh
+* netcat
+* valgrind
+* gdb
+* cgdb
+* tree
+
+# Compilers & interpreters
+
+* make
+* gcc
+* python
+
+# IRC clients
+
+* weechat
+
+# Games
+
+* stone-soup
+
+# Other additional dependencies
+
+# Stechec2 additional dependencies
+
+* zeromq
+* gtest
+* ruby
+* python-yaml
+* gflags
+
+# Stechec2 language dependencies
+
+* php
+* php-embed
+* ocaml
+* mono
