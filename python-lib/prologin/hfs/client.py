@@ -46,9 +46,8 @@ class Client(prologin.webapi.Client):
         Return HFS server: (hfs_hostname, hfs_port).
         """
 
-        logging.info('Requesting a HFS for user {} on host {}...'.format(
-            login, hostname
-        ))
+        logging.info('Requesting a HFS for user %s on host %s...',
+                     login, hostname)
 
         match = prologin.udb.client.connect().query(login=login)
         if len(match) != 1:
@@ -63,11 +62,8 @@ class Client(prologin.webapi.Client):
         hfs_id = machine['hfs']
         hfs_host = self.host_pattern.format(hfs_id)
         hfs_url = self.url_pattern.format(hfs_host)
-        logging.info(
-            'Requesting a HFS on {} for user {} on host {}...'.format(
-                hfs_host, login, hostname
-            )
-        )
+        logging.info('Requesting a HFS on %s for user %s on host %s...',
+                     hfs_host, login, hostname)
 
         r = self.send_request(
             '/get_hfs', self.secret,
@@ -79,9 +75,8 @@ class Client(prologin.webapi.Client):
         else:
             info = json.loads(r.text)
 
-        logging.info('Got a HFS for user {} on host {}: {}:{}'.format(
-            login, hostname, hfs_host, info['port']
-        ))
+        logging.info('Got a HFS for user %s on host %s: %s:%s',
+                     login, hostname, hfs_host, info['port'])
         return (hfs_host, info['port'])
 
 
@@ -90,7 +85,6 @@ def connect():
     url_pattern = CFG['url_pattern']
     host_pattern = CFG['host_pattern']
     secret = CFG['shared_secret']
-    logging.info(
-        'Creating HFS connection object: host_pattern=%s' % host_pattern
-    )
+    logging.info('Creating HFS connection object: host_pattern=%s',
+                 host_pattern)
     return Client(url_pattern, host_pattern, secret)

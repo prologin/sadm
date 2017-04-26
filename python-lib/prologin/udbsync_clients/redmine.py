@@ -16,7 +16,7 @@ RUNNER = ('source /usr/local/rvm/environments/redmine && '
 
 
 def callback(users, updates_metadata):
-    logging.info('Got events: %r' % updates_metadata)
+    logging.info('Got events: %r', updates_metadata)
 
     commands = []
     give_users = {}

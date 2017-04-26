@@ -77,9 +77,8 @@ class SendHeartbeatHandler(tornado.web.RequestHandler):
             )
             self.set_status(200, 'OK, one user logged in')
         else:
-            logging.error('There are too many users logged in: {}'.format(
-                ', '.join(logins)
-            ))
+            logging.error('There are too many users logged in: %s',
+                          ', '.join(logins))
             self.set_status(500, 'Too many users logged in')
 
 

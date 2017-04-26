@@ -35,8 +35,8 @@ def connect(pub=False):
         pub_secret = None
     url = SUB_CFG['url']
     sub_secret = SUB_CFG['shared_secret']
-    logging.info('Creating UDBSync connection object: url=%s, can_pub=%s'
-                 % (url, pub_secret is not None))
+    logging.info('Creating UDBSync connection object: url=%s, can_pub=%s',
+                 url, pub_secret is not None)
     return prologin.synchronisation.Client(
         url, 'login', pub_secret, sub_secret
     )

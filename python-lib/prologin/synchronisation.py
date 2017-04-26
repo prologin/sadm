@@ -95,7 +95,7 @@ def apply_updates(pk, backlog, updates, watch=None):
                 updates_metadata[key] = 'deleted'
 
         else:
-            logging.error('invalid update type: {}'.format(update['type']))
+            logging.error('invalid update type: %s', update['type'])
 
     return updates_metadata
 
@@ -122,7 +122,7 @@ class BasePubSubQueue:
 
     def post_updates(self, update_msg):
         """Publish an update message to all subscribers."""
-        logging.info('sending update message: %s' % update_msg)
+        logging.info('sending update message: %s', update_msg)
         for callback in self.subscribers:
             callback(json.dumps(update_msg))
 
@@ -133,14 +133,12 @@ class BasePubSubQueue:
         logging.info('new subscriber arrived, sending the backlog')
         callback(json.dumps(self.get_backlog_message()))
         self.subscribers.add(callback)
-        logging.info('added a new subscriber, count is now %d'
-                         % len(self.subscribers))
+        logging.info('added a new subscriber, count is now %d', len(self.subscribers))
 
     def unregister_subscriber(self, callback):
         """Remove a subscriber from the queue."""
         self.subscribers.remove(callback)
-        logging.info('removed a subscriber, count is now %d'
-                         % len(self.subscribers))
+        logging.info('removed a subscriber, count is now %d', len(self.subscribers))
 
 class DefaultPubSubQueue(BasePubSubQueue):
     """Maintain a backlog of updates for records with a field that is unique.
@@ -231,11 +229,8 @@ class Server(prologin.web.TornadoApp):
                 backlog = self.get_initial_backlog()
                 break
             except Exception as e:
-                logging.exception(
-                    'unable to get the backlog, retrying in 2s: {}: {}'.format(
-                        type(e).__name__, e
-                    )
-                )
+                logging.exception('unable to get the backlog, retrying in 2s: '
+                                  '%s: %s', type(e).__name__, e)
                 time.sleep(2)
         return DefaultPubSubQueue(self.pk, backlog)
 
@@ -306,11 +301,9 @@ class Client(prologin.webapi.Client):
                         try:
                             callback(state, updates_metadata)
                         except Exception as e:
-                            logging.exception(
-                                'error in the synchorisation client '
-                                'callback: %s' % e
-                            )
+                            logging.exception('error in the synchronisation '
+                                              'client callback: %s', e)
             except Exception as e:
-                logging.exception('connection lost to synchronisation server:'
-                                  ' %s (url: %s)' % (e, poll_url))
+                logging.exception('connection synchronisation server lost: '
+                                  '%s (url: %s)', e, poll_url)
                 sys.exit(1)

@@ -87,7 +87,7 @@ class BufferFile:
         shutil.move(self.temp_path, self.filepath)
 
 def callback(root_path, users, updates_metadata):
-    logging.info('New updates: {!r}'.format(updates_metadata))
+    logging.info('New updates: %r', updates_metadata)
 
     passwd_users = {}
     shadow_passwords = {}
@@ -111,7 +111,7 @@ def callback(root_path, users, updates_metadata):
                 if not prologin.presenced.client.is_prologin_uid(user.uid):
                     passwd_users[user.login] = user
             else:
-                logging.error('Unparsable /etc/passwd line: {!r}'.format(line))
+                logging.error('Unparsable /etc/passwd line: %r', line)
                 logging.info('Stopping generation')
                 return
 
@@ -123,7 +123,7 @@ def callback(root_path, users, updates_metadata):
             if m:
                 shadow_passwords[m.group('login')] = m.group('remainder')
             else:
-                logging.error('Unparsable /etc/passwd line: {!r}'.format(line))
+                logging.error('Unparsable /etc/passwd line: %r', line)
                 logging.info('Stopping generation')
                 return
 
@@ -144,7 +144,7 @@ def callback(root_path, users, updates_metadata):
                     )
                 )
             else:
-                logging.error('Unparsable /etc/group line: {!r}'.format(line))
+                logging.error('Unparsable /etc/group line: %r', line)
                 logging.info('Stopping generation')
                 return
 
@@ -199,15 +199,13 @@ def callback(root_path, users, updates_metadata):
     userless_shadows = set(shadow_passwords) - set(passwd_users)
     shadowless_users = set(passwd_users) - set(shadow_passwords)
     if userless_shadows:
-        logging.error('Some shadow passwords have no passwd users: {}'.format(
-            ', '.join(userless_shadows)
-        ))
+        logging.error('Some shadow passwords have no passwd users: %s',
+                      ', '.join(userless_shadows))
         logging.info('Stopping generation')
         return
     if shadowless_users:
-        logging.error('Some passwd users have no shadow passord: {}'.format(
-            ', '.join(shadowless_users)
-        ))
+        logging.error('Some passwd users have no shadow password: %s',
+                      ', '.join(shadowless_users))
         logging.info('Stopping generation')
         return
 

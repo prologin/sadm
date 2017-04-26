@@ -25,7 +25,7 @@ import prologin.mdbsync.client
 
 
 def build_zone(name, records):
-    logging.info('Building zone file for %r' % name)
+    logging.info('Building zone file for %r', name)
     path = os.path.join('/etc/named', 'generated_%s.zone' % name)
     if not os.path.exists(path):
         serial = 1

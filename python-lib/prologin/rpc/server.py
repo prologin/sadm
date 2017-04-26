@@ -117,12 +117,10 @@ class RemoteCallHandler:
                 a = a[:10] + '…'
             return repr(a)
 
-        logging.debug('RPC <{}> {}({}{})'.format(
-            peername,
-            self.method_name,
-            ', '.join([farg(a) for a in data['args']]),
-            ', '.join([farg(a) + '=' + farg(b)
-                       for a, b in data['kwargs'].items()])))
+        logging.debug('RPC <%s> %s(%s%s)', peername, self.method_name,
+                      ', '.join(farg(a) for a in data['args']),
+                      ', '.join(farg(a) + '=' + farg(b)
+                                for (a, b) in data['kwargs'].items()))
 
     async def _check_secret(self, data):
         if self.secret is not None:

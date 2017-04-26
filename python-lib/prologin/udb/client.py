@@ -30,6 +30,6 @@ def connect(auth=False):
     else:
         secret = None
     url = CFG['url']
-    logging.info('Creating UDB connection object: url=%s, has_secret=%s'
-                 % (url, secret is not None))
+    logging.info('Creating UDB connection object: url=%s, has_secret=%s',
+                 url, secret is not None)
     return prologin.rpc.client.SyncClient(CFG['url'], secret=secret)

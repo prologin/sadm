@@ -176,7 +176,7 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
             presencesync_login_failed.labels(user=login,
                                              reason='already_logged').inc()
 
-            logging.debug('{} is already logged on {}'.format(login, hostname))
+            logging.debug('%s is already logged on %s', login, hostname)
             return None
 
         # 2 - The user is not logged in anywhere, nobody is logged on
@@ -193,11 +193,8 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
 
             return fail('{} is busy'.format(hostname))
         else:
-            logging.debug(
-                '{} is not logged anywhere and {} is not busy'.format(
-                    login, hostname
-                )
-            )
+            logging.debug('%s is not logged anywhere and %s is not busy',
+                          login, hostname)
             match = self.mdb.query(hostname=hostname)
             if len(match) != 1:
                 # Either there is no such hostname: refuse it, either there are
@@ -219,10 +216,8 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
 
             # The login will fail only if a simple user (contestant) tries to
             # log on a machine not for contestants. :-)
-            logging.debug('USER {} is a {}, MACHINE {} is a {}'.format(
-                login, user['group'],
-                hostname, machine['mtype']
-            ))
+            logging.debug('USER %s is a %s, MACHINE %s is a %s',
+                          login, user['group'], hostname, machine['mtype'])
             if user['group'] == 'user' and machine['mtype'] != 'user':
                 presencesync_login_failed.labels(user=login,
                                                  reason='user_not_allowed') \
@@ -268,15 +263,13 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
         # expiration TIMEOUT. This will prevent users from logging until
         # database is regenerated thanks to heartbeats.
         if self.start_ts is None or time.time() < self.start_ts + self.TIMEOUT:
-            logging.debug('Login for {} on {} refused: too early'.format(
-                login, hostname
-            ))
+            logging.debug('Login for %s on %s refused: too early',
+                          login, hostname)
             if self.start_ts is None:
                 logging.debug('Starting date is undefined')
             else:
-                logging.debug('Still have to wait for {} seconds'.format(
-                    int(self.start_ts + self.TIMEOUT - time.time())
-                ))
+                logging.debug('Still have to wait for %s seconds',
+                              int(self.start_ts + self.TIMEOUT - time.time()))
             presencesync_login_failed.labels(user=login, reason='too_early')\
                 .inc()
             return 'Too early login: try again later'
@@ -285,7 +278,7 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
         if failure_reason:
             return failure_reason
         else:
-            logging.info('Login request accepted: {}@{}'.format(login, hostname))
+            logging.info('Login request accepted: %s@%s', login, hostname)
             self.update_backlog(login, hostname)
             return None
 

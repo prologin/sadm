@@ -42,9 +42,9 @@ def async_work(func=None, slots=0):
     async def mktask(self, *args, **kwargs):
         async def wrapper(self, *wargs, **wkwargs):
             if self.slots < slots:
-                logging.warn('not enough slots to start the required job')
+                logging.warning('not enough slots to start the required job')
                 return
-            logging.debug('starting a job for {} slots'.format(slots))
+            logging.debug('starting a job for %s slots', slots)
             self.slots -= slots
             workernode_slots.set(self.slots)
             await self.update_master()
@@ -73,8 +73,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         self.master = self.get_master()
 
     def run(self):
-        logging.info('worker listening on {}'
-                     .format(self.config['worker']['port']))
+        logging.info('worker listening on %s', self.config['worker']['port'])
         asyncio.Task(self.send_heartbeat())
         super().run(port=self.config['worker']['port'])
 
@@ -95,11 +94,11 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         try:
             await self.master.update_worker(self.get_worker_infos())
         except socket.error:
-            logging.warn('master down, cannot update it')
+            logging.warning('master down, cannot update it')
 
     async def send_heartbeat(self):
-        logging.debug('sending heartbeat to the server, {}/{} slots'
-                      .format(self.slots, self.max_slots))
+        logging.debug('sending heartbeat to the server, %s/%s slots',
+                      self.slots, self.max_slots)
         first_heartbeat = True
         while True:
             try:
@@ -107,8 +106,8 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
                                             first_heartbeat)
                 first_heartbeat = False
             except socket.error:
-                logging.warn('master down, retrying heartbeat in {}s'
-                             .format(self.interval))
+                logging.warning('master down, retrying heartbeat in %ss',
+                                self.interval)
 
             await asyncio.sleep(self.interval)
 
@@ -130,8 +129,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
                 max_retries=self.config['master']['max_retries'],
                 retry_delay=self.config['master']['retry_delay'])
         except socket.error:
-            logging.warning('master down, cannot send compiled {}'.format(
-                cid))
+            logging.warning('master down, cannot send compiled %s', cid)
 
         workernode_compile_champion_summary.observe(
             max(time.monotonic() - compile_champion_start, 0))
@@ -139,12 +137,12 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
     @prologin.rpc.remote_method
     @async_work(slots=5)
     async def run_match(self, match_id, players, opts=None, file_opts=None):
-        logging.info('starting match {}'.format(match_id))
+        logging.info('starting match %s', match_id)
         run_match_start = time.monotonic()
 
         server_result, server_out, dump, players_info = await (
             operations.spawn_match(self.config, players, opts, file_opts))
-        logging.info('match {} done'.format(match_id))
+        logging.info('match %s done', match_id)
 
         try:
             await self.master.match_done(
@@ -153,8 +151,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
                 max_retries=self.config['master']['max_retries'],
                 retry_delay=self.config['master']['retry_delay'])
         except socket.error:
-            logging.warning('master down, cannot send match {} result'.format(
-                match_id))
+            logging.warning('master down, cannot send match %s result', match_id)
 
         workernode_run_match_summary.observe(
             max(time.monotonic() - run_match_start, 0))

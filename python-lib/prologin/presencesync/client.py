@@ -53,10 +53,8 @@ class Client(prologin.synchronisation.Client):
             '/login', self.pub_secret,
             {'login': login, 'hostname': hostname}
         )
-        logging.debug(
-            'Request login:'
-            ' PresenceSync status code is {}'.format(r.status_code)
-        )
+        logging.debug('Request login: PresenceSync status code is %s',
+                      r.status_code)
         if r.status_code != 200:
             return r.text or 'No reason given'
         else:
@@ -88,8 +86,8 @@ def connect(pub=False):
         pub_secret = None
     url = SUB_CFG['url']
     sub_secret = SUB_CFG['shared_secret']
-    logging.info('Creating PresenceSync connection object: url=%s, can_pub=%s'
-                 % (url, pub_secret is not None))
+    logging.info('Creating PresenceSync connection object: url=%s, can_pub=%s',
+                 url, pub_secret is not None)
     return Client(
         url, 'login', pub_secret, sub_secret
     )

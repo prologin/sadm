@@ -52,7 +52,7 @@ class Client(prologin.webapi.Client):
             '/login', self.secret,
             {'login': login}
         )
-        logging.debug('Request login status code: {}'.format(r.status_code))
+        logging.debug('Request login status code: %s', r.status_code)
         if r.status_code != 200:
             return r.text or 'No reason given'
         else:
@@ -63,5 +63,5 @@ def connect():
     CFG = prologin.config.load('presenced-client')
     url = CFG['url']
     secret = CFG['shared_secret']
-    logging.info('Creating Presenced client connection object: url=%s' % url)
+    logging.info('Creating Presenced client connection object: url=%s', url)
     return Client(url, secret)

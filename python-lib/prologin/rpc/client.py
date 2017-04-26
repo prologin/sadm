@@ -114,9 +114,9 @@ class Client:
                     return (await self._call_method(method, args, kwargs))
                 except socket.error:
                     if i < max_retries:
-                        logging.warning('<{}> down, cannot call {}. '
-                            'Retrying in {}s...'.format(self.base_url,
-                                method, retry_delay))
+                        logging.warning('<%s> down, cannot call %s. '
+                                        'Retrying in %ss...', self.base_url,
+                                        method, retry_delay)
                         await asyncio.sleep(retry_delay)
                     else:
                         raise
