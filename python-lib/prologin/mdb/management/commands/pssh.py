@@ -15,7 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
-from optparse import make_option
 import subprocess
 import sys
 import time
@@ -24,18 +23,18 @@ from django.core.management.base import BaseCommand, CommandError
 from prologin.mdb.models import Machine
 
 class Command(BaseCommand):
-    option_list = BaseCommand.option_list + (
-        make_option('--hostname', help='Machine name'),
-        make_option('--ip', help='Machine IP address'),
-        make_option('--mac', help='Machine MAC address'),
-        make_option('--rfs', help='RFS used by the machines'),
-        make_option('--hfs', help='HFS used by the machines'),
-        make_option('--user', help='SSH as this user (default: root)'),
-        make_option('--mtype',
-                    help='Machines type (user/orga/cluster/service)'),
-        make_option('--room',
-                    help='Machines location (pasteur/alt/cluster/other'),
-    )
+
+    def add_aguments(self, parser):
+        parser.add_argument('--hostname', help='Machine name')
+        parser.add_argument('--ip', help='Machine IP address')
+        parser.add_argument('--mac', help='Machine MAC address')
+        parser.add_argument('--rfs', help='RFS used by the machines')
+        parser.add_argument('--hfs', help='HFS used by the machines')
+        parser.add_argument('--user', help='SSH as this user (default: root)')
+        parser.add_argument('--mtype',
+                    help='Machines type (user/orga/cluster/service)')
+        parser.add_argument('--room',
+                    help='Machines location (pasteur/alt/cluster/other')
 
     def handle(self, *args, **options):
         user = options['user'] or 'root'
