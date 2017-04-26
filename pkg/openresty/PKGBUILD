@@ -12,6 +12,8 @@ arch=('i686' 'x86_64')
 url="http://openresty.org/"
 license=('BSD')
 depends=('perl>=5.6.1' 'readline' 'pcre' 'openssl')
+makedepends=('patchelf')
+
 source=(https://openresty.org/download/$pkgname-$pkgver.tar.gz{,.asc}
         lua-resty-extra-lib.tar.gz
         configure-add-lua-packages.patch
@@ -45,6 +47,10 @@ prepare() {
 }
 
 build() {
+  cd "${srcdir}/openssl"
+  ./config
+  make
+
   cd "$srcdir/$pkgname-$pkgver"
 
   # Prologin-SADM
@@ -107,6 +113,10 @@ package() {
   install -m644 "$srcdir/logrotate" "$pkgdir"/etc/logrotate.d/nginx
 
   install -Dm644 "$srcdir/service" "$pkgdir"/usr/lib/systemd/system/nginx.service
+
+  local nginx_lib_path="/etc/nginx/libcrypto.so"
+  install -Dm755 "${srcdir}/openssl/libcrypto.so.1.1" "${pkgdir}/${nginx_lib_path}"
+  patchelf --add-needed "${nginx_lib_path}" "${pkgdir}/usr/bin/nginx"
 
   rmdir "$pkgdir/run"
 }
