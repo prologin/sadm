@@ -18,14 +18,14 @@
 # Exports the data required to print password sheets for users.
 
 from django.core.management import BaseCommand, CommandError
-from optparse import make_option
 from prologin.udb.models import User
 
 
 class Command(BaseCommand):
-    option_list = BaseCommand.option_list + (
-        make_option('--type', default='user', help='User type (user/orga/root)'),
-    )
+
+    def add_arguments(self, parser):
+        parser.add_argument('--type', default='user',
+                            help='User type (user/orga/root)')
 
     def handle(self, *args, **options):
         users = User.objects.filter(group=options['type'])
