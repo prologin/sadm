@@ -23,7 +23,6 @@ References:
 """
 
 import json
-from optparse import make_option
 from django.core.management.base import BaseCommand
 
 from prologin.mdb.models import Machine
@@ -31,9 +30,10 @@ from prologin.mdb.models import Machine
 
 class Command(BaseCommand):
     help = 'Ansible dynamic inventory from mdb'
-    option_list = BaseCommand.option_list + (
-        make_option('--list', action='store_true', help='display list of hosts'),
-    )
+
+    def add_arguments(self, parser):
+        parser.add_argument('--list', action='store_true',
+                help='display list of hosts')
 
     def handle(self, *args, **kwargs):
         ret = { k: { 'hosts': [],
