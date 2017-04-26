@@ -13,15 +13,19 @@ url="http://openresty.org/"
 license=('BSD')
 depends=('perl>=5.6.1' 'readline' 'pcre' 'openssl')
 source=(https://openresty.org/download/$pkgname-$pkgver.tar.gz{,.asc}
+        lua-resty-extra-lib.tar.gz
+        configure-add-lua-packages.patch
         service
-        $pkgname.logrotate
-        git+https://boringssl.googlesource.com/boringssl)
+        logrotate
+        git+https://github.com/openssl/openssl#tag=OpenSSL_1_1_0e)
 noextract=()
 validpgpkeys=('25451EB088460026195BD62CB550E09EA0E98066')
 sha256sums=('7f9ca62cfa1e4aedf29df9169aed0395fd1b90de254139996e554367db4d5a01'
             'SKIP'
+            'SKIP' # lua-resty-extra-lib.tar.gz is built at make time
+	    '0897f04569a4588d8e78b080c4adad597cb47c489c4ffde046ee6aaac6ba8acb'
             '7230ec16915bee37dda6d0928a533e6404c8cbe3fd778a88e0fb75530209a7dc'
-            '613b0ed3fe4b5ee505ddb5122ee41604f464a5049be81c97601ee93970763a23'
+            '2613986dd5faab09ca962264f16841c8c55c3a0bc7a5bb737eabd83143090878'
             'SKIP')
 backup=(${_cfgdir:1}/fastcgi.conf
         ${_cfgdir:1}/fastcgi_params
@@ -32,16 +36,15 @@ backup=(${_cfgdir:1}/fastcgi.conf
         ${_cfgdir:1}/scgi_params
         ${_cfgdir:1}/uwsgi_params
         ${_cfgdir:1}/win-utf
-        etc/logrotate.d/openresty)
+        etc/logrotate.d/nginx)
+
+prepare() {
+  cd "$srcdir/$pkgname-$pkgver"
+  # patch configure to include lua_packages.tar.gz packages
+  patch -Np1 -i "$srcdir"/configure-add-lua-packages.patch
+}
 
 build() {
-  export CXXFLAGS="$CXXFLAGS -fPIC"
-
-  cd ${srcdir}/boringssl
-  mkdir build && cd build && cmake ../ && make -j$(nproc) && cd ${srcdir}/boringssl
-  mkdir -p .openssl/lib && cd .openssl && ln -s ../include . && cd ../
-  cp ${srcdir}/boringssl/build/crypto/libcrypto.a ${srcdir}/boringssl/build/ssl/libssl.a .openssl/lib && cd ..
-
   cd "$srcdir/$pkgname-$pkgver"
 
   # Prologin-SADM
@@ -80,10 +83,7 @@ build() {
     --with-pcre-jit \
     --without-http_ssl_module \
     --with-stream \
-    --with-openssl=${srcdir}/boringssl \
-
-
-  touch ${srcdir}/boringssl/.openssl/include/openssl/ssl.h
+    --with-openssl=${srcdir}/openssl
 
   make -j$(nproc)
 }
@@ -104,7 +104,7 @@ package() {
   mv "$pkgdir"/etc/nginx/nginx/html/ "$pkgdir"/usr/share/nginx
 
   install -d "$pkgdir"/etc/logrotate.d
-  install -m644 "$srcdir/openresty.logrotate" "$pkgdir"/etc/logrotate.d/nginx
+  install -m644 "$srcdir/logrotate" "$pkgdir"/etc/logrotate.d/nginx
 
   install -Dm644 "$srcdir/service" "$pkgdir"/usr/lib/systemd/system/nginx.service
 

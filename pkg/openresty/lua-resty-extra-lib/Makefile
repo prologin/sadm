@@ -1,6 +1,6 @@
 LIBS_NAMES = cookie hmac http-simple
 PKGNAME = openresty
-PKGVER = 1.9.7.4
+PKGVER = 1.11.2.2
 DEST = ../lua-resty-extra-lib.tar.gz
 
 
