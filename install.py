@@ -282,10 +282,9 @@ def django_migrate(name, user=None):
 
 
 def check_database_exists(database):
-    retcode = system("exit $(echo \"SELECT 1 FROM pg_database WHERE datname='{}'\" | "
+    return subprocess.run("exit $(echo \"SELECT 1 FROM pg_database WHERE datname='{}'\" | "
                      "su - postgres -c 'psql -t')"
-                     .format(database))
-    return retcode != 0
+                     .format(database), shell=True).returncode != 0
 
 
 def execute_sql(name, database=None, verbose=True):
