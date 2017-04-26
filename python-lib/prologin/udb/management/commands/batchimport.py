@@ -21,7 +21,6 @@ import subprocess
 import unicodedata
 
 from django.core.management import BaseCommand, CommandError
-from optparse import make_option
 from prologin.udb.models import User
 
 
@@ -88,13 +87,18 @@ def create_users(names, options):
 
 
 class Command(BaseCommand):
-    option_list = BaseCommand.option_list + (
-        make_option('--file', help='File with "first name\\tlast name" lines'),
-        make_option('--type', default='user', help='User type (user/orga/root)'),
-        make_option('--pwdlen', type='int', default=8, help='Password length'),
-        make_option('--logins', action='store_true', default=False, help='File contains logins, not real names'),
-        make_option('--passwords', action='store_true', default=False, help='File contains passwords after a colon'),
-    )
+
+    def add_arguments(self, parser):
+        parser.add_argument('--file',
+                            help='File with "first name\\tlast name" lines')
+        parser.add_argument('--type', default='user',
+                            help='User type (user/orga/root)')
+        parser.add_argument('--pwdlen', type='int', default=8,
+                            help='Password length')
+        parser.add_argument('--logins', action='store_true', default=False,
+                            help='File contains logins, not real names')
+        parser.add_argument('--passwords', action='store_true', default=False,
+                            help='File contains passwords after a colon')
 
     def handle(self, *args, **options):
         if options['file'] is None:
