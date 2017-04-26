@@ -19,21 +19,20 @@ import time
 
 from django.core.management.base import BaseCommand, CommandError
 from prologin.mdb.models import Machine
-from optparse import make_option
 
 class Command(BaseCommand):
-    option_list = BaseCommand.option_list + (
-        make_option('--hostname', help='Machine name'),
-        make_option('--aliases', help='DNS aliases (comma separated)'),
-        make_option('--ip', help='Machine IP address'),
-        make_option('--mac', help='Machine MAC address'),
-        make_option('--rfs', help='RFS used by the machine'),
-        make_option('--hfs', help='HFS used by the machine'),
-        make_option('--mtype',
-                    help='Machine type (user/orga/cluster/service)'),
-        make_option('--room',
-                    help='Machine location (pasteur/alt/cluster/other)'),
-    )
+
+    def add_arguments(self, parser):
+        parser.add_argument('--hostname', help='machine_name')
+        parser.add_argument('--aliases', help='DNS aliases (comma separated)')
+        parser.add_argument('--ip', help='Machine IP address')
+        parser.add_argument('--mac', help='Machine MAC address')
+        parser.add_argument('--rfs', help='RFS used by the machine')
+        parser.add_argument('--hfs', help='HFS used by the machine')
+        parser.add_argument('--mtype',
+                    help='Machine type (user/orga/cluster/service)')
+        parser.add_argument('--room',
+                    help='Machine location (pasteur/alt/cluster/other)')
 
     def get_opt(self, options, name):
         if name not in options:
