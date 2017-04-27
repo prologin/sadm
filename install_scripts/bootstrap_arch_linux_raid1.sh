@@ -30,7 +30,7 @@ while ! [ -b "$disk_1" ]; do
 done
 
 echo "[+] Starting RAID1 bootstrap"
-./bootstrap_fs_raid1.sh gw "$disk_0" "$disk_1"
+./bootstrap_fs_raid1.sh "$hostname" "$disk_0" "$disk_1"
 
 echo "[+] Starting Arch Linux bootstrap"
 ./bootstrap_arch_linux.sh /mnt $hostname.prolo <(echo "$root_password")
