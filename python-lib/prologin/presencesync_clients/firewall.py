@@ -16,38 +16,40 @@ import threading
 CFG = prologin.config.load('presencesync_firewall')
 
 
-def update_firewall(client):
+mdb_machines = {}
+udb_users = {}
+presence_data = {}
+
+
+def update_firewall():
+    # Don't do anything if the machines and user are not initialized
+    if not mdb_machines or not udb_users:
+        return
+
     logging.info('Updating firewall')
 
     allowed_groups = CFG['allowed_groups']
-
-    mdb_machines = prologin.mdb.client.connect().query()  # get all machines
-    udb_users = prologin.udb.client.connect().query()  # get all users
-    presence_data = client.get_list()  # get presence list
 
     # Flush temporary set
     subprocess.call('ipset flush tmp-allowed-internet-access', shell=True)
 
     # Find allowed hostnames
     allowed_hostnames = set()
-    for login, hostname in presence_data.items():
-        for user in udb_users:
-            if login == user['login']:
-                if user['group'] in allowed_groups:
-                    # Add user to temporary set
-                    allowed_hostnames.add(hostname)
-                break  # User found
+    for entity in presence_data.values():
+        if udb_users[entity['login']]['group'] in allowed_groups:
+            # Add user to temporary set
+            allowed_hostnames.add(entity['hostname'])
 
     # Translate hostnames to ip
     allowed_ips = set()
     for hostname in allowed_hostnames:
-        for machine in mdb_machines:
+        for machine in mdb_machines.values():
             if hostname == machine['hostname']:
                 allowed_ips.add(machine['ip'])
                 break  # IP found
 
     # Add organizers machines
-    for machine in mdb_machines:
+    for machine in mdb_machines.values():
         if machine['mtype'] == 'orga':
             allowed_ips.add(machine['ip'])
 
@@ -66,15 +68,22 @@ async def poll_all():
     presencesync_client = prologin.presencesync.client.connect()
 
     loop = asyncio.get_event_loop()
-    executor_lock = threading.Lock()
 
-    def callback(values, meta):
-        with executor_lock:
-            update_firewall(presencesync_client)
+    def generic_callback(values, meta, dict_to_update):
+        dict_to_update.clear()
+        dict_to_update.update(values)
+        loop.call_soon_threadsafe(update_firewall)
 
     tasks = []
-    for client in (mdbsync_client, udbsync_client, presencesync_client):
-        tasks.append(loop.run_in_executor(None, client.poll_updates, callback))
+
+    def add_task(client, dict_to_update):
+        cb = functools.partial(generic_callback, dict_to_update=dict_to_update)
+        tasks.append(loop.run_in_executor(None, client.poll_updates, cb))
+
+    add_task(mdbsync_client, mdb_machines)
+    add_task(udbsync_client, udb_users)
+    add_task(presencesync_client, presence_data)
+
     await asyncio.wait(tasks)
 
 
