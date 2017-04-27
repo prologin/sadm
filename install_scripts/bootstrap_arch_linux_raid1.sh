@@ -10,6 +10,12 @@ read
 echo -n '[?] Type new system hostname (e.g. gw or rhfsA): ' && read hostname
 echo -n '[?] Type new system root password: ' && read -s root_password
 echo
+echo -n '[?] Confirm new system root password: ' && read -s root_password_cnf
+echo
+
+[ "$root_password" != "$root_password_cnf" ] && \
+    >&2 echo "Passwords mismatch, aborting." && \
+    exit 1
 
 echo '[+] Detected disks:'
 shopt -s nullglob  # glob pattern is removed if it has no matches
