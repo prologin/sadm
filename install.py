@@ -114,7 +114,8 @@ ROOTFS = '/export/nfsroot'
 # Helper functions for installation procedures.
 
 def replace_secrets(string):
-    requires('sadm_secret')
+    if not os.path.exists(SECRET_PATH):
+        requires('sadm_secret')
 
     with open(SECRET_PATH) as secret_file:
         secret = secret_file.read().strip()
@@ -216,6 +217,7 @@ def install_cfg(path, dest_dir, owner='root:root', mode=0o600, replace=False):
     if os.path.exists(dest_path) and not replace:
         old_contents = open(dest_path).read()
         new_contents = open(src_path).read()
+        new_contents = replace_secrets(new_contents)
         if old_contents == new_contents:
             return
         CFG_TO_REVIEW.append(dest_path)
