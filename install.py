@@ -957,8 +957,51 @@ def sync_users():
             system(cmd)
 
 
+def git_check():
+    if not sys.stdout.isatty():
+        return True
+    try:
+        system(['git', 'fetch'])
+        git_process = subprocess.Popen(
+            ['git', 'rev-list', '--count', '--left-right', 'origin...HEAD'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        err = git_process.stderr.read()
+        if err:
+            print(
+                f"An error occured while trying to check the repo status:"
+                f"\n\t{err}"
+            )
+            return True
+        a_remote, a_local = map(int, git_process.stdout.read().split())
+        if a_remote > 0 and a_local > 0:
+            print(
+                f'Oops, your branch diverged by {a_local}, '
+                f'and the remote did by {a_remote}'
+            )
+        elif a_remote > 0:
+            print(f'You repo is not up to date ({a_remote} commits pending).')
+        else:
+            return True
+
+        user_prompt = input(
+            "Are you sure you want to continue ?\n"
+            "Input 'y' to continue, anything else to abort\n"
+        )
+        if user_prompt.lower() != 'y':
+            return False
+    except:
+        pass
+    return True
+
+
 if __name__ == '__main__':
     os.umask(0)  # Trust our chmods.
+
+    if not git_check():
+        sys.exit(1)
+
     if len(sys.argv) == 1:
         print('usage: python3 install.py <component> [components...]')
         print('Components:')
