@@ -208,7 +208,6 @@ def touch(path, mode=0o600, owner='root:root'):
     shutil.chown(path, user, group)
 
 
-NEW_CFG = []
 CFG_TO_REVIEW = []
 def install_cfg(path, dest_dir, owner='root:root', mode=0o600, replace=False):
     dest_path = os.path.join(dest_dir, os.path.basename(path))
@@ -221,8 +220,6 @@ def install_cfg(path, dest_dir, owner='root:root', mode=0o600, replace=False):
             return
         CFG_TO_REVIEW.append(dest_path)
         dest_path += '.new'
-    else:
-        NEW_CFG.append(dest_path)
 
     copy(src_path, dest_path, mode=0o640, owner=owner)
     os.chmod(dest_path, mode)
@@ -987,9 +984,4 @@ if __name__ == '__main__':
     if CFG_TO_REVIEW:
         print('WARNING: The following configuration files need to be merged:')
         for cfg in CFG_TO_REVIEW:
-            print(' - %s' % cfg)
-
-    if NEW_CFG:
-        print('WARNING: Please review the newly installed config files:')
-        for cfg in NEW_CFG:
             print(' - %s' % cfg)
