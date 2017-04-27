@@ -69,15 +69,13 @@ async def poll_all():
 
     loop = asyncio.get_event_loop()
 
-    def generic_callback(values, meta, dict_to_update):
-        dict_to_update.clear()
-        dict_to_update.update(values)
-        loop.call_soon_threadsafe(update_firewall)
-
     tasks = []
 
     def add_task(client, dict_to_update):
-        cb = functools.partial(generic_callback, dict_to_update=dict_to_update)
+        def cb(values, meta):
+            dict_to_update.clear()
+            dict_to_update.update(values)
+            loop.call_soon_threadsafe(update_firewall)
         tasks.append(loop.run_in_executor(None, client.poll_updates, cb))
 
     add_task(mdbsync_client, mdb_machines)
