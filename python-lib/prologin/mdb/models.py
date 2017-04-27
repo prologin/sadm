@@ -71,6 +71,7 @@ class Machine(ExportModelOperationsMixin('machine'), models.Model):
     def save(self, *args, **kwargs):
         if not self.ip:
             self.allocate_ip()
+        self.mac = self.mac.lower()
         super().save(*args, **kwargs)
 
     def to_dict(self):
@@ -133,6 +134,10 @@ class Switch(ExportModelOperationsMixin('switch'), models.Model):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        self.chassis = self.chassis.lower()
+        super().save(*args, **kwargs)
 
     def to_dict(self):
         return {
