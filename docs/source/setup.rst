@@ -339,9 +339,9 @@ You should be able to start ``mdb`` and ``nginx`` like this::
   systemctl enable --now mdb
   systemctl enable --now nginx
 
-Now you should get an empty list when querying ``/query``::
+Now you should get an empty list when querying ``/call/query``::
 
-  curl http://mdb/query
+  curl http://mdb/call/query
   # Should return []
 
 Congratulations, ``mdb`` is installed and working properly!
