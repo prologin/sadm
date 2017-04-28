@@ -176,6 +176,7 @@ on all system using sadm. We are running the script on ``gw.prolo`` and it will
 executed on every systems: ``rhfs``, ``web``, ``rfs``.
 
 ::
+
     cd /root/sadm/install_scripts
     ./setup_sadm.sh
 
@@ -672,6 +673,7 @@ Configure the exported rootfs for SADM and network booting. This scripts will
 chroot into the exported file system and run the ``setup_sadm.sh`` script.
 
 ::
+
   python install.py rfs_nfs_sadm
 
 The installation script will bootstrap a basic Arch Linux system in
