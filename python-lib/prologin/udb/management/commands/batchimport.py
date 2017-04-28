@@ -85,15 +85,13 @@ def create_users(names, options):
         u.save()
 
 
-
 class Command(BaseCommand):
-
     def add_arguments(self, parser):
         parser.add_argument('--file',
                             help='File with "first name\\tlast name" lines')
         parser.add_argument('--type', default='user',
                             help='User type (user/orga/root)')
-        parser.add_argument('--pwdlen', type='int', default=8,
+        parser.add_argument('--pwdlen', type=int, default=8,
                             help='Password length')
         parser.add_argument('--logins', action='store_true', default=False,
                             help='File contains logins, not real names')
