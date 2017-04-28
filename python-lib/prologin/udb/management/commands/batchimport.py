@@ -69,20 +69,31 @@ def create_users(names, options):
 
         logins.add(login)
 
-        u = User()
-        u.login = login
-        u.firstname = firstname.title()
-        u.lastname = lastname.title()
-        u.group = options['type']
+        insert_method = (User.objects.update_or_create if options['update'] else
+                         User.objects.get_or_create)
+        u, created = insert_method(
+            login=login,
+            defaults={
+                'firstname': firstname.title(),
+                'lastname': lastname.title(),
+                'group': options['type'],
+                'password': (passw if options['passwords'] else
+                             generate_password(options['pwdlen']))
+            },
+        )
 
-        if options['passwords']:
-            u.password = passw
+        user_desc = f'{u.realname} (login: {u.login})'
+        if created:
+            print(f'Added user {user_desc}')
+        elif options['update']:
+            print(f'Updated user {user_desc}')
+        elif options['ignore']:
+            print(f'(Ignored user {user_desc})')
         else:
-            u.password = generate_password(options['pwdlen'])
-
-        print("Adding user %s (login: %s)" % (u.realname, u.login))
-
-        u.save()
+            raise RuntimeError(
+                f'User {user_desc} already in database. '
+                'Use --update to update it, or --ignore.'
+            )
 
 
 class Command(BaseCommand):
@@ -97,6 +108,10 @@ class Command(BaseCommand):
                             help='File contains logins, not real names')
         parser.add_argument('--passwords', action='store_true', default=False,
                             help='File contains passwords after a colon')
+        parser.add_argument('--update', action='store_true', default=False,
+                            help='Update already existing database entries')
+        parser.add_argument('--ignore', action='store_true', default=False,
+                            help='Ignore already existing database entries')
 
     def handle(self, *args, **options):
         if options['file'] is None:

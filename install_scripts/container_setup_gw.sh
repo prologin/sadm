@@ -329,15 +329,15 @@ EOF
 
   echo '[-] Start batch import for users'
   container_run /var/prologin/venv/bin/python /var/prologin/udb/manage.py \
-    batchimport --file=/root/finalistes.txt
+    batchimport --update --file=/root/finalistes.txt
 
   echo '[-] Start batch import for orgas'
   container_run /var/prologin/venv/bin/python /var/prologin/udb/manage.py \
-    batchimport --logins --type=orga --pwdlen=10 --file=/root/orgas.txt
+    batchimport --update --logins --type=orga --pwdlen=10 --file=/root/orgas.txt
 
   echo '[-] Start batch import for root'
   container_run /var/prologin/venv/bin/python /var/prologin/udb/manage.py \
-    batchimport --logins --type=root --pwdlen=10 --file=/root/roots.txt
+    batchimport --update --logins --type=root --pwdlen=10 --file=/root/roots.txt
 
   container_snapshot $FUNCNAME
 }
