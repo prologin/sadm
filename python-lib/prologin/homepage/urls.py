@@ -15,16 +15,17 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+import prologin.homepage.views
 
 admin.autodiscover()
 
-urlpatterns = patterns('',
-    url(r'^$', 'prologin.homepage.views.home', name='home'),
+urlpatterns = [
+    url(r'^$', prologin.homepage.views.home, name='home'),
     url(r'^admin/', include(admin.site.urls)),
     url(r'', include('django_prometheus.urls')),
-)
+]
 
 urlpatterns += staticfiles_urlpatterns()
