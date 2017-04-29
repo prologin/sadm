@@ -22,6 +22,6 @@ if __name__ == '__main__':
             name, value = a.split('=', maxsplit=1)
             args[name] = value
 
-    c = prologin.rpc.client.Client(opts.url, opts.secret.encode('utf-8'))
+    c = prologin.rpc.client.SyncClient(opts.url, opts.secret.encode('utf-8'))
     if hasattr(c, opts.method):
         print(getattr(c, opts.method)(**args))
