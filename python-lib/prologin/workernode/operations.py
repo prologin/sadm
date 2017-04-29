@@ -92,7 +92,7 @@ async def compile_champion(config, ctgz):
 
     limits = {'wall-time': config['timeout'].get('compile', 400),
               'fsize': 50 * 1024}
-    allowed_dirs = ['/tmp:rw', code_dir]
+    allowed_dirs = ['/tmp:rw', code_dir, '/etc']
 
     isolator = isolate.Isolator(limits, allowed_dirs=allowed_dirs)
     async with isolator:
