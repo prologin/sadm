@@ -9,7 +9,8 @@
 
 *.background:           #2c2c2c
 *.foreground:           #dcdcdc
-*.font:                 xft:DejaVu Sans Mono:antialias=true
+*.font:                 xft:DejaVu Sans Mono:size=10:antialias=true
+emacs.font:             DejaVu Sans Mono-10
 URxvt.urgentOnBell:     true
 
 URxvt.perl-ext-common:  default,matcher,clipboard,url-select,keyboard-select
