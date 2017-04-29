@@ -174,11 +174,6 @@ async def spawn_client(config, req_addr, sub_addr, pl_id, champion_path,
     env = os.environ.copy()
     env['CHAMPION_PATH'] = champion_path + '/'
 
-    # FIXME: JAVA SHOULD NOT BE MEMORY-ISOLATED
-    # java fix for isolate (WTF)
-    # see http://bugs.java.com/view_bug.do?bug_id=8043516
-    env['MALLOC_ARENA_MAX'] = '1'
-
     # Build command
     cmd = [config['path']['stechec_client'],
            "--name", str(pl_id),
@@ -205,6 +200,10 @@ async def spawn_client(config, req_addr, sub_addr, pl_id, champion_path,
         'processes': config['isolate'].get('processes', 50),
         'fsize': 256,
     }
+
+    # Remove memory limit if Java
+    if os.path.exists(os.path.join(champion_path, 'Prologin.class')):
+        limits.pop('mem')
 
     # Run the isolated client
     result = await isolate_communicate(
