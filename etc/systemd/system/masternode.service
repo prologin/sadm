@@ -5,6 +5,7 @@ After=network-online.target
 [Service]
 Type=simple
 User=concours
+LimitNOFILE=262144
 ExecStart=/var/prologin/venv/bin/python -m prologin.masternode
 
 [Install]
