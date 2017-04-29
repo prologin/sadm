@@ -24,7 +24,7 @@ from prologin.mdb.models import Machine
 
 class Command(BaseCommand):
 
-    def add_aguments(self, parser):
+    def add_arguments(self, parser):
         parser.add_argument('--hostname', help='Machine name')
         parser.add_argument('--ip', help='Machine IP address')
         parser.add_argument('--mac', help='Machine MAC address')
