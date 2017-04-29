@@ -105,5 +105,5 @@ if &t_Co > 255
    hi LineNr          ctermfg=250 ctermbg=234
    hi NonText         ctermfg=166               cterm=bold
 
-   hi ColorColumn     ctermfg=252 ctermbg=232
+   hi ColorColumn     ctermfg=252 ctermbg=160
 end

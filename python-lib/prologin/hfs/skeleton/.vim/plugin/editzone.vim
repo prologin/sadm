@@ -17,6 +17,8 @@ set laststatus=2
 set noerrorbells
 set novisualbell
 
+set colorcolumn=80
+
 set textwidth=79
 if version >= 703
   set colorcolumn=+1
