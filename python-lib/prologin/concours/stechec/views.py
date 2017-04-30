@@ -136,6 +136,9 @@ class AllMatchesView(MatchesListView):
 
     def get_queryset(self):
         qs = models.Match.objects.all()
+        if (settings.STECHEC_FIGHT_ONLY_OWN_CHAMPIONS and not
+            self.request.user.is_staff):
+            qs = qs.filter(author=self.request.user.id)
         authors = self.request.GET.getlist('author')
         if authors:
             qs = qs.filter(author__pk__in=authors)
@@ -148,9 +151,6 @@ class AllMatchesView(MatchesListView):
         return qs
 
     def get(self, request, *args, **kwargs):
-        if (settings.STECHEC_FIGHT_ONLY_OWN_CHAMPIONS and not
-            self.request.user.is_staff):
-            return HttpResponseForbidden()
         return super().get(request, *args, **kwargs)
 
 
