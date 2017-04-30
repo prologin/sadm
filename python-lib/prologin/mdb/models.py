@@ -38,7 +38,7 @@ ROOMS = (
 )
 
 # Vaguely inaccurate, KISS.
-HOSTNAME_REGEX = r'^[a-z0-9-]*(?:\.[a-z0-9]*)?$'
+HOSTNAME_REGEX = r'^[a-z0-9-]+(?:\.[a-z0-9]+)?$'
 ALIASES_REGEX = r'^{0}(?:,{0})*$'.format(HOSTNAME_REGEX[1:-1])
 MAC_REGEX = r'[0-9a-zA-Z]{2}(?::[0-9a-zA-Z]{2}){5}'
 
