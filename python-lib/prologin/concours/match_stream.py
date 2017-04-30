@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import datetime
 import getpass
 import json
 import psycopg2
@@ -89,13 +90,14 @@ def replay_match(opts, match_id, champions_list):
         p.wait()
 
 if __name__ == '__main__':
+    this_year_replay = '/usr/bin/prologin{}-replay'.format(datetime.date.today().year)
     parser = argparse.ArgumentParser('Match TV Mode')
     parser.add_argument('--concours-url', default='concours')
     parser.add_argument('--host', default='concours')
     parser.add_argument('--port', type=int, default=5432)
     parser.add_argument('--database', default='concours')
     parser.add_argument('--user', default='concours')
-    parser.add_argument('--replay', default='/usr/bin/prologin2015-replay')
+    parser.add_argument('--replay', default=this_year_replay)
     opts = parser.parse_args()
     opts.password = getpass.getpass('db password: ')
 
