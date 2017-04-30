@@ -83,6 +83,13 @@
          height="1"
          width="1" />
     </mask>
+      <pattern
+          id="faultystripe"
+          width="8" height="10"
+          patternUnits="userSpaceOnUse"
+          patternTransform="rotate(45 50 50)">
+        <line stroke="#bdbdbd" stroke-width="7px" y2="10"/>
+      </pattern>
   </defs>
   <metadata
      id="metadata7">
