@@ -41,6 +41,8 @@ def update_dhcp_config(machines, metadata):
         fp.write('\n'.join(fragments))
 
     logging.warning("Reloading DHCP config")
+    if os.system('dhcpd -t'):
+        raise RuntimeError('DHCP config check failed. Aborting.')
     os.system('systemctl restart dhcpd4')
 
 if __name__ == '__main__':
