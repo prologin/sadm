@@ -74,6 +74,7 @@ REQUESTS = {
             status = %(match_status)s
           WHERE
             stechec_match.id = %(match_id)s
+            AND status <> 'done'
     ''',
 
     'set_player_score': '''
