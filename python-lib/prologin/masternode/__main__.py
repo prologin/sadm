@@ -42,17 +42,20 @@ if __name__ == '__main__':
                       help='Verbose mode.')
     options, args = parser.parse_args()
 
-    # Logging
-    prologin.log.setup_logging('masternode', verbose=options.verbose,
-                               local=options.local_logging)
-    logging.getLogger('asyncio').setLevel(logging.WARNING)
-
     # Config
     config = prologin.config.load('masternode')
 
     # RPC Service
     s = MasterNode(config=config, app_name='masternode',
                    secret=config['master']['shared_secret'].encode('utf-8'))
+
+    # Logging
+    prologin.log.setup_logging('masternode', verbose=options.verbose,
+                               local=options.local_logging)
+    logging.getLogger('asyncio').setLevel(logging.WARNING)
+    logging.getLogger('aiohttp.access').setLevel(logging.WARNING)
+    logging.getLogger('aiohttp.server').setLevel(logging.WARNING)
+    logging.getLogger('aiohttp.web').setLevel(logging.WARNING)
 
     # Monitoring
     masternode_tasks.set_function(lambda: len(s.worker_tasks))
