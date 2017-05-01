@@ -63,6 +63,7 @@ class User(ExportModelOperationsMixin('user'), models.Model):
             'password': self.password,
             'shell': self.shell,
             'ssh_key': self.ssh_key,
+            'id': self.pk,
         }
 
     def allocate_uid(self):

@@ -30,7 +30,7 @@ class UDBServer(prologin.rpc.server.BaseRPCApp):
         super().__init__(*args, secret=secret, **kwargs)
 
     def get_users(self, **kwargs):
-        fields = {'login', 'uid', 'group', 'shell', 'ssh_key'}
+        fields = {'login', 'uid', 'group', 'shell', 'ssh_key', 'id'}
         check_filter_fields(fields, kwargs)
         users = User.objects.filter(**kwargs)
         users = [m.to_dict() for m in users]
