@@ -1,9 +1,8 @@
 #!/bin/bash
 # $1: destination directory
 
-trap 'umount /mnt/usr_user_home;exit' INT KILL
-mkdir -p /mnt/cur_user_home
-for user_nbd in $(ls | grep .nbd | grep -v backup_); do 
+root_mnt=$(mktemp -d)
+for user_nbd in $(ls | grep .nbd | grep -v backup_); do
   user=$(echo $user_nbd | cut -d . -f 1)
   fsck.ext4 -r -y $user_nbd &> /dev/null
   rc_fsck=$?
@@ -19,10 +18,12 @@ for user_nbd in $(ls | grep .nbd | grep -v backup_); do
     continue
   fi
 
-  mount $user_nbd /mnt/cur_user_home
-  find /mnt/cur_user_home -name 'vgcore.*' -delete
-  rm -rf /mnt/cur_user_home/{.cache,.local,workspace,.config,0ad,.atom,.mozilla,.teeworlds,.q3a,.ICEauthority,.xsession-errors*,.armagetronad,.eclipse,.PyCharm*,.openttd}
-  big_files=$(find /mnt/cur_user_home -xdev -type f -size +10M)
+  mount_dir="${root_mnt}/${user}"
+  mkdir -p "$mount_dir"
+  mount $user_nbd "$mount_dir"
+  find "$mount_dir" 'vgcore.*' -delete
+  rm -rf "$mount_dir"/{.cache,.local,workspace,.config,0ad,.atom,.mozilla,.teeworlds,.q3a,.ICEauthority,.xsession-errors*,.armagetronad,.eclipse,.PyCharm*,.openttd}
+  big_files=$(find "$mount_dir" -xdev -type f -size +10M)
   if [[ $(echo $big_files) != "" ]]; then
     echo 'These big files were found :'
     echo "$big_files"
@@ -32,9 +33,10 @@ for user_nbd in $(ls | grep .nbd | grep -v backup_); do
       echo $big_files | xargs rm -rf
     fi
   fi
-  tar czf $1/$site_id.tar.gz -C /mnt/cur_user_home .
-  umount /mnt/cur_user_home
+  tar czf $1/$site_id.tar.gz -C "${mount_dir}/.." "$user"
+  umount "$mount_dir"
+  rmdir "$mount_dir"
 
   echo "[OK] Exported $user"
 done
-
+rm -r "$root_mnt"
