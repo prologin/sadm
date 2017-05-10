@@ -13,9 +13,10 @@ echo
 echo -n '[?] Confirm new system root password: ' && read -s root_password_cnf
 echo
 
-[ "$root_password" != "$root_password_cnf" ] && \
-    >&2 echo "Passwords mismatch, aborting." && \
+if [ "$root_password" != "$root_password_cnf" ]; then
+    >&2 echo "Passwords mismatch, aborting."
     exit 1
+fi
 
 echo '[+] Detected disks:'
 shopt -s nullglob  # glob pattern is removed if it has no matches
