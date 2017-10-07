@@ -20,8 +20,8 @@ if [ $# -ne 3 ]; then
     echo >&2 "Install and configure Arch Linux in the ROOT_DIR folder."
     echo >&2 "Example (as root):"
     echo >&2 "  $ echo my_root_password_is_pretty_long > plaintext_root_pass"
-    echo >&2 "  $ mkdir gw"
-    echo >&2 "  $ ./bootstrap_arch_linux.sh ./gw gw ./plaintest_root_pass¬"
+    echo >&2 "  $ mkdir root_dir"
+    echo >&2 "  $ ./bootstrap_arch_linux.sh ./root_dir hostname ./plaintext_root_pass"
     exit 1
 fi
 
