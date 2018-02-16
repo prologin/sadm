@@ -54,7 +54,7 @@ p
 2
 
 
-w" | fdisk "$disk"
+w" | fdisk -w always -W always "$disk"
 done
 
 echo '[+] Creating RAID'
