@@ -68,7 +68,7 @@ vgcreate "$vg" "$pv"
 lvcreate -l 100%FREE "$vg" -n "$fs_root"
 
 echo '[+] Formatting partitions'
-mkfs.ext4 -L "$fs_boot" "${disk_0}1"
+mkfs.ext4 -O ^64bit -L "$fs_boot" "${disk_0}1"
 mkfs.ext4 -L "$fs_root" "/dev/mapper/${vg}-$fs_root"
 
 echo '[+] Mounting partitions'
