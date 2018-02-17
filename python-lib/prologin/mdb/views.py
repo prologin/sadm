@@ -78,11 +78,12 @@ class MDBServer(prologin.rpc.server.BaseRPCApp):
         machine.hfs = hfs
         machine.room = room
         machine.mtype = mtype
-        machine.full_clean()
         try:
             machine.allocate_ip()
         except Exception:
             raise RuntimeError('unable to allocate an IP address')
+
+        machine.full_clean()
 
         try:
             machine.save()
