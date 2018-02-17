@@ -9,7 +9,7 @@ SADM_CHARSET='UTF-8'
 SADM_TIMEZONE='Europe/Paris'
 
 # Arch Linux install
-ARCH_MIRROR=http://mirror.rackspace.com/archlinux
+ARCH_MIRROR=http://archlinux.mirrors.ovh.net/archlinux
 # Release used for bootstraping from a non-Arch Linux system
 ARCH_RELEASE_DATE=2017.04.01
 
