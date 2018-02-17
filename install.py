@@ -111,6 +111,7 @@ GROUPS = {
 SECRET_PATH = '/etc/prologin/sadm-secret'
 
 ROOTFS = '/export/nfsroot'
+ROOTFS_BIND = ROOTFS + '_mnt'
 
 # Helper functions for installation procedures.
 
@@ -714,6 +715,9 @@ def install_rfs_nfs_archlinux():
     # Bootstrap nfs exported Arch Linux
     mkdir('/export', mode=0o755)
     mkdir('/export/nfsroot', mode=0o755)
+    mkdir(ROOTFS_BIND, mode=0o755)
+    system('mount --bind {} {}'.format(ROOTFS, ROOTFS_BIND))
+    system('echo "{} {} none defaults,bind 0 2" >> /etc/fstab'.format(ROOTFS, ROOTFS_BIND))
 
     # TODO(halfr): replace /dev/null with file containing root password
     with cwd('install_scripts'):
@@ -736,7 +740,7 @@ def install_rfs_nfs_sadm():
     copy(SECRET_PATH, ROOTFS + SECRET_PATH, mode=0o600)
 
     # Spawn a chroot inside the nfs export
-    system('/usr/bin/arch-chroot {} /root/sadm/install_scripts/setup_nfs_export.sh'.format(ROOTFS))
+    system('/usr/bin/arch-chroot {} /root/sadm/install_scripts/setup_nfs_export.sh'.format(ROOTFS_BIND))
 
 
 def install_rfs_nfs_packages_base():
