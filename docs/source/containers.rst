@@ -18,7 +18,7 @@ where you "start a whole new system". You may know them from tools such as
 `rkt <https://github.com/coreos/rkt>`_. In this guide we will use
 `system-nspawn(1)
 <https://www.freedesktop.org/software/systemd/man/systemd-nspawn.html>`_, which
-you already have installed if you are using systemd. Its main advantages
+you may already have installed if you are using systemd. Its main advantages
 compared to other container managers are:
 
 - Its simplicity. It does one thing well: configuring namespaces, the core of
@@ -29,9 +29,9 @@ compared to other container managers are:
   ``systemd-nspawn`` is registered and managable with `machinectl(1)
   <https://www.freedesktop.org/software/systemd/man/machinectl.html>`. You can
   use the ``-M`` of many systemd utilities to control it.
-- Its feature set. You can configure the filesystem mapping, network interfaces,
-  resources limits and security properties you want. Just look at the man page
-  to see the options.
+- Its feature set. You can configure the filesystem mapping, network
+  interfaces, resources limits and security properties you want. Just look at
+  the man page to see the options.
 
 Containers compare favorably to virtual machines on the following points:
 
@@ -56,18 +56,20 @@ Automated container setup
 If you want to setup SADM in containers to test something else than the install
 procedure, you can use the automated container install scripts. They will
 create and manage the containers for you and perform a full SADM install as you
-would do manually. They are intended for automated and end-to-end tests of SADM.
+would do manually. They are intended for automated and end-to-end tests of
+SADM.
 
 Requirements:
 
 - The host system should be Arch Linux. Experimental support has been added for
   non Arch Linux hosts and will be used if the script detects you are not
-  running Arch.  
+  running Arch.
 - For convenience, ``/var/lib/machines`` should be a btrfs volume. The scripts
-  will run without that but you will not have the ability to restore intermediate
-  snapshots of the install. Note that if you don't want to use a btrfs volume
-  you will need to modify ``install_scripts/container_setup_config.sh`` to
-  replace ``USE_BTRFS=true`` with ``USE_BTRFS=false``.
+  will run without that but you will not have the ability to restore
+  intermediate snapshots of the install. Note that if you don't want to use a
+  btrfs volume you will need to modify
+  ``install_scripts/container_setup_config.sh`` to replace ``USE_BTRFS=true``
+  with ``USE_BTRFS=false``.
 
 To start, run the host setup script, you are strongly advised to check its
 content beforehand, as it does quite substantial changes to your system setup::
@@ -182,8 +184,8 @@ Run it as root::
 
   # ./install_scripts/bootstrap_arch_linux.sh /path/to/gw gw ./plaintest_root_pass
 
-Packages will get installed a few scripts run to configure the Arch Linux system.
-This is the same script we use for the bare metal or VM setup.
+Packages will get installed a few scripts run to configure the Arch Linux
+system.  This is the same script we use for the bare metal or VM setup.
 
 Then, start the container with a virtual ethernet interface connected to the
 ``vz-prolo`` network zone, a bridge interface managed by systemd, as well an
@@ -200,8 +202,8 @@ ipvlan interface linked to your uplink::
 You should see systemd booting, all the units should be ``OK`` except ``Create
 Volatile Files and Directories.`` which fails because ``/sys/`` is mounted
 read-only by ``systemd-nspawn``. After the startup you should get a login
-prompt. Login as `root` and check that you see the virtual interface named ``host0`` in
-the container using ``ip link``::
+prompt. Login as `root` and check that you see the virtual interface named
+``host0`` in the container using ``ip link``::
 
     # ip link
     1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1
