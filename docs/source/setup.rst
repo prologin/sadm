@@ -110,7 +110,7 @@ install medium
 
 Once the bootstrap system is started, you can start the install using::
 
-  curl https://raw.githubusercontent.com/prologin/sadm/master/install_scripts/bootstrap_from_install_medium.sh | bash
+  bash <(curl https://raw.githubusercontent.com/prologin/sadm/master/install_scripts/bootstrap_from_install_medium.sh)
 
 This script checks out sadm, then does the RAID1 setup, installs Arch Linux and
 configures it for RAID1 boot. So far nothing is specific to sadm and you could
