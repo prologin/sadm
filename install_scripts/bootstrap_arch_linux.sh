@@ -12,6 +12,8 @@ SADM_TIMEZONE='Europe/Paris'
 ARCH_MIRROR=http://archlinux.mirrors.ovh.net/archlinux
 # Release used for bootstraping from a non-Arch Linux system
 ARCH_RELEASE_DATE=2017.04.01
+# Mirror list to use in case we don't have access to pacstrap
+MIRRORLIST_URL="https://www.archlinux.org/mirrorlist/?country=FR&protocol=https&ip_version=4&ip_version=6&use_mirror_status=on"
 
 # Usage
 if [ $# -ne 3 ]; then
@@ -55,15 +57,12 @@ fi
 echo_status "Installing base Arch Linux"
 if test -e /etc/arch-release; then
   pacstrap -c -d "$root_dir" base
-  cp /etc/pacman.d/mirrorlist "$root_dir/etc/pacman.d/mirrorlist"
 else
   (
     cd /tmp
     wget --continue $ARCH_MIRROR/iso/$ARCH_RELEASE_DATE/archlinux-bootstrap-$ARCH_RELEASE_DATE-x86_64.tar.gz
     tar --strip-components=1 --directory="$root_dir" -xf archlinux-bootstrap-$ARCH_RELEASE_DATE-x86_64.tar.gz
-    cat >"$root_dir/etc/pacman.d/mirrorlist" <<EOF
-Server = $ARCH_MIRROR/\$repo/os/\$arch
-EOF
+    curl "$MIRRORLIST_URL" | sed 's/^#//' > "$rootdir"/etc/pacman.d/mirrorlist
   )
 
   systemd-nspawn --quiet --directory "$root_dir" --bind /dev/urandom:/dev/random /usr/bin/pacman-key --init
