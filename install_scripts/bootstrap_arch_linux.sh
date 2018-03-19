@@ -55,21 +55,20 @@ fi
 echo_status "Installing base Arch Linux"
 if test -e /etc/arch-release; then
   pacstrap -c -d "$root_dir" base
+  cp /etc/pacman.d/mirrorlist "$root_dir/etc/pacman.d/mirrorlist"
 else
   (
     cd /tmp
     wget --continue $ARCH_MIRROR/iso/$ARCH_RELEASE_DATE/archlinux-bootstrap-$ARCH_RELEASE_DATE-x86_64.tar.gz
     tar --strip-components=1 --directory="$root_dir" -xf archlinux-bootstrap-$ARCH_RELEASE_DATE-x86_64.tar.gz
+    cat >"$root_dir/etc/pacman.d/mirrorlist" <<EOF
+Server = $ARCH_MIRROR/\$repo/os/\$arch
+EOF
   )
 
   systemd-nspawn --quiet --directory "$root_dir" --bind /dev/urandom:/dev/random /usr/bin/pacman-key --init
   systemd-nspawn --quiet --directory "$root_dir" /usr/bin/pacman-key --populate archlinux
 fi
-
-echo_status "Configure Arch Linux repository"
-cat >"$root_dir/etc/pacman.d/mirrorlist" <<EOF
-Server = $ARCH_MIRROR/\$repo/os/\$arch
-EOF
 
 systemd-nspawn -D "$root_dir" /usr/bin/pacman -Syu --needed --noconfirm base vim openssh rxvt-unicode-terminfo
 
