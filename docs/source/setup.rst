@@ -4,7 +4,7 @@ Setup instructions
 If you are like the typical Prologin organizer, you're probably reading this
 documentation one day before the start of the event, worried about your ability
 to make everything work before the contest starts. Fear not! This section of
-the documentation explain everything you need to do to set up the
+the documentation explains everything you need to do to set up the
 infrastructure for the finals, assuming all the machines are already physically
 present. Just follow the guide!
 
@@ -206,8 +206,8 @@ It also has IP to communicate with the outside world:
 - 163.5.??.??/16 WAN IP given by the CRI
 
 The network interface(s) are configured using ``systemd-networkd``. Our
-configuration files are stored in ``etc/systemd/network/`` and are installed in
-``/etc/systemd/network``.
+configuration files are stored in ``etc/systemd/network/`` and will be installed
+in ``/etc/systemd/network`` during the next step.
 
 Two files must be modified to match the hardware of the machine:
 
@@ -233,10 +233,11 @@ For more information, see the `systemd-networkd documentation
 
 Then, install them::
 
-  python install.py networkd_gw nic_configuration conntrack
+  python install.py systemd_networkd_gw nic_configuration conntrack
+  # you can now edit the configuration files as previously described
   systemctl enable --now systemd-networkd conntrack
   # `prologin` is the name of the interface to apply the configuration
-  systemctl enable --now nic_configuration@prologin
+  systemctl enable --now nic-configuration@prologin
 
 At this point you should reboot and test your network configuration:
 
