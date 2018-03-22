@@ -65,7 +65,9 @@ Requirements:
   running Arch.  
 - For convenience, ``/var/lib/machines`` should be a btrfs volume. The scripts
   will run without that but you will not have the ability to restore intermediate
-  snapshots of the install.
+  snapshots of the install. Note that if you don't want to use a btrfs volume
+  you will need to modify ``install_scripts/container_setup_config.sh`` to
+  replace ``USE_BTRFS=true`` with ``USE_BTRFS=false``.
 
 To start, run the host setup script, you are strongly advised to check its
 content beforehand, as it does quite substantial changes to your system setup::
