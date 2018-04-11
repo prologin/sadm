@@ -113,7 +113,7 @@ function test_mdb {
   test_service_is_enabled_active mdb
 
   echo -n '[>] GET http://mdb/call/query '
-  if ! container_run_quiet >&- /usr/bin/curl --fail http://mdb/call/query; then
+  if ! container_run_quiet /usr/bin/curl --fail http://mdb/call/query; then
     echo_ko "FAIL"
     return 1
   else
