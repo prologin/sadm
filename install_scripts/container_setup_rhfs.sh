@@ -141,9 +141,10 @@ function stage_install_rfs {
 function test_install_rfs {
   echo '[>] Test rfs install... '
 
-  # TODO
+  # Give time to services to start
+  sleep 10
 
-  for svc in {udbsync_passwd{,_nfsroot},udbsync_rootssh,rpcbind,nfs-server,rootssh-copy}.service rootssh.path; do
+  for svc in udbsync_passwd{,_nfsroot},udbsync_rootssh,rpcbind,nfs-server}.service rootssh.path; do
       test_service_is_enabled_active "$svc"
   done
 
