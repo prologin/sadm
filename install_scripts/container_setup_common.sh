@@ -89,7 +89,7 @@ function container_run_verbose {
 
 function container_run_quiet {
   # PATH is configured for the python virtualenv
-  systemd-run --quiet -M $CONTAINER_NAME --pty --wait \
+  systemd-run --quiet -M $CONTAINER_NAME --wait --pty \
     --property WorkingDirectory=/root/sadm \
     --setenv=PATH=/var/prologin/venv/bin:/usr/bin \
     "$@"
