@@ -816,7 +816,7 @@ def install_rfs_nfs_archlinux():
     # TODO(halfr): replace /dev/null with file containing root password
     with cwd('install_scripts'):
         system('./bootstrap_arch_linux.sh {} {} {}'.format(
-            ROOTFS, '""', '/dev/null'))
+            ROOTFS_BIND, '""', '/dev/null'))
 
 
 def install_rfs_nfs_sadm():
@@ -861,7 +861,7 @@ def _install_rfs_nfs_packages(packages):
     # Install packages in a chroot
     system(
         '/usr/bin/arch-chroot {} /usr/bin/pacman -Sy --needed --noconfirm {}'.
-        format(ROOTFS, packages))
+        format(ROOTFS_BIND, packages))
 
 
 def install_sddmcfg():
