@@ -15,13 +15,6 @@ source ./container_setup_common.sh
 container_script_header
 
 # Setup stages
-function stage_allow_root_ssh {
-  echo_status 'Copy ssh credentials for root@gw.prolo'
-
-  mkdir -p $CONTAINER_ROOT/root/.ssh
-  cat /var/lib/machines/$GW_CONTAINER_NAME/root/.ssh/id_rsa.pub \
-    >> $CONTAINER_ROOT/root/.ssh/authorized_keys
-}
 
 function stage_setup_network {
   echo_status 'Stage setup network'
