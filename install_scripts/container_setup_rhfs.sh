@@ -159,7 +159,7 @@ function stage_install_hfs {
   container_run /usr/bin/systemctl enable --now hfs@$RHFS_ID
 
   # Wait for HFS to start
-  sleep 3
+  sleep 10
 
   container_snapshot $FUNCNAME
 }
@@ -202,6 +202,8 @@ run test_libprologin
 run stage_setup_network
 run test_network
 
+# RFS
+
 run stage_setup_rfs
 run test_setup_rfs
 
@@ -214,14 +216,16 @@ run test_rfs_nfs_sadm
 run stage_install_rfs
 run test_install_rfs
 
-run stage_install_hfs
-run test_install_hfs
-
 run stage_install_rfs_nfs_packages_base
 run test_rfs_nfs_packages_base
 
 # Skipping as not necessary for basic tests
 skip stage_install_rfs_nfs_packages_extra
 skip test_rfs_nfs_packages_extra
+
+# HFS
+
+run stage_install_hfs
+run test_install_hfs
 
 container_run_verbose /root/sadm/checks/check_rhfs.sh
