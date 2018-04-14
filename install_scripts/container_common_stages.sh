@@ -84,8 +84,9 @@ function stage_add_to_mdb {
     echo '[-] Add system to mdb'
     container_run /var/prologin/venv/bin/python \
       /var/prologin/mdb/manage.py addmachine --hostname $CONTAINER_HOSTNAME \
-      --mac $mac_address --ip $CONTAINER_MAIN_IP --rfs 0 --hfs 0 \
-      --mtype service --room pasteur --aliases $CONTAINER_ALIASES
+      --mac $mac_address --ip $CONTAINER_MAIN_IP --rfs $MDB_RFS_ID \
+      --hfs $MDB_HFS_ID --mtype $MDB_MACHINE_TYPE --room $MDB_ROOM \
+      --aliases $MDB_ALIASES
   )
 
   echo '[-] Remove routes from the alien network'

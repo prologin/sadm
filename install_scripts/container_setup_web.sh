@@ -5,7 +5,7 @@ CONTAINER_NAME=myweb
 
 CONTAINER_HOSTNAME=web
 CONTAINER_MAIN_IP=192.168.1.100
-CONTAINER_ALIASES=db,concours,wiki,bugs,redmine,docs,home,paste,map,masternode
+MDB_ALIASES=db,concours,wiki,bugs,redmine,docs,home,paste,map,masternode
 
 GW_CONTAINER_NAME=mygw
 
@@ -188,13 +188,13 @@ function test_redmine {
 }
 
 
-# "container" script
 if ! machinectl >/dev/null status $GW_CONTAINER_NAME; then
   echo >&2 "Please start the GW container"
   # TODO: using a VM for GW is also doable, should allow it
   exit 1
 fi
 
+# "container" script
 run container_stop
 run stage_setup_container
 run stage_boostrap_arch_linux
