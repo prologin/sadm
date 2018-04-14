@@ -64,7 +64,6 @@ function test_libprologin {
 function stage_add_to_mdb {
   echo_status 'Register system into mdb'
 
-  #TODO(halfr): use machinectl dbus method to get the MAC address?
   echo '[-] Get system mac address'
   mac_address=$(container_run_simple_verbose /usr/bin/ip link show host0 | grep ether | cut -f6 -d' ')
   if [[ -z $mac_address ]]; then
