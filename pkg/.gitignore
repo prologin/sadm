@@ -1,5 +1,6 @@
-*.pub
 *.gz
-*.xz
+*.pub
 *.sig
-repo.prologin.org
+*.xz
+pkg
+src
