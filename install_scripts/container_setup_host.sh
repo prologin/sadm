@@ -32,6 +32,9 @@ EOF
 
   echo "[-] Restart systemd-networkd"
   systemctl restart systemd-networkd
+
+  echo "[-] Load ndb"
+  modprobe ndb
 }
 
 container_setup_host
