@@ -61,6 +61,24 @@ function test_libprologin {
   container_run /var/prologin/venv/bin/python -c 'import prologin'
 }
 
+function test_network {
+  echo '[>] Test network... '
+
+  echo '[>] Check SADM network '
+  test_url http://mdb/call/query
+
+  echo '[>] Check internet access '
+  test_url https://gstatic.com/generate_204
+
+  echo -n '[>] Check IP '
+  if ! machinectl status $CONTAINER_NAME | grep -q "Address: $CONTAINER_MAIN_IP"; then
+    echo_ko "FAIL"
+    return 1
+  else
+    echo_ok "PASS"
+  fi
+}
+
 function stage_add_to_mdb {
   echo_status 'Register system into mdb'
 

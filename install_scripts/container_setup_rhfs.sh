@@ -30,21 +30,6 @@ function stage_setup_network {
   container_snapshot $FUNCNAME
 }
 
-function test_network {
-  echo '[>] Test network... '
-
-  echo -n '[>] Check internet access '
-  test_url https://gstatic.com/generate_204
-
-  echo -n '[>] Check rhfs.prolo IPs '
-  if ! machinectl status $CONTAINER_NAME | grep -q "Address: $CONTAINER_MAIN_IP"; then
-    echo_ko "FAIL"
-    return 1
-  else
-    echo_ok "PASS"
-  fi
-}
-
 function stage_setup_rfs {
   echo_status "Run RFS setup script"
 
