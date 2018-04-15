@@ -76,7 +76,7 @@ function stage_add_to_mdb {
     CONTAINER_NAME=$GW_CONTAINER_NAME
     CONTAINER_ROOT=/var/lib/machines/$CONTAINER_NAME
 
-    echo '[-] Remove system to mdb'
+    echo '[-] Remove system from mdb (can terminate with status=1)'
     # Can fail if it's the first time we add this system to mdb
     container_run /var/prologin/venv/bin/python \
       /var/prologin/mdb/manage.py delmachine $CONTAINER_HOSTNAME || true

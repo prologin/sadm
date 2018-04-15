@@ -2,8 +2,8 @@
 
 # Configuration variables
 CONTAINER_HOSTNAME=gw
-GW_CONTAINER_NAME=gw
-CONTAINER_NAME=mygw
+GW_CONTAINER_NAME=mygw
+CONTAINER_NAME=$GW_CONTAINER_NAME
 
 source ./container_setup_common.sh
 

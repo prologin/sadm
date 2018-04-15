@@ -186,7 +186,7 @@ function test_file_present_not_empty {
 function test_url {
   URL=$1
 
-  echo -n "[>] Check $URL "
+  echo "[>] Check $URL "
   if ! container_run /usr/bin/curl --fail $URL; then
     container_run /usr/bin/curl $URL || true
     echo_ko "FAIL"
