@@ -295,15 +295,15 @@ function test_udb {
 
   echo '[-] Generate password sheet data for users'
   container_run_verbose /var/prologin/venv/bin/python /var/prologin/udb/manage.py \
-    pwdsheetdata --type=user
+    pwdsheetdata --type=user | tee pwdsheet_users.txt
 
   echo '[-] Generate password sheet data for orgas'
   container_run_verbose /var/prologin/venv/bin/python /var/prologin/udb/manage.py \
-    pwdsheetdata --type=orga
+    pwdsheetdata --type=orga | tee pwdsheet_orgas.txt
 
   echo '[-] Generate password sheet data for roots'
   container_run_verbose /var/prologin/venv/bin/python /var/prologin/udb/manage.py \
-    pwdsheetdata --type=root
+    pwdsheetdata --type=root | tee pwdsheet_roots.txt
 }
 
 function stage_add_users_to_udb {
