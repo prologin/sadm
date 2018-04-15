@@ -38,6 +38,9 @@ echo nbd > /etc/modules-load.d/nbd.conf
 echo '[+] Configure the system for SADM (setup_sadm.sh)'
 ./install_scripts/setup_sadm.sh
 
+echo '[+] Install debug tools'
+pacman -Sy --needed --noconfirm prologin/pamtester
+
 source /var/prologin/venv/bin/activate
 python install.py libprologin
 python install.py presenced
