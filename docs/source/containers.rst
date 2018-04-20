@@ -6,7 +6,8 @@ containers.
 
 .. note::
 
-  TL;DR run ``container_setup_gw.sh`` from ``install_scripts/``
+  TL;DR run ``container_setup_host.sh`` then ``container_setup_gw.sh`` from
+  ``install_scripts/containers/``
 
 Why containers?
 ---------------
@@ -28,7 +29,8 @@ compared to other container managers are:
 - Its integrated with the systemd ecosystem. A container started with
   ``systemd-nspawn`` is registered and managable with `machinectl(1)
   <https://www.freedesktop.org/software/systemd/man/machinectl.html>`. You can
-  use the ``-M`` of many systemd utilities to control it.
+  use the ``-M`` of many systemd utilities (e.g. `systemctl`, `journalctl`) to
+  control it.
 - Its feature set. You can configure the filesystem mapping, network
   interfaces, resources limits and security properties you want. Just look at
   the man page to see the options.
@@ -62,8 +64,8 @@ SADM.
 Requirements:
 
 - The host system should be Arch Linux. Experimental support has been added for
-  non Arch Linux hosts and will be used if the script detects you are not
-  running Arch.
+  non Arch Linux hosts (CoreOS) and will be used if the script detects you are
+  not running Arch.
 - For convenience, ``/var/lib/machines`` should be a btrfs volume. The scripts
   will run without that but you will not have the ability to restore
   intermediate snapshots of the install. Note that if you don't want to use a
@@ -72,19 +74,59 @@ Requirements:
   with ``USE_BTRFS=false``.
 
 To start, run the host setup script, you are strongly advised to check its
-content beforehand, as it does quite substantial changes to your system setup::
+content beforehand, as it does some substantial changes to your system setup::
 
-  cd install_scripts
+  cd install_scripts/containers/
   ./container_setup_host.sh
 
 Then, run the container install scripts::
 
-  cd install_scripts
   ./container_setup_gw.sh
   ./container_setup_rhfs.sh
   ./container_setup_web.sh
+  ./container_setup_pas-r11p11.sh
 
-Thats it! The next sections discuss the internals of these scripts.
+That's it!
+
+You should be able to see the containers listed by ``machinectl``, and you can
+get a shell on the system using ``machinectl shell CONTAINER_NAME``.
+
+What do the scripts do?
+-----------------------
+
+They automate setups of Arch Linux and SADM components in containers. The
+commands in the scripts are taken from the main setup documentation. We expect
+the container setup to follow the manual setup as strictly as possible.
+
+BTRFS snapshots
+---------------
+
+Each stage of the system setups we are building can take a substantial amount
+of time to complete. To iterate faster we user file system snapshots at each
+stage so that the system can be rollback the stage just before what you want to
+test or debug.
+
+Each ``stage_*`` shell function ends by a call to ``container_snapshot
+$FUNCNAME``.
+
+Cleaning up
+-----------
+
+If you want to clean up what these scripts did, you must stop the currently
+running containers. List the containers with ``machinectl list`` and
+``machinectl kill`` all of them. You can then remove the containers' data by
+deleting the content of ``/var/lib/machines``. List bind-mounted directories:
+``findmnt | grep /var/lib/machines/`` and ``umount`` them. Then delete the
+BTRFS snapshots. List them using ``btrfs subvolume list .`` and delete them
+using ``btrfs subvolume delete``.
+
+Containers deep dive
+--------------------
+
+As mentioned above, these scripts setup containers using ``machinectl``.  It's
+not necessary to understand how the containers work to test features in
+prologin-sadm, but you may encounter weird bugs caused by them. The following
+sections discuss some internals of the containers setup.
 
 Virtual network setup
 ---------------------
@@ -122,8 +164,8 @@ To do that, we have multiple choices, here are two:
   bridging your uplink will down the interface, ``vz-prolo`` will get an IP
   from your DHCP server if you use one and you may have to clean your routes to
   remove the old ones. It is still the fastest to setup, especially if you just
-  want to give internet to a container. Note: some wireless drivers such as
-  broadcom's ``wl`` do not support bridging 802.11 interfaces.
+  want to give internet to a container. Note: as of 2016, some wireless drivers
+  such as broadcom's ``wl`` do not support bridging 802.11 interfaces.
 
 The NAT setup is simpler and more flexible, that's what we will use.
 
@@ -160,8 +202,8 @@ rule managed by ``systemd-networkd`` and that, the internet will be accessible
 out-of-the-box in the conatiners. The only remaining configuration to do being
 the DNS resolver (``/etc/resolv.conf``).
 
-Setting up gw
--------------
+Setting up gw manually
+----------------------
 
 Let's boot the first container: ``gw``
 
