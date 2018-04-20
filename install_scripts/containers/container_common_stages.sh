@@ -17,7 +17,7 @@ function stage_setup_container {
 function stage_boostrap_arch_linux {
   echo_status "Bootstrap Arch Linux"
 
-  ./bootstrap_arch_linux.sh $CONTAINER_ROOT ${CONTAINER_HOSTNAME}.prolo <(echo $ROOT_PASSWORD)
+  ../bootstrap_arch_linux.sh $CONTAINER_ROOT ${CONTAINER_HOSTNAME}.prolo <(echo $ROOT_PASSWORD)
 
   container_snapshot $FUNCNAME
 }

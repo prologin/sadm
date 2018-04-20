@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Set current working directory
+cd $(dirname -- $0)
+
 # Get shared functions
 source ./common.sh
 

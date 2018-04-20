@@ -1,3 +1,5 @@
+cd $(dirname -- $0)
+
 source ../common.sh
 
 this_script_must_be_run_as_root
@@ -8,6 +10,16 @@ if [[ -z $CONTAINER_NAME || -z $GW_CONTAINER_NAME ]]; then
 fi
 
 source ./container_setup_config.sh
+
+# Root directory of this sadm install
+SADM_ROOT_DIR=$(readlink -f -- $PWD/../..)
+
+# SADM MDB registration default values
+MDB_ROOM=${MDB_ROOM:-pasteur}
+MDB_MACHINE_TYPE=${MDB_MACHINE_TYPE:-service}
+MDB_RFS_ID=${MDB_RFS_ID:-0}
+MDB_HFS_ID=${MDB_HFS_ID:-0}
+MDB_ALIASES=${MDB_ALIASES:-$CONTAINER_HOSTNAME}
 
 # Other container-related variables
 CONTAINER_ROOT=/var/lib/machines/$CONTAINER_NAME
