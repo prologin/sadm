@@ -93,7 +93,7 @@ Let's start with the hardware setup. You can skip this section if you are
 doing a containerized install or if you already have a file system ready.
 
 For ``gw`` and other critical systems such as ``web``, we setup a `RAID1
-(mirroring)<https://en.wikipedia.org/wiki/Standard_RAID_levels#RAID_1>`_ over
+(mirroring)<https://en.wikipedia.org/wiki/Standard_RAID_levels#RAID_1>`__ over
 two discs. Because the RAID will be the size of the smallest disc, they have to
 be of the same capacity. We use regular 500GBytes SATA, which is usually more
 than enough. It is a good idea to choose two different disks (brand, age, batch)
@@ -104,8 +104,8 @@ On top of the RAID1, our standard setup uses `LVM
 partition. For bootloading the system we use the good old BIOS and ``syslinux``.
 
 All this setup is automated by our bootstrap scripts, but to run them you will
-need a bootstrap Linux distribution. The easiest solution is to boot on the `Arch Linux's
-install medium
+need a bootstrap Linux distribution. The easiest solution is to boot on the
+Arch Linux's install medium
 <https://wiki.archlinux.org/index.php/beginners'_guide#Boot_the_installation_medium>`_.
 
 Once the bootstrap system is started, you can start the install using::
@@ -180,7 +180,7 @@ executed on every systems: ``rhfs``, ``web``, ``rfs``.
     cd /root/sadm/install_scripts
     ./setup_sadm.sh
 
-This script also create a python virtual environment. Each time you log into a
+This script also creates a python virtual environment. Each time you log into a
 new system, activate the virtualenv::
 
   source /var/prologin/venv/bin/activate
@@ -222,8 +222,8 @@ For this step, we use the following systemd services:
 - From systemd: ``systemd-networkd.service``: does the network configuration, interface
   renaming, IP setting, DHCP getting, gateway configuring, you get the idea.
   This service is enabled by the Arch Linux bootstrap script.
-- From sadm: ``nic-configuration@.service``: interface configuration, this
-  service should be enabled for each of the interface on the system.
+- From sadm: ``nic-configuration@.service``: network interface configuration,
+  this service should be enabled for each of the interface on the system.
 - From sadm: ``conntack.service``: does the necessary logging to comply with
   the fact that we are responsible for what the users are doing when using our
   gateway to the internet.
@@ -241,12 +241,14 @@ Then, install them::
 
 At this point you should reboot and test your network configuration:
 
-- Your network interfaces should be up.
-- The IP addresses are correctly set.
-- Default route should be the bocal's gateway.
+- Your network interfaces should be up (``ip link show`` shoud show ``state
+  UP`` for all interfaces but ``lo``).
+- The IP addresses (``ip address show``) are correctly set to their respective
+  interfaces.
+- Default route (``ip route show``) should be the CRI's gateway.
 - **DNS is not working until you setup ``mdbdns``, so keep on!**
 
-Setup postgresql on gw
+Setup PostgreSQL on gw
 ~~~~~~~~~~~~~~~~~~~~~~
 
 First we need a database to store all kind of data we have to manipulate. There
@@ -317,7 +319,7 @@ temporary workaround, we're going to add ``mdb`` to our ``/etc/hosts`` file::
 
   echo '127.0.0.1 mdb' >> /etc/hosts
 
-Then install mdb. Fortunately, a very simple script is provided with the
+Then install ``mdb``. Fortunately, a very simple script is provided with the
 application in order to setup what it requires::
 
   # You can then proceed to install
@@ -428,7 +430,7 @@ on the same interface as 192.168.0.0/23, add it inside the ``shared-network``
   $EDITOR /etc/dhcpd.conf
   systemctl enable --now mdbdhcp
 
-The DHCP server will provide the Arch Linux install media for all the servers,
+The DHCP server will provide the Arch Linux install medium for all the servers,
 for that, download the Netboot Live System::
 
   # See https://www.archlinux.org/releng/netboot/
@@ -490,7 +492,9 @@ chain: the iPXE binary (more on that in the next section). We simply setup
 
   systemctl enable --now tftpd.socket
 
-The TFTP server will serve files from ``/srv/tftp``.
+The TFTP server will serve files from ``/srv/tftp``. We'll put files in this
+directory in the next step, and then during the setup of the exported NFS
+system.
 
 iPXE bootrom
 ~~~~~~~~~~~~
@@ -498,7 +502,7 @@ iPXE bootrom
 The iPXE bootrom is an integral part of the boot chain for user machines. It is
 loaded by the machine BIOS via PXE and is responsible for booting the Linux
 kernel using the nearest RFS. It also handles registering the machine in the
-MDB if needed. These instructions need to be run on ``gw``.
+MDB if needed.
 
 We need a special version of iPXE supporting the LLDP protocol to speed up
 machine registration. We have a pre-built version of the PXE image in our Arch
@@ -546,7 +550,7 @@ Then for roots::
 udbsync
 ~~~~~~~
 
-usbsync is a server that pushes updates of the user list.
+``usbsync`` is a server that pushes updates of the user list.
 
 Again, use the ``install.py`` recipe::
 
@@ -555,7 +559,7 @@ Again, use the ``install.py`` recipe::
   systemctl enable --now udbsync
   systemctl reload nginx
 
-We can then configure udbsync clients::
+We can then configure ``udbsync`` clients::
 
   python install.py udbsync_django udbsync_rootssh
   systemctl enable --now udbsync_django@mdb
@@ -570,7 +574,9 @@ We can then configure udbsync clients::
 presencesync
 ~~~~~~~~~~~~
 
-Presencesync manages the list of logged users.
+``presencesync`` manages the list of logged users. It authorizes user logins
+and maintain the list of logged users using pings from the ``presenced`` daemon
+running in the NFS exported systems.
 
 Once again::
 
@@ -585,8 +591,8 @@ presencesync_cacheserver
 *Cacheserver* maintains a mapping of user machine IP addresses to logged-in
 usernames. This provides a way of telling which user is logged on which machine
 by knowing the machine IP address. This service was created because SSO needs
-such mapping to work, and it is rather costly to query both *presencesync* and
-*mdb* very often.
+such mapping to work, and it is rather costly to query both ``presencesync``
+and ``mdb`` very often.
 
 On all machines with nginx (openresty) installed that require SSO::
 
@@ -594,8 +600,8 @@ On all machines with nginx (openresty) installed that require SSO::
   systemctl enable --now presencesync_cacheserver
   $EDITOR /etc/nginx/nginx.conf
 
-Enable SSO on the services where it is needed. See the sample `server` block
-in `/etc/nginx/nginx.conf` (look for *SSO*).
+Enable SSO on the services where it is needed. See the sample ``server`` block
+in ``/etc/nginx/nginx.conf`` (look for *SSO*).
 
 iptables
 ~~~~~~~~
@@ -603,7 +609,7 @@ iptables
 .. note::
 
     If the upstream of ``gw`` is on a separate NIC you should replace
-    etc/iptables with etc/iptables_upstream_nic.save
+    ``etc/iptables.save`` with ``etc/iptables_upstream_nic.save``
 
 The name of the interface is hardcoded in the iptables configuration, you
 must edit it to match your setup::
@@ -625,10 +631,10 @@ Step 2: file storage
 
 .. sidebar:: rhfs naming scheme
 
-    A rhfs has two NIC and is connected to two switches, there is therefore two
-    ``hfs-server`` running on one rhfs machine, each with a different id. The
-    hostname of the rhfs that hosts hfs ``0`` and hfs ``1`` will have the
-    following hostname: ``rhfs01``.
+    A rhfs has two NICs and is connected to two switches, there is therefore
+    two ``hfs-server`` running on one rhfs machine, each with a different id.
+    The hostname of the rhfs that hosts hfs ``0`` and hfs ``1`` will be:
+    ``rhfs01``.
 
 A RHFS, for "root/home file server", has the following specifications:
 
@@ -648,7 +654,7 @@ To bootstrap a rhfs, ``rhfs01`` for example, follow this procedure:
    ``rhfs,rhfs0,hfs0,rfs0``. Also add another machine : ``rhfs1`` with the MAC
    address of the second NIC in the rhfs, it shoud have the following aliases:
    ``hfs1,rfs1``.
-#. Reboot the machine and boot an Arch Linux install media.
+#. Reboot the machine and boot an Arch Linux install medium.
 #. Follow the same first setup step as for ``gw``: see :ref:`basic_fs_setup`.
 
 Step 3: booting the user machines
@@ -800,10 +806,10 @@ Then, install the ``nginx`` configuration from the repository::
   mv /etc/nginx/nginx.conf{.new,}
   systemctl enable --now nginx
 
-Setup postgresql on web
+Setup PostgreSQL on web
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Install and enable postgresql::
+Install and enable PostgreSQL::
 
   python install.py postgresql
   systemctl enable --now postgresql
@@ -816,17 +822,19 @@ concours
     Concours is a *contest* service. It won't be enabled by default.
     See :ref:`enable_contest_services`.
 
-Installation::
+Run the following commands::
 
   python install.py concours
   systemctl enable --now concours
   systemctl enable --now udbsync_django@concours
   systemctl reload nginx
 
+You can verify that concours is working by visiting http://concours
+
 Step 5: Setting up masternode and workernode
 --------------------------------------------
 
-On ``masternode``::
+On ``masternode`` (usually, ``web``)::
 
   python install.py masternode
   systemctl enable --now masternode
@@ -836,23 +844,25 @@ it in the NFS export.  The required packages are ``stechec`` and
 ``stechec2-makefiles``. We will intall them using the ``prologin`` Arch
 Linux repository::
 
-  pacman -S prologin/stechec2 prologin/stechec2-makefiles -r /export/nfsroot_staging
+  pacman -S prologin/stechec2 prologin/stechec2-makefiles -r /export/nfsroot_mnt
 
 .. note::
 
   The rfs setup script (``setup_nfs_export.sh``, ran by ``install.py
-  rfs_nfs_sadm``, alredy did this step.
+  rfs_nfs_sadm``) already ran the following commands, we still list them for
+  reference.
 
 Then, still for the users machines, install ``workernode``::
 
-  arch-chroot /export/nfsroot/
+  arch-chroot /export/nfsroot_mnt/
   cd sadm
   python install.py workernode
   systemctl enable workernode
   exit # get out of the chroot
 
-You may now reboot a user machine and check that the service is started and
-that the worker is registered to the master.
+You may now reboot a user machine and check that the service is started
+(``systemctl status workernode.service``) and that the worker is registered to
+the master.
 
 You should now be able to upload matches to ``concours/`` (you have to enable
 it see , see :ref:`enable_contest_services`), see them dispatched by
