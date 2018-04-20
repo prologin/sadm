@@ -1,4 +1,4 @@
-source ./common.sh
+source ../common.sh
 
 this_script_must_be_run_as_root
 

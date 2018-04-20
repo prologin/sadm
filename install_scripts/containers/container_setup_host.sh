@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source ./common.sh
+source ../common.sh
 source ./container_setup_config.sh
 
 function container_setup_host {
@@ -33,8 +33,8 @@ EOF
   echo "[-] Restart systemd-networkd"
   systemctl restart systemd-networkd
 
-  echo "[-] Load ndb"
-  modprobe ndb
+  echo "[-] Load the nbd kernel module"
+  modprobe nbd
 }
 
 container_setup_host
