@@ -71,7 +71,10 @@ if PAM_TYPE == 'open_session' and not os.path.ismount(get_home_dir(login)):
     # Request HOME directory migration and wait for it.
     hfs = prologin.hfs.client.connect()
     try:
-        hostname = '.'.join(socket.gethostname().split('.')[:-1])
+        hostname = socket.gethostname()
+        if hostname.endswith('.prolo'):
+            # Strip domain name, if any
+            hostame = hostname[:-len('.prolo')]
         host, port = hfs.get_hfs(login, hostname)
     except RuntimeError as e:
         fail(str(e))
