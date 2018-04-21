@@ -1,5 +1,4 @@
 #! /var/prologin/venv/bin/python
-
 """PAM script to handle {open,close}_session events.
 
 Exit with status code 0 if used for another event.  Exit with status code 0 if
@@ -11,17 +10,18 @@ Prologin, try to mount its HOME directory and hang until it is done. For
 close_session, try to unmount it.
 """
 
+import logging
 import os
 import os.path
-import prologin.hfs.client
-import prologin.log
-import prologin.presenced.client
-import prologin.xhack
 import socket
 import subprocess
 import sys
 import time
 
+import prologin.hfs.client
+import prologin.log
+import prologin.presenced.client
+import prologin.xhack
 
 sys.stderr = open('/tmp/pam_log', 'a')
 prologin.log.setup_logging('pam_presenced')
@@ -30,13 +30,17 @@ prologin.log.setup_logging('pam_presenced')
 def get_home_dir(login):
     return '/home/{}'.format(login)
 
+
 def get_block_device(login):
     return '/dev/nbd0'
 
+
 def fail(reason):
     print(reason, file=sys.stderr)
+    logging.error(reason)
     prologin.xhack.run(['/usr/bin/zenity', '--error', '--text', reason])
     sys.exit(1)
+
 
 PAM_TYPE = os.environ['PAM_TYPE']
 PAM_SERVICE = os.environ['PAM_SERVICE']
@@ -56,7 +60,7 @@ if PAM_TYPE == 'open_session' and not os.path.ismount(get_home_dir(login)):
 
     # Prologin users must use a display manager (not a TTY, nor screen).
     if PAM_SERVICE not in ('gdm', 'kde', 'slim', 'xdm'):
-        print('Please log in the graphical display manager')
+        logging.warning('Please log in the graphical display manager')
 
     # Request the login to Presenced and PresenceSync.
     failure_reason = prologin.presenced.client.connect().request_login(login)
