@@ -13,16 +13,15 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
-
 """Client library for Home Filesystems (HFS)."""
 
 import json
 import logging
+
 import prologin.config
 import prologin.mdb.client
 import prologin.udb.client
 import prologin.webapi
-
 
 CFG = prologin.config.load('hfs-client')
 
@@ -41,13 +40,13 @@ class Client(prologin.webapi.Client):
         raise exn(msg)
 
     def get_hfs(self, login, hostname):
-        """Request a HFS for `login` which is logged on `hostame`.
+        """Request a HFS for `login` which is logged on `hostname`.
 
         Return HFS server: (hfs_hostname, hfs_port).
         """
 
-        logging.info('Requesting a HFS for user %s on host %s...',
-                     login, hostname)
+        logging.info('Requesting a HFS for user %s on host %s...', login,
+                     hostname)
 
         match = prologin.udb.client.connect().query(login=login)
         if len(match) != 1:
@@ -66,19 +65,21 @@ class Client(prologin.webapi.Client):
                      hfs_host, login, hostname)
 
         r = self.send_request(
-            '/get_hfs', self.secret,
-            {'user': login, 'hfs': hfs_id, 'utype': utype},
-            url=hfs_url
-        )
+            '/get_hfs',
+            self.secret, {
+                'user': login,
+                'hfs': hfs_id,
+                'utype': utype
+            },
+            url=hfs_url)
         if r.status_code != 200:
             self._log_and_raise('Cannot get a HFS: {}'.format(r.text))
         else:
             info = json.loads(r.text)
 
-        logging.info('Got a HFS for user %s on host %s: %s:%s',
-                     login, hostname, hfs_host, info['port'])
+        logging.info('Got a HFS for user %s on host %s: %s:%s', login,
+                     hostname, hfs_host, info['port'])
         return (hfs_host, info['port'])
-
 
 
 def connect():
