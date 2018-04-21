@@ -59,8 +59,10 @@ if PAM_TYPE == 'open_session' and not os.path.ismount(get_home_dir(login)):
         sys.exit(0)
 
     # Prologin users must use a display manager (not a TTY, nor screen).
-    if PAM_SERVICE not in ('gdm', 'kde', 'slim', 'xdm'):
-        logging.warning('Please log in the graphical display manager')
+    if PAM_SERVICE not in ('gdm', 'kde', 'slim', 'xdm', 'sddm'):
+        logging.warning(
+            'User %s is not logging in with a graphical display manager',
+            login)
 
     # Request the login to Presenced and PresenceSync.
     failure_reason = prologin.presenced.client.connect().request_login(login)
@@ -73,8 +75,9 @@ if PAM_TYPE == 'open_session' and not os.path.ismount(get_home_dir(login)):
     try:
         hostname = socket.gethostname()
         if hostname.endswith('.prolo'):
-            # Strip domain name, if any
-            hostame = hostname[:-len('.prolo')]
+            hostname = hostname[:-len('.prolo')]
+        else:
+            logging.warning('Hostname does not end with .prolo: %s', hostname)
         host, port = hfs.get_hfs(login, hostname)
     except RuntimeError as e:
         fail(str(e))
