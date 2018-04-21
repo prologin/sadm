@@ -122,7 +122,7 @@ function test_install_rfs {
   # Give time to services to start
   sleep 10
 
-  for svc in udbsync_passwd{,_nfsroot},udbsync_rootssh,rpcbind,nfs-server}.service rootssh.path; do
+  for svc in {udbsync_passwd{,_nfsroot},udbsync_rootssh,rpcbind,nfs-server}.service rootssh.path; do
       test_service_is_enabled_active "$svc"
   done
 
