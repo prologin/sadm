@@ -24,6 +24,7 @@ function stage_boostrap_arch_linux {
 
 function stage_copy_sadm {
   echo_status "Copy $SADM_ROOT_DIR to the container"
+
   rm -rf $CONTAINER_ROOT/root/sadm
   cp -r $SADM_ROOT_DIR $CONTAINER_ROOT/root/sadm
 
@@ -32,6 +33,7 @@ function stage_copy_sadm {
 
 function stage_setup_sadm {
   echo_status "Start sadm setup script"
+
   container_run /root/sadm/install_scripts/setup_sadm.sh
 
   container_snapshot $FUNCNAME
@@ -64,12 +66,6 @@ function test_libprologin {
 function test_network {
   echo '[>] Test network... '
 
-  echo '[>] Check SADM network '
-  test_url http://mdb/call/query
-
-  echo '[>] Check internet access '
-  test_url https://gstatic.com/generate_204
-
   echo -n '[>] Check IP '
   if ! machinectl status $CONTAINER_NAME | grep -q "Address: $CONTAINER_MAIN_IP"; then
     echo_ko "FAIL"
@@ -77,6 +73,16 @@ function test_network {
   else
     echo_ok "PASS"
   fi
+}
+
+function test_local_network {
+  echo '[>] Check SADM network '
+  test_url http://mdb/call/query
+}
+
+function test_internet {
+  echo '[>] Check internet access '
+  test_url https://gstatic.com/generate_204
 }
 
 function stage_add_to_mdb {
@@ -106,11 +112,6 @@ function stage_add_to_mdb {
       --hfs $MDB_HFS_ID --mtype $MDB_MACHINE_TYPE --room $MDB_ROOM \
       --aliases $MDB_ALIASES
   )
-
-  echo '[-] Remove routes from the alien network'
-  container_run_simple /usr/bin/ip route flush all
-  echo '[-] Get new DHCP lease'
-  container_run_simple /usr/bin/systemctl restart systemd-networkd
 }
 
 function stage_allow_root_ssh {

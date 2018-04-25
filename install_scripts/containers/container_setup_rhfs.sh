@@ -173,9 +173,11 @@ run stage_setup_container
 run stage_boostrap_arch_linux
 run container_start
 
-run stage_copy_sadm
-
 run stage_add_to_mdb
+run container_stop
+run container_start
+
+run stage_copy_sadm
 run stage_allow_root_ssh
 
 run stage_setup_sadm
@@ -186,6 +188,8 @@ run test_libprologin
 
 run stage_setup_network
 run test_network
+run test_local_network
+run test_internet
 
 # RFS
 

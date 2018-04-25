@@ -201,6 +201,9 @@ run stage_boostrap_arch_linux
 run container_start
 
 run stage_add_to_mdb
+run container_stop
+run container_start
+
 run stage_allow_root_ssh
 
 run stage_copy_sadm
@@ -215,6 +218,8 @@ run test_libprologin
 
 run stage_setup_network
 run test_network
+run test_local_network
+run test_internet
 
 run stage_setup_nginx
 run test_nginx

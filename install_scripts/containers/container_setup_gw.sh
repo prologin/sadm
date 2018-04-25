@@ -540,6 +540,7 @@ run test_libprologin
 
 run stage_setup_network
 run test_network
+run test_internet
 
 run stage_setup_gw
 run test_gw
