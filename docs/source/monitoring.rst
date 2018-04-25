@@ -13,11 +13,14 @@ We will use `prometheus <http://prometheus.io/>`_ as our monitoring backend and
 Setup
 -----
 
-Install prometheus, see ``etc/prometheus/prometheus.conf``, install grafana.
+To make a good monitoring system, mix the following ingredients, in that order:
 
-.. todo::
-
-  Automate these steps in ``install.py``.
+1. ``boostrap_arch_linux.sh``
+2. ``setup_monitoring.sh``
+3. ``python install.py prometheus``
+4. ``systemctl enable --now prometheus``
+5. ``python install.py grafana``
+6. ``systemctl enable --now grafana``
 
 Monitoring services
 -------------------
