@@ -962,6 +962,11 @@ def install_workernode():
     install_cfg_profile('workernode', group='cluster')
 
 
+def install_prometheus():
+    install_cfg(
+        'prometheus.yml', '/etc/prometheus/', owner='prometheus:prometheus')
+
+
 COMPONENTS = [
     'base',
     'bindcfg',
