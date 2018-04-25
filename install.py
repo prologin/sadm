@@ -969,6 +969,7 @@ def install_prometheus():
         'prometheus/prometheus.yml',
         '/etc/prometheus/',
         owner='prometheus:prometheus')
+    install_systemd_unit('prometheus')
 
 
 COMPONENTS = [
