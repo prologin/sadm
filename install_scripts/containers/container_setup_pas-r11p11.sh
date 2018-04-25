@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Configuration variables
-CONTAINER_NAME=pas-r11p11.prolo
-CONTAINER_HOSTNAME=$CONTAINER_NAME
+CONTAINER_HOSTNAME=pas-r11p11
+CONTAINER_NAME=${CONTAINER_HOSTNAME}.prolo
 CONTAINER_MAIN_IP=192.168.0.1
 MDB_MACHINE_TYPE=user
 
@@ -18,15 +18,8 @@ container_script_header
 function stage_setup_rootfs {
   echo_status 'Fake NFS-root using mount -o bind'
 
-  mkdir -p $CONTAINER_ROOT
-  if ! findmnt $CONTAINER_ROOT; then
-    mount -o bind,ro /var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot \
-       $CONTAINER_ROOT
-  fi
-
-  echo '[-] Configure tmpfs'
-
-  cat >/var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot_mnt/etc/fstab <<EOF
+  echo '[-] Configure tmpfs that should be configured by initrd hook'
+  cat >/var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot/etc/fstab <<EOF
 # Userland implementation of rfs/initcpio/hooks/prologin
 tmpfs /home		tmpfs defaults 0 0
 tmpfs /var/log		tmpfs defaults 0 0
@@ -35,30 +28,49 @@ tmpfs /var/spool/mail	tmpfs defaults 0 0
 tmpfs /var/lib/isolate	tmpfs defaults 0 0
 tmpfs /var/lib/sddm	tmpfs defaults 0 0
 EOF
+
+  mkdir -p $CONTAINER_ROOT
+  if ! findmnt $CONTAINER_ROOT; then
+    mount -o bind,ro /var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot \
+       $CONTAINER_ROOT
+  fi
 }
 
 function stage_container_setup {
   echo_status 'Allow /dev/nbd0 to be created in the container'
 
+  echo '[-] Configure container for nbd usage'
+  mkdir -p /etc/systemd/system/systemd-nspawn@$CONTAINER_NAME.service.d
   cat >/etc/systemd/system/systemd-nspawn@$CONTAINER_NAME.service.d/override.conf <<EOF
 [Service]
 DeviceAllow=/dev/nbd0 rwm
 EOF
 
-}
+  echo_status 'Fake ndb device'
+  cat >/var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot/etc/systemd/system/mknod-dev-nbd0.service <<EOF
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/mknod /dev/nbd0 b 43 0
 
-function stage_setup_network {
+[Install]
+WantedBy=default.target
+EOF
+  systemctl enable mknod-dev-nbd0.service --root /var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot/
+
   echo_status 'Fake PXE network configuration'
 
-  container_run /usr/bin/ip address replace $CONTAINER_MAIN_IP/23 dev host0
-  container_run /usr/bin/ip link set dev host0 up
-  container_run /usr/bin/ip route replace default via 192.168.1.254
-}
+  # Create custom configuration
+  cat >/var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot/etc/systemd/network/10-$CONTAINER_HOSTNAME.network <<EOF
+[Match]
+Host=$CONTAINER_HOSTNAME.prolo
+Name=host0
 
-function stage_setup_nbd {
-  echo_status 'Create ndb device'
+[Network]
+Address=$CONTAINER_MAIN_IP/23
+Gateway=192.168.1.254
+EOF
 
-  container_run /usr/bin/mknod /dev/nbd0 b 43 0
+  systemctl enable systemd-networkd --root /var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot/
 }
 
 function stage_user_login {
@@ -81,11 +93,16 @@ run stage_container_setup
 run container_start
 
 run stage_add_to_mdb
+run container_stop
+run container_start
 
-run stage_setup_network
-run test_network
-
-run stage_setup_nbd
+run test_local_network
 
 run stage_user_login
 run test_user_login
+
+# User should have access to internet, until the 'user' group is removed from
+# firewall whitelist.
+run test_internet
+
+echo_status "$CONTAINER_HOSTNAME setup: success!"
