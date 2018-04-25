@@ -966,7 +966,9 @@ def install_workernode():
 
 def install_prometheus():
     install_cfg(
-        'prometheus.yml', '/etc/prometheus/', owner='prometheus:prometheus')
+        'prometheus/prometheus.yml',
+        '/etc/prometheus/',
+        owner='prometheus:prometheus')
 
 
 COMPONENTS = [
@@ -998,6 +1000,7 @@ COMPONENTS = [
     'presencesync_cacheserver',
     'presencesync_firewall',
     'presencesync_usermap',
+    'prometheus',
     'pull_secret',
     'redmine',
     'rfs',
