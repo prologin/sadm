@@ -6,6 +6,7 @@ Entry points:
 * `container_setup_rhfs.sh` - Setup a full rhfsX.prolo in a container
 * `container_setup_web.sh` - Setup a full web.prolo in a container
 * `container_setup_pas-r11p11.sh` - Setup a user system in a container
+* `container_setup_monitoring.sh` - Setup mon.prolo in a container
 
 Support scripts:
 
