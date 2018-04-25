@@ -239,3 +239,5 @@ run test_presencesync_cacheserver
 # Skipped as not ready yet
 skip stage_setup_redmine
 skip test_redmine
+
+echo_status "$CONTAINER_HOSTNAME setup: success!"

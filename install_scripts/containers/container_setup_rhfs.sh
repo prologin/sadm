@@ -218,3 +218,5 @@ run stage_install_hfs
 run test_install_hfs
 
 container_run_verbose /root/sadm/checks/check_rhfs.sh
+
+echo_status "$CONTAINER_HOSTNAME setup: success!"

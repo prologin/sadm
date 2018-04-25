@@ -610,5 +610,7 @@ run test_hfsdb
 
 container_run_verbose /root/sadm/checks/check_gw.sh
 
-# Display passwords
+# Display passwords again
 run test_udb
+
+echo_status "$CONTAINER_HOSTNAME setup: success!"
