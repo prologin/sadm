@@ -25,7 +25,7 @@ echo '[+] Installing packages from the Arch Linux repositories'
 pacman -S --needed --noconfirm base-devel git python python2 python-pip \
     python-virtualenv libyaml libxslt postgresql-libs sqlite postgresql-libs \
     pwgen dnsutils rsync tcpdump strace wget ethtool tree mtr iperf atop htop \
-    iotop iftop nethogs
+    iotop iftop nethogs jq
 
 echo '[+] Installing packages from the Prologin Arch Linux repository'
 pacman -S --needed --noconfirm bash-eternal-history
