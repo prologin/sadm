@@ -243,7 +243,7 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
     @map.setter
     def map(self, value):
         d = self.file_options_dict
-        d['--map'] = value
+        d['--map'] = str(value)
         self.file_options_dict = d
 
     @property
