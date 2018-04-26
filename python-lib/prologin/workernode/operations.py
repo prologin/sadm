@@ -68,12 +68,16 @@ def get_output(isolate_result):
 
 def raise_isolate_error(message, cmd, isolator):
     output = textwrap.indent(isolator.stdout, prefix=' ' * 4)
-    raise RuntimeError(message
-                       + "\n\nCommand: " + ' '.join(cmd)
-                       + "\nOutput:\n" + output)
+    what = message
+    what += "\n"
+    what += "\nCommand: " + ' '.join(cmd)
+    what += "\nOutput:\n" + output
+    raise RuntimeError(what)
 
 
-async def isolate_communicate(cmdline, limits=None, allowed_dirs=None,
+async def isolate_communicate(cmdline,
+                              limits=None,
+                              allowed_dirs=None,
                               **kwargs):
     isolator = isolate.Isolator(limits, allowed_dirs=allowed_dirs)
     async with isolator:
@@ -90,8 +94,10 @@ async def compile_champion(config, ctgz):
     code_dir = os.path.abspath(os.path.dirname(__file__))
     compile_script = os.path.join(code_dir, 'compile-champion.sh')
 
-    limits = {'wall-time': config['timeout'].get('compile', 400),
-              'fsize': 50 * 1024}
+    limits = {
+        'wall-time': config['timeout'].get('compile', 400),
+        'fsize': 50 * 1024
+    }
     allowed_dirs = ['/tmp:rw', code_dir, '/etc']
 
     isolator = isolate.Isolator(limits, allowed_dirs=allowed_dirs)
@@ -127,15 +133,25 @@ async def compile_champion(config, ctgz):
 async def spawn_server(config, rep_addr, pub_addr, nb_players, sockets_dir,
                        opts, file_opts):
     # Build command
-    cmd = [config['path']['stechec_server'],
-           "--rules", config['path']['rules'],
-           "--rep_addr", rep_addr,
-           "--pub_addr", pub_addr,
-           "--nb_clients", str(nb_players),
-           "--time", "3000",
-           "--socket_timeout", "45000",
-           "--dump", "/box/dump.json",
-           "--verbose", "1"]
+    cmd = [
+        config['path']['stechec_server'],
+        "--rules",
+        config['path']['rules'],
+        "--rep_addr",
+        rep_addr,
+        "--pub_addr",
+        pub_addr,
+        "--nb_clients",
+        str(nb_players),
+        "--time",
+        "3000",
+        "--socket_timeout",
+        "45000",
+        "--dump",
+        "/box/dump.json",
+        "--verbose",
+        "1",
+    ]
 
     if opts is not None:
         cmd += opts
@@ -168,23 +184,41 @@ async def spawn_server(config, rep_addr, pub_addr, nb_players, sockets_dir,
     return output, gzdump
 
 
-async def spawn_client(config, req_addr, sub_addr, pl_id, champion_path,
-                       sockets_dir, opts, file_opts=None, order_id=None):
+async def spawn_client(config,
+                       req_addr,
+                       sub_addr,
+                       pl_id,
+                       champion_path,
+                       sockets_dir,
+                       opts,
+                       file_opts=None,
+                       order_id=None):
     # Build environment
     env = os.environ.copy()
     env['CHAMPION_PATH'] = champion_path + '/'
 
     # Build command
-    cmd = [config['path']['stechec_client'],
-           "--name", str(pl_id),
-           "--rules", config['path']['rules'],
-           "--champion", champion_path + '/champion.so',
-           "--req_addr", req_addr,
-           "--sub_addr", sub_addr,
-           "--memory", "250000",
-           "--socket_timeout", "45000",
-           "--time", "1500",
-           "--verbose", "1"]
+    cmd = [
+        config['path']['stechec_client'],
+        "--name",
+        str(pl_id),
+        "--rules",
+        config['path']['rules'],
+        "--champion",
+        champion_path + '/champion.so',
+        "--req_addr",
+        req_addr,
+        "--sub_addr",
+        sub_addr,
+        "--memory",
+        "250000",
+        "--socket_timeout",
+        "45000",
+        "--time",
+        "1500",
+        "--verbose",
+        "1",
+    ]
     cmd += ["--client_id", str(order_id)] if order_id is not None else []
 
     if opts is not None:
@@ -207,10 +241,11 @@ async def spawn_client(config, req_addr, sub_addr, pl_id, champion_path,
 
     # Run the isolated client
     result = await isolate_communicate(
-        cmd, limits, env=env,
+        cmd,
+        limits,
+        env=env,
         allowed_dirs=['/var', '/tmp', sockets_dir + ':rw'],
-        merge_outputs=True
-    )
+        merge_outputs=True)
     return result.isolate_retcode, get_output(result)
 
 
@@ -249,9 +284,17 @@ async def spawn_match(config, players, opts=None, file_opts=None):
         cdir = tempfile.TemporaryDirectory()
         champion_dirs.append(cdir)
         untar(ctgz, cdir.name)
-        tasks_players[pl_id] = asyncio.Task(spawn_client(
-            config, s_reqrep, s_pubsub, pl_id, cdir.name,
-            socket_dir.name, opts, file_opts, order_id=oid))
+        tasks_players[pl_id] = asyncio.Task(
+            spawn_client(
+                config,
+                s_reqrep,
+                s_pubsub,
+                pl_id,
+                cdir.name,
+                socket_dir.name,
+                opts,
+                file_opts,
+                order_id=oid))
 
     # Wait for the match to complete
     await asyncio.wait([task_server] + list(tasks_players.values()))
@@ -259,9 +302,12 @@ async def spawn_match(config, players, opts=None, file_opts=None):
     # Get the output of the tasks
     server_out, dump = task_server.result()
     dump = b64encode(dump).decode()
-    players_info = {pl_id: (players[pl_id][0],  # champion_id
-                            *t.result())  # retcode, output
-                    for pl_id, t in tasks_players.items()}
+    players_info = {
+        pl_id: (
+            players[pl_id][0],  # champion_id
+            *t.result())  # retcode, output
+        for pl_id, t in tasks_players.items()
+    }
 
     # Extract the match result from the server stdout
     # stechec2 rules can output non-dict data, discard it
