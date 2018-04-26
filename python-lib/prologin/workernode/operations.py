@@ -62,7 +62,7 @@ def create_file_opts(file_opts):
 
 
 def get_output(isolate_result):
-    return '\n'.join((isolate_result.stdout,
+    return '\n'.join((isolate_result.stdout.decode(),
                       isolate_result.isolate_stdout.decode()))
 
 
