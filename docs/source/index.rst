@@ -22,6 +22,7 @@ hardware and network, which explains why some things seem very complicated.
    cookbook
    containers
    tests
+   sites
 
 Indices and tables
 ==================
