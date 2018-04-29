@@ -20,6 +20,7 @@ hardware and network, which explains why some things seem very complicated.
    monitoring
    repo
    cookbook
+   standalone-sites
    containers
    tests
 
