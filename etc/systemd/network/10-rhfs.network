@@ -6,3 +6,6 @@ DHCP=yes
 
 # Gather LLDP packets
 LLDP=yes
+
+[DHCP]
+CriticalConnection=yes
