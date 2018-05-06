@@ -111,6 +111,8 @@ List of packages for contestants' environment
 * mono
 * php
 * ghc
+* rust
+* rust-docs
 
 
 # IRC clients
