@@ -23,6 +23,7 @@ hardware and network, which explains why some things seem very complicated.
    standalone-sites
    containers
    tests
+   sites
 
 Indices and tables
 ==================
