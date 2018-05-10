@@ -21,7 +21,7 @@ Basic list of packages for contestants' environment
 
 # Window manager
 
-* i3
+* i3-wm
 
 # Graphical tools
 
@@ -59,6 +59,9 @@ Basic list of packages for contestants' environment
 * stone-soup
 
 # Other additional dependencies
+
+* i3lock
+* i3status
 
 # Stechec2 additional dependencies
 
