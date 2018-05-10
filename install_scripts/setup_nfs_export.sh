@@ -20,9 +20,6 @@ pacman -Sy --needed --noconfirm mkinitcpio-nfs-utils nbd
 echo '[+] Install packages we will configure'
 pacman -Sy --needed --noconfirm sddm
 
-echo '[+] Install packages from the Prologin Arch Linux repository'
-pacman -Sy --needed --noconfirm isolate-git
-
 echo '[+] Add initrd hooks and modules'
 sed -e 's:^HOOKS.*:HOOKS="base udev autodetect modconf net block filesystems keyboard fsck prologin":g' \
     -e 's:^MODULES.*:MODULES="nfsv3":g' -i /etc/mkinitcpio.conf
@@ -40,6 +37,9 @@ echo nbd > /etc/modules-load.d/nbd.conf
 
 echo '[+] Configure the system for SADM (setup_sadm.sh)'
 ./install_scripts/setup_sadm.sh
+
+echo '[+] Install packages from the Prologin Arch Linux repository'
+pacman -Sy --needed --noconfirm isolate-git
 
 echo '[+] Install debug tools'
 pacman -Sy --needed --noconfirm prologin/pamtester
