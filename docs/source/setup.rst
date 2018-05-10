@@ -727,11 +727,6 @@ To install a new package::
     server directories, which will be picked up by the NFS clients resulting in
     great and glorious system failures.
 
-Once SDDM is installed (the login manager we use for sadm), you can use this
-command to generate the default Prologin SDDM config and theme::
-
-  python install.py sddmcfg
-
 TODO: How to sync, hook to generate /var...
 
 Setting up hfs
