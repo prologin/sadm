@@ -47,8 +47,13 @@ completed.
    Go to http://localhost:8000/, use ``prologin`` and the password you just
    chose to log in.
 
-Adapting ``concours``
----------------------
+Working on ``concours``
+-----------------------
+
+Configuration
+*************
+
+Customize ``etc/prologin/concours.yml`` with the following:
 
 ``db.default``
    The easiest way is to use SQLite::
@@ -68,3 +73,18 @@ Adapting ``concours``
 
 Other ``contest`` entries (eg. ``use_maps``)
    Adapt to the correct settings for this edition.
+
+Importing a stechec2 dump for testing
+*************************************
+
+When developing the Javascript replay and other features, you might need to import test dumps that
+can be loaded on the website.
+
+While in the correct virtualenv::
+
+   cd django/concours
+   python manage.py import_dump /path/to/my/dump.json
+
+This will create a dummy match with zero players and no map, that will successfully load on the
+dedicated URL. The match detail URL output by this command will only work in the default setup where
+``manage.py runserver`` is used on ``localhost:8000``. Adapt the host/port if needed.
