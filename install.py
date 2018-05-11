@@ -820,6 +820,8 @@ def install_rfs_nfs_archlinux():
 
 
 def install_rfs_nfs_sadm():
+    requires('sadm_secret')
+
     # Self copy into the exported system
     rfs_sadm = ROOTFS + '/root/sadm'
     if os.path.isdir(rfs_sadm):
