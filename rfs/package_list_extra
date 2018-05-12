@@ -33,7 +33,7 @@ List of packages for contestants' environment
 * codeblocks
 * eclipse
 * intellij-idea-community-edition
-(aur)* kate-kde4
+* kate
 * geany
 * scribes
 * mg
@@ -46,8 +46,7 @@ List of packages for contestants' environment
 
 # Additional config
 
-(aur)* emacs-tuareg-mode
-(aur)* emacs-haskell-mode
+* emacs-haskell-mode
 * grml-zsh-config
 
 
@@ -123,7 +122,7 @@ List of packages for contestants' environment
 
 # Games
 
-(aur)* tetrinet
+* tetrinet
 * teeworlds
 (aur)* urbanterror
 * extremetuxracer
