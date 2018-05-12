@@ -18,44 +18,20 @@
 import logging
 import prologin.log
 import prologin.mdbsync.client
-import queue
-import threading
 
 from django.conf import settings
-from django.dispatch import receiver
 from django.db.models.signals import post_save, pre_delete
+from django.dispatch import receiver
+from prologin.synchronisation import UpdateSenderTask
 from prologin.mdb.models import Machine
 
 prologin.log.setup_logging('mdb')
 
+def _mdb_send_updates(updates):
+    conn = prologin.mdbsync.client.connect(pub=True)
+    conn.send_updates(updates)
 
-class UpdateSenderTask(threading.Thread):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.updates_queue = queue.Queue()
-        self.daemon = True
-        self.start()
-
-    def send(self, update):
-        self.updates_queue.put(update)
-
-    def run(self):
-        while True:
-            updates = [self.updates_queue.get()]
-            try:
-                while len(updates) < 10:
-                    updates.append(self.updates_queue.get(timeout=0.1))
-            except queue.Empty:
-                pass
-
-            try:
-                cl = prologin.mdbsync.client.connect(pub=True)
-                cl.send_updates(updates)
-            except Exception:
-                logging.exception("unable to send updates to mdbsync")
-
-
-_update_sender = UpdateSenderTask()
+_update_sender = UpdateSenderTask(_mdb_send_updates)
 
 @receiver(post_save)
 def post_save_handler(sender, instance, created, *args, **kwargs):

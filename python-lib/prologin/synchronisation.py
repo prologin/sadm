@@ -26,12 +26,14 @@ import prologin.timeauth
 import prologin.tornadauth
 import prologin.web
 import prologin.webapi
+import queue
+import sys
+import threading
 import time
 import tornado.ioloop
 import tornado.web
 import urllib.parse
 import urllib.request
-import sys
 
 
 def apply_updates(pk, backlog, updates, watch=None):
@@ -307,3 +309,42 @@ class Client(prologin.webapi.Client):
                 logging.exception('connection synchronisation server lost: '
                                   '%s (url: %s)', e, poll_url)
                 sys.exit(1)
+
+
+class UpdateSenderTask(threading.Thread):
+    STOP_GUARD = object()
+    def __init__(self, updater, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.updater = updater
+        self.updates_queue = queue.Queue()
+        self.start()
+
+    def send(self, update):
+        self.updates_queue.put(update)
+
+    def run(self):
+        self.running = True
+        while self.running:
+            updates = [self.updates_queue.get()]
+
+            try:
+                while len(updates) < 10 and not updates[-1] is self.STOP_GUARD:
+                    updates.append(self.updates_queue.get(timeout=0.1))
+            except queue.Empty:
+                pass
+
+            if updates[-1] is self.STOP_GUARD:
+                self.running = False
+                updates.pop()
+
+            try:
+                self.updater(updates)
+            except Exception:
+                logging.exception(f"unable to send updates to {self.updater}")
+
+    def stop(self):
+        self.updates_queue.put(self.STOP_GUARD)
+
+    def join(self):
+        self.stop()
+        super().join()

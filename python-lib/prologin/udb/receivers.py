@@ -13,62 +13,23 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
-import atexit
 import logging
 import prologin.log
 import prologin.udbsync.client
-import queue
-import threading
 
 from django.conf import settings
-from django.dispatch import receiver
 from django.db.models.signals import post_save, pre_delete
+from django.dispatch import receiver
+from prologin.synchronisation import UpdateSenderTask
 from prologin.udb.models import User
 
 prologin.log.setup_logging('udb')
 
+def _udb_send_updates(updates):
+    conn = prologin.udbsync.client.connect(pub=True)
+    conn.send_updates(updates)
 
-class UpdateSenderTask(threading.Thread):
-    STOP_GUARD = object()
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.updates_queue = queue.Queue()
-        self.daemon = True
-        self.start()
-
-    def send(self, update):
-        self.updates_queue.put(update)
-
-    def run(self):
-        self.running = True
-        while self.running:
-            updates = [self.updates_queue.get()]
-
-            try:
-                while len(updates) < 10:
-                    updates.append(self.updates_queue.get(timeout=0.1))
-            except queue.Empty:
-                pass
-
-            if any(update is self.STOP_GUARD for update in updates):
-                self.running = False
-                updates = list(filter(lambda x: x is not self.STOP_GUARD, updates))
-
-            try:
-                cl = prologin.udbsync.client.connect(pub=True)
-                cl.send_updates(updates)
-            except Exception:
-                logging.exception("unable to send updates to udbsync")
-
-    def stop(self):
-        self.updates_queue.put(self.STOP_GUARD)
-
-    def join(self):
-        self.stop()
-        super().join()
-
-_update_sender = UpdateSenderTask()
-atexit.register(_update_sender.join)
+_update_sender = UpdateSenderTask(_udb_send_updates)
 
 @receiver(post_save)
 def post_save_handler(sender, instance, created, *args, **kwargs):
