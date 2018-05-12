@@ -121,7 +121,10 @@ def callback(root_path, users, updates_metadata):
             line = line.rstrip('\n')
             m = SHADOW_PATTERN.match(line)
             if m:
-                shadow_passwords[m.group('login')] = m.group('remainder')
+                login = m.group('login')
+                if login not in passwd_users:
+                    continue
+                shadow_passwords[login] = m.group('remainder')
             else:
                 logging.error('Unparsable /etc/passwd line: %r', line)
                 logging.info('Stopping generation')
@@ -140,7 +143,7 @@ def callback(root_path, users, updates_metadata):
                     set(
                         member
                         for member in m.group('members').split(',')
-                        if member
+                        if member and member in passwd_users
                     )
                 )
             else:
