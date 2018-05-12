@@ -1,0 +1,30 @@
+# Maintainer: cafehaine <kilian.guillaume@prologin.org>
+
+pkgname=emacs-tuareg-mode-git
+_realname=tuareg
+pkgver=2.1.0
+pkgrel=1
+pkgdesc='Emacs tuareg mode for ocaml'
+arch=('any')
+url=https://github.com/ocaml/tuareg
+license=('GPL2')
+depends=('emacs')
+makedepends=('git')
+install=$pkgname.install
+source=("git+https://github.com/ocaml/tuareg.git")
+sha512sums=('SKIP')
+
+pkgver() {
+    cd "$srcdir/$_realname"
+    printf $(grep ';; Version:' tuareg.el | sed 's/;; Version: *\([0-9.]*\).*/\1/')
+}
+
+package() {
+    cd "$srcdir/$_realname"
+
+    for i in *.el; do
+        install -Dm644 $i "$pkgdir"/usr/share/emacs/site-lisp/tuareg/$i
+    done
+    install -Dm644 README.md "$pkgdir"/usr/share/doc/tuareg/README.md
+}
+
