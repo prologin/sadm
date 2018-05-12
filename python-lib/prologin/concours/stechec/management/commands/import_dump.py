@@ -31,7 +31,7 @@ class Command(BaseCommand):
             path = match.dump_path
             path.parent.mkdir(parents=True, exist_ok=True)
 
-            with gzip.open(path, 'w') as gzipped:
+            with gzip.open(str(path), 'w') as gzipped:
                 shutil.copyfileobj(options['dump'], gzipped)
 
         self.stdout.write("Match created with ID: {}".format(match.pk))
