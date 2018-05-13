@@ -1,0 +1,24 @@
+# Maintainer: cafehaine <kilian.guillaume@prologin.org>
+
+pkgname=python-theano
+pkgver=1.0.1
+pkgrel=1
+pkgdesc="Definition and optimized evaluation of mathematical expressions on Numpy arrays."
+arch=('any')
+url="http://www.deeplearning.net/software/theano/"
+license=('BSD')
+depends=('python' 'python-numpy')
+makedepends=('python-setuptools')
+source=("https://files.pythonhosted.org/packages/62/da/ab486aae8e538d8ae91fa0e6ab26d3a454d7c5c7a66541f40300e58a3314/Theano-$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+    cd "${srcdir}/Theano-$pkgver"
+    python setup.py build
+}
+
+package() {
+    cd "${srcdir}/Theano-$pkgver"
+    python setup.py install --skip-build  --root="${pkgdir}" --optimize=1
+}
+
