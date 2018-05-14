@@ -64,8 +64,8 @@ function stage_setup_rfs_nfs_sadm {
   container_run /var/prologin/venv/bin/python /root/sadm/install.py rfs_nfs_sadm
 
   echo "[-] Copy kernel and initrd to gw"
-  cp -v $CONTAINER_ROOT/export/nfsroot/boot/vmlinuz-linux $CONTAINER_ROOT_GW/srv/tftp/kernel
-  cp -v $CONTAINER_ROOT/export/nfsroot/boot/initramfs-linux-fallback.img $CONTAINER_ROOT_GW/srv/tftp/initrd
+  cp -v $CONTAINER_ROOT/export/nfsroot_staging/boot/vmlinuz-linux $CONTAINER_ROOT_GW/srv/tftp/kernel
+  cp -v $CONTAINER_ROOT/export/nfsroot_staging/boot/initramfs-linux-fallback.img $CONTAINER_ROOT_GW/srv/tftp/initrd
 
   container_snapshot $FUNCNAME
 }
@@ -128,7 +128,7 @@ function test_install_rfs {
 
   echo -n '[>] NFS export... '
   exports=$(container_run_verbose /usr/bin/exportfs -s)
-  if echo "$exports" | grep -q /export/nfsroot; then
+  if echo "$exports" | grep -q /export/nfsroot_ro; then
     echo_ok "OK"
   else
     echo_ko "KO"

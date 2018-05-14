@@ -1,1 +1,1 @@
-/export/nfsroot 192.168.0.0/24(ro,no_root_squash,subtree_check,async)
+/export/nfsroot_ro 192.168.0.0/24(ro,no_root_squash,subtree_check,async)
