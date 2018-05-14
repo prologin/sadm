@@ -17,4 +17,11 @@ for serv in "$@"; do
     echo "######## SYNCING $serv ########"
     rsync --delete -axPHAX /export/nfsroot_staging/ "$serv":/export/nfsroot_ro
     rsync --delete -axPHAX /export/skeleton/ "$serv":/export/skeleton
+
+    echo "## restarting metadata services on $serv"
+    ssh -T root@"$serv" <<EOF
+systemctl restart rootssh-copy
+systemctl restart udbsync_passwd_nfsroot
+EOF
+
 done
