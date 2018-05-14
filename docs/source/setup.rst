@@ -684,16 +684,10 @@ chroot into the exported file system and run the ``setup_sadm.sh`` script.
   python install.py rfs_nfs_sadm
 
 The installation script will bootstrap a basic Arch Linux system in
-``/export/nfsroot`` using the common Arch Linux install script you already used
-for bootstraping ``gw`` and ``rhfs``. It also adds a prologin hook that creates
-tmpfs at ``/var/{log,tmp,spool/mail}``, installs libprologin and enable some
-sadm services.
-
-Copy the the kernel and initramfs from ``rhfs`` to ``gw``, where they will be
-fetched by the machines during PXE::
-
-  scp rhfs:/export/nfsroot/boot/vmlinuz-linux /srv/tftp/kernel
-  scp rhfs:/export/nfsroot/boot/initramfs-linux.img /srv/tftp/initrd
+``/export/nfsroot_staging`` using the common Arch Linux install script you
+already used for bootstraping ``gw`` and ``rhfs``. It also adds a prologin hook
+that creates tmpfs at ``/var/{log,tmp,spool/mail}``, installs libprologin and
+enables some sadm services.
 
 We can now finish the basic RFS setup and export the NFS::
 
@@ -703,6 +697,14 @@ We can now finish the basic RFS setup and export the NFS::
     echo "[-] Enable $svc"
     systemctl enable --now "$svc"
   done
+
+Once done, we need to copy the the kernel and initramfs from ``rhfs`` to ``gw``,
+where they will be fetched by the machines during PXE. We also need to copy
+nfsroot_staging to the ``rfs{0,2,4,6}:/export/nfsroot_ro``.
+
+To do so, run on rhfs01::
+
+  rfs/commit_staging.sh rhfs01 rhfs23 rhfs45 rhfs67
 
 At this point the machines should boot and drop you to a login shell. We can
 now start to install a basic graphical session, with nice fonts and graphics::
@@ -719,7 +721,9 @@ awesome games, install the extra package list::
 
 To install a new package::
 
-  pacman --root /export/nfsroot -Sy package
+  pacman --root /export/nfsroot_staging_mnt -Sy package
+  # deploy the newly created root to rhfs{0,2,4,6}:/export/nfsroot_ro
+  /root/sadm/rsync_rfs.sh rfs0 rfs2 rfs4 rfs6
 
 .. note::
 
@@ -767,7 +771,7 @@ On a rhfs, the service ``udbsync_rootssh`` (aka. ``udbsync_clients.rootssh``)
 writes the ssh public keys of roots to ``/root/.ssh/authorized_keys``. The unit
 ``rootssh.path`` watches this file, and on change starts the service
 ``rootssh-copy`` that updates the ``authorized_keys`` in the
-``/exports/nfsroot``.
+``/exports/nfsroot_ro``.
 
 Step 4: Concours
 ----------------
@@ -839,7 +843,7 @@ it in the NFS export.  The required packages are ``stechec`` and
 ``stechec2-makefiles``. We will intall them using the ``prologin`` Arch
 Linux repository::
 
-  pacman -S prologin/stechec2 prologin/stechec2-makefiles -r /export/nfsroot_mnt
+  pacman -S prologin/stechec2 prologin/stechec2-makefiles -r /export/nfsroot_staging_mnt
 
 .. note::
 
@@ -849,7 +853,7 @@ Linux repository::
 
 Then, still for the users machines, install ``workernode``::
 
-  arch-chroot /export/nfsroot_mnt/
+  arch-chroot /export/nfsroot_staging_mnt/
   cd sadm
   python install.py workernode
   systemctl enable workernode

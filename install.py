@@ -150,8 +150,9 @@ GROUPS = {
 # Location of the SADM master secret
 SECRET_PATH = '/etc/prologin/sadm-secret'
 
-ROOTFS = '/export/nfsroot'
-ROOTFS_BIND = ROOTFS + '_mnt'
+ROOTFS_RO = '/export/nfsroot_ro'
+ROOTFS_STAGING = '/export/nfsroot_staging'
+ROOTFS_BIND = ROOTFS_STAGING + '_mnt'
 
 # Helper functions for installation procedures.
 
@@ -807,11 +808,13 @@ def install_rfs():
 def install_rfs_nfs_archlinux():
     # Bootstrap nfs exported Arch Linux
     mkdir('/export', mode=0o755)
-    mkdir('/export/nfsroot', mode=0o755)
+    mkdir(ROOTFS_RO, mode=0o755)
+    mkdir(ROOTFS_STAGING, mode=0o755)
     mkdir(ROOTFS_BIND, mode=0o755)
-    system('mount --bind {} {}'.format(ROOTFS, ROOTFS_BIND))
-    system('echo "{} {} none defaults,bind 0 2" >> /etc/fstab'.format(
-        ROOTFS, ROOTFS_BIND))
+
+    install_systemd_unit('export-nfsroot_staging_mnt', kind='mount')
+    system('systemctl daemon-reload')
+    system('systemctl enable --now export-nfsroot_staging_mnt.mount')
 
     # TODO(halfr): replace /dev/null with file containing root password
     with cwd('install_scripts'):
@@ -823,7 +826,7 @@ def install_rfs_nfs_sadm():
     requires('sadm_secret')
 
     # Self copy into the exported system
-    rfs_sadm = ROOTFS + '/root/sadm'
+    rfs_sadm = ROOTFS_STAGING + '/root/sadm'
     if os.path.isdir(rfs_sadm):
         shutil.rmtree(rfs_sadm)
 
@@ -832,8 +835,8 @@ def install_rfs_nfs_sadm():
     system('cp -r {} {}'.format(sadm_root_dir, rfs_sadm))
 
     # Forward SADM secret
-    mkdir(ROOTFS + '/etc/prologin', mode=0o755)
-    copy(SECRET_PATH, ROOTFS + SECRET_PATH, mode=0o600)
+    mkdir(ROOTFS_STAGING + '/etc/prologin', mode=0o755)
+    copy(SECRET_PATH, ROOTFS_STAGING + SECRET_PATH, mode=0o600)
 
     # Spawn a chroot inside the nfs export
     system(
