@@ -1,0 +1,10 @@
+Helper scripts for testing prologin-sadm using libvirt.
+
+- `setup_network.sh` - run this script first to setup the virtual network
+
+- `build_gw.sh` - create `gw.prolo`
+- `build_rhfs.sh` - create a rhfs machine
+- `build_service.sh` - create a non-rhfs service machine
+- `build_user.sh` - create a user machine
+
+- `reset_rhfs.sh` - run this script after rhfs shutdown to clear the RHFS disks
