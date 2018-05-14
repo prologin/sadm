@@ -15,6 +15,7 @@ function stage_container_gw_network {
 
   echo "[-] Write static ip container network systemd-networkd configuration"
   cat >$CONTAINER_ROOT/etc/systemd/network/40-gw-container-static.network <<EOF
+## Container setup ##
 [Match]
 Name=host0
 
@@ -48,7 +49,10 @@ function stage_setup_network {
 
   echo '[-] Add static ip for container setup'
   cat >> $CONTAINER_ROOT/etc/systemd/network/10-gw.network <<EOF
-# Extra static ip and route to communicate with the outside world from within the container
+
+## Container setup ##
+# Use static ip and route to communicate with the outside world from within the container
+DHCP=no
 Gateway=10.0.0.1
 Address=10.0.0.254/24
 EOF
