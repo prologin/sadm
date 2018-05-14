@@ -128,6 +128,15 @@ not necessary to understand how the containers work to test features in
 prologin-sadm, but you may encounter weird bugs caused by them. The following
 sections discuss some internals of the containers setup.
 
+A key design decision is that the container setup should not require special
+cases added to the normal setup. This is to avoid bloating the code and
+keep it as simple as possible. The container setup can highlight potential
+fixes, for example how to make the setup more generic or how to decouple the
+services from the underlying system or network setup.
+
+We note that containers do require special configuration. It should be applied
+in the container scripts themselves.
+
 Virtual network setup
 ---------------------
 
