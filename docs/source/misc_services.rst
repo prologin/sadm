@@ -50,6 +50,8 @@ We will setup dpaste: https://github.com/bartTC/dpaste::
   virtualenv3 --no-site-packages /var/prologin/venv_paste
   source /var/prologin/venv_paste/bin/activate
   pip install dpaste gunicorn
+  # dpaste deps are broken for now
+  pip install django==1.9.13
   # Back to the normal venv
   source /var/prologin/venv/bin/activate
   python install.py paste
