@@ -788,9 +788,22 @@ def install_presencesync_firewall():
     install_systemd_unit('presencesync_firewall')
 
 
+def install_nfsroot_export_dirs():
+    # Bootstrap nfs exported Arch Linux
+    mkdir('/export', mode=0o755)
+    mkdir(ROOTFS_RO, mode=0o755)
+    mkdir(ROOTFS_STAGING, mode=0o755)
+    mkdir(ROOTFS_BIND, mode=0o755)
+
+    install_systemd_unit('export-nfsroot_staging_mnt', kind='mount')
+    system('systemctl daemon-reload')
+    system('systemctl enable --now export-nfsroot_staging_mnt.mount')
+
+
 def install_rfs():
     requires('udbsync_passwd')
     requires('udbsync_rfs')
+    requires('nfsroot_export_dirs')
 
     # Dual NIC packet routing configuration setup
     copy('etc/sysctl/rp_filter.conf', '/etc/sysctl.d/rp_filter.conf')
@@ -807,14 +820,7 @@ def install_rfs():
 
 def install_rfs_nfs_archlinux():
     # Bootstrap nfs exported Arch Linux
-    mkdir('/export', mode=0o755)
-    mkdir(ROOTFS_RO, mode=0o755)
-    mkdir(ROOTFS_STAGING, mode=0o755)
-    mkdir(ROOTFS_BIND, mode=0o755)
-
-    install_systemd_unit('export-nfsroot_staging_mnt', kind='mount')
-    system('systemctl daemon-reload')
-    system('systemctl enable --now export-nfsroot_staging_mnt.mount')
+    requires('nfsroot_export_dirs')
 
     # TODO(halfr): replace /dev/null with file containing root password
     with cwd('install_scripts'):
@@ -995,6 +1001,7 @@ COMPONENTS = [
     'mdbdns',
     'mdbsync',
     'netboot',
+    'nfsroot_export_dirs',
     'nginxcfg',
     'nic_configuration',
     'paste',
