@@ -89,7 +89,8 @@ echo_status "Configuring locale to $SADM_LOCALE $SADM_CHARSET"
 echo "LANG=$SADM_LOCALE" > "$root_dir/etc/locale.conf"
 echo "$SADM_LOCALE $SADM_CHARSET" >> "$root_dir/etc/locale.gen"
 # There is not `locale-gen --root`, we have to use a chroot
-systemd-nspawn --quiet --directory "$root_dir" /usr/bin/locale-gen
+# systemd-nspawn isn't suitable because it overrides /etc/localtime
+arch-chroot "$root_dir" /usr/bin/locale-gen
 
 echo_status "Setting root password"
 root_password=$(cat $root_password_file)
