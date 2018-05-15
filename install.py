@@ -152,7 +152,6 @@ SECRET_PATH = '/etc/prologin/sadm-secret'
 
 ROOTFS_RO = '/export/nfsroot_ro'
 ROOTFS_STAGING = '/export/nfsroot_staging'
-ROOTFS_BIND = ROOTFS_STAGING + '_mnt'
 
 # Helper functions for installation procedures.
 
@@ -789,15 +788,9 @@ def install_presencesync_firewall():
 
 
 def install_nfsroot_export_dirs():
-    # Bootstrap nfs exported Arch Linux
     mkdir('/export', mode=0o755)
     mkdir(ROOTFS_RO, mode=0o755)
     mkdir(ROOTFS_STAGING, mode=0o755)
-    mkdir(ROOTFS_BIND, mode=0o755)
-
-    install_systemd_unit('export-nfsroot_staging_mnt', kind='mount')
-    system('systemctl daemon-reload')
-    system('systemctl enable --now export-nfsroot_staging_mnt.mount')
 
 
 def install_rfs():
@@ -825,7 +818,7 @@ def install_rfs_nfs_archlinux():
     # TODO(halfr): replace /dev/null with file containing root password
     with cwd('install_scripts'):
         system('./bootstrap_arch_linux.sh {} {} {}'.format(
-            ROOTFS_BIND, '""', '/dev/null'))
+            ROOTFS_STAGING, '""', '/dev/null'))
 
 
 def install_rfs_nfs_sadm():
@@ -846,8 +839,8 @@ def install_rfs_nfs_sadm():
 
     # Spawn a chroot inside the nfs export
     system(
-        '/usr/bin/arch-chroot {} /root/sadm/install_scripts/setup_nfs_export.sh'.
-        format(ROOTFS_BIND))
+        '/usr/bin/systemd-nspawn -q -D {} /root/sadm/install_scripts/setup_nfs_export.sh'.
+        format(ROOTFS_STAGING))
 
 
 def install_rfs_nfs_packages_base():
@@ -871,8 +864,8 @@ def install_rfs_nfs_packages_extra():
 def _install_rfs_nfs_packages(packages):
     # Install packages in a chroot
     system(
-        '/usr/bin/arch-chroot {} /usr/bin/pacman -Sy --needed --noconfirm {}'.
-        format(ROOTFS_BIND, packages))
+        '/usr/bin/systemd-nspawn -q -D {} /usr/bin/pacman -Sy --needed --noconfirm {}'.
+        format(ROOTFS_STAGING, packages))
 
 
 def install_sddmcfg():

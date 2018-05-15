@@ -721,15 +721,15 @@ awesome games, install the extra package list::
 
 To install a new package::
 
-  pacman --root /export/nfsroot_staging_mnt -Sy package
+  pacman --root /export/nfsroot_staging -Sy package
   # deploy the newly created root to rhfs{0,2,4,6}:/export/nfsroot_ro
   /root/sadm/rsync_rfs.sh rfs0 rfs2 rfs4 rfs6
 
 .. note::
 
-    *Never* use arch-chroot on a live NFS export. This will bind the runtime
-    server directories, which will be picked up by the NFS clients resulting in
-    great and glorious system failures.
+    *Never* use arch-chroot or systemd-nspawn on a live NFS export. This will
+    bind the runtime server directories, which will be picked up by the NFS
+    clients resulting in great and glorious system failures.
 
 TODO: How to sync, hook to generate /var...
 
@@ -843,7 +843,7 @@ it in the NFS export.  The required packages are ``stechec`` and
 ``stechec2-makefiles``. We will intall them using the ``prologin`` Arch
 Linux repository::
 
-  pacman -S prologin/stechec2 prologin/stechec2-makefiles -r /export/nfsroot_staging_mnt
+  pacman -S prologin/stechec2 prologin/stechec2-makefiles -r /export/nfsroot_staging
 
 .. note::
 
@@ -853,7 +853,7 @@ Linux repository::
 
 Then, still for the users machines, install ``workernode``::
 
-  arch-chroot /export/nfsroot_staging_mnt/
+  systemd-nspawn -D /export/nfsroot_staging/
   cd sadm
   python install.py workernode
   systemctl enable workernode
