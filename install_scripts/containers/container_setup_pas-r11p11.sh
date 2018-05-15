@@ -19,7 +19,7 @@ function stage_setup_rootfs {
   echo_status 'Fake NFS-root using mount -o bind'
 
   echo '[-] Configure tmpfs that should be configured by initrd hook'
-  cat >/var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot_staging_mnt/etc/fstab <<EOF
+  cat >/var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot_staging/etc/fstab <<EOF
 # Userland implementation of rfs/initcpio/hooks/prologin
 tmpfs /home		tmpfs defaults 0 0
 tmpfs /var/log		tmpfs defaults 0 0
@@ -31,7 +31,7 @@ EOF
 
   mkdir -p $CONTAINER_ROOT
   if ! findmnt $CONTAINER_ROOT; then
-    mount -o bind,ro /var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot_staging_mnt \
+    mount -o bind,ro /var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot_staging \
        $CONTAINER_ROOT
   fi
 }
