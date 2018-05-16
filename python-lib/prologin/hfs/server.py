@@ -60,7 +60,6 @@ import subprocess
 import sys
 import urllib.parse
 import urllib.request
-
 from pathlib import Path
 
 from .monitoring import (
@@ -342,18 +341,29 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
 
         data = { 'user': self.user, 'hfs': peer_id }
         data = urllib.parse.urlencode([('data', json.dumps(data))])
+        data = data.encode('utf-8')
 
         nbd_path = Path(self.nbd_filename())
 
-        curl = subprocess.Popen(['/usr/bin/curl', '--data', data, url],
-                                stdout=subprocess.PIPE)
-
-        tar = subprocess.Popen(['/usr/bin/tar', '--sparse', '-xzf',
-                                '-', nbd_path.name],
-                               stdin=curl.stdout,
+        tar_cmdline = ['/usr/bin/tar', '--sparse', '-xzf',
+                       '-', nbd_path.name]
+        tar = subprocess.Popen(tar_cmdline,
+                               stdin=subprocess.PIPE,
                                cwd=nbd_path.parent)
-        curl.stdout.close()
-        tar_out, tar_err = tar.communicate()
+
+        BLOCK_SIZE = 65536
+
+        with urllib.request.urlopen(url, data=data) as rfp:
+            while True:
+                block = rfp.read(BLOCK_SIZE)
+                if not block:
+                    break
+                tar.stdin.write(block)
+
+        tar.stdin.close()
+
+        if tar.wait() != 0:
+            raise RuntimeError(f"{' '.join(tar_cmdline)} exited with rc")
 
         delta = time.monotonic() - remote_user_start
         hfs_migrate_remote_user.labels(user=self.user, hfs=peer_id) \
