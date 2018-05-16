@@ -22,7 +22,7 @@ pacman -Sy --needed --noconfirm sddm
 
 echo '[+] Add initrd hooks and modules'
 sed -e 's:^HOOKS.*:HOOKS="base udev autodetect modconf net block filesystems keyboard fsck prologin":g' \
-    -e 's:^MODULES.*:MODULES="nfsv3":g' -i /etc/mkinitcpio.conf
+    -e 's:^MODULES.*:MODULES="nfsv3 overlay":g' -i /etc/mkinitcpio.conf
 
 echo '[+] Copy initrd configuration for diskless boot'
 # TODO: use relative paths

@@ -1,16 +1,17 @@
 #!/bin/sh
 
-run_latehook() {
-    find /new_root/var/log -type d > /var_log_list
-    mount -t tmpfs tmpfs /new_root/var/log
-    mount -t tmpfs tmpfs /new_root/var/tmp
-    mount -t tmpfs tmpfs /new_root/var/spool/mail
-    mount -t tmpfs tmpfs /new_root/var/lib/isolate
-    mount -t tmpfs tmpfs /new_root/var/lib/sddm
-    mount -t tmpfs tmpfs /new_root/home
-    while read d; do
-        mkdir -p "$d"
-    done < /var_log_list
+cow_mount() {
+    cow_path="$1"
+    lower="/new_root/$cow_path"
+    upper="/new_root/tmp/overlay/$cow_path/upper"
+    work="/new_root/tmp/overlay/$cow_path/work"
+    mount -t tmpfs tmpfs /new_root/tmp
+    mkdir -p "$upper" "$work"
+    mount -n -t overlay overlay "$lower" \
+          -o "lowerdir=$lower,upperdir=$upper,workdir=$work"
 }
 
-# vim: set ft=sh ts=4 sw=4 et:
+run_latehook() {
+    cow_mount "/home"
+    cow_mount "/var"
+}
