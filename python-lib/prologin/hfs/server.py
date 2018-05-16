@@ -41,7 +41,6 @@ files, buffering in RAM is just not a good idea.
 
 # TODO(delroth): authentify all the request handlers with HMAC
 
-import gzip
 import time
 import http.server
 import json
@@ -61,6 +60,8 @@ import subprocess
 import sys
 import urllib.parse
 import urllib.request
+
+from pathlib import Path
 
 from .monitoring import (
     hfs_get_hfs,
@@ -158,15 +159,16 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
 
         self.send_response(200)
         self.end_headers()
-        with gzip.GzipFile(mode='wb', fileobj=self.wfile) as zfp:
-            with open(self.nbd_filename(), 'rb') as fp:
-                while True:
-                    block = fp.read(65536)
-                    if not block:
-                        break
-                    zfp.write(block)
+        self.wfile.flush()
 
         fname = self.nbd_filename()
+        nbd_path = Path(fname)
+
+        subprocess.check_call(['/usr/bin/tar', '--sparse', '-czf',
+                               '-', nbd_path.name],
+                              stdout=self.wfile.fileno(),
+                              cwd=nbd_path.parent)
+
         backup_fname = os.path.join(os.path.dirname(fname),
                                     'backup_' + os.path.basename(fname))
         os.rename(fname, backup_fname)
@@ -337,18 +339,21 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
         url = ('http', 'hfs%d:%d' % (peer_id, CFG['port']), '/migrate_user',
                '', '')
         url = urllib.parse.urlunsplit(url)
-        data = { 'user': self.user, 'hfs': peer_id }
-        data = 'data=%s' % (urllib.parse.quote(json.dumps(data)))
-        data = data.encode('utf-8')
 
-        with open(self.nbd_filename(), 'wb') as fp:
-            with urllib.request.urlopen(url, data=data) as rfp:
-                with gzip.GzipFile(fileobj=rfp, mode='rb') as zfp:
-                    while True:
-                        block = zfp.read(65536)
-                        if not block:
-                            break
-                        fp.write(block)
+        data = { 'user': self.user, 'hfs': peer_id }
+        data = urllib.parse.urlencode([('data', json.dumps(data))])
+
+        nbd_path = Path(self.nbd_filename())
+
+        curl = subprocess.Popen(['/usr/bin/curl', '--data', data, url],
+                                stdout=subprocess.PIPE)
+
+        tar = subprocess.Popen(['/usr/bin/tar', '--sparse', '-xzf',
+                                '-', nbd_path.name],
+                               stdin=curl.stdout,
+                               cwd=nbd_path.parent)
+        curl.stdout.close()
+        tar_out, tar_err = tar.communicate()
 
         delta = time.monotonic() - remote_user_start
         hfs_migrate_remote_user.labels(user=self.user, hfs=peer_id) \
