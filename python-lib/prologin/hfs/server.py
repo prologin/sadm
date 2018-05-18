@@ -350,20 +350,20 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
         tar = subprocess.Popen(tar_cmdline,
                                stdin=subprocess.PIPE,
                                cwd=nbd_path.parent)
+        try:
+            BLOCK_SIZE = 65536
 
-        BLOCK_SIZE = 65536
+            with urllib.request.urlopen(url, data=data) as rfp:
+                while True:
+                    block = rfp.read(BLOCK_SIZE)
+                    if not block:
+                        break
+                    tar.stdin.write(block)
+        finally:
+            tar.stdin.close()
 
-        with urllib.request.urlopen(url, data=data) as rfp:
-            while True:
-                block = rfp.read(BLOCK_SIZE)
-                if not block:
-                    break
-                tar.stdin.write(block)
-
-        tar.stdin.close()
-
-        if tar.wait() != 0:
-            raise RuntimeError(f"{' '.join(tar_cmdline)} exited with rc")
+            if tar.wait() != 0:
+                raise RuntimeError(f"{' '.join(tar_cmdline)} exited with rc")
 
         delta = time.monotonic() - remote_user_start
         hfs_migrate_remote_user.labels(user=self.user, hfs=peer_id) \
