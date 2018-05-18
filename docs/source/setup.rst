@@ -11,7 +11,7 @@ present. Just follow the guide!
 Maintainers:
 
 - Alexandre Macabies (2013, 2014, 2015, 2016, 2017)
-- Antoine Pietri (2013, 2014, 2015, 2016, 2017)
+- Antoine Pietri (2013, 2014, 2015, 2016, 2017, 2018)
 - Rémi Audebert (2014, 2015, 2016, 2017)
 - Paul Hervot (2014, 2015)
 - Marin Hannache (2013, 2014)
@@ -656,6 +656,47 @@ To bootstrap a rhfs, ``rhfs01`` for example, follow this procedure:
    ``hfs1,rfs1``.
 #. Reboot the machine and boot an Arch Linux install medium.
 #. Follow the same first setup step as for ``gw``: see :ref:`basic_fs_setup`.
+
+
+Registering the switches
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To be able to register the machines easily, we can register all the switches in
+MDB. By using the LLDP protocol, when registering the machines, they will be
+able to see which switch they are linked to and automatically guess the
+matching RHFS server.
+
+On each rhfs, run the following command for each interface::
+
+  tcpdump -i rhfs0 ether proto 0x88cc -v
+
+After a few minutes, you should recieve a packet like this::
+
+  15:26:46.699872 LLDP, length 235
+    Chassis ID TLV (1), length 7
+      Subtype MAC address (4): 68:b5:99:9f:45:40 (oui Unknown)
+    [...]
+    System Name TLV (5), length 13:  sw-kb-past-2
+    [...]
+
+This means the "rhfs0" interface of rhfs01 is linked to a switch named
+sw-kb-past-2 with a Chassis ID of 68:b5:99:9f:45:40.
+
+After running this on all the interfaces of all the rhfs, you should be able to
+establish a mapping like this::
+
+  rhfs0 -> sw-kb-past-2 (68:b5:99:9f:45:40)
+  rhfs1 -> sw-kb-pas-3 (c0:91:34:c3:02:00)
+  rhfs2 -> sw-kb-pas-4 (00:16:b9:c5:25:60)
+  rhfs3 -> sw-pas-5 (00:16:b9:c5:84:e0)
+  rhfs4 -> sw-kb-pas-6 (00:14:38:67:f7:e0)
+  rhfs5 -> sw-kb-pas-7 (00:1b:3f:5b:8c:a0)
+
+You can register all those switches [in MDB](http://mdb/mdb/switch/). Click on
+"add switch", with the name of the switch like ``sw-kb-past-2``, the chassis ID
+like ``68:b5:99:9f:45:40``, and put the number of the interface in the RFS and
+HFS field (if it's on the interface ``rhfs0``, put 0 in both fields.
+
 
 Step 3: booting the user machines
 ---------------------------------
