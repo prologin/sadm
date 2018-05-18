@@ -12,7 +12,7 @@ Maintainers:
 
 - Alexandre Macabies (2013, 2014, 2015, 2016, 2017)
 - Antoine Pietri (2013, 2014, 2015, 2016, 2017, 2018)
-- Rémi Audebert (2014, 2015, 2016, 2017)
+- Rémi Audebert (2014, 2015, 2016, 2017, 2018)
 - Paul Hervot (2014, 2015)
 - Marin Hannache (2013, 2014)
 - Pierre Bourdon (2013, 2014)
