@@ -28,6 +28,8 @@ commands.each do |login, cmd|
                         if u then
                                 u.password = user['password']
                                 u.password_confirmation = user['password']
+                                u.firstname = user['firstname']
+                                u.lastname = user['lastname']
                                 u.admin = user['group'] == 'root'
                                 if u.valid? then
                                         $stderr.puts "got created user, actually was updated: #{login}"
@@ -47,6 +49,8 @@ commands.each do |login, cmd|
                 u = User.find_by_login(login)
                 u.password = user['password']
                 u.password_confirmation = user['password']
+                u.firstname = user['firstname']
+                u.lastname = user['lastname']
                 u.admin = user['group'] == 'root'
                 if u.valid? then
                         u.save
