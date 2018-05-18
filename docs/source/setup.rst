@@ -666,23 +666,20 @@ MDB. By using the LLDP protocol, when registering the machines, they will be
 able to see which switch they are linked to and automatically guess the
 matching RHFS server.
 
-On each rhfs, run the following command for each interface::
+On each rhfs, run the following command::
 
-  tcpdump -i rhfs0 ether proto 0x88cc -v
+  networkctl lldp
 
-After a few minutes, you should recieve a packet like this::
+You should see an LLDP table like this::
 
-  15:26:46.699872 LLDP, length 235
-    Chassis ID TLV (1), length 7
-      Subtype MAC address (4): 68:b5:99:9f:45:40 (oui Unknown)
-    [...]
-    System Name TLV (5), length 13:  sw-kb-past-2
-    [...]
+  LINK    CHASSIS ID         SYSTEM NAME   CAPS        PORT ID           PORT DESCRIPTION
+  rhfs0   68:b5:99:9f:45:40  sw-kb-past-2  ..b........ 12                12
+  rhfs1   c0:91:34:c3:02:00  sw-kb-pas-3   ..b........ 22                22
 
 This means the "rhfs0" interface of rhfs01 is linked to a switch named
 sw-kb-past-2 with a Chassis ID of 68:b5:99:9f:45:40.
 
-After running this on all the interfaces of all the rhfs, you should be able to
+After running this on all the rhfs, you should be able to
 establish a mapping like this::
 
   rhfs0 -> sw-kb-past-2 (68:b5:99:9f:45:40)
@@ -695,7 +692,7 @@ establish a mapping like this::
 You can register all those switches [in MDB](http://mdb/mdb/switch/). Click on
 "add switch", with the name of the switch like ``sw-kb-past-2``, the chassis ID
 like ``68:b5:99:9f:45:40``, and put the number of the interface in the RFS and
-HFS field (if it's on the interface ``rhfs0``, put 0 in both fields.
+HFS field (i.e if it's on the interface ``rhfs0``, put 0 in both fields).
 
 
 Step 3: booting the user machines
