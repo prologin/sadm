@@ -92,6 +92,8 @@ List of packages for contestants' environment
 * python2-pylint
 * tree
 * xcape
+* dmenu
+* synergy
 
 
 # Compilers & interpreters
