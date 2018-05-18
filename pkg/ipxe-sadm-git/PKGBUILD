@@ -1,7 +1,7 @@
 # Maintainer: sadm@prologin.org
 
 pkgname=ipxe-sadm-git
-pkgver=1.0.0.r1812.g20bebe0c
+pkgver=1.0.0.r2657.g81929cdf
 pkgrel=1
 pkgdesc='iPXE open source boot firmware - prologin SADM'
 arch=('any')
@@ -33,7 +33,7 @@ pkgver() {
 prepare() {
   cd ipxe/
 
-  git checkout lldp
+  git checkout lldp_noconfig
 
   cd src/
 
