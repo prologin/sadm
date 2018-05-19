@@ -83,10 +83,10 @@ def replay_match(opts, match_id, champions_list):
             c = json.dumps(c)
             replay_parts.append(c)
     replay_content = '\n'.join(replay_parts)
-    with tempfile.NamedTemporaryFile() as f:
+    with tempfile.NamedTemporaryFile(suffix='-replay.json') as f:
         f.write(replay_content.encode())
         f.flush()
-        p = subprocess.Popen([opts.replay, '--tv-show', '--fullscreen', f.name])
+        p = subprocess.Popen([opts.replay, f.name, '-tv-show'])
         p.wait()
 
 if __name__ == '__main__':
