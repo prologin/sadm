@@ -29,4 +29,4 @@ timeout: # timeouts in seconds (double)
 isolate:
     time_limit_secs: 350
     mem_limit_MiB: 500
-    processes: 20
+    processes: 100
