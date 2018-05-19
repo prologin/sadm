@@ -187,8 +187,8 @@ async def spawn_client(config,
                        file_opts=None,
                        order_id=None):
     # Build environment
-    env = os.environ.copy()
-    env['CHAMPION_PATH'] = champion_path + '/'
+    env = {'CHAMPION_PATH': champion_path + '/',
+           'HOME': '/tmp'}
 
     # Build command
     cmd = [
