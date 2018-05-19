@@ -1,0 +1,12 @@
+[Unit]
+Description=DJ Ango mpd player loop
+After=network-online.target
+
+[Service]
+Type=simple
+User=webservices
+WorkingDirectory=/var/prologin/dj_ango
+ExecStart=/var/prologin/venv_dj_ango/bin/python manage.py mpdplayerloop
+
+[Install]
+WantedBy=multi-user.target
