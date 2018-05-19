@@ -134,8 +134,8 @@ class TornadoApp(tornado.web.Application):
 
 
 class AiohttpApp:
-    def __init__(self, routes, app_name, loop=None):
-        self.app = aiohttp.web.Application()
+    def __init__(self, routes, app_name, loop=None, **kwargs):
+        self.app = aiohttp.web.Application(**kwargs)
         self.app_name = app_name
         # TODO(seirl): integrate with HANDLED_URLS
         for route in routes:
