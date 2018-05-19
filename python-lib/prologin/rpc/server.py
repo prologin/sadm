@@ -192,6 +192,7 @@ class BaseRPCApp(prologin.web.AiohttpApp, metaclass=MethodCollection):
 
         super().__init__([
             ('*', r'/call/{name:[0-9a-zA-Z_]+}', handler),
-        ], app_name, **kwargs)
+        ], app_name, client_max_size=1024 * 1024 * 1024 * 1,
+            **kwargs)
         self.app.secret = secret
         self.app.rpc_object = self
