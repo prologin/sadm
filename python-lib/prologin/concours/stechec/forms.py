@@ -167,7 +167,7 @@ class MapCreationForm(forms.Form):
     def clean_validate_contents(cls, data):
         if settings.STECHEC_MAP_VALIDATOR_SCRIPT is not None:
             p = subprocess.run(settings.STECHEC_MAP_VALIDATOR_SCRIPT,
-                               input=data.encode())
+                               input=data.encode(), stderr=subprocess.PIPE)
             if p.returncode:
                 raise forms.ValidationError(p.stderr.decode())
         return data
