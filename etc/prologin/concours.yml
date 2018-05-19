@@ -41,6 +41,7 @@ contest:
   directory: /var/prologin/concours_shared
 
   use_maps: false       # Do the game use maps?
+  map_validator_script: null  # Path of a script that validates maps
   fight_only_own_champions: false  # Can users only fight their own champions?
 
 # Use http://www.miniwebtool.com/django-secret-key-generator/

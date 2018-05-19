@@ -152,6 +152,7 @@ STECHEC_MASTER = cfg["master"]["url"]
 STECHEC_MASTER_SECRET = cfg["master"]["shared_secret"].encode('utf-8')
 STECHEC_NPLAYERS = cfg["contest"]["nb_players"]
 STECHEC_USE_MAPS = cfg["contest"]["use_maps"]
+STECHEC_MAP_VALIDATOR_SCRIPT = cfg["contest"]["map_validator_script"]
 STECHEC_REPLAY = cfg["website"]["replay"]
 STECHEC_REDMINE_ISSUE_LIST = cfg["redmine_urls"]["issue_list"]
 STECHEC_REDMINE_ISSUE_NEW = cfg["redmine_urls"]["issue_new"]

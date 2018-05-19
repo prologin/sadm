@@ -1,3 +1,4 @@
+import subprocess
 from crispy_forms.helper import FormHelper
 from crispy_forms import layout, bootstrap
 from django import forms
@@ -161,6 +162,17 @@ class MapCreationForm(forms.Form):
     contents = forms.CharField(required=True,
                                widget=forms.widgets.Textarea(attrs={'class': 'monospace'}),
                                label="Contenu")
+
+    @classmethod
+    def clean_validate_contents(cls, data):
+        if settings.STECHEC_MAP_VALIDATOR_SCRIPT is not None:
+            p = subprocess.run(settings.STECHEC_MAP_VALIDATOR_SCRIPT, input=data)
+            if p.returncode:
+                raise forms.ValidationError(p.stderr.decode())
+        return data
+
+    def clean_contents(self):
+        return self.clean_validate_contents(self.cleaned_data['contents'])
 
     helper = BaseFormHelper()
     helper.append_field('name')
