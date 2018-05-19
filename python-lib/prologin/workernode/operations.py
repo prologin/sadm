@@ -67,7 +67,8 @@ def get_output(isolate_result):
 
 
 def raise_isolate_error(message, cmd, isolator):
-    output = textwrap.indent(isolator.stdout, prefix=' ' * 4)
+    output = textwrap.indent(isolator.stdout.decode('utf-8', errors='ignore'),
+                             prefix=' ' * 4)
     what = message
     what += "\n"
     what += "\nCommand: " + ' '.join(cmd)
