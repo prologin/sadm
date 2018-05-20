@@ -22,6 +22,17 @@
             <dd>{{ match.ts|naturalday }} à {{ match.ts|time:"H:i:s" }}</dd>
             <dt>par</dt>
             <dd><i class="fa fa-user i-align"></i> {{ match.author }}</dd>
+            {% if settings.STECHEC_USE_MAPS %}
+              <dt>Map</dt>
+            <dd>
+              {% if match.map.id != None %}
+                <a href="{% url 'map-detail' match.map.id %}">{{ match.map.name }}</a>
+              {% elif match.map.name != None %}
+                {{ match.map.name }}
+              {% else %}
+                <em>N/A</em>{% endif %}
+            </dd>
+            {% endif %}
           </dl>
         </div>
       </div>
