@@ -122,7 +122,7 @@ elif PAM_TYPE == 'close_session':
         # Unmount /home/user
         time.sleep(2)
         subprocess.check_call(
-            ['/bin/umount', get_home_dir(login)],
+            ['/bin/umount', '-R', get_home_dir(login)],
             stdout=sys.stderr,
             stderr=sys.stderr)
 
