@@ -99,18 +99,11 @@ class MatchesListView(ListView): # Abstract class!
         matches = []
         map_cache = {}
         for m in context['matches']:
-            map_name = None
-            map_id = None
             if settings.STECHEC_USE_MAPS:
-                try:
-                    map_id = int(m.map.split('/')[-1])
-                    try:
-                        map_name = map_cache[map_id]
-                    except KeyError:
-                        map_cache[map_id] = map_name = models.Map.objects.get(pk=map_id).name
-                except Exception:
-                    map_name = map_id
-            matches.append((m, map_id, map_name))
+                map = m.map
+                matches.append((m, map.id, map.name))
+            else:
+                matches.append((m, None, None))
         context['matches'] = matches
         return context
 

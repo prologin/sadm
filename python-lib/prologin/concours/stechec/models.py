@@ -238,7 +238,11 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
 
     @property
     def map(self):
-        return self.file_options_dict.get('--map', '')
+        try:
+            map_id = int(self.file_options_dict.get('--map', '').split('/')[-1])
+            return Map.objects.get(pk=map_id)
+        except Exception:
+            return None
 
     @map.setter
     def map(self, value):
