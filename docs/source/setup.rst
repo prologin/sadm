@@ -10,7 +10,7 @@ present. Just follow the guide!
 
 Maintainers:
 
-- Alexandre Macabies (2013, 2014, 2015, 2016, 2017)
+- Alexandre Macabies (2013, 2014, 2015, 2016, 2017, 2018)
 - Antoine Pietri (2013, 2014, 2015, 2016, 2017, 2018)
 - Rémi Audebert (2014, 2015, 2016, 2017, 2018)
 - Paul Hervot (2014, 2015)
@@ -701,6 +701,8 @@ Step 3: booting the user machines
 Note: if you are good at typing on two keyboards at once, or you have a spare
 root doing nothing, this step can be done in parallel with step 4.
 
+.. _rhfsinstall:
+
 Installing the RHFS
 ~~~~~~~~~~~~~~~~~~~
 
@@ -943,3 +945,28 @@ Edit ``/etc/nginx/nginx.conf``, uncomment the following lines::
   # lua_package_path '/etc/nginx/sso/?.lua;;';
   # init_by_lua_file sso/init.lua;
   # access_by_lua_file sso/access.lua;
+
+Customize the wallpaper
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To customize the desktop wallpaper, create a PNG file at the following
+location and :ref:`commit <rhfsinstall>` the changes::
+
+   /export/nfsroot_staging/var/prologin/wallpaper.png
+
+The following DE are setup to use this file:
+
+* i3
+* awesome
+* Plasma (aka. KDE)
+* XFCE
+
+Gnome-shell is still to be done.
+
+Customize the SDDM logo
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To customize the SDDM logo, replace the SVG file at the following location and
+:ref:`commit <rhfsinstall>` the changes::
+
+   /export/nfsroot_staging/usr/share/sddm/themes/prologin/prologin-logo.svg
