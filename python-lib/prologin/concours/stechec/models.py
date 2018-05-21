@@ -1,11 +1,16 @@
+import contextlib
+import json
+import os
+import re
+import tarfile
+import tempfile
+import glob
+
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.utils import timezone
-
 from django_prometheus.models import ExportModelOperationsMixin
-import json
-import re
 
 import prologin.rpc.client
 
@@ -106,6 +111,25 @@ class Champion(ExportModelOperationsMixin('champion'), models.Model):
             return "Log de compilation introuvable."
         except Exception as e:
             return str(e)
+
+    @contextlib.contextmanager
+    def _extract_sources(self):
+        with tempfile.TemporaryDirectory(prefix='lang-check-') as tmpd:
+            with self.sources as tarball:
+                with tarfile.open(fileobj=tarball, mode='r:gz') as tar:
+                    tar.extractall(tmpd)
+                    yield tmpd
+
+    def get_lang_code(self):
+        with self._extract_sources() as tmpd:
+            with open(os.path.join(tmpd, '_lang')) as langf:
+                return langf.read().strip()
+
+    def get_main_loc_count(self):
+        with self._extract_sources() as tmpd:
+            for mainf in glob.glob(os.path.join(tmpd, '[pP]rologin.*')):
+                with open(mainf) as f:
+                    return len(list(f.readlines()))
 
     def get_absolute_url(self):
         return reverse('champion-detail', kwargs={'pk': self.id})
