@@ -148,3 +148,7 @@ bindsym $mod+r mode "resize"
 bar {
         status_command i3status
 }
+
+# apply wallpaper
+exec feh --no-fehbg --bg-fill /var/prologin/wallpaper.png
+
