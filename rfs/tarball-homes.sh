@@ -37,7 +37,7 @@ for user_nbd in $(ls | grep .nbd | grep -v backup_); do
   mount_dir="${root_mnt}/${user}"
   mkdir -p "$mount_dir"
   mount $user_nbd "$mount_dir"
-  find "$mount_dir" 'vgcore.*' -delete
+  find "$mount_dir" -name 'vgcore.*' -delete
   rm -rf "$mount_dir"/{.cache,.local,workspace,.config,0ad,.atom,.mozilla,.teeworlds,.q3a,.ICEauthority,.xsession-errors*,.armagetronad,.eclipse,.PyCharm*,.openttd}
   big_files=$(find "$mount_dir" -xdev -type f -size +10M)
   if [[ $(echo $big_files) != "" ]]; then
