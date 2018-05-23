@@ -208,7 +208,7 @@ Veth type interfaces what we will use) linked to a bridge will have the name
 ``host0``. ``systemd-networkd`` provides a default configuration
 (``80-container-host0.network``) file that enable DHCP on them. With the NAT
 rule managed by ``systemd-networkd`` and that, the internet will be accessible
-out-of-the-box in the conatiners. The only remaining configuration to do being
+out-of-the-box in the containers. The only remaining configuration to do being
 the DNS resolver (``/etc/resolv.conf``).
 
 Setting up gw manually
