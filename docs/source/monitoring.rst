@@ -37,3 +37,30 @@ The following endpoints are availables:
 - ``http://presencesync:9030``
 - hfs: each hfs exports its metrics on ``http://hfsx:9030``
 - workernode: each workernode exports its metrics on ``http://MACHINE:9020``.
+
+Grafana configuration
+---------------------
+
+In a nutshell:
+
+1. Install the ``grafana`` package.
+2. Copy the SADM configuration file: ``etc/grafana/grafana.ini``.
+3. Enable and start the ``grafana`` service
+4. Copy the nginx configuration: ``etc/nginx/services/grafana.nginx``
+5. Open http://grafana/, login and import the SADM dashboards from
+   ``etc/grafana``.
+
+.. todo:: automate the process above
+
+Monitoring screen how-to
+------------------------
+
+Start multiple ``chromium --app http://grafana/`` to open a monitoring web
+view.
+
+We look at both the ``System`` and ``Masternode`` dashboards from grafana.
+
+Disable the screen saver and DPMS using on the monitoring display using::
+
+  $ xset -dpms
+  $ xset s off
