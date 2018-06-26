@@ -8,7 +8,7 @@ import glob
 
 from django.conf import settings
 from django.urls import reverse
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 from django_prometheus.models import ExportModelOperationsMixin
 
@@ -322,6 +322,56 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
         ordering = ["-ts"]
         verbose_name = "match"
         verbose_name_plural = "matches"
+
+    @classmethod
+    def launch_bulk(cls, matches):
+        """Launch matches in bulk.
+
+        Args:
+            matches (iterable): iterable of dictionaries representing the
+                individual matches to launch. Each dictionary has the following
+                keys:
+
+                - **author**: the creator of the match
+                - **tournament**: optionally, the tournament in which the match
+                  is started
+                - **map**: optionally, the map of the match if the game is
+                  using maps
+                - **champions**: an ordered list of Champions fighting in the
+                  match
+
+        Returns:
+            The list of launched matches.
+        """
+        ts = timezone.now()
+
+        with transaction.atomic():
+            # Bulk create all Match objects
+            match_objs = []
+            for match in matches:
+                m = Match()
+                m.author = match['author']
+                m.ts = ts
+                if 'tournament' in match:
+                    m.tournament = match['tournament']
+                if 'map' in match:
+                    m.map = match['map'].path
+                match_objs.append(m)
+            # Returning created ids requires PostgreSQL
+            created_matches = Match.objects.bulk_create(match_objs)
+
+            # Bulk create all MatchPlayer objects
+            player_objs = []
+            for i, m in enumerate(created_matches):
+                for c in matches[i]['champions']:
+                    player_objs.append(MatchPlayer(champion=c, match=m))
+            MatchPlayer.objects.bulk_create(player_objs)
+
+            # Update all matches to set them as 'new' (i.e schedule them)
+            new_matches_id = [m.id for m in created_matches]
+            qs = Match.objects.filter(id__in=new_matches_id)
+            qs.update(status='new')
+            return qs
 
 
 class MatchPlayer(ExportModelOperationsMixin('match_player'), models.Model):
