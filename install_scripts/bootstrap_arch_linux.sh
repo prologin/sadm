@@ -56,6 +56,10 @@ if [ ! -r $root_password_file ]; then
     exit 1
 fi
 
+# Initialize /etc/machine-id at something different than the machine-id of the host
+echo_status "Initializing machine-id"
+systemd-machine-id-setup --root="$root_dir" --print
+
 # The actual Arch Linux setup starts here
 echo_status "Installing base Arch Linux"
 if test -e /etc/arch-release; then
