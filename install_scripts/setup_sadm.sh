@@ -27,9 +27,9 @@ pacman -Sy
 # Packages we expect to have installed on all the systems
 echo '[+] Installing packages from the Arch Linux repositories'
 pacman -S --needed --noconfirm base-devel git python python2 python-pip \
-    python-virtualenv libyaml libxslt postgresql-libs sqlite postgresql-libs \
-    pwgen dnsutils rsync tcpdump strace wget ethtool tree mtr iperf atop htop \
-    iotop iftop nethogs jq tmux
+    python-virtualenv libyaml libxslt postgresql-libs sqlite pwgen dnsutils \
+    rsync tcpdump strace wget ethtool tree mtr iperf atop htop iotop iftop \
+    nethogs jq tmux
 
 echo '[+] Installing packages from the Prologin Arch Linux repository'
 pacman -S --needed --noconfirm bash-eternal-history
