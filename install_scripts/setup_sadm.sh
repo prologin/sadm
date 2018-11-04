@@ -12,6 +12,10 @@ Server = https://repo.prologin.org/
 EOF
 fi
 
+sed -i 's/^[#]IgnorePkg.*$/# Ignoring all of the following packages\
+IgnorePkg = linux postgresql\*\
+/' /etc/pacman.conf
+
 curl https://repo.prologin.org/prologin.pub > /tmp/prologin.pub
 pacman-key --add /tmp/prologin.pub
 pacman-key --lsign-key prologin
