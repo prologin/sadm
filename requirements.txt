@@ -12,7 +12,7 @@ psycopg2-binary==2.7.4
 py-postgresql==1.2.1
 Pygments==2.2.0
 PyYAML==3.12
-requests==2.13.0
+requests==2.20.0
 tornado==4.5.1
 
 # From prologin
