@@ -15,5 +15,6 @@ run_latehook() {
     cow_mount "/home"
     cow_mount "/var"
 
+    mkdir -p /new_root/var/lib/isolate
     mount -t tmpfs tmpfs /new_root/var/lib/isolate
 }
