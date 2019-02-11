@@ -24,6 +24,8 @@ ALLOWED_HOSTS = ['*']
 
 SITE_ID = 1
 
+SESSION_COOKIE_NAME = 'sessionid-final-2018'
+
 LOGIN_URL = reverse_lazy('login')
 LOGIN_REDIRECT_URL = reverse_lazy('home')
 
