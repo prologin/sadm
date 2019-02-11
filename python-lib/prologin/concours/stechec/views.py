@@ -1,8 +1,6 @@
 from django.views.generic.base import ContextMixin
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import login, logout
-from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.db.models import Max, Min
@@ -15,9 +13,7 @@ from django.views.generic.base import View
 from django.views.generic.detail import SingleObjectMixin
 
 import collections
-import json
 import os
-import requests
 import socket
 import urllib.parse
 
@@ -29,38 +25,7 @@ from prologin.concours.stechec.restapi.permissions import CreateMatchUserThrottl
 import prologin.concours.stechec.monitoring
 
 
-class UpdateUserMixin(ContextMixin):
-
-    def get_context_data(self, **kwargs):
-        res = requests.get(
-            'http://localhost:8000/user/infos',
-            cookies = {'sessionid': self.request.COOKIES['sessionid']})
-
-        if res.text == 'unlogged':
-            logout(self.request)
-        else:
-            user_infos = json.loads(res.text)
-
-            try:
-                user = User.objects.get(pk=user_infos['pk'])
-                user.username = user_infos['username']
-                user.first_name = user_infos['first_name']
-                user.last_name = user_infos['last_name']
-            except:
-                user = User.objects.create_user(
-                    pk = user_infos['pk'],
-                    username = user_infos['username'],
-                    first_name = user_infos['first_name'],
-                    last_name = user_infos['last_name'],
-                    password=None,
-                    email=None)
-
-            user.save()
-            login(self.request, user, backend='django.contrib.auth.backends.ModelBackend')
-
-        return super(UpdateUserMixin, self).get_context_data(**kwargs)
-
-class ChampionView(DetailView, UpdateUserMixin):
+class ChampionView(DetailView):
     context_object_name = "champion"
     model = models.Champion
     template_name = "stechec/champion-detail.html"
@@ -83,7 +48,7 @@ class ChampionView(DetailView, UpdateUserMixin):
         return super().get(request, *args, **kwargs)
 
 
-class ChampionsListView(ListView, UpdateUserMixin):
+class ChampionsListView(ListView):
     context_object_name = "champions"
     paginate_by = 50
     template_name = "stechec/champions-list.html"
@@ -98,7 +63,7 @@ class ChampionsListView(ListView, UpdateUserMixin):
         return context
 
 
-class AllChampionsView(ChampionsListView, UpdateUserMixin):
+class AllChampionsView(ChampionsListView):
     queryset = models.Champion.objects.filter(deleted=False).select_related('author')
     explanation_text = 'Voici la liste de tous les champions participant actuellement.'
     show_for_all = True
@@ -110,7 +75,7 @@ class AllChampionsView(ChampionsListView, UpdateUserMixin):
         return super().get(request, *args, **kwargs)
 
 
-class MyChampionsView(ChampionsListView, UpdateUserMixin):
+class MyChampionsView(ChampionsListView):
     explanation_text = 'Voici la liste de tous vos champions participant actuellement.'
     title = "Mes champions"
     show_for_all = False
@@ -120,7 +85,7 @@ class MyChampionsView(ChampionsListView, UpdateUserMixin):
         return models.Champion.objects.filter(deleted=False, author=user)
 
 
-class MatchesListView(UpdateUserMixin, ListView): # Abstract class!
+class MatchesListView(ListView): # Abstract class!
     context_object_name = "matches"
     paginate_by = 100
     template_name = "stechec/matches-list.html"
@@ -144,7 +109,7 @@ class MatchesListView(UpdateUserMixin, ListView): # Abstract class!
         return context
 
 
-class MatchView(DetailView, UpdateUserMixin):
+class MatchView(DetailView):
     context_object_name = "match"
     template_name = "stechec/match-detail.html"
 
@@ -158,7 +123,7 @@ class MatchView(DetailView, UpdateUserMixin):
         return queryset
 
 
-class AllMatchesView(MatchesListView, UpdateUserMixin):
+class AllMatchesView(MatchesListView):
     queryset = models.Match.objects.all().select_related('author')
     explanation_text = "Voici la liste de tous les matches ayant été réalisés."
     show_creator = True
@@ -183,7 +148,7 @@ class AllMatchesView(MatchesListView, UpdateUserMixin):
         return super().get(request, *args, **kwargs)
 
 
-class MyMatchesView(RedirectView, UpdateUserMixin):
+class MyMatchesView(RedirectView):
     permanent = False
 
     def get_redirect_url(self, *args, **kwargs):
@@ -191,7 +156,7 @@ class MyMatchesView(RedirectView, UpdateUserMixin):
                                      self.request.user.pk)
 
 
-class MyChampionMatchesView(RedirectView, UpdateUserMixin):
+class MyChampionMatchesView(RedirectView):
     permanent = False
 
     def get_redirect_url(self, *args, **kwargs):
@@ -199,20 +164,20 @@ class MyChampionMatchesView(RedirectView, UpdateUserMixin):
                                               self.request.user.pk)
 
 
-class AllMapsView(ListView, UpdateUserMixin):
+class AllMapsView(ListView):
     context_object_name = "maps"
     paginate_by = 100
     template_name = "stechec/maps-list.html"
     queryset = models.Map.objects.order_by('-official', '-id').select_related('author')
 
 
-class MapView(DetailView, UpdateUserMixin):
+class MapView(DetailView):
     context_object_name = "map"
     template_name = "stechec/map-detail.html"
     model = models.Map
 
 
-class NewChampionView(FormView, UpdateUserMixin):
+class NewChampionView(FormView):
     form_class = forms.ChampionUploadForm
     template_name = 'stechec/champion-new.html'
 
@@ -230,7 +195,7 @@ class NewChampionView(FormView, UpdateUserMixin):
         return HttpResponseRedirect(champion.get_absolute_url())
 
 
-class ConfirmDeleteChampion(DetailView, UpdateUserMixin):
+class ConfirmDeleteChampion(DetailView):
     template_name = 'stechec/champion-delete.html'
     pk_url_kwarg = 'pk'
     model = models.Champion
@@ -248,7 +213,7 @@ class ConfirmDeleteChampion(DetailView, UpdateUserMixin):
         return HttpResponseRedirect(reverse('champions-mine'))
 
 
-class ChampionSources(SingleObjectMixin, View, UpdateUserMixin):
+class ChampionSources(SingleObjectMixin, View):
     model = models.Champion
     pk_url_kwarg = 'pk'
 
@@ -262,7 +227,7 @@ class ChampionSources(SingleObjectMixin, View, UpdateUserMixin):
         return h
 
 
-class NewMatchView(FormView, UpdateUserMixin):
+class NewMatchView(FormView):
     form_class = forms.MatchCreationForm
     template_name = 'stechec/match-new.html'
 
@@ -306,7 +271,7 @@ class NewMatchView(FormView, UpdateUserMixin):
         return HttpResponseRedirect(match.get_absolute_url())
 
 
-class MatchDumpView(SingleObjectMixin, View, UpdateUserMixin):
+class MatchDumpView(SingleObjectMixin, View):
     model = models.Match
     pk_url_kwarg = 'pk'
 
@@ -327,7 +292,7 @@ class MatchDumpView(SingleObjectMixin, View, UpdateUserMixin):
         return h
 
 
-class NewMapView(FormView, UpdateUserMixin):
+class NewMapView(FormView):
     form_class = forms.MapCreationForm
     template_name = 'stechec/map-new.html'
 
@@ -342,7 +307,7 @@ class NewMapView(FormView, UpdateUserMixin):
         return HttpResponseRedirect(map.get_absolute_url())
 
 
-class MasterStatus(TemplateView, UpdateUserMixin):
+class MasterStatus(TemplateView):
     template_name = 'stechec/master-status.html'
 
     def get_context_data(self, **kwargs):
@@ -357,7 +322,7 @@ class MasterStatus(TemplateView, UpdateUserMixin):
         return context
 
 
-class RedmineIssueView(RedirectView, UpdateUserMixin):
+class RedmineIssueView(RedirectView):
     permanent = False
 
     tracker_id = None
@@ -376,13 +341,13 @@ class RedmineIssueView(RedirectView, UpdateUserMixin):
                               urllib.parse.urlencode(qs))
 
 
-class AskForHelp(RedmineIssueView, UpdateUserMixin):
+class AskForHelp(RedmineIssueView):
     tracker_id = 3  # assistance
     is_private = True
     subject = "J'ai un problème : "
 
 
-class ReportBug(RedmineIssueView, UpdateUserMixin):
+class ReportBug(RedmineIssueView):
     tracker_id = 1  # issue
     is_private = False
     subject = "[Remplacez ceci par un résumé court et explicite]"
@@ -395,7 +360,7 @@ class ReportBug(RedmineIssueView, UpdateUserMixin):
     ])
 
 
-class RedmineIssueListView(RedirectView, UpdateUserMixin):
+class RedmineIssueListView(RedirectView):
     permanent = False
 
     filters = []
@@ -412,7 +377,7 @@ class RedmineIssueListView(RedirectView, UpdateUserMixin):
                               urllib.parse.urlencode(qs, doseq=True))
 
 
-class AskForHelpList(RedmineIssueListView, UpdateUserMixin):
+class AskForHelpList(RedmineIssueListView):
     filters = [
         ('status_id', '*', None),
         ('tracker_id', '=', 3),
@@ -420,7 +385,7 @@ class AskForHelpList(RedmineIssueListView, UpdateUserMixin):
     ]
 
 
-class ReportBugList(RedmineIssueListView, UpdateUserMixin):
+class ReportBugList(RedmineIssueListView):
     filters = [
         ('status_id', '*', None),
         ('tracker_id', '=', 1),

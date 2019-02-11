@@ -64,6 +64,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django_prometheus.middleware.PrometheusAfterMiddleware',
+    'prologin.concours.stechec.autologin.AutoLoginMiddleware',
 )
 
 AUTHENTICATION_BACKENDS = (
