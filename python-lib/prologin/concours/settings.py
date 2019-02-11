@@ -24,6 +24,14 @@ ALLOWED_HOSTS = ['*']
 
 SITE_ID = 1
 
+
+# False during final event, True to attach to prologin's website
+RUNNING_ONLINE = True
+
+# Url to prologin's website, in live mode
+HOST_WEBSITE_ROOT = 'localhost:8000'
+
+# Change in order to avoid conflict with the main website
 SESSION_COOKIE_NAME = 'sessionid-final-2018'
 
 LOGIN_URL = reverse_lazy('login')

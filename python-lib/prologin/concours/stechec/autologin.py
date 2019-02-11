@@ -1,6 +1,7 @@
 import json
 import requests
 
+from django.conf import settings
 from django.contrib.auth import login, logout
 from django.contrib.auth.models import User
 from django.utils.deprecation import MiddlewareMixin
@@ -8,8 +9,14 @@ from django.utils.deprecation import MiddlewareMixin
 class AutoLoginMiddleware(MiddlewareMixin):
 
     def process_request(self, request):
+        if not self.get_response:
+            self.get_response = lambda x: None
+
+        if not settings.RUNNING_ONLINE:
+            return self.get_response(request)
+
         res = requests.get(
-            'http://localhost:8000/user/infos',
+            'http://{}/user/infos'.format(settings.HOST_WEBSITE_ROOT),
             cookies = {'sessionid': request.COOKIES['sessionid']})
 
         if res.text == 'unlogged':
@@ -23,8 +30,8 @@ class AutoLoginMiddleware(MiddlewareMixin):
                 user.first_name = user_infos['first_name']
                 user.last_name = user_infos['last_name']
                 user.is_superuser = user_infos['is_superuser']
-                ser.is_staff = user_infos['is_staff']
-            except:
+                user.is_staff = user_infos['is_staff']
+            except User.DoesNotExist:
                 user = User.objects.create_user(
                     pk = user_infos['pk'],
                     username = user_infos['username'],
@@ -36,8 +43,10 @@ class AutoLoginMiddleware(MiddlewareMixin):
                     email=None)
 
             user.save()
-            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
 
-        if self.get_response:
-            return self.get_response(request)
+            if user.pk != request.user.pk:
+                login(request, user,
+                    backend='django.contrib.auth.backends.ModelBackend')
+
+        return self.get_response(request)
 
