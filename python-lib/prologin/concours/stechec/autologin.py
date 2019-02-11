@@ -6,7 +6,12 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.models import User
 from django.utils.deprecation import MiddlewareMixin
 
+
 class AutoLoginMiddleware(MiddlewareMixin):
+
+    # List of the attributes of User that are pulled from the main website
+    user_sync_keys = ['username', 'first_name', 'last_name', 'is_superuser',
+        'is_staff']
 
     def process_request(self, request):
         if not self.get_response:
@@ -26,21 +31,12 @@ class AutoLoginMiddleware(MiddlewareMixin):
 
             try:
                 user = User.objects.get(pk=user_infos['pk'])
-                user.username = user_infos['username']
-                user.first_name = user_infos['first_name']
-                user.last_name = user_infos['last_name']
-                user.is_superuser = user_infos['is_superuser']
-                user.is_staff = user_infos['is_staff']
             except User.DoesNotExist:
                 user = User.objects.create_user(
-                    pk = user_infos['pk'],
-                    username = user_infos['username'],
-                    first_name = user_infos['first_name'],
-                    last_name = user_infos['last_name'],
-                    is_superuser = user_infos['is_superuser'],
-                    is_staff = user_infos['is_staff'],
-                    password=None,
-                    email=None)
+                    pk=user_infos['pk'], username=user_infos['username'])
+
+            for key in self.user_sync_keys:
+                setattr(user, key, user_infos[key])
 
             user.save()
 
