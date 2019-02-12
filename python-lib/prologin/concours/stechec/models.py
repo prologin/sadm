@@ -214,9 +214,9 @@ class Tournament(ExportModelOperationsMixin('tournament'), models.Model):
 
         img_fig = io.BytesIO()
         fig = plt.figure()
-        plt.plot([score_nb_lignes[k]/nb_player_nb_lignes[k] \
-            for k in sorted(nb_player_nb_lignes)],
-            [ k for k in sorted(nb_player_nb_lignes.keys())])
+        plt.plot([ k for k in sorted(nb_player_nb_lignes)],
+            [score_nb_lignes[k]/nb_player_nb_lignes[k] \
+            for k in sorted(nb_player_nb_lignes)])
         plt.xlabel("Number of line")
         plt.ylabel("Average score")
         fig.savefig(img_fig, format="svg", bbox_inches='tight', transparent=True)
