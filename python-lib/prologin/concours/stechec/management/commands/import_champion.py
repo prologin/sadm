@@ -9,17 +9,18 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('import_file', type=argparse.FileType('rb'))
-        parser.add_argument('champion_name', type=str)
+        parser.add_argument('user_id', type=int)
 
     def handle(self, *args, **options):
         try:
-            user = User.objects.get(username='auto-import')
+            user = User.objects.get(pk=options['user_id'])
         except User.DoesNotExist:
-            user = User(username='auto-import')
+            user = User(pk=options['user_id'],
+                username='autoimport-{}'.format(options['user_id']))
             user.save()
 
         champion = models.Champion(
-            name = options['champion_name'],
+            name = 'autoimport-{}'.format(options['user_id']),
             author = user,
             status = 'new',
             comment = 'Manually imported champion')
