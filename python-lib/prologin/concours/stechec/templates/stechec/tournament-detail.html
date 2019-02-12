@@ -1,0 +1,23 @@
+{% extends "stechec/base.html" %}
+{% load static %}
+
+{% block title %}Tournoi – {{tournament.pk}}{% endblock %}
+{% block titleh1 %}Statistiques du tournoi {{ champion.name }}
+  <small>#{{ champion.id }}</small>{% endblock %}
+
+{% block content %}
+
+  <div class="row">
+    <div class="col-sm-10">
+        {% if tournament.is_finished %}
+            <h3>Score moyen par langage</h3>
+            <img style="max-width: 100%;" src="{{ tournament.graphic_lang.url }}">
+            <h3>Score moyen en fonction du nombre de lignes</h3>
+            <img style="max-width: 100%;" src="{{ tournament.graphic_loc.url }}">
+        {% else %}
+            <h3>Désolée le tournoi n'est pas encore fini...</h3>
+        {% endif %}
+    </div>
+  </div>
+
+{% endblock %}

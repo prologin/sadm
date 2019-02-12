@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.conf.urls import url
+from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 from django.views.generic import TemplateView
@@ -32,8 +33,9 @@ urlpatterns = [
     url(r'^matches/mine/$', login_required(views.MyMatchesView.as_view()), name="matches-mine"),
     url(r'^matches/new/$', login_required(views.NewMatchView.as_view()), name="match-new"),
 
+    url(r'^tournament/(?P<pk>[0-9]+?)/$', views.TournamentView.as_view(), name="tournament-detail"),
     url(r'^status/$', views.MasterStatus.as_view(), name="status"),
-]
+]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 
 if settings.STECHEC_USE_MAPS:

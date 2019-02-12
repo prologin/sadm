@@ -1,4 +1,5 @@
 import contextlib
+import io
 import json
 import os
 import re
@@ -6,11 +7,17 @@ import tarfile
 import tempfile
 import glob
 
+import matplotlib.pyplot as plt
+import numpy as np
+
 from django.conf import settings
 from django.core.urlresolvers import reverse
+from django.core.files.images import ImageFile
 from django.db import models
 from django.utils import timezone
 from django_prometheus.models import ExportModelOperationsMixin
+
+from collections import defaultdict
 
 import prologin.rpc.client
 
@@ -159,9 +166,62 @@ class Tournament(ExportModelOperationsMixin('tournament'), models.Model):
     maps = models.ManyToManyField(Map, verbose_name="maps",
                                   related_name='tournaments',
                                   through='TournamentMap')
+    is_finished = models.BooleanField(default=False)
+    is_calculated = models.BooleanField(default=False)
+    graphic_lang = models.ImageField(upload_to='graph/', null=True)
+    graphic_loc = models.ImageField(upload_to='graph/', null=True)
 
     def __str__(self):
         return "%s, %s" % (self.name, self.ts)
+
+    def evaluate_is_finished(self):
+        matchs = Match.objects.filter(tournament=self)
+        matchs_done = Match.objects.filter(tournament=self, status='done')
+        self.is_finished = len(matchs)==len(matchs_done)
+
+    def compute_stat(self):
+        matchs = Match.objects.filter(tournament=self)
+        nb_player_language = defaultdict(int)
+        score_language = defaultdict(int)
+        nb_player_nb_lignes = defaultdict(int)
+        score_nb_lignes = defaultdict(int)
+        for match in matchs:
+            for champion in match.players.all():
+                player = MatchPlayer.objects.filter(match=match,champion=champion).first()
+                nb_player_language[champion.get_lang_code()] += 1
+                score_language[champion.get_lang_code()] += player.score
+                nb_player_nb_lignes[champion.get_main_loc_count()] += 1
+                score_nb_lignes[champion.get_main_loc_count()] += player.score
+
+        #plt.xkcd()
+        img_fig = io.BytesIO()
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        names = [ k for k in nb_player_language.keys()]
+        frequencies = [score_language[k]/nb_player_language[k] for k in nb_player_language.keys()]
+
+        x_coordinates = np.arange(len(names))
+        ax.bar(x_coordinates, frequencies, align='center')
+
+        ax.xaxis.set_major_locator(plt.FixedLocator(x_coordinates))
+        ax.xaxis.set_major_formatter(plt.FixedFormatter(names))
+
+        plt.xlabel("Langage")
+        plt.ylabel("Average score")
+        fig.savefig(img_fig, format="svg", bbox_inches='tight', transparent=True)
+        img_file = ImageFile(img_fig)
+        self.graphic_lang.save("lang.svg",img_file)
+
+        img_fig = io.BytesIO()
+        fig = plt.figure()
+        plt.plot([score_nb_lignes[k]/nb_player_nb_lignes[k] \
+            for k in nb_player_nb_lignes.keys()],
+            [ k for k in nb_player_nb_lignes.keys()])
+        plt.xlabel("Number of line")
+        plt.ylabel("Average score")
+        fig.savefig(img_fig, format="svg", bbox_inches='tight', transparent=True)
+        img_file = ImageFile(img_fig)
+        self.graphic_loc.save("loc.svg",img_file)
 
     class Meta:
         ordering = ['-ts']

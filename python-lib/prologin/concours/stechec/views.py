@@ -121,6 +121,25 @@ class MatchView(DetailView):
                             .annotate(Min('matchplayer__id')))
         return queryset
 
+class TournamentView(DetailView):
+    context_object_name = "tournament"
+    template_name = "stechec/tournament-detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(TournamentView, self).get_context_data(**kwargs)
+
+        print(context['tournament'].is_finished, context['tournament'].is_calculated)
+        if (not context['tournament'].is_finished):
+             context['tournament'].evaluate_is_finished()
+        if (context['tournament'].is_finished and not context['tournament'].is_calculated):
+            context['tournament'].compute_stat()
+            context['tournament'].is_calculated = True
+        return context
+
+    def get_queryset(self):
+        queryset = models.Tournament.objects
+        return queryset
+
 
 class AllMatchesView(MatchesListView):
     queryset = models.Match.objects.all().select_related('author')
