@@ -128,7 +128,6 @@ class TournamentView(DetailView):
     def get_context_data(self, **kwargs):
         context = super(TournamentView, self).get_context_data(**kwargs)
 
-        print(context['tournament'].is_finished, context['tournament'].is_calculated)
         if (not context['tournament'].is_finished):
              context['tournament'].evaluate_is_finished()
         if (context['tournament'].is_finished and not context['tournament'].is_calculated):

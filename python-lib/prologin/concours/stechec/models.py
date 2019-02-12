@@ -197,8 +197,8 @@ class Tournament(ExportModelOperationsMixin('tournament'), models.Model):
         img_fig = io.BytesIO()
         fig = plt.figure()
         ax = fig.add_subplot(111)
-        names = [ k for k in nb_player_language.keys()]
-        frequencies = [score_language[k]/nb_player_language[k] for k in nb_player_language.keys()]
+        names = [ k for k in sorted(nb_player_language)]
+        frequencies = [score_language[k]/nb_player_language[k] for k in sorted(nb_player_language)]
 
         x_coordinates = np.arange(len(names))
         ax.bar(x_coordinates, frequencies, align='center')
@@ -215,8 +215,8 @@ class Tournament(ExportModelOperationsMixin('tournament'), models.Model):
         img_fig = io.BytesIO()
         fig = plt.figure()
         plt.plot([score_nb_lignes[k]/nb_player_nb_lignes[k] \
-            for k in nb_player_nb_lignes.keys()],
-            [ k for k in nb_player_nb_lignes.keys()])
+            for k in sorted(nb_player_nb_lignes)],
+            [ k for k in sorted(nb_player_nb_lignes.keys())])
         plt.xlabel("Number of line")
         plt.ylabel("Average score")
         fig.savefig(img_fig, format="svg", bbox_inches='tight', transparent=True)
