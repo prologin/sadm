@@ -97,10 +97,14 @@ class Champion(ExportModelOperationsMixin('champion'), models.Model):
     def sources(self, uploaded_file):
         if uploaded_file is None:
             return
+
         self.directory.mkdir(parents=True)
         with self.sources_path.open('wb') as fp:
-            for chunk in uploaded_file.chunks():
-                fp.write(chunk)
+            if isinstance(uploaded_file, bytes):
+                fp.write(uploaded_file)
+            else:
+                for chunk in uploaded_file.chunks():
+                    fp.write(chunk)
 
     @property
     def compilation_log(self):
