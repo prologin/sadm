@@ -25,14 +25,16 @@ ALLOWED_HOSTS = ['*']
 SITE_ID = 1
 
 
+SITE_NAME = cfg['contest']['game']
+
 # False during final event, True to attach to prologin's website
 RUNNING_ONLINE = True
 
 # Url to prologin's website, in live mode
-HOST_WEBSITE_ROOT = 'localhost:8000'
+HOST_WEBSITE_ROOT = 'prologin.local'
 
 # Change in order to avoid conflict with the main website
-SESSION_COOKIE_NAME = 'sessionid-final-2018'
+SESSION_COOKIE_NAME = 'sessionid-' + SITE_NAME
 
 LOGIN_URL = reverse_lazy('login')
 LOGIN_REDIRECT_URL = reverse_lazy('home')

@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="{% static 'css/theme.css' %}" type="text/css">
   {% block head %}{% endblock %}
   <link rel="shortcut icon" href="{% static 'img/favicon.png' %}" type="image/png">
-  <title>{% block title %}SANS TITRE{% endblock %} – Prologin</title>
+  <title>{% block title %}SANS TITRE{% endblock %} – {{settings.SITE_NAME}}</title>
 </head>
 <body>
 <nav class="navbar navbar-default">
@@ -33,7 +33,11 @@
           <li><a href="{% url 'admin:index' %}" title="Administration"><i class="fa fa-wrench i-align"></i> Admin</a></li>
         {% endif %}
       {% else %}
-        <li><a href="{% url 'login' %}"><i class="fa fa-user i-align"></i> Connexion</a></li>
+        {% if settings.RUNNING_ONLINE %}
+        <li><a href="//{{settings.HOST_WEBSITE_ROOT}}/user/login"><i class="fa fa-user i-align"></i> Se connecter au site de Prologin</a></li>
+        {% else %}
+            <li><a href="{% url 'login' %}"><i class="fa fa-user i-align"></i> Connexion</a></li>
+        {% endif %}
       {% endif %}
         <li><a href="{% url 'v1:api-root' %}" title="API REST"><i class="fa fa-code i-align"></i> API</a></li>
     </ul>
