@@ -14,6 +14,30 @@
             <img style="max-width: 100%;" src="{{ tournament.graphic_lang.url }}">
             <h3>Score moyen en fonction du nombre de lignes</h3>
             <img style="max-width: 100%;" src="{{ tournament.graphic_loc.url }}">
+            <h3>Classement</h3>
+
+            <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Score</th>
+                    <th>Rank</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for participant in participants %}
+                <tr>
+                    <td>{{ participant.user }}</td>
+                    <td>{{ participant.score }}</td>
+                    <td>{{ participant.rank}}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-muted"><i class="fa fa-frown-o"></i> Aucun tournois n'a eu lieu pour le moment.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            </table>
         {% else %}
             <h3>Désolée le tournoi n'est pas encore fini...</h3>
         {% endif %}

@@ -174,6 +174,9 @@ class Tournament(ExportModelOperationsMixin('tournament'), models.Model):
     def __str__(self):
         return "%s, %s" % (self.name, self.ts)
 
+    def get_absolute_url(self):
+        return reverse("tournament-detail", kwargs={"pk": self.id})
+
     def evaluate_is_finished(self):
         matchs = Match.objects.filter(tournament=self)
         matchs_done = Match.objects.filter(tournament=self, status='done')

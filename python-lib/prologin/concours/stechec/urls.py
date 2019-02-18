@@ -33,6 +33,7 @@ urlpatterns = [
     url(r'^matches/mine/$', login_required(views.MyMatchesView.as_view()), name="matches-mine"),
     url(r'^matches/new/$', login_required(views.NewMatchView.as_view()), name="match-new"),
 
+    url(r'^tournament/list/$', views.TournamentListView.as_view(), name="tournament-list"),
     url(r'^tournament/(?P<pk>[0-9]+?)/$', views.TournamentView.as_view(), name="tournament-detail"),
     url(r'^status/$', views.MasterStatus.as_view(), name="status"),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

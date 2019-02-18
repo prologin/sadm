@@ -133,12 +133,45 @@ class TournamentView(DetailView):
         if (context['tournament'].is_finished and not context['tournament'].is_calculated):
             context['tournament'].compute_stat()
             context['tournament'].is_calculated = True
+        participants = {}
+        matchs = models.Match.objects.filter(tournament=context['tournament'])
+        for match in matchs:
+            for champion in match.players.all():
+                player = models.MatchPlayer.objects.filter(match=match,champion=champion).first()
+                user = champion.author
+                if user.id in participants.keys():
+                    participants[user.id]['score'] += player.score
+                else:
+                    participants[user.id] = {'user':user, 'score':player.score}
+        participants = [participant for id,participant in participants.items()]
+        print(participants)
+        participants = sorted(participants, key=lambda k: k['score'])
+        rank = 1
+        for participant in participants:
+            participant['rank'] = rank
+            rank+=1
+        context['participants'] = participants
         return context
 
     def get_queryset(self):
         queryset = models.Tournament.objects
         return queryset
 
+class TournamentListView(ListView):
+    queryset = models.Tournament.objects.all()
+    context_object_name = "tournament"
+    paginate_by = 100
+    template_name = "stechec/tournament-list.html"
+    title = "Tous les tournois"
+
+    def get_context_data(self, **kwargs):
+        context = super(TournamentListView, self).get_context_data(**kwargs)
+        tournament = []
+        for t in context['tournament']:
+            if t.is_finished:
+                tournament.append(t)
+        context['tournament'] = tournament
+        return context
 
 class AllMatchesView(MatchesListView):
     queryset = models.Match.objects.all().select_related('author')

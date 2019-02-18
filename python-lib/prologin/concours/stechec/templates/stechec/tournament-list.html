@@ -1,0 +1,37 @@
+{% extends "stechec/base.html" %}
+
+{% block title %}Tous les tournois{% endblock %}
+{% block titleh1 %}Tous les tournois{% endblock %}
+
+{% block content %}
+
+<p class="intro">Cette page liste toutes les tournois.</p>
+
+{% if is_paginated %}{% load paginator %}{% paginator 5 %}{% endif %}
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Time Stamp</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for t in tournament %}
+        <tr>
+            <td>{{ t.id }}</td>
+            <td>{{ t.name}}</td>
+            <td>{{ t.ts}}</td>
+            <td><a href="{{ t.get_absolute_url }}" class="btn btn-default btn-xs"><i class="fa fa-info"></i> Resultats</a></td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4" class="text-muted"><i class="fa fa-frown-o"></i> Aucun tournois n'a eu lieu pour le moment.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}
