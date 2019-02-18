@@ -217,14 +217,36 @@ class Tournament(ExportModelOperationsMixin('tournament'), models.Model):
 
         img_fig = io.BytesIO()
         fig = plt.figure()
-        plt.plot([ k for k in sorted(nb_player_nb_lignes)],
-            [score_nb_lignes[k]/nb_player_nb_lignes[k] \
-            for k in sorted(nb_player_nb_lignes)])
+        nb_lignes = [ k for k in sorted(nb_player_nb_lignes)]
+        average_score_line = []
+        average_line = []
+        window_size = 100
+        start = 0
+        for window in range(0,max(nb_lignes)+1,window_size):
+            cpt = 0
+            sum_score = 0
+            while(start < len(nb_lignes) and nb_lignes[start] <= window+window_size):
+                cpt += nb_player_nb_lignes[nb_lignes[start]]
+                sum_score += score_nb_lignes[nb_lignes[start]]
+                start += 1
+            if cpt > 0:
+                average_line.append(window+window_size/2)
+                average_score_line.append(sum_score/cpt)
+        plt.plot(average_line,average_score_line)
         plt.xlabel("Number of line")
         plt.ylabel("Average score")
         fig.savefig(img_fig, format="svg", bbox_inches='tight', transparent=True)
         img_file = ImageFile(img_fig)
         self.graphic_loc.save("loc.svg",img_file)
+
+        #Scoreboard
+        participants = {}
+        for match in matchs:
+            for champion in match.players.all():
+                player = MatchPlayer.objects.filter(match=match,champion=champion).first()
+                tournament_player,created = TournamentPlayer.objects.get_or_create(tournament=self, champion=champion)
+                tournament_player.score += player.score
+                tournament_player.save()
 
     class Meta:
         ordering = ['-ts']

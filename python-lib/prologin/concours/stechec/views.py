@@ -133,19 +133,10 @@ class TournamentView(DetailView):
         if (context['tournament'].is_finished and not context['tournament'].is_calculated):
             context['tournament'].compute_stat()
             context['tournament'].is_calculated = True
-        participants = {}
-        matchs = models.Match.objects.filter(tournament=context['tournament'])
-        for match in matchs:
-            for champion in match.players.all():
-                player = models.MatchPlayer.objects.filter(match=match,champion=champion).first()
-                user = champion.author
-                if user.id in participants.keys():
-                    participants[user.id]['score'] += player.score
-                else:
-                    participants[user.id] = {'user':user, 'score':player.score}
-        participants = [participant for id,participant in participants.items()]
-        print(participants)
-        participants = sorted(participants, key=lambda k: k['score'])
+        tournament_players = models.TournamentPlayer.objects.filter(tournament=context['tournament'])
+        participants = [{'user':tournament_player.champion.author,
+            'score':tournament_player.score} for tournament_player in tournament_players]
+        participants = sorted(participants, key=lambda k: -k['score'])
         rank = 1
         for participant in participants:
             participant['rank'] = rank
