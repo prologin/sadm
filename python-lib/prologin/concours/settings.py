@@ -31,13 +31,10 @@ SITE_NAME = cfg['contest']['game']
 RUNNING_ONLINE = True
 
 # Url to prologin's website, in live mode
-HOST_WEBSITE_ROOT = 'prologin.local'
+HOST_WEBSITE_ROOT = 'localhost'
 
 OAUTH_SECRET = 'nosecret'
 OAUTH_CLIENT_ID = cfg['contest']['game']
-
-# Change in order to avoid conflict with the main website
-SESSION_COOKIE_NAME = 'sessionid-' + SITE_NAME
 
 LOGIN_URL = reverse_lazy('login')
 LOGIN_REDIRECT_URL = reverse_lazy('home')
