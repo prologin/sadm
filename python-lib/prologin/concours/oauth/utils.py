@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth import login, logout
+from django.contrib.auth.models import User
 from django.utils.crypto import get_random_string
 
 from prologin.concours.oauth import models
@@ -26,15 +27,16 @@ def update_user(request, data):
 
     request.user.save()
 
-def commit_oauth_response(request, data):
+def handle_oauth_response(request, data):
     if 'error' in data:
-        messages.add_message(request, messages.ERROR, data['error'])
+        messages.add_message(request, messages.ERROR,
+            'Authentification error:' + data['error'])
         logout(request)
         return
 
-    if request.user.pk != data['user']['pk']:
-        logout(request)
-        return
+    user, created = User.objects.get_or_create(pk=data['user']['pk'],
+            defaults={'username': data['user']['username']})
+    login(request, user, backend='django.contrib.auth.backends.ModelBackend')
 
     refresh_token(request, data)
     update_user(request, data)

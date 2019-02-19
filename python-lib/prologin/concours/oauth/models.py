@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.conf import settings
 from django.db import models
 
@@ -8,4 +9,8 @@ class OAuthToken(models.Model):
         on_delete=models.CASCADE)
     token = models.CharField(max_length=64, null=True, default=None)
     expirancy = models.DateTimeField(null=True, default=None)
+
+    @property
+    def expired(self):
+        return datetime.now() >= self.expirancy
 

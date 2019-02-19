@@ -5,11 +5,13 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.models import User
+from django.core.urlresolvers import reverse
+from django.http import HttpResponseRedirect
 from django.utils.deprecation import MiddlewareMixin
 from django.utils.translation import ugettext_lazy as _
 
 from prologin.concours.oauth import models
-from prologin.concours.oauth.utils import commit_oauth_response
+from prologin.concours.oauth.utils import handle_oauth_response
 
 
 class RefreshTokenMiddleware(MiddlewareMixin):
@@ -28,6 +30,10 @@ class RefreshTokenMiddleware(MiddlewareMixin):
             logout(request)
             return self.get_response(request)
 
+        if token_infos.expired:
+            logout(request)
+            return HttpResponseRedirect(reverse('autologin'))
+
         res = requests.post(
             'http://{}/user/auth/refresh'.format(settings.HOST_WEBSITE_ROOT),
             json = {
@@ -35,12 +41,6 @@ class RefreshTokenMiddleware(MiddlewareMixin):
                 'client_id': settings.OAUTH_CLIENT_ID,
                 'client_secret': settings.OAUTH_SECRET})
         data = res.json()
-
-        user, created = User.objects.get_or_create(pk=data['user']['pk'],
-            defaults={'username': data['user']['username']})
-        login(request, user,
-            backend='django.contrib.auth.backends.ModelBackend')
-        commit_oauth_response(request, data)
-
+        handle_oauth_response(request, data)
         return self.get_response(request)
 
