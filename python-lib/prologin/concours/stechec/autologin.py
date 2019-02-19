@@ -8,6 +8,8 @@ from django.contrib.auth.models import User
 from django.utils.deprecation import MiddlewareMixin
 from django.utils.translation import ugettext_lazy as _
 
+import prologin.concours.stechec.models as models
+
 
 class AutoLoginMiddleware(MiddlewareMixin):
 
@@ -20,47 +22,45 @@ class AutoLoginMiddleware(MiddlewareMixin):
             self.get_response = lambda x: None
 
         # No behaviour during the final event
-        if not settings.RUNNING_ONLINE:
+        if not settings.RUNNING_ONLINE or request.user.is_anonymous:
             return self.get_response(request)
 
-        # Catch user informations from main website's API
-        if 'sessionid' not in request.COOKIES:
-            # this user may have never opened the main website
-            data = {'logged': False}
-        else:
-            try:
-                res = requests.get(
-                    'http://{}/user/infos'.format(settings.HOST_WEBSITE_ROOT),
-                    cookies = {'sessionid': request.COOKIES['sessionid']})
-                data = res.json()
-            except json.JSONDecodeError:
-                messages.add_message(request, messages.ERROR,
-                    _('Error while syncing login informations with the main website'))
-                data = {'logged': False}
+        token_infos, created = models.OAuthToken.objects.get_or_create(
+            user=request.user)
 
-        if not data['logged']:
+        if token_infos.token is None:
             logout(request)
-        else:
-            user_infos = data['user_infos']
+            return self.get_response(request)
 
-            # Retrieve user corresponding to user logged on main website, or
-            # create a new user
-            try:
-                user = User.objects.get(pk=user_infos['pk'])
-            except User.DoesNotExist:
-                user = User.objects.create_user(
-                    pk=user_infos['pk'], username=user_infos['username'])
+        res = requests.post(
+            'http://{}/user/auth/refresh'.format(settings.HOST_WEBSITE_ROOT),
+            json = {
+                'refresh_token': token_infos.token,
+                'client_id': settings.OAUTH_CLIENT_ID,
+                'client_secret': settings.OAUTH_SECRET})
 
-            # Update local database with fields received from main website's
-            for key in self.user_sync_keys:
-                setattr(user, key, user_infos[key])
+        data = res.json()
+        print(data)
 
-            user.save()
+        if 'error' in data:
+            messages.add_message(request, messages.ERROR, data['error'])
+            logout(request)
+            return self.get_response(request)
 
-            # Update the user that is logged in
-            if user.pk != request.user.pk:
-                login(request, user,
-                    backend='django.contrib.auth.backends.ModelBackend')
+        user, created = User.objects.get_or_create(pk=data['user']['pk'],
+            defaults={'username': data['user']['username']})
+        user_sync_keys = ['username', 'first_name', 'last_name',
+            'is_superuser', 'is_staff']
+
+        for key in user_sync_keys:
+            setattr(user, key, data['user'][key])
+
+        token_infos.token = data['refresh_token']
+        token_infos.expirancy = data['expires']
+        token_infos.save()
+
+        login(request, user,
+            backend='django.contrib.auth.backends.ModelBackend')
 
         return self.get_response(request)
 
