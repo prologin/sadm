@@ -190,6 +190,10 @@ class Tournament(ExportModelOperationsMixin('tournament'), models.Model):
         nb_player_nb_lignes = defaultdict(int)
         score_nb_lignes = defaultdict(int)
 
+        tournament_players = TournamentPlayer.objects.filter(tournament=self)
+        for tournament_player in tournament_players:
+            tournament_player.score = 0
+            tournament_player.save()
         #Iterate over all matchs to create score board and save data
         for match in matchs:
             for champion in match.players.all():
@@ -203,45 +207,10 @@ class Tournament(ExportModelOperationsMixin('tournament'), models.Model):
                 score_nb_lignes[champion.get_main_loc_count()] += player.score
 
         tournament_players = TournamentPlayer.objects.filter(tournament=self)
-        nb_matchs_per_player = len(matchs)/len(tournament_players)
+        nb_matchs_per_player = 2*len(matchs)/len(tournament_players)
         for tournament_player in tournament_players:
             tournament_player.score =  tournament_player.score/nb_matchs_per_player
             tournament_player.save()
-
-        img_fig = io.BytesIO()
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
-        names = [ k for k in sorted(nb_player_language)]
-        frequencies = [score_language[k]/nb_player_language[k] for k in sorted(nb_player_language)]
-
-        x_coordinates = np.arange(len(names))
-        ax.bar(x_coordinates, frequencies, align='center')
-
-        ax.xaxis.set_major_locator(plt.FixedLocator(x_coordinates))
-        ax.xaxis.set_major_formatter(plt.FixedFormatter(names))
-
-        plt.xlabel("Langage")
-        plt.ylabel("Average score")
-        fig.savefig(img_fig, format="svg", bbox_inches='tight', transparent=True)
-        img_file = ImageFile(img_fig)
-        self.graphic_lang.save("lang.svg",img_file)
-
-        img_fig = io.BytesIO()
-        fig = plt.figure()
-        nb_lignes = [ k for k in sorted(nb_player_nb_lignes)]
-        average_score_line = []
-        average_line = []
-        window_size = 100
-        start = 0
-        for window in range(0,max(nb_lignes)+1,window_size):
-            cpt = 0
-            sum_score = 0
-            while(start < len(nb_lignes) and nb_lignes[start] <= window+window_size):
-                cpt += nb_player_nb_lignes[nb_lignes[start]]
-                sum_score += score_nb_lignes[nb_lignes[start]]
-                start += 1
-            if cpt > 0:
-                average_line.append(window+window_size/2)
 
         # Average score per language
         img_fig = io.BytesIO()
@@ -296,7 +265,7 @@ class Tournament(ExportModelOperationsMixin('tournament'), models.Model):
         tournament_players = TournamentPlayer.objects.filter(tournament=self)
         players = [player.score for player in tournament_players]
         players.sort()
-        window_size = 40
+        window_size = int((max(players)+1)/10)
         start = 0
         for window in range(0,max(players)+1,window_size):
             cpt = 0
