@@ -13,8 +13,6 @@ urlpatterns = [
     url(r'^login/$', auth_views.login, {'template_name': 'stechec/login.html', 'authentication_form': LoginForm}, name="login"),
     url(r'^logout/$', auth_views.logout, {'next_page': '/'}, name="logout"),
 
-    url(r'^user/auth/callback$',views.FinalizeAuth.as_view() ,name='auth_callback'),
-
     url(r'^ask-help/$', views.AskForHelp.as_view(), name='ask-for-help'),
     url(r'^ask-help/list/$', views.AskForHelpList.as_view(), name='ask-for-help-list'),
     url(r'^report-bug/$', views.ReportBug.as_view(), name='report-bug'),

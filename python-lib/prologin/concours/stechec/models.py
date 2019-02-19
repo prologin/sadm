@@ -21,14 +21,6 @@ def strip_ansi_codes(t):
     return stripper_re.sub('', t)
 
 
-class OAuthToken(models.Model):
-
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, unique=True,
-        on_delete=models.CASCADE)
-    token = models.CharField(max_length=64, null=True, default=None)
-    expirancy = models.DateTimeField(null=True, default=None)
-
-
 class Map(ExportModelOperationsMixin('map'), models.Model):
     author = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='maps', verbose_name="auteur")
     name = models.CharField("nom", max_length=100)

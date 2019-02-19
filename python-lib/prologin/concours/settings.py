@@ -77,7 +77,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django_prometheus.middleware.PrometheusAfterMiddleware',
-    'prologin.concours.stechec.autologin.AutoLoginMiddleware',
+    'prologin.concours.oauth.middleware.RefreshTokenMiddleware',
 )
 
 AUTHENTICATION_BACKENDS = (
@@ -118,6 +118,7 @@ INSTALLED_APPS = (
 
     # Prologin
     'prologin.concours.stechec',
+    'prologin.concours.oauth',
 
     # Built-in or vendor (for template overriding)
     'rest_framework',

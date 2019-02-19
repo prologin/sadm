@@ -8,14 +8,11 @@ from django.contrib.auth.models import User
 from django.utils.deprecation import MiddlewareMixin
 from django.utils.translation import ugettext_lazy as _
 
-import prologin.concours.stechec.models as models
+from prologin.concours.oauth import models
+from prologin.concours.oauth.utils import commit_oauth_response
 
 
-class AutoLoginMiddleware(MiddlewareMixin):
-
-    # List of the attributes of User that are pulled from the main website
-    user_sync_keys = ['username', 'first_name', 'last_name', 'is_superuser',
-        'is_staff']
+class RefreshTokenMiddleware(MiddlewareMixin):
 
     def process_request(self, request):
         if not self.get_response:
@@ -25,10 +22,9 @@ class AutoLoginMiddleware(MiddlewareMixin):
         if not settings.RUNNING_ONLINE or request.user.is_anonymous:
             return self.get_response(request)
 
-        token_infos, created = models.OAuthToken.objects.get_or_create(
-            user=request.user)
-
-        if token_infos.token is None:
+        try:
+            token_infos = models.OAuthToken.objects.get(user=request.user)
+        except models.OAuthToken.DoesNotExist:
             logout(request)
             return self.get_response(request)
 
@@ -38,29 +34,13 @@ class AutoLoginMiddleware(MiddlewareMixin):
                 'refresh_token': token_infos.token,
                 'client_id': settings.OAUTH_CLIENT_ID,
                 'client_secret': settings.OAUTH_SECRET})
-
         data = res.json()
-        print(data)
-
-        if 'error' in data:
-            messages.add_message(request, messages.ERROR, data['error'])
-            logout(request)
-            return self.get_response(request)
 
         user, created = User.objects.get_or_create(pk=data['user']['pk'],
             defaults={'username': data['user']['username']})
-        user_sync_keys = ['username', 'first_name', 'last_name',
-            'is_superuser', 'is_staff']
-
-        for key in user_sync_keys:
-            setattr(user, key, data['user'][key])
-
-        token_infos.token = data['refresh_token']
-        token_infos.expirancy = data['expires']
-        token_infos.save()
-
         login(request, user,
             backend='django.contrib.auth.backends.ModelBackend')
+        commit_oauth_response(request, data)
 
         return self.get_response(request)
 
