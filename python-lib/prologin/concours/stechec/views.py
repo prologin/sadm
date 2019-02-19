@@ -1,8 +1,5 @@
-from django.views.generic.base import ContextMixin
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import login
-from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.db.models import Max, Min
@@ -17,7 +14,6 @@ from django.views.generic.detail import SingleObjectMixin
 import collections
 import os
 import socket
-import requests
 import urllib.parse
 
 from prologin.concours.stechec import forms
