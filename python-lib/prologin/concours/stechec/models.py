@@ -170,6 +170,7 @@ class Tournament(ExportModelOperationsMixin('tournament'), models.Model):
     is_calculated = models.BooleanField(default=False)
     graphic_lang = models.ImageField(upload_to='graph/', null=True)
     graphic_loc = models.ImageField(upload_to='graph/', null=True)
+    graphic_repartition = models.ImageField(upload_to='graph/', null=True)
 
     def __str__(self):
         return "%s, %s" % (self.name, self.ts)
@@ -188,15 +189,25 @@ class Tournament(ExportModelOperationsMixin('tournament'), models.Model):
         score_language = defaultdict(int)
         nb_player_nb_lignes = defaultdict(int)
         score_nb_lignes = defaultdict(int)
+
+        #Iterate over all matchs to create score board and save data
         for match in matchs:
             for champion in match.players.all():
                 player = MatchPlayer.objects.filter(match=match,champion=champion).first()
+                tournament_player,created = TournamentPlayer.objects.get_or_create(tournament=self, champion=champion)
+                tournament_player.score += player.score
+                tournament_player.save()
                 nb_player_language[champion.get_lang_code()] += 1
                 score_language[champion.get_lang_code()] += player.score
                 nb_player_nb_lignes[champion.get_main_loc_count()] += 1
                 score_nb_lignes[champion.get_main_loc_count()] += player.score
 
-        #plt.xkcd()
+        tournament_players = TournamentPlayer.objects.filter(tournament=self)
+        nb_matchs_per_player = len(matchs)/len(tournament_players)
+        for tournament_player in tournament_players:
+            tournament_player.score =  tournament_player.score/nb_matchs_per_player
+            tournament_player.save()
+
         img_fig = io.BytesIO()
         fig = plt.figure()
         ax = fig.add_subplot(111)
@@ -231,6 +242,43 @@ class Tournament(ExportModelOperationsMixin('tournament'), models.Model):
                 start += 1
             if cpt > 0:
                 average_line.append(window+window_size/2)
+
+        # Average score per language
+        img_fig = io.BytesIO()
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        names = [ k for k in sorted(nb_player_language)]
+        frequencies = [score_language[k]/nb_player_language[k] for k in sorted(nb_player_language)]
+
+        x_coordinates = np.arange(len(names))
+        ax.bar(x_coordinates, frequencies, align='center')
+
+        ax.xaxis.set_major_locator(plt.FixedLocator(x_coordinates))
+        ax.xaxis.set_major_formatter(plt.FixedFormatter(names))
+
+        plt.xlabel("Langage")
+        plt.ylabel("Average score")
+        fig.savefig(img_fig, format="svg", bbox_inches='tight', transparent=True)
+        img_file = ImageFile(img_fig)
+        self.graphic_lang.save("lang.svg",img_file)
+
+        # Average score per number of lines
+        img_fig = io.BytesIO()
+        fig = plt.figure()
+        nb_lignes = [ k for k in sorted(nb_player_nb_lignes)]
+        average_score_line = []
+        average_line = []
+        window_size = 100
+        start = 0
+        for window in range(0,max(nb_lignes)+1,window_size):
+            cpt = 0
+            sum_score = 0
+            while(start < len(nb_lignes) and nb_lignes[start] <= window+window_size):
+                cpt += nb_player_nb_lignes[nb_lignes[start]]
+                sum_score += score_nb_lignes[nb_lignes[start]]
+                start += 1
+            if cpt > 0:
+                average_line.append(window+window_size/2)
                 average_score_line.append(sum_score/cpt)
         plt.plot(average_line,average_score_line)
         plt.xlabel("Number of line")
@@ -239,14 +287,38 @@ class Tournament(ExportModelOperationsMixin('tournament'), models.Model):
         img_file = ImageFile(img_fig)
         self.graphic_loc.save("loc.svg",img_file)
 
-        #Scoreboard
-        participants = {}
-        for match in matchs:
-            for champion in match.players.all():
-                player = MatchPlayer.objects.filter(match=match,champion=champion).first()
-                tournament_player,created = TournamentPlayer.objects.get_or_create(tournament=self, champion=champion)
-                tournament_player.score += player.score
-                tournament_player.save()
+        # Repartition of the candidates depending on their score
+        img_fig = io.BytesIO()
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        histo_score = []
+        histo_nb_candidates = []
+        tournament_players = TournamentPlayer.objects.filter(tournament=self)
+        players = [player.score for player in tournament_players]
+        players.sort()
+        window_size = 40
+        start = 0
+        for window in range(0,max(players)+1,window_size):
+            cpt = 0
+            sum_score = 0
+            while(start < len(players) and players[start] <= window+window_size):
+                cpt += 1
+                start += 1
+            histo_score.append(window+window_size/2)
+            histo_nb_candidates.append(cpt)
+
+        x_coordinates = np.arange(len(histo_score))
+        ax.bar(x_coordinates, histo_nb_candidates, align='center')
+
+        ax.xaxis.set_major_locator(plt.FixedLocator([x_coordinates[i] for i in range(0, len(x_coordinates),2)]))
+        ax.xaxis.set_major_formatter(plt.FixedFormatter([histo_score[i] for i in range(0, len(histo_score),2)]))
+
+        plt.xlabel("Score")
+        plt.ylabel("Nombre de candidats")
+        fig.savefig(img_fig, format="svg", bbox_inches='tight', transparent=True)
+        img_file = ImageFile(img_fig)
+        self.graphic_repartition.save("repartition.svg",img_file)
+
 
     class Meta:
         ordering = ['-ts']
