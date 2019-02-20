@@ -37,7 +37,7 @@ OAUTH_ENDPOINT ='http://' + HOST_WEBSITE_ROOT + '/user/auth'
 OAUTH_SECRET = 'nosecret'
 OAUTH_CLIENT_ID = cfg['contest']['game']
 
-LOGIN_URL = reverse_lazy('login')
+LOGIN_URL = reverse_lazy('login') if not RUNNING_ONLINE else reverse_lazy('autologin')
 LOGIN_REDIRECT_URL = reverse_lazy('home')
 
 # If you set this to False, Django will make some optimizations so as not
