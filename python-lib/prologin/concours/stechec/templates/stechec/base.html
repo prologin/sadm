@@ -17,7 +17,7 @@
 <nav class="navbar navbar-default">
   <div class="container">
     <ul class="nav navbar-nav">
-      {% if settings.RUNNING_ONLINE %}
+      {% if not settings.FINAL_EVENT %}
         <li>
           <a href="//{{settings.HOST_WEBSITE_ROOT}}">
             <img alt="Prologin" src="{% static 'img/logo-cube.png' %}" />
@@ -33,11 +33,7 @@
           <li><a href="{% url 'admin:index' %}" title="Administration"><i class="fa fa-wrench i-align"></i> Admin</a></li>
         {% endif %}
       {% else %}
-        {% if settings.RUNNING_ONLINE %}
-        <li><a href="{% url 'autologin' %}"><i class="fa fa-user i-align"></i> Se connecter via prologin.org</a></li>
-        {% else %}
-            <li><a href="{% url 'login' %}"><i class="fa fa-user i-align"></i> Connexion</a></li>
-        {% endif %}
+      <li><a href="{{ settings.LOGIN_URL }}" %}"><i class="fa fa-user i-align"></i> Connexion</a></li>
       {% endif %}
         <li><a href="{% url 'v1:api-root' %}" title="API REST"><i class="fa fa-code i-align"></i> API</a></li>
     </ul>

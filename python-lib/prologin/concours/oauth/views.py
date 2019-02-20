@@ -42,6 +42,5 @@ class Callback(RedirectView):
                 'client_secret': settings.OAUTH_SECRET
             })
         handle_oauth_response(request, res)
-        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
         return super().get(request, *args, **kwargs)
 

@@ -28,7 +28,7 @@ SITE_ID = 1
 SITE_NAME = cfg['contest']['game']
 
 # False during final event, True to attach to prologin's website
-RUNNING_ONLINE = True
+FINAL_EVENT = False
 
 # Url to prologin's website, in live mode
 HOST_WEBSITE_ROOT = 'prologin.local'
@@ -37,7 +37,7 @@ OAUTH_ENDPOINT ='http://' + HOST_WEBSITE_ROOT + '/user/auth'
 OAUTH_SECRET = 'nosecret'
 OAUTH_CLIENT_ID = cfg['contest']['game']
 
-LOGIN_URL = reverse_lazy('login') if not RUNNING_ONLINE else reverse_lazy('autologin')
+LOGIN_URL = reverse_lazy('login') if FINAL_EVENT else reverse_lazy('autologin')
 LOGIN_REDIRECT_URL = reverse_lazy('home')
 
 # If you set this to False, Django will make some optimizations so as not
@@ -76,7 +76,7 @@ MIDDLEWARE_CLASSES = (
     'django_prometheus.middleware.PrometheusAfterMiddleware',
 )
 
-if RUNNING_ONLINE:
+if not FINAL_EVENT:
     MIDDLEWARE_CLASSES += (
         'prologin.concours.oauth.middleware.RefreshTokenMiddleware',
     )
@@ -132,7 +132,7 @@ INSTALLED_APPS = (
     'django_prometheus',
 )
 
-if RUNNING_ONLINE:
+if not FINAL_EVENT:
     INSTALLED_APPS += (
         'prologin.concours.oauth',
     )
