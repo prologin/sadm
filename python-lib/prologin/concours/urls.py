@@ -16,7 +16,7 @@ urlpatterns = [
     url(r'', include('django_prometheus.urls')),
 ]
 
-if settings.FINAL_EVENT:
+if not settings.FINAL_EVENT:
     import prologin.concours.oauth.urls
     urlpatterns.append(
         url(r'^user/auth/', include(prologin.concours.oauth.urls)))
