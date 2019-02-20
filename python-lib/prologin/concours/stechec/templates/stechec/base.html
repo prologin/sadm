@@ -29,6 +29,7 @@
     <ul class="nav navbar-nav navbar-right">
       {% if request.user.is_authenticated %}
         <li><span class="navbar-text"><i class="fa fa-user i-align"></i> {{ request.user.username }}</span></li>
+        <li><a href="{% url 'logout' %}"><i class="fa fa-sign-out i-align"></i> Se déconnecter</a></li>
         {% if request.user.is_staff %}
           <li><a href="{% url 'admin:index' %}" title="Administration"><i class="fa fa-wrench i-align"></i> Admin</a></li>
         {% endif %}
