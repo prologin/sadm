@@ -24,7 +24,7 @@ class RefreshTokenMiddleware(MiddlewareMixin):
 
         try:
             res = requests.post(
-                'http://{}/refresh'.format(settings.OAUTH_ENDPOINT),
+                '{}/refresh'.format(settings.OAUTH_ENDPOINT),
                 json = {
                     'refresh_token': token_infos.token,
                     'client_id': settings.OAUTH_CLIENT_ID,

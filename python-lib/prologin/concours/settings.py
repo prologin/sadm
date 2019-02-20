@@ -33,7 +33,7 @@ RUNNING_ONLINE = True
 # Url to prologin's website, in live mode
 HOST_WEBSITE_ROOT = 'prologin.local'
 
-OAUTH_ENDPOINT = HOST_WEBSITE_ROOT + '/user/auth'
+OAUTH_ENDPOINT ='http://' + HOST_WEBSITE_ROOT + '/user/auth'
 OAUTH_SECRET = 'nosecret'
 OAUTH_CLIENT_ID = cfg['contest']['game']
 
@@ -67,7 +67,6 @@ MIDDLEWARE_CLASSES = (
     'django_prometheus.middleware.PrometheusBeforeMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'prologin.sso.django.SSOMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
@@ -81,6 +80,10 @@ if RUNNING_ONLINE:
     MIDDLEWARE_CLASSES += (
         'prologin.concours.oauth.middleware.RefreshTokenMiddleware',
     )
+
+MIDDLEWARE_CLASSES += (
+    'django.middleware.csrf.CsrfViewMiddleware',
+)
 
 AUTHENTICATION_BACKENDS = (
     'prologin.sso.django.SSOUserBackend',

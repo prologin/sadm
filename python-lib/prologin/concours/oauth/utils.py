@@ -28,7 +28,7 @@ def update_user(request, data):
     request.user.save()
 
 def handle_oauth_response(request, data):
-    if not request.ok():
+    if 'error' in data:
         messages.add_message(request, messages.ERROR,
             'Erreur d\'authentification:' + data['error'])
         logout(request)
