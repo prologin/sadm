@@ -204,24 +204,26 @@ class Tournament(ExportModelOperationsMixin('tournament'), models.Model):
                 if line=='---':
                     pass
                 else :
-                    field,result = line.split(" ")
-                    if field == "nb_timeout:":
+                    unpack = line.split(" ")
+                    if len(unpack) > 1 and unpack[0] == "nb_timeout:":
+                        result = unpack[1]
                         nb_timeout.append(int(result))
             i_champion = 0
             for champion in match.players.all():
                 player = MatchPlayer.objects.filter(match=match,champion=champion).first()
                 tournament_player,created = TournamentPlayer.objects.get_or_create(tournament=self, champion=champion)
                 tournament_player.score += player.score
-                tournament_player.nb_timeout += nb_timeout[i_champion]
+                if i_champion < len(nb_timeout):
+                    tournament_player.nb_timeout += nb_timeout[i_champion]
+                    i_champion += 1
                 tournament_player.save()
-                i_champion += 1
                 nb_player_language[champion.get_lang_code()] += 1
                 score_language[champion.get_lang_code()] += player.score
                 nb_player_nb_lignes[champion.get_main_loc_count()] += 1
                 score_nb_lignes[champion.get_main_loc_count()] += player.score
 
         tournament_players = TournamentPlayer.objects.filter(tournament=self)
-        nb_matchs_per_player = 2*len(matchs)/len(tournament_players)
+        nb_matchs_per_player = len(matchs)/len(tournament_players)
         for tournament_player in tournament_players:
             tournament_player.score =  tournament_player.score/nb_matchs_per_player
             tournament_player.save()
