@@ -18,12 +18,14 @@
             <img style="max-width: 100%;" src="{{ tournament.graphic_repartition.url }}">
             <h3>Classement</h3>
 
-            <table class="table table-striped">
+            <table class="table table-striped" align="center">
             <thead>
                 <tr>
                     <th>Username</th>
                     <th>Score</th>
-                    <th>Rank</th>
+                    <th>Langage</th>
+                    <th>Nombre de timeout</th>
+                    <th>Rang</th>
                 </tr>
             </thead>
             <tbody>
@@ -31,6 +33,8 @@
                 <tr>
                     <td>{{ participant.user }}</td>
                     <td>{{ participant.score }}</td>
+                    <td>{{ participant.language}}</td>
+                    <td>{{ participant.nb_timeout}}</td>
                     <td>{{ participant.rank}}</td>
                 </tr>
                 {% empty %}

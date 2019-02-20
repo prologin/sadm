@@ -193,14 +193,28 @@ class Tournament(ExportModelOperationsMixin('tournament'), models.Model):
         tournament_players = TournamentPlayer.objects.filter(tournament=self)
         for tournament_player in tournament_players:
             tournament_player.score = 0
+            tournament_player.nb_timeout = 0
             tournament_player.save()
         #Iterate over all matchs to create score board and save data
         for match in matchs:
+            log = match.log
+            log_split = log.split("\n")
+            nb_timeout = []
+            for line in log_split :
+                if line=='---':
+                    pass
+                else :
+                    field,result = line.split(" ")
+                    if field == "nb_timeout:":
+                        nb_timeout.append(int(result))
+            i_champion = 0
             for champion in match.players.all():
                 player = MatchPlayer.objects.filter(match=match,champion=champion).first()
                 tournament_player,created = TournamentPlayer.objects.get_or_create(tournament=self, champion=champion)
                 tournament_player.score += player.score
+                tournament_player.nb_timeout += nb_timeout[i_champion]
                 tournament_player.save()
+                i_champion += 1
                 nb_player_language[champion.get_lang_code()] += 1
                 score_language[champion.get_lang_code()] += player.score
                 nb_player_nb_lignes[champion.get_main_loc_count()] += 1
@@ -300,6 +314,7 @@ class TournamentPlayer(ExportModelOperationsMixin('tournament_player'),
     champion = models.ForeignKey(Champion, verbose_name="champion")
     tournament = models.ForeignKey(Tournament, verbose_name="tournoi")
     score = models.IntegerField("score", default=0)
+    nb_timeout = models.IntegerField("nombre de timeout", default=0)
 
     def __str__(self):
         return "%s pour tournoi %s" % (self.champion, self.tournament)

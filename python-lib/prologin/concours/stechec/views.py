@@ -135,7 +135,10 @@ class TournamentView(DetailView):
             context['tournament'].is_calculated = True
         tournament_players = models.TournamentPlayer.objects.filter(tournament=context['tournament'])
         participants = [{'user':tournament_player.champion.author,
-            'score':tournament_player.score} for tournament_player in tournament_players]
+            'score':tournament_player.score,
+            'language':tournament_player.champion.get_lang_code(),
+            'nb_timeout':tournament_player.nb_timeout}
+            for tournament_player in tournament_players]
         participants = sorted(participants, key=lambda k: -k['score'])
         rank = 1
         for participant in participants:
