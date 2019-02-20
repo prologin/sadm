@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
@@ -15,4 +16,10 @@ urlpatterns = [
     url(r'', include('django_prometheus.urls')),
 ]
 
+if not settings.FINAL_EVENT:
+    import prologin.concours.oauth.urls
+    urlpatterns.append(
+        url(r'^user/auth/', include(prologin.concours.oauth.urls)))
+
 urlpatterns += staticfiles_urlpatterns()
+

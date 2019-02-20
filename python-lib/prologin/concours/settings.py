@@ -24,7 +24,20 @@ ALLOWED_HOSTS = ['*']
 
 SITE_ID = 1
 
-LOGIN_URL = reverse_lazy('login')
+
+SITE_NAME = cfg['contest']['game']
+
+# False during final event, True to attach to prologin's website
+FINAL_EVENT = False
+
+# Url to prologin's website, in live mode
+HOST_WEBSITE_ROOT = 'prologin.local'
+
+OAUTH_ENDPOINT ='http://' + HOST_WEBSITE_ROOT + '/user/auth'
+OAUTH_SECRET = 'nosecret'
+OAUTH_CLIENT_ID = cfg['contest']['game']
+
+LOGIN_URL = reverse_lazy('login') if FINAL_EVENT else reverse_lazy('autologin')
 LOGIN_REDIRECT_URL = reverse_lazy('home')
 
 # If you set this to False, Django will make some optimizations so as not
@@ -54,7 +67,6 @@ MIDDLEWARE_CLASSES = (
     'django_prometheus.middleware.PrometheusBeforeMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'prologin.sso.django.SSOMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
@@ -62,6 +74,15 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django_prometheus.middleware.PrometheusAfterMiddleware',
+)
+
+if not FINAL_EVENT:
+    MIDDLEWARE_CLASSES += (
+        'prologin.concours.oauth.middleware.RefreshTokenMiddleware',
+    )
+
+MIDDLEWARE_CLASSES += (
+    'django.middleware.csrf.CsrfViewMiddleware',
 )
 
 AUTHENTICATION_BACKENDS = (
@@ -110,6 +131,11 @@ INSTALLED_APPS = (
     # Monitoring
     'django_prometheus',
 )
+
+if not FINAL_EVENT:
+    INSTALLED_APPS += (
+        'prologin.concours.oauth',
+    )
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
