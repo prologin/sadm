@@ -131,8 +131,9 @@ class TournamentView(DetailView):
         if (not context['tournament'].is_finished):
              context['tournament'].evaluate_is_finished()
         if (context['tournament'].is_finished and not context['tournament'].is_calculated):
-            context['tournament'].compute_stat()
             context['tournament'].is_calculated = True
+            context['tournament'].save()
+            context['tournament'].compute_stat()
         tournament_players = models.TournamentPlayer.objects.filter(tournament=context['tournament'])
         participants = [{'user':tournament_player.champion.author,
             'score':tournament_player.score,
