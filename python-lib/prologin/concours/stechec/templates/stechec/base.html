@@ -34,7 +34,7 @@
         {% endif %}
       {% else %}
         {% if settings.RUNNING_ONLINE %}
-        <li><a href="{% url 'autologin' %}"><i class="fa fa-user i-align"></i> Se connecter au site de Prologin</a></li>
+        <li><a href="{% url 'autologin' %}"><i class="fa fa-user i-align"></i> Se connecter via prologin.org</a></li>
         {% else %}
             <li><a href="{% url 'login' %}"><i class="fa fa-user i-align"></i> Connexion</a></li>
         {% endif %}

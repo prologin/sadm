@@ -28,17 +28,19 @@ def update_user(request, data):
     request.user.save()
 
 def handle_oauth_response(request, data):
-    if 'error' in data:
+    if not request.ok():
         messages.add_message(request, messages.ERROR,
-            'Authentification error:' + data['error'])
+            'Erreur d\'authentification:' + data['error'])
         logout(request)
         return False
 
     user, created = User.objects.get_or_create(pk=data['user']['pk'],
-            defaults={'username': data['user']['username']})
+            defaults={field: data['user'][field] for field in USER_SYNC_KEYS})
     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
 
+    if not created:
+        update_user(request, data)
+
     refresh_token(request, data)
-    update_user(request, data)
     return True
 

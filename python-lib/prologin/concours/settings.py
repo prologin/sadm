@@ -33,7 +33,7 @@ RUNNING_ONLINE = True
 # Url to prologin's website, in live mode
 HOST_WEBSITE_ROOT = 'prologin.local'
 
-OAUTH_ENDPOINT = HOST_WEBSITE_ROOT
+OAUTH_ENDPOINT = HOST_WEBSITE_ROOT + '/user/auth'
 OAUTH_SECRET = 'nosecret'
 OAUTH_CLIENT_ID = cfg['contest']['game']
 
@@ -75,8 +75,12 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django_prometheus.middleware.PrometheusAfterMiddleware',
-    'prologin.concours.oauth.middleware.RefreshTokenMiddleware',
 )
+
+if RUNNING_ONLINE:
+    MIDDLEWARE_CLASSES += (
+        'prologin.concours.oauth.middleware.RefreshTokenMiddleware',
+    )
 
 AUTHENTICATION_BACKENDS = (
     'prologin.sso.django.SSOUserBackend',
@@ -116,7 +120,6 @@ INSTALLED_APPS = (
 
     # Prologin
     'prologin.concours.stechec',
-    'prologin.concours.oauth',
 
     # Built-in or vendor (for template overriding)
     'rest_framework',
@@ -125,6 +128,11 @@ INSTALLED_APPS = (
     # Monitoring
     'django_prometheus',
 )
+
+if RUNNING_ONLINE:
+    INSTALLED_APPS += (
+        'prologin.concours.oauth',
+    )
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
