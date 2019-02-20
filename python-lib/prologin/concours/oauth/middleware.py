@@ -17,18 +17,15 @@ from prologin.concours.oauth.utils import handle_oauth_response
 class RefreshTokenMiddleware(MiddlewareMixin):
 
     def process_request(self, request):
-        if not self.get_response:
-            self.get_response = lambda x: None
-
         # No behaviour during the final event
         if not settings.RUNNING_ONLINE or request.user.is_anonymous:
-            return self.get_response(request)
+            return
 
         try:
             token_infos = models.OAuthToken.objects.get(user=request.user)
         except models.OAuthToken.DoesNotExist:
             logout(request)
-            return self.get_response(request)
+            return
 
         if token_infos.expired:
             logout(request)
@@ -42,5 +39,4 @@ class RefreshTokenMiddleware(MiddlewareMixin):
                 'client_secret': settings.OAUTH_SECRET})
         data = res.json()
         handle_oauth_response(request, data)
-        return self.get_response(request)
 
