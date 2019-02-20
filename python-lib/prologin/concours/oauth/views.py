@@ -16,7 +16,7 @@ class AutoLogin(RedirectView):
     def get_redirect_url(self):
         self.request.session['oauth_state'] = gen_auth_state()
         return '//{}/user/auth/authorize?client_id={}&state={}'.format(
-            settings.HOST_WEBSITE_ROOT, settings.OAUTH_CLIENT_ID,
+            settings.OAUTH_ENDPOINT, settings.OAUTH_CLIENT_ID,
             self.request.session['oauth_state'])
 
 
@@ -30,7 +30,7 @@ class Callback(RedirectView):
             return super().get(request, *args, **kwargs)
 
         res = requests.post(
-            'http://{}/user/auth/token'.format(settings.HOST_WEBSITE_ROOT),
+            'http://{}/user/auth/token'.format(settings.OAUTH_ENDPOINT),
             json = {
                 'code': request.GET['code'],
                 'client_id': settings.OAUTH_CLIENT_ID,

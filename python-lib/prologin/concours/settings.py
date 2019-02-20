@@ -31,8 +31,9 @@ SITE_NAME = cfg['contest']['game']
 RUNNING_ONLINE = True
 
 # Url to prologin's website, in live mode
-HOST_WEBSITE_ROOT = 'localhost'
+HOST_WEBSITE_ROOT = 'prologin.local'
 
+OAUTH_ENDPOINT = HOST_WEBSITE_ROOT
 OAUTH_SECRET = 'nosecret'
 OAUTH_CLIENT_ID = cfg['contest']['game']
 

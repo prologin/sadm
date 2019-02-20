@@ -32,7 +32,7 @@ def handle_oauth_response(request, data):
         messages.add_message(request, messages.ERROR,
             'Authentification error:' + data['error'])
         logout(request)
-        return
+        return False
 
     user, created = User.objects.get_or_create(pk=data['user']['pk'],
             defaults={'username': data['user']['username']})
@@ -40,4 +40,5 @@ def handle_oauth_response(request, data):
 
     refresh_token(request, data)
     update_user(request, data)
+    return True
 

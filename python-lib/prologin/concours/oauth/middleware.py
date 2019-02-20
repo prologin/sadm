@@ -27,16 +27,14 @@ class RefreshTokenMiddleware(MiddlewareMixin):
             logout(request)
             return
 
-        if token_infos.expired:
-            logout(request)
-            return HttpResponseRedirect(reverse('autologin'))
-
         res = requests.post(
-            'http://{}/user/auth/refresh'.format(settings.HOST_WEBSITE_ROOT),
+            'http://{}/user/auth/refresh'.format(settings.OAUTH_ENDPOINT),
             json = {
                 'refresh_token': token_infos.token,
                 'client_id': settings.OAUTH_CLIENT_ID,
                 'client_secret': settings.OAUTH_SECRET})
         data = res.json()
-        handle_oauth_response(request, data)
+
+        if not handle_oauth_response(request, data):
+            return HttpResponseRedirect(reverse('autologin'))
 
