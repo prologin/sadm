@@ -34,6 +34,56 @@
           </div>
         </div>
       </div>
+        {% if settings.RUNNING_ONLINE %}
+        <div class="col-lg-10">
+            <h1>Comment générer l'environement joueur ?</h1>
+            <h3>Prérequis: </h3>
+        <ul>
+        <li>php (warning: vous pourriez avoir à ajouter <code>open_basedir=/</code> à votre
+        <code>/etc/php/php.ini</code>)</li>
+        <li>php-embed</li>
+        <li>ocaml</li>
+        <li>mono</li>
+        <li>jdk-java</li>
+        <li>ghc</li>
+        </ul>
+        <p>Archlinux:</p>
+        <pre>pacman --needed -S php php-embed ocaml mono jdk8-openjdk ghc
+        </pre>
+        <p>Debian/Ubuntu:</p>
+        <pre>apt-get install php7.0 php7.0-dev libphp7.0-embed ocaml mono-devel ghc \
+                  openjdk-8-jdk
+        </pre>
+            <h3>Installer stechec2</h3>
+              <p>Cloner le répertoire stechec2:</p>
+        <pre>git clone https://github.com/prologin/stechec2
+        cd stechec2
+        </pre>
+              <p>Ajouter tout kes heux que vous souhaitez installer dans <code>games/</code>, par exemple pour installer les jeux de 2016 à 2018:</p>
+        <pre>for game in prologin{2016..2018}; do
+        git clone https://github.com/prologin/${game}.git games/$game
+        done
+        </pre>
+              <p>Un jeu de test très simple, <code>tictactoe</code>, est déjà installé dans <code>games/</code>.</p>
+              <p>Vous pouvez maintenant configuer le projet en utilisant waf, tout en specifiant les jeux que vous souhaitez utiliser :</p>
+        <pre>./waf.py configure --with-games=tictactoe,prologin2018 --prefix=/usr
+        </pre>
+              <p>Ensuite on peut build et install:</p>
+        <pre>./waf.py build install
+        </pre>
+              <p><strong>Archlinux</strong>: un PKGBUILD est disponible à <code>pkg/stechec2</code>:
+              executer <code>makepkg &amp;&amp; pacman -U stechec2-*.pkg.tar.xz</code>.</p>
+              <h3>Générer l'environement</h3>
+              <p>Pour générer l'environment joueur (differents dossiers pour chaque language supporté),
+              yvous pouvez utiliser <code>stechec2-generator</code> le script installé par
+                stechec2:</p>
+                <pre>stechec2-generator player tictactoe player_env
+                </pre>
+              <h3>Envoyer son champion</h3>
+                  <p>Sur la page "Envoyer un champion" il faut soumettre un <code>tar.gz</code> qui aura été crée par un <code>make tar</code> dans le dossier du language de votre choix dans le dossier <code>player_env</code> précédement générer.</p>
+                  <p>Vous pouvez modifier le <code>Makefile</code> pour qu'il prenne en compte d'autre fichiers.</p>
+          </div>
+        {% endif %}
     {% else %}
       <div class="col-lg-12">
         <p><em>Merci de vous connecter pour afficher les outils de la page d'accueil.</em></p>
