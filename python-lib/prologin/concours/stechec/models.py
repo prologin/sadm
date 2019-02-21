@@ -283,7 +283,7 @@ class Tournament(ExportModelOperationsMixin('tournament'), models.Model):
         players.sort()
         window_size = int((max(players)-min(players)+1)/10)
         start = 0
-        for window in range(min(players-1),max(players)+1,window_size):
+        for window in range(min(players),max(players)+1,window_size):
             cpt = 0
             sum_score = 0
             while(start < len(players) and players[start] <= window+window_size):
