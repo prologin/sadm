@@ -1,0 +1,19 @@
+# Maintainer: Victor Collod <victor.collod@prologin.org>
+pkgname=vscode-global-plugins
+# TODO: proper versionning
+pkgver=1
+pkgrel=1
+pkgdesc="A material theme for vscode"
+depends=(code)
+arch=("x86_64")
+
+prepare() {
+          cp -- ../vscode-global-plugins "$srcdir"/
+}
+
+package() {
+        chmod +x vscode-global-plugins
+        mkdir -p -- "$pkgdir/usr/bin"
+        mkdir -p -- "$pkgdir/usr/share/vscode-extensions/"
+        cp -- vscode-global-plugins "$pkgdir/usr/bin"
+}

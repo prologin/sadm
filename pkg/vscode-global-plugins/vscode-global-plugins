@@ -1,0 +1,2 @@
+#!/bin/sh
+exec code --extensions-dir "/usr/share/vscode-extensions" "$@"

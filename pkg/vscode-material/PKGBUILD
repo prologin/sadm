@@ -1,0 +1,19 @@
+# Maintainer: Victor Collod <victor.collod@prologin.org>
+pkgname=vscode-material
+# TODO: proper versionning
+pkgver=1
+pkgrel=1
+pkgdesc="A material theme for vscode"
+depends=(vscode-global-plugins)
+makedepends=(code)
+options=()
+noextract=()
+md5sums=()
+validpgpkeys=()
+arch=("x86_64")
+
+package() {
+        extensions="$pkgdir/usr/share/vscode-extensions/"
+        mkdir -p -- "$extensions"
+        code --extensions-dir "$extensions" --install-extension Equinusocio.vsc-material-theme
+}
