@@ -9,9 +9,9 @@ from prologin.djangoconf import set_admin_title
 set_admin_title(admin, "Concours")
 
 urlpatterns = [
-    url(r'^admin/', include(admin.site.urls)),
-    url(r'^api/', include(prologin.concours.stechec.restapi.urls)),
-    url(r'^', include(prologin.concours.stechec.urls)),
+    url(r'^admin/', admin.site.urls),
+    url(r'^api/', prologin.concours.stechec.restapi.urls),
+    url(r'^', prologin.concours.stechec.urls),
     url(r'', include('django_prometheus.urls')),
 ]
 

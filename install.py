@@ -469,7 +469,7 @@ def install_bindcfg():
     # named (8) emits a warning if this file is not present
     if not os.path.exists('/etc/rndc.key'):
         # The following command generates it
-        system('rndc-confgen -a -r /dev/urandom')
+        system('rndc-confgen -a')
     shutil.chown('/etc/rndc.key', 'named', 'mdbdns')
     os.chmod('/etc/rndc.key', 0o640)  # Allow mdbdns read access
     install_systemd_unit('named')

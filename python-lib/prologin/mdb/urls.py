@@ -24,7 +24,7 @@ set_admin_title(admin, "Machine Database")
 
 urlpatterns = [
     url(r'', include('django_prometheus.urls')),
-    url(r'', include(admin.site.urls)),
+    url(r'', admin.site.urls),
 ]
 
 urlpatterns += staticfiles_urlpatterns()

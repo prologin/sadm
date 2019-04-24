@@ -20,19 +20,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.CreateModel(
-            name='UIDPool',
-            fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('group', models.CharField(choices=[('user', 'Contestant'), ('orga', 'Organizer'), ('root', 'root')], max_length=20, unique=True, verbose_name='For type')),
-                ('base', models.IntegerField(unique=True, verbose_name='Base UID')),
-                ('last', models.IntegerField(blank=True, default=0, verbose_name='Last allocation')),
-            ],
-            options={
-                'verbose_name': 'UID Pool',
-                'verbose_name_plural': 'UID Pools',
-                'ordering': ('group',),
-            },
-        ),
-        migrations.RunPython(initial_data),
+        migrations.RunPython(initial_data)
     ]

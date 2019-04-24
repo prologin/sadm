@@ -10,16 +10,16 @@ def initial_data(apps, schema_editor):
 
     g = Group(name="Organizer", pk=1)
     g.save()
-    g.permissions = Permission.objects.filter(codename__in=['change_user'])
+    g.permissions.set(Permission.objects.filter(codename__in=['change_user']))
 
     g = Group(name="root", pk=2)
     g.save()
-    g.permissions = Permission.objects.all()
+    g.permissions.set(Permission.objects.all())
 
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('udb', '0001_create_tables'),
+        ('udb', '0001_initial'),
     ]
 
     operations = [
