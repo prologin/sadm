@@ -26,8 +26,11 @@ from prologin.udb.models import User
 prologin.log.setup_logging('udb')
 
 def _udb_send_updates(updates):
-    conn = prologin.udbsync.client.connect(pub=True)
-    conn.send_updates(updates)
+    try:
+        conn = prologin.udbsync.client.connect(pub=True)
+        conn.send_updates(updates)
+    except Exception:
+        logging.exception("Error while sending udb updates")
 
 _update_sender = UpdateSenderTask(_udb_send_updates)
 

@@ -28,8 +28,12 @@ prologin.log.setup_logging('mdb')
 
 
 def _mdb_send_updates(updates):
-    conn = prologin.mdbsync.client.connect(pub=True)
-    conn.send_updates(updates)
+    try:
+        conn = prologin.mdbsync.client.connect(pub=True)
+        conn.send_updates(updates)
+    except Exception:
+        logging.exception("Error while sending mdb updates")
+
 
 _update_sender = UpdateSenderTask(_mdb_send_updates)
 
