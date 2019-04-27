@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2013 Pierre Bourdon <pierre.bourdon@prologin.org>
 # Copyright (c) 2013 Association Prologin <info@prologin.org>
 #
@@ -20,6 +19,9 @@ from django.db import models
 from django.db.models import F
 
 from django_prometheus.models import ExportModelOperationsMixin
+
+import prologin.utils.django
+
 
 class User(ExportModelOperationsMixin('user'), models.Model):
     TYPES = (
@@ -92,6 +94,8 @@ class UIDPool(ExportModelOperationsMixin('uidpool'), models.Model):
         verbose_name = 'UID Pool'
         verbose_name_plural = 'UID Pools'
 
+
+prologin.utils.django.add_warning_to_django_auth_user_model_name()
 
 # Import the signal receivers so they are activated
 import prologin.udb.receivers

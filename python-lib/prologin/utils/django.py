@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 Antoine Pietri <antoine.pietri@prologin.org>
 # Copyright (c) 2016 Association Prologin <info@prologin.org>
 #
@@ -15,12 +14,21 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
-def get_request_args(request):
-    '''Returns a dict containing the arguments of a request from GET/POST.'''
-    return {k: v[0] for k, v in {**request.POST, **request.GET}.items() if v}
 
 def check_filter_fields(fields, kwargs):
     for q in kwargs:
         base = q.split('_')[0]
         if base not in fields:
             raise ValueError('%r is not a valid query argument' % q)
+
+
+def add_warning_to_django_auth_user_model_name():
+    """
+    Monkey-patch the default Django contrib.auth user model with a warning that
+    this is not the UDB user model, as it's easy to confuse the two.
+    """
+    from django.contrib.auth import get_user_model
+    warning = " ⚠ *not* UDB user model ⚠"
+    User = get_user_model()
+    User._meta.verbose_name += warning
+    User._meta.verbose_name_plural += warning

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2013 Pierre Bourdon <pierre.bourdon@prologin.org>
 # Copyright (c) 2013 Association Prologin <info@prologin.org>
 #
@@ -23,6 +22,8 @@ from django.db.models import F
 
 from django_prometheus.models import ExportModelOperationsMixin
 
+import prologin.utils.django
+
 TYPES = (
     ('user', 'Contestant machine'),
     ('orga', 'Organizer machine'),
@@ -41,7 +42,6 @@ ROOMS = (
 HOSTNAME_REGEX = r'^[a-z0-9-]+(?:\.[a-z0-9]+)?$'
 ALIASES_REGEX = r'^{0}(?:,{0})*$'.format(HOSTNAME_REGEX[1:-1])
 MAC_REGEX = r'[0-9a-zA-Z]{2}(?::[0-9a-zA-Z]{2}){5}'
-
 
 
 class Machine(ExportModelOperationsMixin('machine'), models.Model):
@@ -121,7 +121,7 @@ class IPPool(ExportModelOperationsMixin('ippool'), models.Model):
 
 
 class Switch(ExportModelOperationsMixin('switch'), models.Model):
-    '''Used for automatic registering with LLDP'''
+    """Used for automatic registering with LLDP"""
     name = models.CharField(max_length=64, verbose_name='Name')
     chassis = models.CharField(max_length=17, unique=True,
                                verbose_name='Chassis ID',
@@ -167,6 +167,8 @@ class VolatileSetting(ExportModelOperationsMixin('volatile'), models.Model):
     class Meta:
         ordering = ('key',)
 
+
+prologin.utils.django.add_warning_to_django_auth_user_model_name()
 
 # Import the signal receivers so they are activated
 import prologin.mdb.receivers
