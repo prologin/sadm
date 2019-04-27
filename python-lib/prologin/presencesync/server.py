@@ -350,7 +350,7 @@ class SyncServer(prologin.synchronisation.Server):
         """Loop forever, asking the PrecenceSync server to remove expired
         logins periodically.
         """
-        conn = prologin.presencesync.client.connect(pub=True)
+        conn = prologin.presencesync.client.connect(publish=True)
         while True:
             # Communicate with the PresenceSync server just like any other
             # client in order to handle concurrent accesses nicely.

@@ -102,7 +102,7 @@ class PresencedServer(prologin.web.TornadoApp):
             (r'/send_heartbeat', SendHeartbeatHandler),
             (r'/login', LoginHandler),
         ], 'presenced')
-        self.presencesync = prologin.presencesync.client.connect(pub=True)
+        self.presencesync = prologin.presencesync.client.connect(publish=True)
         self.secret = secret.encode('ascii')
         self.port = port
 

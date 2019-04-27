@@ -13,6 +13,7 @@
 
 """Utilities for Web API."""
 
+import aiohttp
 import json
 import prologin.timeauth
 import requests
@@ -46,3 +47,29 @@ class Client:
             return requests.post(full_url, data=args)
         else:
             raise ValueError('Unsupported method: {}'.format(method))
+
+
+class AsyncClient:
+    """Async base client for sending authenticated requests."""
+
+    def __init__(self, url):
+        self.url = url
+        self.client = aiohttp.client.ClientSession(raise_for_status=True)
+
+    async def send_request(self, resource, secret, msg, url=None,
+                           method='post'):
+        full_url = urllib.parse.urljoin(url or self.url, resource)
+        data = json.dumps(msg)
+        args = {
+            'data': data,
+            'hmac': prologin.timeauth.generate_token(secret, data),
+        }
+
+        if method == 'get':
+            async with self.client.get(full_url, params=args) as r:
+                return r
+        elif method == 'post':
+            async with self.client.post(full_url, data=args) as r:
+                return r
+
+        raise ValueError(f"Unsupported method {method}")

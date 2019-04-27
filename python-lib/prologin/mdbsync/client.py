@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2013 Pierre Bourdon <pierre.bourdon@prologin.org>
 # Copyright (c) 2013 Association Prologin <info@prologin.org>
 #
@@ -29,13 +28,21 @@ import prologin.synchronisation
 SUB_CFG = prologin.config.load('mdbsync-sub')
 
 
-def connect(pub=False):
-    if pub:
+def _connect_args(publish):
+    if publish:
         pub_secret = prologin.config.load('mdbsync-pub')['shared_secret']
     else:
         pub_secret = None
     url = SUB_CFG['url']
     sub_secret = SUB_CFG['shared_secret']
-    logging.info('Creating MDBSync connection object: url=%s, can_pub=%s',
+    logging.info("Creating MDBSync connection object: url=%s, publish=%s",
                  url, pub_secret is not None)
-    return prologin.synchronisation.Client(url, 'mac', pub_secret, sub_secret)
+    return url, 'mac', pub_secret, sub_secret
+
+
+def connect(publish=False):
+    return prologin.synchronisation.Client(*_connect_args(publish))
+
+
+def aio_connect(publish=False):
+    return prologin.synchronisation.AsyncClient(*_connect_args(publish))

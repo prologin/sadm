@@ -314,6 +314,54 @@ class Client(prologin.webapi.Client):
                 sys.exit(1)
 
 
+class AsyncClient(prologin.webapi.AsyncClient):
+    def __init__(self, url, pk, pub_secret=None, sub_secret=None):
+        super().__init__(url)
+        self.pk = pk
+        self.pub_secret = pub_secret and pub_secret.encode('utf-8')
+        self.sub_secret = sub_secret.encode('utf-8')
+
+    async def send_update(self, update):
+        await self.send_updates([update])
+
+    async def send_updates(self, updates):
+        if self.pub_secret is None:
+            raise ValueError("No secret provided, can't send update")
+
+        await self.send_request('/update', self.pub_secret, updates)
+
+    async def poll_updates(self, watch=None):
+        """
+        Starts polling for updates. Asynchronously yields tuples (state, meta)
+        where:
+          * state is a (primary_key -> record) mapping
+          * meta is a (primary key changed -> kind of update) mapping, for all
+            records than has undergone a change.
+
+        Note that records are yielded even if the watched list of changes is
+        empty. See `updated_backlog` for the meaning of `watch`.
+        """
+        if self.pk is None:
+            raise ValueError("No primary key field name specified")
+        if self.sub_secret is None:
+            raise ValueError("No subscriber shared secret specified")
+
+        while True:
+            params = {
+                'data': '{}',
+                'hmac': prologin.timeauth.generate_token(self.sub_secret),
+            }
+            poll_url = urllib.parse.urljoin(self.url, '/poll')
+            async with self.client.get(poll_url, params=params) as r:
+                state = {}
+                async for line in r.content:
+                    payload = line.decode('utf-8')
+                    updates = json.loads(payload)
+                    updates_metadata = apply_updates(
+                        self.pk, state, updates, watch)
+                    yield state, updates_metadata
+
+
 class UpdateSenderTask(threading.Thread):
     STOP_GUARD = object()
 
