@@ -18,7 +18,7 @@
 # Database settings.
 db:
     default:
-        ENGINE: django.db.backends.postgresql_psycopg2
+        ENGINE: django.db.backends.postgresql
         HOST: web
         PORT: 5432
         USER: homepage

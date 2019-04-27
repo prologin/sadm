@@ -101,6 +101,7 @@ def apply_updates(pk, backlog, updates, watch=None):
 
     return updates_metadata
 
+
 def items_to_updates(items):
     return [
         {'type': 'update', 'data': item}
@@ -141,6 +142,7 @@ class BasePubSubQueue:
         """Remove a subscriber from the queue."""
         self.subscribers.remove(callback)
         logging.info('removed a subscriber, count is now %d', len(self.subscribers))
+
 
 class DefaultPubSubQueue(BasePubSubQueue):
     """Maintain a backlog of updates for records with a field that is unique.
@@ -248,7 +250,7 @@ class Client(prologin.webapi.Client):
     """Synchronisation client."""
 
     def __init__(self, url, pk, pub_secret=None, sub_secret=None):
-        super(Client, self).__init__(url)
+        super().__init__(url)
         self.pk = pk
         self.pub_secret = pub_secret and pub_secret.encode('utf-8')
         self.sub_secret = sub_secret.encode('utf-8')
@@ -273,6 +275,9 @@ class Client(prologin.webapi.Client):
         changes. Note that the callback is invoked even if the watched list of
         changes is empty. See `updated_backlog` for the meaning of `watch` and
         for returned watched changes.
+
+        Warning: failure to complete any HTTP request to the server will raise
+        SystemExit. It is your responsibility to restart the program.
         """
 
         if self.pk is None:
@@ -297,22 +302,21 @@ class Client(prologin.webapi.Client):
                             logging.exception('could not decode updates')
                             break
                         updates_metadata = apply_updates(
-                            self.pk, state,
-                            updates, watch
-                        )
+                            self.pk, state, updates, watch)
                         try:
                             callback(state, updates_metadata)
-                        except Exception as e:
+                        except Exception:
                             logging.exception('error in the synchronisation '
-                                              'client callback: %s', e)
-            except Exception as e:
-                logging.exception('connection synchronisation server lost: '
-                                  '%s (url: %s)', e, poll_url)
+                                              'client callback')
+            except Exception:
+                logging.exception("connection synchronisation server lost to "
+                                  "url %s; calling exit()!", poll_url)
                 sys.exit(1)
 
 
 class UpdateSenderTask(threading.Thread):
     STOP_GUARD = object()
+
     def __init__(self, updater, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.updater = updater
@@ -323,8 +327,8 @@ class UpdateSenderTask(threading.Thread):
         self.updates_queue.put(update)
 
     def run(self):
-        self.running = True
-        while self.running:
+        running = True
+        while running:
             updates = [self.updates_queue.get()]
 
             try:
@@ -334,17 +338,17 @@ class UpdateSenderTask(threading.Thread):
                 pass
 
             if updates[-1] is self.STOP_GUARD:
-                self.running = False
+                running = False
                 updates.pop()
 
             try:
                 self.updater(updates)
             except Exception:
-                logging.exception(f"unable to send updates to {self.updater}")
+                logging.exception(f"Unable to send updates to {self.updater}")
 
     def stop(self):
         self.updates_queue.put(self.STOP_GUARD)
 
-    def join(self):
+    def join(self, **kwargs):
         self.stop()
-        super().join()
+        super().join(**kwargs)

@@ -20,7 +20,7 @@ import urllib.parse
 
 
 class Client:
-    """Provide API client primitives."""
+    """Base client for sending authenticated requests."""
 
     def __init__(self, url):
         self.url = url

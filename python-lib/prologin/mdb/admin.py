@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2013 Pierre Bourdon <pierre.bourdon@prologin.org>
 # Copyright (c) 2013 Association Prologin <info@prologin.org>
 #
@@ -21,14 +20,14 @@ from prologin.mdb import models
 
 class IPPoolAdmin(admin.ModelAdmin):
     list_display = ('mtype', 'network', 'last')
-    radio_fields = { 'mtype': admin.HORIZONTAL }
+    radio_fields = {'mtype': admin.HORIZONTAL}
 
 
 class MachineAdmin(admin.ModelAdmin):
     list_display = ('hostname', 'aliases', 'ip', 'mtype', 'room')
     list_filter = ('mtype', 'room')
     list_per_page = 250
-    radio_fields = { 'mtype': admin.HORIZONTAL, 'room': admin.HORIZONTAL }
+    radio_fields = {'mtype': admin.HORIZONTAL, 'room': admin.HORIZONTAL}
     search_fields = ('hostname', 'aliases', 'ip', 'mac')
 
     def get_readonly_fields(self, request, obj=None):

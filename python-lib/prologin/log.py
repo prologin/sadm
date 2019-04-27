@@ -25,18 +25,17 @@ import logging.handlers
 LOG_STDERR = os.getppid() != 1
 
 
-def setup_logging(program, verbose=False, local=LOG_STDERR):
+def setup_logging(program, verbose=True, local=LOG_STDERR):
     """Sets up the default Python logger.
 
-    Always log to syslog, optionaly log to stdout.
+    Always log to syslog, optionally log to stdout.
 
     Args:
-      program: Name of the program logging informations.
+      program: Name of the program that is logging stuff.
       verbose: If true, log more messages (DEBUG instead of INFO).
       local: If true, log to stderr as well as syslog.
     """
-    loggers = []
-    loggers.append(logging.handlers.SysLogHandler('/dev/log'))
+    loggers = [logging.handlers.SysLogHandler('/dev/log')]
     if local:
         loggers.append(logging.StreamHandler())
     for logger in loggers:
