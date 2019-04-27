@@ -4,9 +4,11 @@ server {
 
     access_log logs/udb.access.log main;
 
+    include sso/handler;
+
     location / {
-        include include/enable_sso;
         proxy_pass http://localhost:20080;
         include include/proxy_params;
+        include sso/protect;
     }
 }

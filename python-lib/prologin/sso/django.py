@@ -8,7 +8,7 @@ class SSOMiddleware(RemoteUserMiddleware):
     pass environment variables, we have to use HTTP headers, hence
     *HTTP*_REMOTE_USER.
     """
-    header = "HTTP_REMOTE_USER"
+    header = "HTTP_X_SSO_USER"
 
 
 class SSOUserBackend(RemoteUserBackend):

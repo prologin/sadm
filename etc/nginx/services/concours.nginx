@@ -4,8 +4,10 @@ server {
 
     access_log logs/concours.access.log main;
 
+    include sso/handler;
+
     location / {
-        include include/enable_sso;
+        include sso/protect;
         proxy_pass http://localhost:20150;
         include include/proxy_params;
     }

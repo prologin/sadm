@@ -101,10 +101,9 @@ USERS = {
         'groups': ('presencesync_usermap', 'presencesync_public',
                    'udbsync_public', 'mdbsync_public')
     },
-    'presencesync_cacheserver': {
-        'uid':
-        20131,
-        'groups': ('presencesync_cacheserver', 'presencesync_public',
+    'presencesync_sso': {
+        'uid': 20131,
+        'groups': ('presencesync_sso', 'presencesync_public', 'mdbsync_public',
                    'udb_public', 'mdb_public')
     },
     'concours': {
@@ -140,7 +139,7 @@ GROUPS = {
     'homepage': 20110,
     'redmine': 20120,
     'presencesync_usermap': 20130,
-    'presencesync_cacheserver': 20131,
+    'presencesync_sso': 20131,
     'concours': 20150,
     'cluster': 20160,
     'cluster_public': 20161,
@@ -446,7 +445,6 @@ def install_nginxcfg():
             owner='http:root',
             dir_mode=0o750,
             file_mode=0o640)
-    replace_secrets_in('/etc/nginx/sso/config.lua')
     mkdir('/etc/nginx/services', mode=0o755, owner='root:root')
     mkdir('/etc/nginx/services_contest', mode=0o755, owner='root:root')
     if not os.path.exists('/etc/nginx/logs'):
@@ -726,7 +724,6 @@ def install_presenced():
     cfg_line = ('session requisite pam_exec.so'
                 ' /var/prologin/presenced/pam_presenced.py')
 
-    cfg_contents = []
     with open(cfg, 'r') as f:
         cfg_contents = f.read().split('\n')
         to_append = cfg_line not in cfg_contents
@@ -774,10 +771,10 @@ def install_presencesync_usermap():
     install_systemd_unit('presencesync_usermap')
 
 
-def install_presencesync_cacheserver():
+def install_presencesync_sso():
     requires('libprologin')
 
-    install_systemd_unit('presencesync_cacheserver')
+    install_systemd_unit('presencesync_sso')
 
 
 def install_presencesync_firewall():
@@ -1001,7 +998,7 @@ COMPONENTS = [
     'postgresql',
     'presenced',
     'presencesync',
-    'presencesync_cacheserver',
+    'presencesync_sso',
     'presencesync_firewall',
     'presencesync_usermap',
     'prometheus',

@@ -125,7 +125,7 @@ function stage_allow_root_ssh {
 function stage_setup_nginx {
   echo_status 'Stage setup nginx'
 
-  container_run /usr/bin/pacman -S --noconfirm openresty
+  container_run /usr/bin/pacman -S --noconfirm nginx
 
   container_run /var/prologin/venv/bin/python install.py nginxcfg
   container_run /usr/bin/mv /etc/nginx/nginx.conf{.new,}
@@ -160,22 +160,22 @@ function test_postgresql {
   test_service_is_enabled_active postgresql
 
   echo -n '[>] Connect to postgresql '
-  if ! container_run_quiet /usr/bin/psql -U postgres -c '\l'; then
+  if container_run_quiet /usr/bin/psql -U postgres -c '\l'; then
+    echo_ok "PASS"
+  else
     echo_ko "FAIL"
     return 1
-  else
-    echo_ok "PASS"
   fi
 }
 
-function stage_presencesync_cacheserver {
-  echo_status 'Install presencesync cacheserver'
+function stage_presencesync_sso {
+  echo_status 'Install presencesync SSO'
 
-  echo '[-] Configure presencesync cacheserver'
-  container_run /var/prologin/venv/bin/python /root/sadm/install.py presencesync_cacheserver
+  echo '[-] Configure presencesync SSO'
+  container_run /var/prologin/venv/bin/python /root/sadm/install.py presencesync_sso
 
-  echo '[-] Enable and start the presencesync cacheserevr service'
-  container_run /usr/bin/systemctl enable --now presencesync_cacheserver
+  echo '[-] Enable and start the presencesync SSO service'
+  container_run /usr/bin/systemctl enable --now presencesync_sso
 
   echo '[-] Reload nginx'
   container_run /usr/bin/systemctl reload nginx
@@ -183,10 +183,14 @@ function stage_presencesync_cacheserver {
   container_snapshot $FUNCNAME
 }
 
-function test_presencesync_cacheserver {
-  echo '[>] Test presencesync... '
+function test_presencesync_sso {
+  echo '[>] Test presencesync SSO... '
 
-  test_service_is_enabled_active presencesync_cacheserver
-
-  # TODO more test
+  test_service_is_enabled_active presencesync_sso
+  if container_run_verbose /usr/bin/curl -vs -o /dev/null http://mdb/ | grep -Fi 'X-SSO-Backend-Status: working'; then
+    echo_ok "PASS"
+  else
+    echo_ko "FAIL"
+    return 1
+  fi
 }

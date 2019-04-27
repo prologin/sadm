@@ -1,0 +1,18 @@
+# Include this file in contexts (server {} or location {} blocks) that need
+# SSO authentication. You also need to include sso/handler in the parent
+# server {} block.
+
+auth_request /__auth;
+
+# Get headers from auth response…
+auth_request_set $sso_user $upstream_http_x_sso_user;
+auth_request_set $sso_status $upstream_http_x_sso_status;
+
+# … send them on the original backend request for processing:
+proxy_set_header X-SSO-User $sso_user;
+proxy_set_header X-SSO-Status $sso_status;
+
+# … also add them to the final response for debug purposes:
+add_header X-SSO-User $sso_user;
+add_header X-SSO-Status $sso_status;
+add_header X-SSO-Backend-Status $sso_backend_status;

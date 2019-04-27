@@ -597,8 +597,8 @@ run test_udbsync_clients
 run stage_presencesync
 run test_presencesync
 
-run stage_presencesync_cacheserver
-run test_presencesync_cacheserver
+run stage_presencesync_sso
+run test_presencesync_sso
 
 run stage_sso
 run test_sso
