@@ -10,21 +10,19 @@ def initial_data(apps, schema_editor):
     Permission = apps.get_model('auth', 'Permission')
     VolatileSetting = apps.get_model('mdb', 'VolatileSetting')
 
-    IPPool(last=0, mtype="user", network="192.168.0.0/24", pk=1).save()
-    IPPool(last=0, mtype="cluster", network="192.168.2.0/24", pk=2).save()
-    IPPool(last=0, mtype="service", network="192.168.1.0/24", pk=3).save()
+    IPPool.objects.create(last=0, mtype="user", network="192.168.0.0/24")
+    IPPool.objects.create(last=0, mtype="cluster", network="192.168.2.0/24")
+    IPPool.objects.create(last=0, mtype="service", network="192.168.1.0/24")
 
-    VolatileSetting(key="allow_self_registration",
-                    value_bool=True,
-                    pk=1).save()
+    VolatileSetting.objects.create(
+        key="allow_self_registration",
+        value_bool=True)
 
-    g = Group(name="Organizer", pk=1)
-    g.save()
+    orga = Group.objects.create(name="orga")
+    orga.permissions.set(Permission.objects.filter(codename__in=['change_user']))
 
-    g.permissions = Permission.objects.filter(codename__in=['change_user'])
-    g = Group(name="root", pk=1)
-    g.save()
-    g.permissions = Permission.objects.all()
+    root = Group.objects.create(name="root")
+    root.permissions.set(Permission.objects.all())
 
 
 class Migration(migrations.Migration):

@@ -8,13 +8,11 @@ def initial_data(apps, schema_editor):
     Group = apps.get_model('auth', 'Group')
     Permission = apps.get_model('auth', 'Permission')
 
-    g = Group(name="Organizer", pk=1)
-    g.save()
-    g.permissions.set(Permission.objects.filter(codename__in=['change_user']))
+    orga = Group.objects.create(name="orga")
+    orga.permissions.set(Permission.objects.filter(codename__in=['change_user']))
 
-    g = Group(name="root", pk=2)
-    g.save()
-    g.permissions.set(Permission.objects.all())
+    root = Group.objects.create(name="root")
+    root.permissions.set(Permission.objects.all())
 
 
 class Migration(migrations.Migration):
