@@ -15,18 +15,19 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Common configuration loading logics for libraries."""
+"""Common configuration loading logic for libraries."""
 
 import os
 import os.path
 import yaml
 
 DEFAULT_CFG_DIR = '/etc/prologin'
+LOADED_CONFIGS = {}
+
 
 class ConfigReadError(Exception):
     pass
 
-loaded_configs = {}
 
 def load(profile):
     """Load (if needed) and return the configuration file for `profile`.
@@ -37,7 +38,7 @@ def load(profile):
     """
 
     try:
-        return loaded_configs[profile]
+        return LOADED_CONFIGS[profile]
     except KeyError:
         pass
 
@@ -47,11 +48,11 @@ def load(profile):
 
     try:
         with open(cfg_path, 'r') as cfg_fp:
-            cfg = yaml.load(cfg_fp)
+            cfg = yaml.safe_load(cfg_fp)
     except IOError:
         raise ConfigReadError("%s does not exist (specify CFG_DIR?)"
                               % cfg_path)
 
-    loaded_configs[profile] = cfg
+    LOADED_CONFIGS[profile] = cfg
 
     return cfg

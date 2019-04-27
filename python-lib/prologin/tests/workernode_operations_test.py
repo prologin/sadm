@@ -196,7 +196,7 @@ def get_worker_config(**kwargs):
     isolate:
         time_limit_secs: 350
     '''
-    return yaml.load(worker_config.format(**d))
+    return yaml.safe_load(worker_config.format(**d))
 
 
 class SetupScripts:
