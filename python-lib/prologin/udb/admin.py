@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2013 Pierre Bourdon <pierre.bourdon@prologin.org>
 # Copyright (c) 2013 Association Prologin <info@prologin.org>
 #
@@ -16,46 +15,46 @@
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 from django.contrib import admin
+from django.contrib.auth import get_user_model
+
 from prologin.udb import models
 
 
-def root(request):
-    if not request.user.is_authenticated():
+def is_root(request):
+    if not request.user.is_authenticated:
         return False
     try:
         request.user.groups.get(name='root')
-    except Exception as e:
+    except Exception:
         return False
     return True
 
 
 class UIDPoolAdmin(admin.ModelAdmin):
     list_display = ('group', 'base', 'last')
-    radio_fields = { 'group': admin.HORIZONTAL }
+    radio_fields = {'group': admin.HORIZONTAL}
 
 
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('uid', 'login', 'group', 'firstname', 'lastname')
+    list_display = ('uid', 'login', 'group', 'firstname', 'lastname',)
     list_filter = ('group',)
     list_per_page = 250
-    radio_fields = { 'group': admin.HORIZONTAL }
-    search_fields = ('uid', 'login', 'group', 'firstname', 'lastname')
+    radio_fields = {'group': admin.HORIZONTAL}
+    search_fields = ('uid', 'login', 'group', 'firstname', 'lastname',)
 
     def get_readonly_fields(self, request, obj=None):
         if obj:
-            return ('uid', 'login')
+            return ('uid', 'login',)
         else:
             return ('uid',)
 
     def has_change_permission(self, request, obj=None):
         if obj is None:
-            return True  # Let every organizer access the list
-        return root(request) or obj.group != 'root'
-
+            # Organizers can access the list.
+            return True
+        return is_root(request) or obj.group != 'root'
 
     def save_model(self, request, obj, form, change):
-        if not root(request):
-            return
         return super().save_model(request, obj, form, change)
 
 
