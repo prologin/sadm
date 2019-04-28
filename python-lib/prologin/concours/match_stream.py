@@ -5,7 +5,6 @@ import datetime
 import getpass
 import json
 import psycopg2
-import prologin
 import random
 import requests
 import subprocess

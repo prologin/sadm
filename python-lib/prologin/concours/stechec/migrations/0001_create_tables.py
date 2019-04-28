@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
                 ('deleted', models.BooleanField(verbose_name='supprimé', default=False)),
                 ('comment', models.TextField(verbose_name='commentaire', blank=True)),
                 ('ts', models.DateTimeField(verbose_name='date', auto_now_add=True)),
-                ('author', models.ForeignKey(verbose_name='auteur', related_name='champions', to=settings.AUTH_USER_MODEL)),
+                ('author', models.ForeignKey(verbose_name='auteur', related_name='champions', to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
             ],
             options={
                 'verbose_name': 'champion',
@@ -35,7 +35,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(verbose_name='nom', max_length=100)),
                 ('official', models.BooleanField(verbose_name='officielle', default=False)),
                 ('ts', models.DateTimeField(verbose_name='date', auto_now_add=True)),
-                ('author', models.ForeignKey(verbose_name='auteur', related_name='maps', to=settings.AUTH_USER_MODEL)),
+                ('author', models.ForeignKey(verbose_name='auteur', related_name='maps', to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
             ],
             options={
                 'verbose_name': 'carte',
@@ -51,7 +51,7 @@ class Migration(migrations.Migration):
                 ('ts', models.DateTimeField(default=django.utils.timezone.now, verbose_name='date')),
                 ('options', models.CharField(verbose_name='options', max_length=500, default='{}')),
                 ('file_options', models.CharField(verbose_name='file_options', max_length=500, default='{}')),
-                ('author', models.ForeignKey(verbose_name='lancé par', related_name='matches', to=settings.AUTH_USER_MODEL)),
+                ('author', models.ForeignKey(verbose_name='lancé par', related_name='matches', to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
             ],
             options={
                 'verbose_name': 'match',
@@ -64,8 +64,8 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True, serialize=False)),
                 ('score', models.IntegerField(verbose_name='score', default=0)),
-                ('champion', models.ForeignKey(verbose_name='champion', to='stechec.Champion')),
-                ('match', models.ForeignKey(verbose_name='match', to='stechec.Match')),
+                ('champion', models.ForeignKey(verbose_name='champion', to='stechec.Champion', on_delete=models.CASCADE)),
+                ('match', models.ForeignKey(verbose_name='match', to='stechec.Match', on_delete=models.CASCADE)),
             ],
             options={
                 'verbose_name': 'participant à un match',
@@ -90,8 +90,8 @@ class Migration(migrations.Migration):
             name='TournamentMap',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True, serialize=False)),
-                ('map', models.ForeignKey(verbose_name='carte', to='stechec.Map')),
-                ('tournament', models.ForeignKey(verbose_name='tournoi', to='stechec.Tournament')),
+                ('map', models.ForeignKey(verbose_name='carte', to='stechec.Map', on_delete=models.CASCADE)),
+                ('tournament', models.ForeignKey(verbose_name='tournoi', to='stechec.Tournament', on_delete=models.CASCADE)),
             ],
             options={
                 'verbose_name': 'carte utilisée dans un tournoi',
@@ -104,8 +104,8 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True, serialize=False)),
                 ('score', models.IntegerField(verbose_name='score', default=0)),
-                ('champion', models.ForeignKey(verbose_name='champion', to='stechec.Champion')),
-                ('tournament', models.ForeignKey(verbose_name='tournoi', to='stechec.Tournament')),
+                ('champion', models.ForeignKey(verbose_name='champion', to='stechec.Champion', on_delete=models.CASCADE)),
+                ('tournament', models.ForeignKey(verbose_name='tournoi', to='stechec.Tournament', on_delete=models.CASCADE)),
             ],
             options={
                 'verbose_name': 'participant à un tournoi',
@@ -131,6 +131,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='match',
             name='tournament',
-            field=models.ForeignKey(verbose_name='tournoi', related_name='matches', null=True, blank=True, to='stechec.Tournament'),
+            field=models.ForeignKey(verbose_name='tournoi', related_name='matches', null=True, blank=True, to='stechec.Tournament', on_delete=models.CASCADE),
         ),
     ]

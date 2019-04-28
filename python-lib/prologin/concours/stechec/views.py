@@ -12,7 +12,6 @@ from django.views.generic.base import View
 from django.views.generic.detail import SingleObjectMixin
 
 import collections
-import os
 import socket
 import urllib.parse
 
@@ -231,7 +230,7 @@ class NewMatchView(FormView):
     template_name = 'stechec/match-new.html'
 
     def get_form_kwargs(self, **kwargs):
-        kwargs = super().get_form_kwargs(**kwargs)
+        kwargs = super().get_form_kwargs()
         kwargs['request'] = self.request
         return kwargs
 
@@ -241,7 +240,7 @@ class NewMatchView(FormView):
             messages.error(self.request,
                            "Vos requêtes sont trop rapprochées dans le temps. "
                            "Merci de patienter environ {:.0f} secondes avant de "
-                            "recommencer votre requête.".format(throttler.wait()))
+                           "recommencer votre requête.".format(throttler.wait()))
             return HttpResponseRedirect(reverse('match-new'))
 
         with transaction.atomic():

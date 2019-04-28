@@ -22,7 +22,11 @@ def strip_ansi_codes(t):
 
 
 class Map(ExportModelOperationsMixin('map'), models.Model):
-    author = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='maps', verbose_name="auteur")
+    author = models.ForeignKey(settings.AUTH_USER_MODEL,
+                               related_name='maps',
+                               null=True,
+                               on_delete=models.CASCADE,
+                               verbose_name="auteur")
     name = models.CharField("nom", max_length=100)
     official = models.BooleanField("officielle", default=False)
     ts = models.DateTimeField("date", auto_now_add=True)
@@ -71,9 +75,14 @@ class Champion(ExportModelOperationsMixin('champion'), models.Model):
     )
 
     name = models.CharField("nom", max_length=100, unique=True)
-    author = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='champions', verbose_name="auteur")
-    status = models.CharField("statut", choices=STATUS_CHOICES,
-                              max_length=100, default="new")
+    author = models.ForeignKey(settings.AUTH_USER_MODEL,
+                               related_name='champions',
+                               on_delete=models.CASCADE,
+                               verbose_name="auteur")
+    status = models.CharField("statut",
+                              choices=STATUS_CHOICES,
+                              max_length=100,
+                              default="new")
     deleted = models.BooleanField("supprimé", default=False)
     comment = models.TextField("commentaire", blank=True)
     ts = models.DateTimeField("date", auto_now_add=True)
@@ -81,7 +90,8 @@ class Champion(ExportModelOperationsMixin('champion'), models.Model):
     @property
     def directory(self):
         if self.id is None:
-            raise RuntimeError("Champion must be saved before accessing its directory")
+            raise RuntimeError(
+                "Champion must be saved before accessing its directory")
         contest_dir = settings.STECHEC_ROOT / settings.STECHEC_CONTEST
         return contest_dir / "champions" / self.author.username / str(self.id)
 
@@ -149,10 +159,12 @@ class Champion(ExportModelOperationsMixin('champion'), models.Model):
 class Tournament(ExportModelOperationsMixin('tournament'), models.Model):
     name = models.CharField("nom", max_length=100)
     ts = models.DateTimeField("date", auto_now_add=True)
-    players = models.ManyToManyField(Champion, verbose_name="participants",
+    players = models.ManyToManyField(Champion,
+                                     verbose_name="participants",
                                      related_name='tournaments',
                                      through='TournamentPlayer')
-    maps = models.ManyToManyField(Map, verbose_name="maps",
+    maps = models.ManyToManyField(Map,
+                                  verbose_name="maps",
                                   related_name='tournaments',
                                   through='TournamentMap')
 
@@ -167,8 +179,12 @@ class Tournament(ExportModelOperationsMixin('tournament'), models.Model):
 
 class TournamentPlayer(ExportModelOperationsMixin('tournament_player'),
                        models.Model):
-    champion = models.ForeignKey(Champion, verbose_name="champion")
-    tournament = models.ForeignKey(Tournament, verbose_name="tournoi")
+    champion = models.ForeignKey(Champion,
+                                 on_delete=models.CASCADE,
+                                 verbose_name="champion")
+    tournament = models.ForeignKey(Tournament,
+                                   on_delete=models.CASCADE,
+                                   verbose_name="tournoi")
     score = models.IntegerField("score", default=0)
 
     def __str__(self):
@@ -180,9 +196,14 @@ class TournamentPlayer(ExportModelOperationsMixin('tournament_player'),
         verbose_name_plural = "participants à un tournoi"
 
 
-class TournamentMap(ExportModelOperationsMixin('tournament_map'), models.Model):
-    map = models.ForeignKey(Map, verbose_name="carte")
-    tournament = models.ForeignKey(Tournament, verbose_name="tournoi")
+class TournamentMap(ExportModelOperationsMixin('tournament_map'),
+                    models.Model):
+    map = models.ForeignKey(Map,
+                            on_delete=models.CASCADE,
+                            verbose_name="carte")
+    tournament = models.ForeignKey(Tournament,
+                                   on_delete=models.CASCADE,
+                                   verbose_name="tournoi")
 
     def __str__(self):
         return "%s pour tournoi %s" % (self.map, self.tournament)
@@ -203,16 +224,29 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
         ('done', 'Terminé'),
     )
 
-    author = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='matches', verbose_name="lancé par")
-    status = models.CharField("statut", choices=STATUS_CHOICES, max_length=100,
+    author = models.ForeignKey(settings.AUTH_USER_MODEL,
+                               related_name='matches',
+                               on_delete=models.CASCADE,
+                               verbose_name="lancé par")
+    status = models.CharField("statut",
+                              choices=STATUS_CHOICES,
+                              max_length=100,
                               default="creating")
-    tournament = models.ForeignKey(Tournament, verbose_name="tournoi",
-                                   related_name='matches', null=True, blank=True)
-    players = models.ManyToManyField(Champion, verbose_name="participants",
-                                     related_name='matches', through='MatchPlayer')
+    tournament = models.ForeignKey(Tournament,
+                                   related_name='matches',
+                                   null=True,
+                                   blank=True,
+                                   on_delete=models.CASCADE,
+                                   verbose_name="tournoi")
+    players = models.ManyToManyField(Champion,
+                                     verbose_name="participants",
+                                     related_name='matches',
+                                     through='MatchPlayer')
     ts = models.DateTimeField("date", default=timezone.now)
     options = models.CharField("options", max_length=500, default="{}")
-    file_options = models.CharField("file_options", max_length=500, default="{}")
+    file_options = models.CharField("file_options",
+                                    max_length=500,
+                                    default="{}")
 
     @property
     def directory(self):
@@ -263,7 +297,8 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
     @property
     def map(self):
         try:
-            map_id = int(self.file_options_dict.get('--map', '').split('/')[-1])
+            map_id = int(
+                self.file_options_dict.get('--map', '').split('/')[-1])
             return Map.objects.get(pk=map_id)
         except Exception:
             return None
@@ -291,8 +326,12 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
 
 
 class MatchPlayer(ExportModelOperationsMixin('match_player'), models.Model):
-    champion = models.ForeignKey(Champion, verbose_name="champion")
-    match = models.ForeignKey(Match, verbose_name="match")
+    champion = models.ForeignKey(Champion,
+                                 verbose_name="champion",
+                                 on_delete=models.CASCADE)
+    match = models.ForeignKey(Match,
+                              verbose_name="match",
+                              on_delete=models.CASCADE)
     score = models.IntegerField(default=0, verbose_name="score")
 
     @property
