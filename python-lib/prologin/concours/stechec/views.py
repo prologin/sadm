@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.contrib import messages
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db import transaction
 from django.db.models import Max, Min
 from django.http import (HttpResponseRedirect, HttpResponse,

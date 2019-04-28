@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
-from django.core.urlresolvers import reverse_lazy
+from django.urls import reverse_lazy
 from pathlib import Path
 from prologin.djangoconf import use_profile_config
 
