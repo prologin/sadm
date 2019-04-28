@@ -10,13 +10,12 @@ urlpatterns = [
     path('', (TemplateView.as_view(template_name='stechec/home.html')),
          name="home"),
     path('login/',
-         django.contrib.auth.views.LoginView.as_view(), {
-             'template_name': 'stechec/login.html',
-             'authentication_form': LoginForm
-         },
+         django.contrib.auth.views.LoginView.as_view(
+             template_name='stechec/login.html',
+             authentication_form=LoginForm),
          name="login"),
     path('logout/',
-         django.contrib.auth.views.LogoutView.as_view(), {'next_page': '/'},
+         django.contrib.auth.views.LogoutView.as_view(next_page='/'),
          name="logout"),
     path('ask-help/', views.AskForHelp.as_view(), name='ask-for-help'),
     path('ask-help/list/',
