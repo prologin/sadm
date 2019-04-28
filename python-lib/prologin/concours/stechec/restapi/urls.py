@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.conf.urls import url, include
+from django.urls import path, include
 from rest_framework import routers
 
 from prologin.concours.stechec.restapi import views
@@ -15,5 +15,5 @@ if settings.STECHEC_USE_MAPS:
 
 urlpatterns = [
     # Namespace is important so URLs don't conflict with non-API views
-    url(r'^', include(router.urls, namespace='v1')),
+    path('', include((router.urls, 'restapi'), namespace='v1')),
 ]

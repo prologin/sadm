@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse
 from django.db import transaction
 from django.db.models import Max, Min
@@ -40,20 +41,21 @@ class ChampionView(DetailView):
 
     def get(self, request, *args, **kwargs):
         match = self.get_object()
-        if (settings.STECHEC_FIGHT_ONLY_OWN_CHAMPIONS and not
-            self.request.user.is_staff) and match.author != request.user:
+        if (settings.STECHEC_FIGHT_ONLY_OWN_CHAMPIONS
+                and not self.request.user.is_staff
+            ) and match.author != request.user:
             return HttpResponseForbidden()
         return super().get(request, *args, **kwargs)
 
 
-class ChampionsListView(ListView):
-    context_object_name = "champions"
+class ChampionsListMixin:
+    context_object_name = 'champions'
     paginate_by = 50
-    template_name = "stechec/champions-list.html"
+    template_name = 'stechec/champions-list.html'
     title = "Tous les champions"
 
     def get_context_data(self, **kwargs):
-        context = super(ChampionsListView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['title'] = self.title
         context['user'] = self.request.user
         context['show_for_all'] = self.show_for_all
@@ -61,20 +63,21 @@ class ChampionsListView(ListView):
         return context
 
 
-class AllChampionsView(ChampionsListView):
-    queryset = models.Champion.objects.filter(deleted=False).select_related('author')
-    explanation_text = 'Voici la liste de tous les champions participant actuellement.'
+class AllChampionsView(ChampionsListMixin, ListView):
+    queryset = models.Champion.objects.filter(
+        deleted=False).select_related('author')
+    explanation_text = "Voici la liste de tous les champions participant actuellement."
     show_for_all = True
 
     def get(self, request, *args, **kwargs):
-        if (settings.STECHEC_FIGHT_ONLY_OWN_CHAMPIONS and not
-            self.request.user.is_staff):
+        if (settings.STECHEC_FIGHT_ONLY_OWN_CHAMPIONS
+                and not self.request.user.is_staff):
             return HttpResponseForbidden()
         return super().get(request, *args, **kwargs)
 
 
-class MyChampionsView(ChampionsListView):
-    explanation_text = 'Voici la liste de tous vos champions participant actuellement.'
+class MyChampionsView(LoginRequiredMixin, ChampionsListMixin, ListView):
+    explanation_text = "Voici la liste de tous vos champions participant actuellement."
     title = "Mes champions"
     show_for_all = False
 
@@ -83,20 +86,19 @@ class MyChampionsView(ChampionsListView):
         return models.Champion.objects.filter(deleted=False, author=user)
 
 
-class MatchesListView(ListView): # Abstract class!
-    context_object_name = "matches"
+class MatchesListMixin:
+    context_object_name = 'matches'
     paginate_by = 100
-    template_name = "stechec/matches-list.html"
+    template_name = 'stechec/matches-list.html'
     title = "Tous les matches"
 
     def get_context_data(self, **kwargs):
-        context = super(MatchesListView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['title'] = self.title
         context['user'] = self.request.user
         context['explanation_text'] = self.explanation_text
         context['show_creator'] = self.show_creator
         matches = []
-        map_cache = {}
         for m in context['matches']:
             if settings.STECHEC_USE_MAPS:
                 map = m.map
@@ -108,28 +110,28 @@ class MatchesListView(ListView): # Abstract class!
 
 
 class MatchView(DetailView):
-    context_object_name = "match"
-    template_name = "stechec/match-detail.html"
+    context_object_name = 'match'
+    template_name = 'stechec/match-detail.html'
 
     def get_queryset(self):
         queryset = models.Match.objects
-        if (settings.STECHEC_FIGHT_ONLY_OWN_CHAMPIONS and not
-            self.request.user.is_staff):
+        if (settings.STECHEC_FIGHT_ONLY_OWN_CHAMPIONS
+                and not self.request.user.is_staff):
             queryset = queryset.filter(author=self.request.user.id)
-        queryset = (queryset.annotate(Max('matchplayer__score'))
-                            .annotate(Min('matchplayer__id')))
+        queryset = (queryset.annotate(Max('matchplayer__score')).annotate(
+            Min('matchplayer__id')))
         return queryset
 
 
-class AllMatchesView(MatchesListView):
+class AllMatchesView(MatchesListMixin, ListView):
     queryset = models.Match.objects.all().select_related('author')
     explanation_text = "Voici la liste de tous les matches ayant été réalisés."
     show_creator = True
 
     def get_queryset(self):
         qs = models.Match.objects.all()
-        if (settings.STECHEC_FIGHT_ONLY_OWN_CHAMPIONS and not
-            self.request.user.is_staff):
+        if (settings.STECHEC_FIGHT_ONLY_OWN_CHAMPIONS
+                and not self.request.user.is_staff):
             qs = qs.filter(author=self.request.user.id)
         authors = self.request.GET.getlist('author')
         if authors:
@@ -142,11 +144,8 @@ class AllMatchesView(MatchesListView):
             qs = qs.filter(players__author__pk__in=champion_authors)
         return qs
 
-    def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
 
-
-class MyMatchesView(RedirectView):
+class MyMatchesView(LoginRequiredMixin, RedirectView):
     permanent = False
 
     def get_redirect_url(self, *args, **kwargs):
@@ -154,7 +153,7 @@ class MyMatchesView(RedirectView):
                                      self.request.user.pk)
 
 
-class MyChampionMatchesView(RedirectView):
+class MyChampionMatchesView(LoginRequiredMixin, RedirectView):
     permanent = False
 
     def get_redirect_url(self, *args, **kwargs):
@@ -163,29 +162,28 @@ class MyChampionMatchesView(RedirectView):
 
 
 class AllMapsView(ListView):
-    context_object_name = "maps"
+    context_object_name = 'maps'
     paginate_by = 100
-    template_name = "stechec/maps-list.html"
-    queryset = models.Map.objects.order_by('-official', '-id').select_related('author')
+    template_name = 'stechec/maps-list.html'
+    queryset = models.Map.objects.order_by('-official',
+                                           '-id').select_related('author')
 
 
 class MapView(DetailView):
-    context_object_name = "map"
-    template_name = "stechec/map-detail.html"
+    context_object_name = 'map'
+    template_name = 'stechec/map-detail.html'
     model = models.Map
 
 
-class NewChampionView(FormView):
+class NewChampionView(LoginRequiredMixin, FormView):
     form_class = forms.ChampionUploadForm
     template_name = 'stechec/champion-new.html'
 
     def form_valid(self, form):
-        champion = models.Champion(
-            name=form.cleaned_data['name'],
-            author=self.request.user,
-            status='new',
-            comment=form.cleaned_data['comment']
-        )
+        champion = models.Champion(name=form.cleaned_data['name'],
+                                   author=self.request.user,
+                                   status='new',
+                                   comment=form.cleaned_data['comment'])
         champion.save()
         # It's important to save() before sources =, as the latter needs the row id
         champion.sources = form.cleaned_data['tarball']
@@ -193,7 +191,7 @@ class NewChampionView(FormView):
         return HttpResponseRedirect(champion.get_absolute_url())
 
 
-class ConfirmDeleteChampion(DetailView):
+class ConfirmDeleteChampion(LoginRequiredMixin, DetailView):
     template_name = 'stechec/champion-delete.html'
     pk_url_kwarg = 'pk'
     model = models.Champion
@@ -207,11 +205,12 @@ class ConfirmDeleteChampion(DetailView):
         champion = self.get_object()
         champion.deleted = True
         champion.save()
-        messages.success(request, "Champion {} supprimé.".format(champion.name))
+        messages.success(request,
+                         "Champion {} supprimé.".format(champion.name))
         return HttpResponseRedirect(reverse('champions-mine'))
 
 
-class ChampionSources(SingleObjectMixin, View):
+class ChampionSources(LoginRequiredMixin, SingleObjectMixin, View):
     model = models.Champion
     pk_url_kwarg = 'pk'
 
@@ -219,13 +218,16 @@ class ChampionSources(SingleObjectMixin, View):
         champion = self.get_object()
         if not (request.user.is_staff or request.user == champion.author):
             return HttpResponseForbidden()
-        h = HttpResponse(champion.sources, content_type="application/stechec-dump")
-        h['Content-Disposition'] = 'attachment; filename=champion-%s.tgz' % self.kwargs[self.pk_url_kwarg]
+        h = HttpResponse(champion.sources,
+                         content_type="application/stechec-dump")
+        h['Content-Disposition'] = (
+            'attachment; filename=champion-{}.tgz'.format(
+                self.kwargs[self.pk_url_kwarg]))
         h['Content-Encoding'] = 'application/x-gzip'
         return h
 
 
-class NewMatchView(FormView):
+class NewMatchView(LoginRequiredMixin, FormView):
     form_class = forms.MatchCreationForm
     template_name = 'stechec/match-new.html'
 
@@ -237,35 +239,32 @@ class NewMatchView(FormView):
     def form_valid(self, form):
         throttler = CreateMatchUserThrottle()
         if not throttler.allow_request(self.request, self):
-            messages.error(self.request,
-                           "Vos requêtes sont trop rapprochées dans le temps. "
-                           "Merci de patienter environ {:.0f} secondes avant de "
-                           "recommencer votre requête.".format(throttler.wait()))
+            messages.error(
+                self.request,
+                "Vos requêtes sont trop rapprochées dans le temps. Merci de "
+                "patienter environ {:d} secondes avant de recommencer votre "
+                "requête.".format(throttler.wait()))
             return HttpResponseRedirect(reverse('match-new'))
 
         with transaction.atomic():
-            match = models.Match(
-                author=self.request.user,
-                status='creating',
-                tournament=None,
-                options=''
-            )
+            match = models.Match(author=self.request.user,
+                                 status='creating',
+                                 tournament=None,
+                                 options='')
             if settings.STECHEC_USE_MAPS:
                 match.map = form.cleaned_data['map'].path
             match.save()
 
             for i in range(1, settings.STECHEC_NPLAYERS + 1):
                 champ = form.cleaned_data['champion_%d' % i]
-                player = models.MatchPlayer(
-                    champion=champ,
-                    match=match
-                )
+                player = models.MatchPlayer(champion=champ, match=match)
                 player.save()
 
             match.status = 'new'
             match.save()
 
-        messages.success(self.request, "Le match #{} a été initié.".format(match.id))
+        messages.success(self.request,
+                         "Le match #{} a été initié.".format(match.id))
         return HttpResponseRedirect(match.get_absolute_url())
 
 
@@ -275,8 +274,9 @@ class MatchDumpView(SingleObjectMixin, View):
 
     def get(self, request, *args, **kwargs):
         match = self.get_object()
-        if (settings.STECHEC_FIGHT_ONLY_OWN_CHAMPIONS and not
-            self.request.user.is_staff) and match.author != request.user:
+        if (settings.STECHEC_FIGHT_ONLY_OWN_CHAMPIONS
+                and not self.request.user.is_staff
+            ) and match.author != request.user:
             return HttpResponseForbidden()
 
         dump = match.dump
@@ -284,22 +284,20 @@ class MatchDumpView(SingleObjectMixin, View):
             raise Http404()
 
         h = HttpResponse(dump, content_type="application/stechec-dump")
-        h['Content-Disposition'] = ('attachment; filename=dump-%s.json' %
-                                    self.kwargs[self.pk_url_kwarg])
+        h['Content-Disposition'] = ('attachment; filename=dump-{}.json'.format(
+            self.kwargs[self.pk_url_kwarg]))
         h['Content-Encoding'] = 'gzip'
         return h
 
 
-class NewMapView(FormView):
+class NewMapView(LoginRequiredMixin, FormView):
     form_class = forms.MapCreationForm
     template_name = 'stechec/map-new.html'
 
     def form_valid(self, form):
-        map = models.Map(
-            author=self.request.user,
-            name=form.cleaned_data['name'],
-            official=False
-        )
+        map = models.Map(author=self.request.user,
+                         name=form.cleaned_data['name'],
+                         official=False)
         map.save()
         map.contents = form.cleaned_data['contents']
         return HttpResponseRedirect(map.get_absolute_url())
@@ -351,10 +349,8 @@ class ReportBug(RedmineIssueView):
     subject = "[Remplacez ceci par un résumé court et explicite]"
     description = "\n\n".join([
         "*Où* est le problème (p. ex. adresse web, nom de la machine…) :",
-        "*Comment* reproduire :",
-        "Ce qui *devrait* se produire normalement :",
-        "Ce qui *se produit* dans les faits :",
-        ""
+        "*Comment* reproduire :", "Ce qui *devrait* se produire normalement :",
+        "Ce qui *se produit* dans les faits :", ""
     ])
 
 

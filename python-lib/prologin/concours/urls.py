@@ -1,4 +1,4 @@
-from django.conf.urls import include, url
+from django.urls import include, path
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
@@ -9,10 +9,10 @@ from prologin.djangoconf import set_admin_title
 set_admin_title(admin, "Concours")
 
 urlpatterns = [
-    url(r'^admin/', admin.site.urls),
-    url(r'^api/', prologin.concours.stechec.restapi.urls),
-    url(r'^', prologin.concours.stechec.urls),
-    url(r'', include('django_prometheus.urls')),
+    path('admin/', admin.site.urls),
+    path('api/', include(prologin.concours.stechec.restapi.urls)),
+    path('', include(prologin.concours.stechec.urls)),
+    path('', include('django_prometheus.urls')),
 ]
 
 urlpatterns += staticfiles_urlpatterns()
