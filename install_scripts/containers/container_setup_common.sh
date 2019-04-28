@@ -76,11 +76,11 @@ function container_start {
 }
 
 function container_run_simple {
-  machinectl -q shell $CONTAINER_NAME "$@" >/dev/null
+  systemd-run -M $CONTAINER_NAME --pipe "$@" >/dev/null
 }
 
 function container_run_simple_verbose {
-  machinectl -q shell $CONTAINER_NAME "$@"
+  systemd-run -M $CONTAINER_NAME --pipe "$@"
 }
 
 function container_run {
@@ -93,7 +93,7 @@ function container_run {
 
 function container_run_verbose {
   # PATH is configured for the python virtualenv
-  systemd-run -M $CONTAINER_NAME --wait --pty \
+  systemd-run -M $CONTAINER_NAME --wait --pipe \
     --property WorkingDirectory=/root/sadm \
     --setenv=PATH=/var/prologin/venv/bin:/usr/bin \
     "$@"
@@ -101,7 +101,7 @@ function container_run_verbose {
 
 function container_run_quiet {
   # PATH is configured for the python virtualenv
-  systemd-run --quiet -M $CONTAINER_NAME --wait --pty \
+  systemd-run --quiet -M $CONTAINER_NAME --wait --pipe \
     --property WorkingDirectory=/root/sadm \
     --setenv=PATH=/var/prologin/venv/bin:/usr/bin \
     "$@"
