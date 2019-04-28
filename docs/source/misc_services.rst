@@ -126,7 +126,7 @@ Create some dirs and fix permissions::
 
 Install the SSO plugin::
 
-  ( cd $PHOME/redmine/plugins && git clone https://Zopieux@bitbucket.org/Zopieux/redmine_sso_auth.git )
+  ( cd $PHOME/redmine/plugins && git clone https://github.com/prologin/redmine-sso-auth.git )
 
 Now it's time to install Redmine system configuration files. Ensure you are
 within the prologin virtualenv (``source /var/prologin/venv/bin/activate``), then::
@@ -158,7 +158,7 @@ configuration settings to change:
   - Disable lost password feature, account deletion and registration.
 - In http://redmine/settings/plugin/redmine_sso_auth
   - Enable SSO.
-  - Set environment variable to ``HTTP_REMOTE_USER``.
+  - If not already done, set environment variable to ``HTTP_X_SSO_USER``.
   - Set search method to username.
 - Configure a new project at http://redmine/projects/new
   The ``Identifiant`` **has to be ``prologin``** in order to vhosts to work.

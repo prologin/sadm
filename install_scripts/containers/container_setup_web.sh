@@ -163,7 +163,7 @@ chown -R redmine:http \$PHOME/redmine
 chmod -R o-rwx \$PHOME/redmine
 chmod -R 755 \$PHOME/redmine/{files,log,tmp,public/plugin_assets}
 
-( cd \$PHOME/redmine/plugins && git clone https://Zopieux@bitbucket.org/Zopieux/redmine_sso_auth.git )
+( cd \$PHOME/redmine/plugins && git clone https://github.com/prologin/redmine-sso-auth.git )
 
 cd /root/sadm
 python install.py redmine udbsync_redmine
