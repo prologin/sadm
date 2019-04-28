@@ -31,7 +31,7 @@ function main {
     udbsync_django@udb.service \
     udbsync_rootssh.service \
     presencesync.service \
-    presencesync_cacheserver.service \
+    presencesync_sso.service \
     firewall.service \
     presencesync_firewall.service; do
     test_service_is_enabled_active $service
