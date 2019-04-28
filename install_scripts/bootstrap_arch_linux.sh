@@ -14,7 +14,7 @@ SADM_TIMEZONE='Europe/Paris'
 # Arch Linux install
 ARCH_MIRROR=http://archlinux.mirrors.ovh.net/archlinux
 # Release used for bootstraping from a non-Arch Linux system
-ARCH_RELEASE_DATE=2018.06.01
+ARCH_RELEASE_DATE=2019.04.01
 # Mirror list to use in case we don't have access to pacstrap
 MIRRORLIST_URL="https://www.archlinux.org/mirrorlist/?country=FR&protocol=https&ip_version=4&ip_version=6&use_mirror_status=on"
 
@@ -63,7 +63,7 @@ systemd-machine-id-setup --root="$root_dir" --print
 # The actual Arch Linux setup starts here
 echo_status "Installing base Arch Linux"
 if test -e /etc/arch-release; then
-  pacstrap -c -d "$root_dir" base
+  pacstrap -c -d "$root_dir" --needed base
 else
   (
     cd /tmp
@@ -76,7 +76,8 @@ else
   systemd-nspawn --quiet --directory "$root_dir" /usr/bin/pacman-key --populate archlinux
 fi
 
-systemd-nspawn -D "$root_dir" /usr/bin/pacman -Syu --needed --noconfirm base vim openssh rxvt-unicode-terminfo
+systemd-nspawn -D "$root_dir" /usr/bin/pacman -Syu --needed --noconfirm \
+  base vim openssh rxvt-unicode-terminfo bind-tools
 
 echo_status "Configuring base system"
 echo_status "Setting timezone to $SADM_TIMEZONE"
