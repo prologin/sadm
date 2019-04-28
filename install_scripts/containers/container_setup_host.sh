@@ -3,6 +3,8 @@
 source ../common.sh
 source ./container_setup_config.sh
 
+this_script_must_be_run_as_root
+
 function container_setup_host {
   echo_status "Configure host for SADM containers"
 

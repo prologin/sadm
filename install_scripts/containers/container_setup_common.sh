@@ -126,7 +126,7 @@ function restore {
 	  container_stop
 
 	  if [ -d $CONTAINER_ROOT ]; then
-	    btrfs 2>/dev/null subvolume delete $CONTAINER_ROOT/var/lib/machines || true  # this can fail if we restored a snapshot
+	    btrfs 2>/dev/null subvolume delete $CONTAINER_ROOT/var/lib/portables || true  # this can fail if we restored a snapshot
 	    btrfs subvolume delete $CONTAINER_ROOT
 	  fi
 	  # restore the snapshot as read+write

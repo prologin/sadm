@@ -32,7 +32,8 @@ EOF
 function test_container_gw_network {
   echo '[>] Test gw container network... '
 
-  container_run_simple /usr/bin/ping -c 1 8.8.8.8
+  container_run_simple /usr/bin/ping -W 2 -c 1 8.8.8.8
+  container_run_simple /usr/bin/dig +timeout=2 +short prologin.org
 }
 
 function stage_setup_network {
@@ -91,7 +92,7 @@ function stage_setup_gw {
 function test_gw {
   echo '[>] Test gw install... '
 
-  #TODO
+  # TODO
 }
 
 function stage_setup_mdb {
@@ -299,15 +300,15 @@ function test_udb {
 
   echo '[-] Generate password sheet data for users'
   container_run_verbose /var/prologin/venv/bin/python /var/prologin/udb/manage.py \
-    pwdsheetdata --type=user | tee pwdsheet_users.txt
+    pwdsheetdata --type=user
 
   echo '[-] Generate password sheet data for orgas'
   container_run_verbose /var/prologin/venv/bin/python /var/prologin/udb/manage.py \
-    pwdsheetdata --type=orga | tee pwdsheet_orgas.txt
+    pwdsheetdata --type=orga
 
   echo '[-] Generate password sheet data for roots'
   container_run_verbose /var/prologin/venv/bin/python /var/prologin/udb/manage.py \
-    pwdsheetdata --type=root | tee pwdsheet_roots.txt
+    pwdsheetdata --type=root
 }
 
 function stage_add_users_to_udb {
@@ -349,7 +350,7 @@ EOF
 function test_users_in_udb {
   echo '[>] Test users in udb'
 
-  #TODO
+  # TODO
 }
 
 function stage_create_root_ssh_key {
@@ -380,7 +381,7 @@ function stage_add_ssh_key_to_udb {
 function test_ssh_key_udb {
   echo '[>] Test root@gw.prolo udb ssh fingerprint... '
 
-  #TODO
+  # TODO
 }
 
 function stage_udbsync {
@@ -504,7 +505,7 @@ function test_presencesync_firewall {
 
   test_service_is_enabled_active presencesync_firewall
 
-  #TODO
+  # TODO
 }
 
 function stage_hfsdb {
@@ -519,7 +520,7 @@ function stage_hfsdb {
 function test_hfsdb {
   echo '[>] Test hfsdb... '
 
-  #TODO
+  # TODO
 }
 
 
