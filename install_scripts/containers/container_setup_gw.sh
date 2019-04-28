@@ -4,6 +4,7 @@
 CONTAINER_HOSTNAME=gw
 GW_CONTAINER_NAME=mygw
 CONTAINER_NAME=$GW_CONTAINER_NAME
+TEST_NETBOOT_IFACE=prolopxe
 
 source ./container_setup_common.sh
 
@@ -457,17 +458,26 @@ function test_presencesync {
   # TODO more test
 }
 
-function stage_sso {
-  echo_status 'Install sso'
-
-  #TODO edit nginx.conf and enable SSO
-
-  container_snapshot $FUNCNAME
-}
-
 function test_sso {
-  echo '[>] Test sso... '
+  echo '[>] Test that SSO authenticates logged-in users... '
 
+  container_run /var/prologin/venv/bin/python /var/prologin/mdb/manage.py \
+    addmachine --hostname localhost1 --mac 11:22:33:44:55:99 \
+      --ip 127.0.0.1 --rfs 0 --hfs 0 --mtype service --room pasteur \
+      --aliases localhost2
+
+  container_run_quiet /var/prologin/venv/bin/python \
+    -m prologin.devtool.fakepresence nathalie localhost1 &
+
+  echo 'Waiting for SSO to propagate...'
+  pid=$! ; sleep 12 ; kill $pid
+
+  if container_run_verbose /usr/bin/curl -vs -o /dev/null http://mdb/ 2>&1 | grep -Fi 'X-SSO-User: nathalie'; then
+    echo_ok "PASS"
+  else
+    echo_ko "FAIL"
+    return 1
+  fi
 }
 
 function stage_firewall {
@@ -601,7 +611,6 @@ run test_presencesync
 run stage_presencesync_sso
 run test_presencesync_sso
 
-run stage_sso
 run test_sso
 
 run stage_firewall

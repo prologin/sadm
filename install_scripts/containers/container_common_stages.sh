@@ -187,7 +187,9 @@ function test_presencesync_sso {
   echo '[>] Test presencesync SSO... '
 
   test_service_is_enabled_active presencesync_sso
-  if container_run_verbose /usr/bin/curl -vs -o /dev/null http://mdb/ | grep -Fi 'X-SSO-Backend-Status: working'; then
+  sleep 3
+
+  if container_run_verbose /usr/bin/curl -vs -o /dev/null http://mdb/ 2>&1 | grep -Fi 'X-SSO-Backend-Status: working'; then
     echo_ok "PASS"
   else
     echo_ko "FAIL"
