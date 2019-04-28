@@ -239,9 +239,57 @@ function stage_netboot {
   container_snapshot $FUNCNAME
 }
 
+function test_netboot_cleanup {
+  sudo ip link set $TEST_NETBOOT_IFACE down
+  sudo brctl delif vz-$NETWORK_ZONE $TEST_NETBOOT_IFACE
+  sudo ip link delete $TEST_NETBOOT_IFACE
+}
+
+function test_netboot_trap {
+  echo_ko 'FAIL'
+  test_netboot_cleanup
+}
+
 function test_netboot {
   echo '[>] Test netboot... '
-  #TODO
+
+  trap test_netboot_trap INT
+  trap test_netboot_trap ERR
+
+  ( test_netboot_cleanup || true )
+  # Add a tap to bridge for use by qemu
+  sudo ip tuntap add dev $TEST_NETBOOT_IFACE mode tap user $USER
+  sudo brctl addif vz-$NETWORK_ZONE $TEST_NETBOOT_IFACE
+  sudo ip link set $TEST_NETBOOT_IFACE up
+
+  echo 'Booting QEMU with PXE and attempting interactive registration...'
+  echo '  (you can connect to VNC :42 to watch the screen)'
+
+  QEMUCMDLINE="qemu-system-x86_64 -m 512 -boot n -vnc :42 -nographic \
+    -option-rom /usr/share/qemu/pxe-rtl8139.rom \
+    -net nic -net tap,ifname=$TEST_NETBOOT_IFACE,script=no,downscript=no" \
+    python - <<'EOS'
+import os, pexpect
+q = pexpect.spawn(os.getenv('QEMUCMDLINE'), timeout=8)
+q.expect('iPXE')
+q.expect('prologin.kpxe')
+q.expect('http://netboot/bootstrap', timeout=30)
+q.expect('Prologin netboot environment')
+q.send('\x1b[B\n')  # down arrow + return: 2nd menu "register without LLDP"
+q.expect('Hostname'); q.send('newmachine\n')
+q.expect('RFS'); q.send('0\n')
+q.expect('HFS'); q.send('0\n')
+q.expect('pasteur'); q.send('\n')
+q.expect('Contestant'); q.send('\n')
+q.expect('Summary'); q.expect('correct?'); q.send('\n')
+q.expect('register')
+q.expect('reboot')
+q.terminate()
+q.wait()
+EOS
+
+  echo_ok 'PASS'
+  test_netboot_cleanup
 }
 
 function stage_tftpd {
@@ -578,14 +626,14 @@ run test_mdbdns
 run stage_setup_mdbdhcp
 run test_mdbdhcp
 
-run stage_netboot
-run test_netboot
-
 run stage_tftpd
 run test_tftpd
 
 run stage_ipxe
 run test_ipxe
+
+run stage_netboot
+run test_netboot
 
 run stage_udb
 run test_udb
