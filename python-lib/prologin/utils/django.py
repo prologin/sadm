@@ -32,3 +32,19 @@ def add_warning_to_django_auth_user_model_name():
     User = get_user_model()
     User._meta.verbose_name += warning
     User._meta.verbose_name_plural += warning
+
+
+def default_initial_auth_groups(apps):
+    """
+    Create Organizer and root groups for Django contrib.auth app.
+    To be called in a Django migration.
+    """
+    Group = apps.get_model('auth', 'Group')
+    Permission = apps.get_model('auth', 'Permission')
+
+    orga = Group.objects.create(name="Organizer")
+    orga.permissions.set(Permission.objects.filter(
+        codename__in=['change_user']))
+
+    root = Group.objects.create(name="root")
+    root.permissions.set(Permission.objects.all())

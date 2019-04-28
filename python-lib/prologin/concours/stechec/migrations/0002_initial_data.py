@@ -1,19 +1,10 @@
-from __future__ import unicode_literals
-
 from django.db import migrations
+
+from prologin.utils.django import default_initial_auth_groups
 
 
 def initial_data(apps, schema_editor):
-    Group = apps.get_model('auth', 'Group')
-    Permission = apps.get_model('auth', 'Permission')
-
-    g = Group(name="Organizer", pk=1)
-    g.save()
-    g.permissions = Permission.objects.filter(codename__in=['change_user'])
-
-    g = Group(name="root", pk=2)
-    g.save()
-    g.permissions = Permission.objects.all()
+    default_initial_auth_groups(apps)
 
 
 class Migration(migrations.Migration):
