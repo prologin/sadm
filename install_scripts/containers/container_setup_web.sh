@@ -67,7 +67,7 @@ function stage_setup_udbsync_rootssh {
 }
 
 function stage_setup_concours {
-  echo_status "Setup udbsync_rootssh"
+  echo_status "Setup concours"
 
   container_run /var/prologin/venv/bin/python /root/sadm/install.py concours
   container_run /usr/bin/systemctl enable --now concours
@@ -90,6 +90,30 @@ function test_concours {
   test_service_is_enabled_active udbsync_django@concours
 
   test_url http://concours/
+}
+
+function stage_setup_homepage {
+  echo_status "Setup homepage"
+
+  container_run /var/prologin/venv/bin/python /root/sadm/install.py homepage
+  container_run /usr/bin/systemctl enable --now homepage
+  container_run /usr/bin/systemctl enable --now udbsync_django@homepage
+
+  container_run /usr/bin/systemctl reload nginx
+
+  # Give homepage some time to start
+  sleep 3
+
+  container_snapshot $FUNCNAME
+}
+
+function test_homepage {
+  echo "[>] Test homepage..."
+
+  test_service_is_enabled_active homepage
+  test_service_is_enabled_active udbsync_django@homepage
+
+  test_url http://home/
 }
 
 function stage_setup_masternode {
@@ -229,6 +253,9 @@ run test_postgresql
 
 run stage_setup_concours
 run test_concours
+
+run stage_setup_homepage
+run test_homepage
 
 run stage_setup_masternode
 run test_masternode
