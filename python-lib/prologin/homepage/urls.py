@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2013 Pierre Bourdon <pierre.bourdon@prologin.org>
 # Copyright (c) 2013 Association Prologin <info@prologin.org>
 #
@@ -15,17 +14,16 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
-from django.conf.urls import include, url
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from django.urls import include, path
+
 import prologin.homepage.views
 
-admin.autodiscover()
-
 urlpatterns = [
-    url(r'^$', prologin.homepage.views.home, name='home'),
-    url(r'^admin/', include(admin.site.urls)),
-    url(r'', include('django_prometheus.urls')),
+    path('', prologin.homepage.views.HomeView.as_view(), name='home'),
+    path('admin/', admin.site.urls),
+    path('', include('django_prometheus.urls')),
 ]
 
 urlpatterns += staticfiles_urlpatterns()

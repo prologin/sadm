@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2013 Pierre Bourdon <pierre.bourdon@prologin.org>
 # Copyright (c) 2013 Association Prologin <info@prologin.org>
 #
@@ -18,17 +17,23 @@
 from django.db.models import Q
 from django.conf import settings
 from django.utils import timezone
-from django.shortcuts import render_to_response
-from prologin.homepage.models import Link
+from django.views.generic.list import ListView
 import datetime
 
+from prologin.homepage import models
 
-def home(request):
-    links = Link.objects.filter(Q(contest_only=False)
-                                | Q(contest_only=settings.CONTEST_MODE))
-    links = links.order_by('display_order', 'name')
-    target_date = timezone.make_aware(datetime.datetime.strptime(
-        settings.COUNTDOWN_TO, "%Y-%m-%d %H:%M:%S"))
-    target_date = target_date.isoformat()
-    return render_to_response('home.html', {'links': links,
-                                            'target_date': target_date})
+
+class HomeView(ListView):
+    template_name = 'home.html'
+    context_object_name = 'links'
+    queryset = (models.Link.objects.filter(
+        Q(contest_only=False)
+        | Q(contest_only=settings.CONTEST_MODE)).order_by(
+            'display_order', 'name'))
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(object_list=object_list, **kwargs)
+        dt = datetime.datetime.strptime(settings.COUNTDOWN_TO,
+                                        "%Y-%m-%d %H:%M:%S")
+        context['target_date'] = timezone.make_aware(dt).isoformat()
+        return context
