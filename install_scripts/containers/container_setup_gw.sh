@@ -241,7 +241,7 @@ function stage_netboot {
 
 function test_netboot_cleanup {
   sudo ip link set $TEST_NETBOOT_IFACE down
-  sudo brctl delif vz-$NETWORK_ZONE $TEST_NETBOOT_IFACE
+  sudo ip link set $TEST_NETBOOT_IFACE nomaster
   sudo ip link delete $TEST_NETBOOT_IFACE
 }
 
@@ -259,7 +259,7 @@ function test_netboot {
   ( test_netboot_cleanup || true )
   # Add a tap to bridge for use by qemu
   sudo ip tuntap add dev $TEST_NETBOOT_IFACE mode tap user $USER
-  sudo brctl addif vz-$NETWORK_ZONE $TEST_NETBOOT_IFACE
+  sudo ip link set $TEST_NETBOOT_IFACE master vz-$NETWORK_ZONE
   sudo ip link set $TEST_NETBOOT_IFACE up
 
   echo 'Booting QEMU with PXE and attempting interactive registration...'
