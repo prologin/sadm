@@ -15,7 +15,7 @@ Setup
 
 To make a good monitoring system, mix the following ingredients, in that order:
 
-1. ``boostrap_arch_linux.sh``
+1. ``bootstrap_arch_linux.sh``
 2. ``setup_monitoring.sh``
 3. ``python install.py prometheus``
 4. ``systemctl enable --now prometheus``

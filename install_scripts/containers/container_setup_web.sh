@@ -221,7 +221,7 @@ fi
 # "container" script
 run container_stop
 run stage_setup_container
-run stage_boostrap_arch_linux
+run stage_bootstrap_arch_linux
 run container_start
 
 run stage_add_to_mdb
