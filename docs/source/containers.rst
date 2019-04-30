@@ -52,6 +52,24 @@ Overview
 This guides starts by discussing the virtual network setup, then we build and
 start the systems.
 
+Networkd in your base system
+----------------------------
+
+The container setup requires systemd-networkd to be running on your system.
+That said, you might not want it to be managing your main network interfaces.
+
+If you want to tell systemd-networkd to not manage your other interfaces, you
+can run this command::
+
+    cat >/etc/systemd/network/00-ignore-all.network <<EOF
+    [Match]
+    Name=!vz*
+    Driver=bridge
+
+    [Link]
+    Unmanaged=yes
+    EOF
+
 Automated container setup
 -------------------------
 
@@ -70,8 +88,8 @@ Requirements:
   will run without that but you will not have the ability to restore
   intermediate snapshots of the install. Note that if you don't want to use a
   btrfs volume you will need to modify
-  ``install_scripts/container_setup_config.sh`` to replace ``USE_BTRFS=true``
-  with ``USE_BTRFS=false``.
+  ``install_scripts/containers/container_setup_config.sh`` to replace
+  ``USE_BTRFS=true`` with ``USE_BTRFS=false``.
 
 To start, run the host setup script, you are strongly advised to check its
 content beforehand, as it does some substantial changes to your system setup::
