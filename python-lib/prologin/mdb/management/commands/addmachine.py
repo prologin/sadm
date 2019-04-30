@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2013 Pierre Bourdon <pierre.bourdon@prologin.org>
 # Copyright (c) 2013 Association Prologin <info@prologin.org>
 #
@@ -19,6 +18,7 @@ import time
 
 from django.core.management.base import BaseCommand, CommandError
 from prologin.mdb.models import Machine
+
 
 class Command(BaseCommand):
 

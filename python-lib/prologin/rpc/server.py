@@ -19,9 +19,9 @@ import logging
 import sys
 import traceback
 
+import prologin.timeauth
 import prologin.web
-
-from . import monitoring
+from prologin.rpc import monitoring
 
 
 class MethodError(Exception):

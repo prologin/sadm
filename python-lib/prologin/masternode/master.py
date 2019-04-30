@@ -240,7 +240,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             if opts_json:
                 try:
                     opts = json.loads(opts_json)
-                except (TypeError, ValueError) as e:
+                except (TypeError, ValueError):
                     logging.warning('cannot decode the custom options json,'
                                     'assuming it is empty', exc_info=1)
 
@@ -248,7 +248,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             if file_opts_json:
                 try:
                     file_opts_paths = json.loads(file_opts_json)
-                except (TypeError, ValueError) as e:
+                except (TypeError, ValueError):
                     logging.warning('cannot decode the custom options json,'
                                     'assuming it is empty', exc_info=1)
             for k, path in file_opts_paths.items():

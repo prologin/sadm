@@ -2,7 +2,6 @@
 
 import asyncio
 import logging
-import functools
 import prologin.config
 import prologin.log
 import prologin.mdb.client
@@ -11,7 +10,6 @@ import prologin.presencesync.client
 import prologin.udb.client
 import prologin.udbsync.client
 import subprocess
-import threading
 
 CFG = prologin.config.load('presencesync_firewall')
 

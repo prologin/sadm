@@ -16,19 +16,19 @@ import aiohttp
 import json
 import prologin.timeauth
 import socket
-import urllib.request
 import logging
-
-from contextlib import closing
 from urllib.parse import urljoin
+
 
 class BaseError(Exception):
     """Base class for all exceptions here."""
     pass
 
+
 class InternalError(BaseError):
     """Raised when there is a protocol failure somewhere."""
     pass
+
 
 class RemoteError(BaseError):
     """Raised when the remote procedure raised an error."""

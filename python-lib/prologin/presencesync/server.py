@@ -287,7 +287,7 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
         `hostname`, sending an update message if needed.  Check for expired
         logins first.
         """
-        self.remove_and_publish_expired(self)
+        self.remove_and_publish_expired()
         self.update_backlog(login, hostname)
 
 
@@ -358,7 +358,7 @@ class SyncServer(prologin.synchronisation.Server):
             # Try to send a message, forever and ever and ever.
             try:
                 conn.remove_expired()
-            except Exception as e:
+            except Exception:
                 logging.exception(
                     'Expired removing thread: error while sending a message to'
                     ' the PresenceSync server, retrying in 2s'

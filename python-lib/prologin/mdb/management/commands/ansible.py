@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 Rémi Audebert <remi.audebert@prologin.org>
 #
 # Prologin-SADM is free software: you can redistribute it and/or modify
@@ -23,6 +22,7 @@ References:
 """
 
 import json
+
 from django.core.management.base import BaseCommand
 
 from prologin.mdb.models import Machine
@@ -33,13 +33,13 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('--list', action='store_true',
-                help='display list of hosts')
+                            help='display list of hosts')
 
     def handle(self, *args, **kwargs):
-        ret = { k: { 'hosts': [],
-                     'vars': { 'ansible_python_interpreter': 'python2',
-                               'remote_tmp': '/tmp/.ansible/tmp' } }
-                for k in ('orga', 'user', 'service') }
+        ret = {k: {'hosts': [],
+                   'vars': {'ansible_python_interpreter': 'python2',
+                            'remote_tmp': '/tmp/.ansible/tmp'}}
+               for k in ('orga', 'user', 'service')}
         # If this field is not present in the --list output ansible will iterate
         # very slowly over all the hosts and call this script to get their
         # hostvars. See https://github.com/ansible/ansible/issues/9291

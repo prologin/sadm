@@ -45,7 +45,7 @@ class User(ExportModelOperationsMixin('user'), models.Model):
 
     @property
     def realname(self):
-        return self.firstname + ' ' + self.lastname
+        return '{} {}'.format(self.firstname, self.lastname)
 
     def __str__(self):
         return self.login

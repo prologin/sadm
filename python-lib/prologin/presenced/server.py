@@ -20,12 +20,12 @@ and transmits login requests from pam_presenced.
 
 import json
 import logging
-import os
 import prologin.config
 import prologin.log
 import prologin.presenced.client
 import prologin.presencesync.client
 import prologin.synchronisation
+import prologin.tornadauth
 import prologin.web
 import socket
 import subprocess
@@ -129,7 +129,7 @@ class PresencedServer(prologin.web.TornadoApp):
             # Try to send a message, forever and ever and ever.
             try:
                 conn.send_heartbeat()
-            except Exception as e:
+            except Exception:
                 logging.exception(
                     'Heartbeat thread: error while sending a message to'
                     ' the Presenced server, retrying in 2s'

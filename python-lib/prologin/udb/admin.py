@@ -15,7 +15,6 @@
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 from django.contrib import admin
-from django.contrib.auth import get_user_model
 
 from prologin.udb import models
 

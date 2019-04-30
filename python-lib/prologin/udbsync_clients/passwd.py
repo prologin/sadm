@@ -154,13 +154,11 @@ def callback(root_path, users, updates_metadata):
     # Reset prologin groups.
     for name, gid in PROLOGIN_GROUPS.items():
         try:
-            group = groups[name]
+            groups[name].members.clear()
         except KeyError:
             # If it does not exist, create it.
             # TODO: check that there is no existing group with the same GID.
             groups[name] = Group(name, 'x', gid, set())
-        else:
-            groups[name].members.clear()
 
     # Complete with users handled by Prologin.
     days_since_epoch = (

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # This file is part of Prologin-SADM.
 #
 # Copyright (c) 2015 Rémi Audebert <remi.audebert@prologin.org>
@@ -24,6 +23,7 @@ presencesync_login_failed = Counter(
     'Count of failed login',
     labelnames=('reason', 'user')
 )
+
 
 def monitoring_start():
     start_http_server(9040)

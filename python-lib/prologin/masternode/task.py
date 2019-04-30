@@ -79,7 +79,6 @@ class CompilationTask(Task):
 
     async def execute(self, master, worker):
         super().execute()
-        ctgz = ''
         with open(self.champ_path, 'rb') as f:
             ctgz = b64encode(f.read()).decode()
         await worker.rpc.compile_champion(self.user,
@@ -100,7 +99,6 @@ class MatchTask(Task):
 
         for (cid, mpid, user) in players:
             cpath = champion_compiled_path(config, user, cid)
-            ctgz = ''
             with open(cpath, 'rb') as f:
                 ctgz = b64encode(f.read()).decode()
             self.players[mpid] = (cid, ctgz)

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2013 Association Prologin <info@prologin.org>
 #
 # Prologin-SADM is free software: you can redistribute it and/or modify
@@ -16,15 +15,16 @@
 
 """Presenced client library: provide a function to request a login."""
 
-import json
 import logging
 import prologin.config
 import prologin.webapi
 import pwd
 
+
 def is_prologin_uid(uid):
     """Return if `uid` belongs to a user handled by Prologin."""
     return 10000 <= uid < 20000
+
 
 def is_prologin_user(user):
     """Return if `user` (a username or an UID) is handled by Prologin.

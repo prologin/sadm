@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- encoding: utf-8 -*-
 
 import asyncio
 import contextlib
@@ -51,7 +50,6 @@ class RPCServer(prologin.rpc.server.BaseRPCApp):
     @prologin.rpc.remote_method(auth_required=False)
     async def public_hello(self):
         return 'hello'
-
 
 
 URL = 'http://127.0.0.1:42545'

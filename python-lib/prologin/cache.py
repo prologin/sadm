@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2013 Pierre Bourdon <pierre.bourdon@prologin.org>
 # Copyright (c) 2013 Association Prologin <info@prologin.org>
 #
@@ -28,9 +27,11 @@ Does not work with kwargs (TODO: add frozendict).
 import functools
 import time
 
+
 def for_(seconds):
     def decorator(func):
         cache = {}
+
         @functools.wraps(func)
         def wrapper(*args):
             if args in cache:
@@ -42,5 +43,7 @@ def for_(seconds):
             val = func(*args)
             cache[args] = (time.time(), val)
             return val
+
         return wrapper
+
     return decorator

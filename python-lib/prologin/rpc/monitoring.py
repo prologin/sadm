@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # This file is part of Prologin-SADM.
 #
 # Copyright (c) 2015 Rémi Audebert <remi.audebert@prologin.org>
@@ -18,7 +17,7 @@
 
 from functools import wraps
 
-from prometheus_client import start_http_server, Summary
+from prometheus_client import Summary
 
 
 rpc_call_in = Summary(

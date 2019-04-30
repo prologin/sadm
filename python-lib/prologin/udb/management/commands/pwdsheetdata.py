@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2013 Pierre Bourdon <pierre.bourdon@prologin.org>
 # Copyright (c) 2013 Association Prologin <info@prologin.org>
 #
@@ -17,12 +16,11 @@
 
 # Exports the data required to print password sheets for users.
 
-from django.core.management import BaseCommand, CommandError
+from django.core.management import BaseCommand
 from prologin.udb.models import User
 
 
 class Command(BaseCommand):
-
     def add_arguments(self, parser):
         parser.add_argument('--type', default='user',
                             help='User type (user/orga/root)')

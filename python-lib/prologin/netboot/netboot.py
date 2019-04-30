@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2013 Pierre Bourdon <pierre.bourdon@prologin.org>
 # Copyright (c) 2013 Association Prologin <info@prologin.org>
 #
@@ -27,7 +26,6 @@ import os
 import prologin.config
 import prologin.log
 import prologin.mdb.client
-import tornado.ioloop
 import tornado.web
 import tornado.wsgi
 
@@ -62,7 +60,7 @@ reboot
 
 
 class BootHandler(tornado.web.RequestHandler):
-    '''Send the initrd and kernel urls to registered machines.'''
+    """Send the initrd and kernel urls to registered machines."""
     def get(self, mac):
         self.content_type = 'text/plain; charset=utf-8'
         # TODO(delroth): This is blocking - not perfect... should be fast
@@ -90,7 +88,7 @@ class BootHandler(tornado.web.RequestHandler):
 
 
 class BootstrapHandler(tornado.web.RequestHandler):
-    '''Send the base IPXE script with switches names for LLDP.
+    """Send the base IPXE script with switches names for LLDP.
 
        This is the expected format (sw_name_X is the corresponding switch
        chassis ID):
@@ -104,7 +102,7 @@ class BootstrapHandler(tornado.web.RequestHandler):
        set sw_rfs_1  1
        set sw_hfs_1  1
        set sw_room_1 alt
-    '''
+    """
 
     def get(self):
         self.content_type = 'text/plain; charset=utf-8'
@@ -131,7 +129,8 @@ class BootstrapHandler(tornado.web.RequestHandler):
 
 
 class RegisterHandler(tornado.web.RequestHandler):
-    '''Register an alien machine in mdb.'''
+    """Register an alien machine in mdb."""
+
     def get(self):
         self.content_type = 'text/plain; charset=utf-8'
         try:
