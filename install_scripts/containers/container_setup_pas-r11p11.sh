@@ -47,7 +47,7 @@ DeviceAllow=/dev/nbd0 rwm
 EOF
 
   echo_status 'Fake ndb device'
-  cat >/var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot/etc/systemd/system/mknod-dev-nbd0.service <<EOF
+  cat >/var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot_staging/etc/systemd/system/mknod-dev-nbd0.service <<EOF
 [Service]
 Type=oneshot
 ExecStart=/usr/bin/mknod /dev/nbd0 b 43 0
@@ -55,12 +55,12 @@ ExecStart=/usr/bin/mknod /dev/nbd0 b 43 0
 [Install]
 WantedBy=default.target
 EOF
-  systemctl enable mknod-dev-nbd0.service --root /var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot/
+  systemctl enable mknod-dev-nbd0.service --root /var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot_staging/
 
   echo_status 'Fake PXE network configuration'
 
   # Create custom configuration
-  cat >/var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot/etc/systemd/network/10-$CONTAINER_HOSTNAME.network <<EOF
+  cat >/var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot_staging/etc/systemd/network/10-$CONTAINER_HOSTNAME.network <<EOF
 [Match]
 Host=$CONTAINER_HOSTNAME.prolo
 Name=host0
@@ -70,7 +70,7 @@ Address=$CONTAINER_MAIN_IP/23
 Gateway=192.168.1.254
 EOF
 
-  systemctl enable systemd-networkd --root /var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot/
+  systemctl enable systemd-networkd --root /var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot_staging/
 }
 
 function stage_user_login {
