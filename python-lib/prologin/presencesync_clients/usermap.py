@@ -10,26 +10,24 @@ import prologin.udbsync.client
 import subprocess
 import xml.etree.ElementTree as ET
 
-"""Generate a map of connected contestants
+"""
+Generate a map of physical workstations along with:
+ * registration status: is it known to mdb?
+ * state: does it reply to pings?
+ * user session: is there an open graphical session on it?
 
-The map generation uses two inputs:
+One has to manually craft an SVG map that will be parsed and altered with 
+up-to-date data. All <text> objects will be considered workstation. They have to
+respect the following format:
+ * the <text> content has to be exactly two lines ie. two <tspan>
+ * the first <tspan> must be the exact machine hostname (e.g. "pas-r01p02") 
+ * the second <tspan> can be whatever you want; it will be replaced by the 
+   connected username.
 
-    - the PresenceSync client API, to get information about connected users and
-      their location
-    - an single SVG pattern map of rooms
-
-To create such a map, just draw what you want on an SVG image and put where you
-want <text> objects with *exactly* two lines: the first must be the exact
-machine name (e.g. "pas-r01p02") and the second can be whatever you want (it
-will be replaced by the login of the connected contestants.
-
-Look at the provided "example.svg" SVG pattern map for a fully working
-example.
+Look at the provided "usermap.svg" input map for a fully working example.
 """
 
-
 CFG = prologin.config.load('presencesync_usermap')
-
 
 G_TAG = '{http://www.w3.org/2000/svg}g'
 RECT_TAG = '{http://www.w3.org/2000/svg}rect'
@@ -63,8 +61,6 @@ def fill_rect(rect, status=True, registered=False, faulty=False):
     """
     Fill the rectangle of the machine in the usermap.
     """
-
-    style = rect.get('style', '')
 
     if not registered:
         rect.set('fill', '#a9d0f5')
@@ -153,9 +149,9 @@ def update_map():
         with open(CFG['map_pattern'], 'rb') as map_pattern:
             with open(CFG['output'], 'wb') as output:
                 generate(map_pattern, output)
-    except IOError as e:
+    except IOError:
         logging.exception('Cannot open files')
-    except ET.ParseError as e:
+    except ET.ParseError:
         logging.exception('Cannot parse the map pattern')
 
 
@@ -167,54 +163,64 @@ async def ping_machine(hostname):
     return hostname, (await proc.wait() == 0)
 
 
-async def update_ping(loop):
+async def update_ping():
+    loop = asyncio.get_event_loop()
+
+    async def distributed_ping():
+        tasks = [ping_machine(m['hostname']) for m in mdb_machines.values()]
+        if not tasks:
+            return
+
+        done, _ = await asyncio.wait(tasks)
+
+        for future in done:
+            hostname, status = future.result()
+            yield hostname, status
+
     while True:
         await asyncio.sleep(5)
 
         try:
-            tasks = [ping_machine(m['hostname']) for m in mdb_machines.values()]
-            if not tasks:
-                continue
-
-            done, _ = await asyncio.wait(tasks)
-
-            new_ping_status = {}
-            for future in done:
-                hostname, status = future.result()
-                new_ping_status[hostname] = status
+            new_ping_status = {
+                hostname: status
+                async for hostname, status in distributed_ping()}
 
             if new_ping_status != ping_status:
                 ping_status.clear()
                 ping_status.update(new_ping_status)
                 loop.call_soon_threadsafe(update_map)
-        except:
-            logging.exception('An error while pinging the machines')
+        except asyncio.CancelledError:
+            return
+        except Exception:
+            logging.exception("Error while pinging the machines")
 
 
 async def poll_all():
-    udbsync_client = prologin.udbsync.client.connect()
-    mdbsync_client = prologin.mdbsync.client.connect()
-    presencesync_client = prologin.presencesync.client.connect()
-
     loop = asyncio.get_event_loop()
 
-    tasks = []
+    udbsync_client = prologin.udbsync.client.aio_connect()
+    mdbsync_client = prologin.mdbsync.client.aio_connect()
+    presencesync_client = prologin.presencesync.client.aio_connect()
 
-    def add_task(client, dict_to_update):
-        def cb(values, meta):
-            dict_to_update.clear()
-            dict_to_update.update(values)
-            loop.call_soon_threadsafe(update_map)
-        tasks.append(loop.run_in_executor(None, client.poll_updates, cb))
+    def sync_dict(client, dict_to_update):
+        async def coroutine():
+            async for state, meta in client.poll_updates():
+                dict_to_update.clear()
+                dict_to_update.update(state)
+                loop.call_soon_threadsafe(update_map)
 
-    add_task(mdbsync_client, mdb_machines)
-    add_task(udbsync_client, udb_users)
-    add_task(presencesync_client, presence_data)
-    tasks.append(update_ping(loop))
+        return asyncio.create_task(coroutine())
 
-    await asyncio.wait(tasks)
+    tasks = [
+        sync_dict(mdbsync_client, mdb_machines),
+        sync_dict(udbsync_client, udb_users),
+        sync_dict(presencesync_client, presence_data),
+        asyncio.create_task(update_ping()),
+    ]
+    await asyncio.wait(tasks, return_when=asyncio.FIRST_EXCEPTION)
+    [task.cancel() for task in tasks]
 
 
 if __name__ == '__main__':
     prologin.log.setup_logging('presencesync_usermap')
-    asyncio.get_event_loop().run_until_complete(poll_all())
+    asyncio.run(poll_all())
