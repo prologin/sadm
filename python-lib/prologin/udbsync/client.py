@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2013 Association Prologin <info@prologin.org>
 #
 # Prologin-SADM is free software: you can redistribute it and/or modify
@@ -22,21 +21,28 @@ The sync clients use Tornado for async long polling.
 """
 
 import logging
+
 import prologin.config
 import prologin.synchronisation
 
 SUB_CFG = prologin.config.load('udbsync-sub')
 
 
-def connect(pub=False):
-    if pub:
+def _connect_args(publish):
+    if publish:
         pub_secret = prologin.config.load('udbsync-pub')['shared_secret']
     else:
         pub_secret = None
     url = SUB_CFG['url']
     sub_secret = SUB_CFG['shared_secret']
-    logging.info('Creating UDBSync connection object: url=%s, can_pub=%s',
+    logging.info('Creating UDBSync connection object: url=%s, publish=%s',
                  url, pub_secret is not None)
-    return prologin.synchronisation.Client(
-        url, 'login', pub_secret, sub_secret
-    )
+    return url, 'login', pub_secret, sub_secret
+
+
+def connect(publish=False):
+    return prologin.synchronisation.Client(*_connect_args(publish))
+
+
+def aio_connect(publish=False):
+    return prologin.synchronisation.AsyncClient(*_connect_args(publish))
