@@ -135,6 +135,17 @@ function test_install_rfs {
   fi
 }
 
+function stage_commit_rfs_staging {
+  echo_status "Commit exported RFS"
+
+  container_run /root/sadm/rfs/commit_staging.sh $CONTAINER_HOSTNAME
+}
+
+function test_commit_rfs_staging {
+  echo "[>] Test staging exported RFS"
+  # TODO
+}
+
 function stage_install_hfs {
   echo_status "Install hfs"
 
@@ -211,6 +222,9 @@ run test_rfs_nfs_packages_base
 # Skipping as not necessary for basic tests
 skip stage_install_rfs_nfs_packages_extra
 skip test_rfs_nfs_packages_extra
+
+run stage_commit_rfs_staging
+run test_commit_rfs_staging
 
 # HFS
 
