@@ -12,7 +12,7 @@ function this_script_must_be_run_as_root {
 
 # Logging functions
 function echo_status {
- # blue foreground, then default foreground
+  # blue foreground, then default foreground
   echo -e "\e[34m[+] $*\e[39m"
 }
 
