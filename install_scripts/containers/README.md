@@ -2,6 +2,8 @@ SADM setup in containers.
 
 Entry points:
 
+* `container_setup_host.sh` - Configure the host system to run containers. Run
+  this first.
 * `container_setup_gw.sh` - Setup a full gw.prolo in a container
 * `container_setup_rhfs.sh` - Setup a full rhfsX.prolo in a container
 * `container_setup_web.sh` - Setup a full web.prolo in a container
