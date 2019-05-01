@@ -100,7 +100,7 @@ arch-chroot "$root_dir" /usr/bin/locale-gen
 echo_status "Setting root password"
 root_password=$(cat $root_password_file)
 if [[ -n $root_password ]]; then
-  echo "root:$root_password" | chpasswd --root "$root_dir"
+  echo "root:$root_password" | arch-chroot "$root_dir" /usr/bin/chpasswd
 else
   echo_status "Warning: root password file empty, not setting any root password"
 fi
