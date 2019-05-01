@@ -34,6 +34,19 @@ function container_script_header {
 EOF
 }
 
+function container_remove_btrfs_root {
+  # 1) Delete nested subvolumes in container
+  # When started on a btrfs rootfs, systemd creates subvolumes on these
+  # directories, which we have to delete before deleting the container root
+  # subvolume.
+  for subdir in machines portables; do
+    # This can fail if we restored a snapshot.
+    btrfs 2>/dev/null subvolume delete $CONTAINER_ROOT/var/lib/$subdir || true
+  done
+  # 2) Delete root container subvolume
+  btrfs subvolume delete $CONTAINER_ROOT
+}
+
 # Container and snapshots functions
 function container_snapshot {
   if $USE_BTRFS; then
@@ -126,17 +139,10 @@ function restore {
     container_stop
 
     if [ -d $CONTAINER_ROOT ]; then
-      # Remove existing container root:
-      # 1) Delete nested subvolumes in container
-      # When started on a btrfs rootfs, systemd creates subvolumes on these
-      # directories, which we have to delete before deleting the container root
-      # subvolume.
-      btrfs 2>/dev/null subvolume delete $CONTAINER_ROOT/var/lib/machines || true  # this can fail if we restored a snapshot
-      btrfs 2>/dev/null subvolume delete $CONTAINER_ROOT/var/lib/portables || true  # this can fail if we restored a snapshot
-      # 2) Delete root container subvolume
-      btrfs subvolume delete $CONTAINER_ROOT
+      container_remove_btrfs_root
     fi
-    # restore the snapshot as read+write
+
+    # Restore the snapshot as read+write
     btrfs subvolume snapshot $snapshot_root $CONTAINER_ROOT
 
     container_start

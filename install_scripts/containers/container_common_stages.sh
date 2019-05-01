@@ -5,8 +5,7 @@ function stage_setup_container {
   echo "[-] Create $CONTAINER_ROOT"
   if $USE_BTRFS; then
     if [ -d $CONTAINER_ROOT ]; then
-      btrfs 2>/dev/null subvolume delete $CONTAINER_ROOT/var/lib/machines || true  # this can fail if we restored a snapshot
-      btrfs subvolume delete $CONTAINER_ROOT
+      container_remove_btrfs_root
     fi
     btrfs subvolume create $CONTAINER_ROOT
   else
