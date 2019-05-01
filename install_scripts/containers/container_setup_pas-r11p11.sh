@@ -7,34 +7,14 @@ CONTAINER_MAIN_IP=192.168.0.11
 MDB_MACHINE_TYPE=user
 
 GW_CONTAINER_NAME=mygw
-RHFS_CONTAINER_NAME=myrhfs0
+RHFS_ID=0
+RHFS_CONTAINER_NAME=myrhfs$RHFS_ID
 
 TEST_USER=aproviste
 
 source ./container_setup_common.sh
 
 container_script_header
-
-function stage_setup_rootfs {
-  echo_status 'Fake NFS-root using mount -o bind'
-
-  echo '[-] Configure tmpfs that should be configured by initrd hook'
-  cat >/var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot_staging/etc/fstab <<EOF
-# Userland implementation of rfs/initcpio/hooks/prologin
-tmpfs /home		tmpfs defaults 0 0
-tmpfs /var/log		tmpfs defaults 0 0
-tmpfs /var/tmp		tmpfs defaults 0 0
-tmpfs /var/spool/mail	tmpfs defaults 0 0
-tmpfs /var/lib/isolate	tmpfs defaults 0 0
-tmpfs /var/lib/sddm	tmpfs defaults 0 0
-EOF
-
-  mkdir -p $CONTAINER_ROOT
-  if ! findmnt $CONTAINER_ROOT; then
-    mount -o bind,ro /var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot_staging \
-       $CONTAINER_ROOT
-  fi
-}
 
 function stage_container_setup {
   echo_status 'Allow /dev/nbd0 to be created in the container'
@@ -73,6 +53,36 @@ EOF
   systemctl enable systemd-networkd --root /var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot_staging/
 }
 
+function stage_setup_rootfs {
+  echo_status 'Fake NFS-root using mount -o bind'
+
+  echo '[-] Configure tmpfs that should be configured by initrd hook'
+  cat >/var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot_staging/etc/fstab <<EOF
+# Userland implementation of rfs/initcpio/hooks/prologin
+tmpfs /home		tmpfs defaults 0 0
+tmpfs /var/log		tmpfs defaults 0 0
+tmpfs /var/tmp		tmpfs defaults 0 0
+tmpfs /var/spool/mail	tmpfs defaults 0 0
+tmpfs /var/lib/isolate	tmpfs defaults 0 0
+tmpfs /var/lib/sddm	tmpfs defaults 0 0
+EOF
+
+  (
+    echo '[-] Commit staging nfs in rfs'
+    CONTAINER_NAME=$RHFS_CONTAINER_NAME
+    CONTAINER_ROOT=/var/lib/machines/$CONTAINER_NAME
+
+    container_run /root/sadm/rfs/commit_staging.sh rfs$RHFS_ID
+  )
+
+  mkdir -p $CONTAINER_ROOT
+  if ! findmnt $CONTAINER_ROOT; then
+    mount -o bind,ro /var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot_ro \
+       $CONTAINER_ROOT
+  fi
+
+}
+
 function stage_user_login {
   echo_status 'Login user'
 
@@ -88,8 +98,8 @@ function test_user_login {
 # Container script
 
 run container_stop
-run stage_setup_rootfs
 run stage_container_setup
+run stage_setup_rootfs
 run container_start
 
 run stage_add_to_mdb

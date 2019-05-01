@@ -223,13 +223,15 @@ run test_rfs_nfs_packages_base
 skip stage_install_rfs_nfs_packages_extra
 skip test_rfs_nfs_packages_extra
 
-run stage_commit_rfs_staging
-run test_commit_rfs_staging
-
 # HFS
 
 run stage_install_hfs
 run test_install_hfs
+
+# Finishing touches
+
+run stage_commit_rfs_staging
+run test_commit_rfs_staging
 
 container_run_verbose /root/sadm/checks/check_rhfs.sh
 
