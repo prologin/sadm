@@ -122,18 +122,24 @@ function restore {
   snapshot_root=${CONTAINER_ROOT}_$snapshot_name
 
   if $USE_BTRFS; then
-	  echo_status "Snapshot restore of $snapshot_root"
-	  container_stop
+    echo_status "Snapshot restore of $snapshot_root"
+    container_stop
 
-	  if [ -d $CONTAINER_ROOT ]; then
-	    btrfs 2>/dev/null subvolume delete $CONTAINER_ROOT/var/lib/machines || true  # this can fail if we restored a snapshot
-	    btrfs 2>/dev/null subvolume delete $CONTAINER_ROOT/var/lib/portables || true  # this can fail if we restored a snapshot
-	    btrfs subvolume delete $CONTAINER_ROOT
-	  fi
-	  # restore the snapshot as read+write
-	  btrfs subvolume snapshot $snapshot_root $CONTAINER_ROOT
+    if [ -d $CONTAINER_ROOT ]; then
+      # Remove existing container root:
+      # 1) Delete nested subvolumes in container
+      # When started on a btrfs rootfs, systemd creates subvolumes on these
+      # directories, which we have to delete before deleting the container root
+      # subvolume.
+      btrfs 2>/dev/null subvolume delete $CONTAINER_ROOT/var/lib/machines || true  # this can fail if we restored a snapshot
+      btrfs 2>/dev/null subvolume delete $CONTAINER_ROOT/var/lib/portables || true  # this can fail if we restored a snapshot
+      # 2) Delete root container subvolume
+      btrfs subvolume delete $CONTAINER_ROOT
+    fi
+    # restore the snapshot as read+write
+    btrfs subvolume snapshot $snapshot_root $CONTAINER_ROOT
 
-	  container_start
+    container_start
   fi
 }
 
