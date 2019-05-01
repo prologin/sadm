@@ -25,7 +25,7 @@ Driver=bridge
 
 [Network]
 # Default to using a /24 prefix, giving up to 253 addresses per virtual network.
-Address=0.0.0.0/24
+Address=10.0.0.1/24
 LinkLocalAddressing=yes
 IPForward=yes
 IPMasquerade=yes
