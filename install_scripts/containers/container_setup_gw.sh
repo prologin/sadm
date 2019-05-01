@@ -268,7 +268,7 @@ function test_netboot {
   QEMUCMDLINE="qemu-system-x86_64 -m 512 -boot n -vnc :42 -nographic \
     -option-rom /usr/share/qemu/pxe-rtl8139.rom \
     -net nic -net tap,ifname=$TEST_NETBOOT_IFACE,script=no,downscript=no" \
-    python - <<'EOS'
+    python - <<'EOF'
 import os, pexpect
 q = pexpect.spawn(os.getenv('QEMUCMDLINE'), timeout=8)
 q.expect('iPXE')
@@ -286,7 +286,7 @@ q.expect('register')
 q.expect('reboot')
 q.terminate()
 q.wait()
-EOS
+EOF
 
   echo_ok 'PASS'
   test_netboot_cleanup
