@@ -18,6 +18,13 @@ function stage_bootstrap_arch_linux {
 
   ../bootstrap_arch_linux.sh $CONTAINER_ROOT ${CONTAINER_HOSTNAME}.prolo <(echo $ROOT_PASSWORD)
 
+  # asking for host key verification breaks non-interactive scripts, disable it
+  mkdir -p $CONTAINER_ROOT/root/.ssh
+  cat >>$CONTAINER_ROOT/root/.ssh/config <<EOF
+Host *
+    StrictHostKeyChecking no
+EOF
+
   container_snapshot $FUNCNAME
 }
 
@@ -117,8 +124,11 @@ function stage_allow_root_ssh {
   echo_status 'Copy ssh credentials for root'
 
   mkdir -p $CONTAINER_ROOT/root/.ssh
-  cat /var/lib/machines/$GW_CONTAINER_NAME/root/.ssh/id_rsa.pub \
+  # root@gw.prolo can ssh to container, even if udbsync_rootssh is broken
+  cat $CONTAINER_ROOT_GW/root/.ssh/id_rsa.pub \
     >> $CONTAINER_ROOT/root/.ssh/authorized_keys
+  # root@container can ssh to gw.prolo
+  cp $CONTAINER_ROOT_GW/root/.ssh/id_rsa $CONTAINER_ROOT/root/.ssh/id_rsa
 }
 
 function stage_setup_nginx {
