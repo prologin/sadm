@@ -7,18 +7,19 @@ function stage_setup_container {
     if [ -d $CONTAINER_ROOT ]; then
       container_remove_btrfs_root
     fi
-    btrfs subvolume create $CONTAINER_ROOT
+    btrfs subvolume snapshot $ARCH_LINUX_BASE_ROOT $CONTAINER_ROOT
   else
-    mkdir -p $CONTAINER_ROOT
+    rsync -Pha $ARCH_LINUX_BASE_ROOT $CONTAINER_ROOT
   fi
 }
 
 function stage_bootstrap_arch_linux {
   echo_status "Bootstrap Arch Linux"
 
-  ../bootstrap_arch_linux.sh $CONTAINER_ROOT ${CONTAINER_HOSTNAME}.prolo <(echo $ROOT_PASSWORD)
+  # Set hostname
+  echo $CONTAINER_HOSTNAME >$CONTAINER_ROOT/etc/hostname
 
-  # asking for host key verification breaks non-interactive scripts, disable it
+  # Asking for host key verification breaks non-interactive scripts, disable it
   mkdir -p $CONTAINER_ROOT/root/.ssh
   cat >>$CONTAINER_ROOT/root/.ssh/config <<EOF
 Host *

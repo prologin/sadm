@@ -52,4 +52,16 @@ EOF
   fi
 }
 
+function container_bootstrap_arch_linux {
+  echo_status "Preparing an Arch Linux install"
+
+  if $USE_BTRFS; then
+    btrfs subvolume create $ARCH_LINUX_BASE_ROOT
+  fi
+
+  ../bootstrap_arch_linux.sh $ARCH_LINUX_BASE_ROOT fake_hostname <(echo $ROOT_PASSWORD)
+}
+
 container_setup_host
+
+container_bootstrap_arch_linux
