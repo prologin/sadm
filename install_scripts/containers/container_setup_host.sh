@@ -1,7 +1,9 @@
 #!/bin/bash
 
-source ../common.sh
-source ./container_setup_config.sh
+CONTAINER_NAME=arch_linux_base
+GW_CONTAINER_NAME=dummy
+
+source ./container_setup_common.sh
 
 this_script_must_be_run_as_root
 
@@ -47,6 +49,9 @@ function container_bootstrap_arch_linux {
   echo_status "Preparing an Arch Linux install"
 
   if $USE_BTRFS; then
+    if [ -d $ARCH_LINUX_BASE_ROOT ]; then
+      container_remove_btrfs_root
+    fi
     btrfs subvolume create $ARCH_LINUX_BASE_ROOT
   fi
 

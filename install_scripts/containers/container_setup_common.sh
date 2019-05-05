@@ -22,6 +22,7 @@ MDB_HFS_ID=${MDB_HFS_ID:-0}
 MDB_ALIASES=${MDB_ALIASES:-$CONTAINER_HOSTNAME}
 
 # Other container-related variables
+ARCH_LINUX_BASE_ROOT=/var/lib/machines/arch_linux_base
 CONTAINER_ROOT=/var/lib/machines/$CONTAINER_NAME
 CONTAINER_ROOT_GW=/var/lib/machines/$GW_CONTAINER_NAME
 
