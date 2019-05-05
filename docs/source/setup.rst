@@ -319,6 +319,11 @@ temporary workaround, we're going to add ``mdb`` to our ``/etc/hosts`` file::
 
   echo '127.0.0.1 mdb' >> /etc/hosts
 
+Similarly, our nginx configuration depends on the ``sso`` host to resolve,
+without what nginx will refuse to start. We have to define it statically too::
+
+  echo '127.0.0.1 sso' >> /etc/hosts
+
 Then install ``mdb``. Fortunately, a very simple script is provided with the
 application in order to setup what it requires::
 
@@ -401,7 +406,7 @@ so that DNS configuration can be generated::
   cd /var/prologin/mdb
   python manage.py addmachine --hostname gw --mac 11:22:33:44:55:66 \
       --ip 192.168.1.254 --rfs 0 --hfs 0 --mtype service --room pasteur \
-      --aliases mdb,mdbsync,ns,netboot,udb,udbsync,presencesync,ntp
+      --aliases mdb,mdbsync,ns,netboot,udb,udbsync,presencesync,ntp,sso
 
 Once this is done, ``mdbdns`` should have automagically regenerated the DNS
 configuration::
@@ -409,8 +414,8 @@ configuration::
   host mdb.prolo 127.0.0.1
   # Should return 192.168.1.254
 
-You can now remove the two lines related to ``mdb`` and ``mdbsync`` from your
-``/etc/hosts`` file.
+You can now remove the lines related to ``mdb``, ``mdbsync`` and ``sso`` from
+your ``/etc/hosts`` file.
 
 mdbdhcp
 ~~~~~~~

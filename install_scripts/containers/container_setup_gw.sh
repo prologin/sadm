@@ -87,6 +87,11 @@ function stage_setup_gw {
 
   container_run /root/sadm/install_scripts/setup_gw.sh
 
+  # nginx will check that the sso upstream exist, but the DNS
+  # configuration is not setup yet, therefore it fails to start.
+  # Define the host name statically to allow nginx to start.
+  echo '127.0.0.1 sso' >> $CONTAINER_ROOT/etc/hosts
+
   container_snapshot $FUNCNAME
 }
 
@@ -158,7 +163,7 @@ function stage_setup_mdbdns {
   container_run /var/prologin/venv/bin/python /var/prologin/mdb/manage.py \
     addmachine --hostname gw --mac 11:22:33:44:55:66 \
       --ip 192.168.1.254 --rfs 0 --hfs 0 --mtype service --room pasteur \
-      --aliases mdb,mdbsync,ns,netboot,udb,udbsync,presencesync,ntp
+      --aliases mdb,mdbsync,ns,netboot,udb,udbsync,presencesync,ntp,sso
 
   # Delay for the generated files to be written
   sleep .5
