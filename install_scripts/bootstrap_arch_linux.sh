@@ -124,12 +124,7 @@ LLDP=yes
 EmitLLDP=customer-bridge" > "$root_dir/etc/systemd/network/50-dhcp.network"
 
 echo_status "Copying resolv.conf"
-if [[ $hostname == gw.prolo ]]; then
-  resolvconf_file=../etc/resolv.conf.gw
-else
-  resolvconf_file=../etc/resolv.conf.servers_users
-fi
-cp -v $resolvconf_file "$root_dir/etc/resolv.conf"
+cp -v ../etc/resolv.conf "$root_dir/etc/resolv.conf"
 
 echo_status "Enabling base services"
 systemctl --root "$root_dir" enable sshd systemd-timesyncd systemd-networkd
