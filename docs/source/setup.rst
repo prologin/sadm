@@ -410,11 +410,7 @@ configuration::
   # Should return 192.168.1.254
 
 You can now remove the two lines related to ``mdb`` and ``mdbsync`` from your
-``/etc/hosts`` file. You can now set the content of ``/etc/resolv.conf`` to::
-
-  # /etc/resolv.conf
-  search prolo
-  nameserver 127.0.0.1
+``/etc/hosts`` file.
 
 mdbdhcp
 ~~~~~~~

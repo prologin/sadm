@@ -172,10 +172,6 @@ function stage_setup_mdbdns {
   echo '[-] Reset /etc/hosts'
   sed -i '/# End of file/q' $CONTAINER_ROOT/etc/hosts
 
-  echo '[-] Set gw as its own DNS resolver'
-  sed -i 's/#nameserver 127.0.0.1/nameserver 127.0.0.1/' $CONTAINER_ROOT/etc/resolv.conf
-  sed -i 's/nameserver 8.8.8.8/#nameserver 8.8.8.8/' $CONTAINER_ROOT/etc/resolv.conf
-
   echo '[-] Restart services to refresh the libc resolver'
   container_run /usr/bin/systemctl restart mdb
 
