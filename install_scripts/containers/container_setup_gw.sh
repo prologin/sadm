@@ -593,6 +593,7 @@ run stage_setup_sadm
 run test_sadm
 
 run stage_setup_gw
+run test_gw
 
 run stage_setup_libprologin
 run test_libprologin
@@ -600,9 +601,6 @@ run test_libprologin
 run stage_setup_network
 run test_network
 run test_internet
-
-run stage_setup_gw
-run test_gw
 
 run stage_setup_postgresql
 run test_postgresql
