@@ -76,10 +76,9 @@ EOF
   )
 
   mkdir -p $CONTAINER_ROOT
-  if ! findmnt $CONTAINER_ROOT; then
-    mount -o bind,ro /var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot_ro \
-       $CONTAINER_ROOT
-  fi
+  umount -q $CONTAINER_ROOT
+  mount -o bind,ro /var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot_ro \
+     $CONTAINER_ROOT
 
 }
 
