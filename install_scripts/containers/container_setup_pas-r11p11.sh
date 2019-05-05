@@ -46,7 +46,8 @@ EOF
 
   echo_status 'Fake PXE network configuration'
 
-  # Create custom configuration
+  # Create static network configuration. Normally IP should be configured
+  # through DHCP as part of the boot process, which is not done here.
   cat >/var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot_staging/etc/systemd/network/10-$CONTAINER_HOSTNAME.network <<EOF
 [Match]
 Host=$CONTAINER_HOSTNAME.prolo
@@ -59,11 +60,10 @@ EOF
 
   systemctl enable systemd-networkd --root /var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot_staging/
 
+  echo '[-] Commit staging nfs in rfs'
   (
-    echo '[-] Commit staging nfs in rfs'
     CONTAINER_NAME=$RHFS_CONTAINER_NAME
     CONTAINER_ROOT=/var/lib/machines/$CONTAINER_NAME
-
     container_run /root/sadm/rfs/commit_staging.sh rfs$RHFS_ID
   )
 }
@@ -84,9 +84,21 @@ function stage_user_login {
 }
 
 function test_user_login {
-  echo '[>] Test rfs install... '
+  echo '[>] Test user login... '
 
   container_run /usr/bin/findmnt /home/$TEST_USER
+}
+
+function stage_user_logout {
+  echo_status 'Logout user'
+
+  container_run /usr/bin/pamtester login $TEST_USER close_session
+}
+
+function test_user_logout {
+  echo '[>] Test user logout... '
+
+  # TODO
 }
 
 # Container script
@@ -108,5 +120,8 @@ run test_user_login
 # User should have access to internet, until the 'user' group is removed from
 # firewall whitelist.
 run test_internet
+
+run stage_user_logout
+run test_user_logout
 
 echo_status "$CONTAINER_HOSTNAME setup: success!"
