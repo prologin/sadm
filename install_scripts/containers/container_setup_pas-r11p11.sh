@@ -19,23 +19,30 @@ container_script_header
 function stage_container_setup {
   echo_status 'Allow /dev/nbd0 to be created in the container'
 
+  echo '[-] Create specific .nspawn file'
+  cat >/etc/systemd/nspawn/$CONTAINER_NAME.nspawn <<EOF
+[Network]
+Zone=prolo
+
+[Files]
+PrivateUsersChown=false
+ReadOnly=true
+Bind=/dev/nbd0
+
+TemporaryFileSystem=/home
+TemporaryFileSystem=/var/log
+TemporaryFileSystem=/var/tmp
+TemporaryFileSystem=/var/spool/mail
+TemporaryFileSystem=/var/lib/isolate
+TemporaryFileSystem=/var/lib/sddm
+EOF
+
   echo '[-] Configure container for nbd usage'
   mkdir -p /etc/systemd/system/systemd-nspawn@$CONTAINER_NAME.service.d
   cat >/etc/systemd/system/systemd-nspawn@$CONTAINER_NAME.service.d/override.conf <<EOF
 [Service]
 DeviceAllow=/dev/nbd0 rwm
 EOF
-
-  echo_status 'Fake ndb device'
-  cat >/var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot_staging/etc/systemd/system/mknod-dev-nbd0.service <<EOF
-[Service]
-Type=oneshot
-ExecStart=/usr/bin/mknod /dev/nbd0 b 43 0
-
-[Install]
-WantedBy=default.target
-EOF
-  systemctl enable mknod-dev-nbd0.service --root /var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot_staging/
 
   echo_status 'Fake PXE network configuration'
 
@@ -51,21 +58,6 @@ Gateway=192.168.1.254
 EOF
 
   systemctl enable systemd-networkd --root /var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot_staging/
-}
-
-function stage_setup_rootfs {
-  echo_status 'Fake NFS-root using mount -o bind'
-
-  echo '[-] Configure tmpfs that should be configured by initrd hook'
-  cat >/var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot_staging/etc/fstab <<EOF
-# Userland implementation of rfs/initcpio/hooks/prologin
-tmpfs /home		tmpfs defaults 0 0
-tmpfs /var/log		tmpfs defaults 0 0
-tmpfs /var/tmp		tmpfs defaults 0 0
-tmpfs /var/spool/mail	tmpfs defaults 0 0
-tmpfs /var/lib/isolate	tmpfs defaults 0 0
-tmpfs /var/lib/sddm	tmpfs defaults 0 0
-EOF
 
   (
     echo '[-] Commit staging nfs in rfs'
@@ -74,12 +66,15 @@ EOF
 
     container_run /root/sadm/rfs/commit_staging.sh rfs$RHFS_ID
   )
+}
+
+function stage_setup_rootfs {
+  echo_status 'Fake NFS-root using mount -o bind,ro'
 
   mkdir -p $CONTAINER_ROOT
   umount -q $CONTAINER_ROOT
   mount -o bind,ro /var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot_ro \
      $CONTAINER_ROOT
-
 }
 
 function stage_user_login {

@@ -8,15 +8,6 @@ this_script_must_be_run_as_root
 function container_setup_host {
   echo_status "Configure host for SADM containers"
 
-  echo "[-] Override systemd-nspawn configuration with --network-zone=$NETWORK_ZONE"
-  cat >/etc/systemd/system/systemd-nspawn@.service <<EOF
-.include /usr/lib/systemd/system/systemd-nspawn@.service
-
-[Service]
-ExecStart=
-ExecStart=/usr/bin/systemd-nspawn --quiet --keep-unit --boot --link-journal=try-guest --network-zone=$NETWORK_ZONE --settings=override --machine=%i
-EOF
-
   echo "[-] Disable DHCP server for our network zone"
   cat >/etc/systemd/network/80-container-vz-prolo.network <<EOF
 [Match]
