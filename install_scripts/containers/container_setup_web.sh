@@ -60,10 +60,12 @@ function stage_setup_udbsync_rootssh {
   container_snapshot $FUNCNAME
 }
 
-function stage_setup_udbsync_rootssh {
+function test_udbsync_rootssh {
   echo '[>] Test udbsync_rootssh... '
 
-  #TODO
+  test_service_is_enabled_active udbsync_rootssh
+
+  #TODO more tests
 }
 
 function stage_setup_concours {
@@ -239,6 +241,9 @@ run stage_setup_web
 
 run stage_setup_libprologin
 run test_libprologin
+
+run stage_setup_udbsync_rootssh
+run test_udbsync_rootssh
 
 run stage_setup_network
 run test_network
