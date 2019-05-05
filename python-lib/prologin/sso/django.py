@@ -6,7 +6,7 @@ class SSOMiddleware(RemoteUserMiddleware):
     """
     Custom RemoteUserMiddleware. As nginx acts as a proxy to gunicorn, we can't
     pass environment variables, we have to use HTTP headers, hence
-    *HTTP*_REMOTE_USER.
+    *HTTP*_X_SSO_USER.
     """
     header = "HTTP_X_SSO_USER"
 
