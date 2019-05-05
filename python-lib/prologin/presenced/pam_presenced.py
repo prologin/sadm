@@ -131,11 +131,12 @@ elif PAM_TYPE == 'close_session':
             stderr=sys.stderr)
 
         # And finally stop the nbd client
-        subprocess.check_call(
-            ['/usr/sbin/nbd-client', '-d',
-             get_block_device(login)],
-            stdout=sys.stderr,
-            stderr=sys.stderr)
+        subprocess.check_call([
+            '/usr/sbin/nbd-client', '-d', '-nonetlink',
+            get_block_device(login)
+        ],
+                              stdout=sys.stderr,
+                              stderr=sys.stderr)
     sys.exit(0)
 
 else:
