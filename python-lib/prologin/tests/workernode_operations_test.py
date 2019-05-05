@@ -78,8 +78,8 @@ champion.so: prologin.c
 list-run-reqs:
 \t@echo champion.so
 ''')
-            makefiles_p.chmod(755)
-            makefile.chmod(644)
+            makefiles_p.chmod(0o755)
+            makefile.chmod(0o644)
             config = {'path': {'makefiles': makefiles},
                       'timeout': {'compile': 400}}
             loop = asyncio.get_event_loop()
