@@ -42,7 +42,7 @@ this_script_must_be_run_as_root
 
 # Get command line args
 if [ ! -d $1 ]; then
-    echo >&2 "Error: '$root_dir': no such directory"
+    echo >&2 "Error: '$1': no such directory"
     exit 1
 fi
 
