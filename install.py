@@ -774,6 +774,7 @@ def install_presencesync_usermap():
 def install_presencesync_sso():
     requires('libprologin')
 
+    install_nginx_service('sso')
     install_systemd_unit('presencesync_sso')
 
 
