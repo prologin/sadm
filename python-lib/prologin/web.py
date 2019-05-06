@@ -39,7 +39,6 @@ useful pages:
     Exports monitoring values for outside use.
 """
 
-import asyncio
 import aiohttp.web
 import aiohttp_wsgi
 import sys
@@ -62,9 +61,11 @@ def exceptions_catched(func):
             )
     return wrapper
 
+
 @exceptions_catched
 def ping_handler():
-    return { 'Content-Type': 'text/plain' }, "pong"
+    return {'Content-Type': 'text/plain'}, "pong"
+
 
 @exceptions_catched
 def threads_handler():
@@ -73,12 +74,14 @@ def threads_handler():
     for i, frame in frames.items():
         s = 'Thread 0x%x:\n%s\n' % (i, ''.join(traceback.format_stack(frame)))
         text.append(s)
-    return { 'Content-Type': 'text/plain' }, ''.join(text)
+    return {'Content-Type': 'text/plain'}, ''.join(text)
+
 
 HANDLED_URLS = {
     '/__ping': ping_handler,
     '/__threads': threads_handler,
 }
+
 
 class WsgiApp:
     def __init__(self, app, app_name):
@@ -134,18 +137,16 @@ class TornadoApp(tornado.web.Application):
 
 
 class AiohttpApp:
-    def __init__(self, routes, app_name, loop=None, **kwargs):
+    def __init__(self, routes, app_name, **kwargs):
         self.app = aiohttp.web.Application(**kwargs)
         self.app_name = app_name
         # TODO(seirl): integrate with HANDLED_URLS
         for route in routes:
             self.app.router.add_route(*route)
-        self.loop = loop or asyncio.get_event_loop()
 
     def add_wsgi_app(self, wsgi_app):
         wsgi_handler = aiohttp_wsgi.WSGIHandler(wsgi_app)
         self.app.router.add_route('*', '/{path_info:.*}', wsgi_handler)
 
     def run(self, **kwargs):
-        aiohttp.web.run_app(self.app, loop=self.loop,
-                            print=lambda *_: None, **kwargs)
+        aiohttp.web.run_app(self.app, print=lambda *_: None, **kwargs)
