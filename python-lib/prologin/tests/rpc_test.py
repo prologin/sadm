@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
 
-import asyncio
+import aiohttp.test_utils
 import contextlib
 import logging
-import socket
-import threading
-import time
-import unittest
+import pytest
 
 import prologin.rpc.client
 import prologin.rpc.server
@@ -52,131 +49,141 @@ class RPCServer(prologin.rpc.server.BaseRPCApp):
         return 'hello'
 
 
-URL = 'http://127.0.0.1:42545'
-
-
-class RPCServerInstance(threading.Thread):
-    def __init__(self, port=42545, secret=None, delay=0):
-        super().__init__()
+class RPCServerInstance:
+    def __init__(self, *, port, secret=None):
         self.port = port
         self.secret = secret
-        self.delay = delay
+        self.app = RPCServer('test-rpc', secret=self.secret)
+        self.runner = None
 
-    def run(self):
-        time.sleep(self.delay)
-        self.loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(self.loop)
-        self.app = RPCServer('test-rpc', secret=self.secret, loop=self.loop)
-        self.app.run(port=self.port)
+    async def start(self):
+        self.runner = aiohttp.web.AppRunner(self.app.app)
+        await self.runner.setup()
+        site = aiohttp.web.TCPSite(self.runner, '127.0.0.1', self.port)
+        await site.start()
 
-    def stop(self):
-        self.loop.call_soon_threadsafe(self.loop.stop)
-
-
-class RPCTest(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.c = prologin.rpc.client.SyncClient(URL)
-        cls.s = RPCServerInstance()
-        cls.s.start()
-        time.sleep(0.5)  # Let it start
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.s.stop()
-        time.sleep(0.5)
-
-    def test_number(self):
-        self.assertEqual(self.c.return_number(), 42)
-
-    def test_string(self):
-        self.assertEqual(self.c.return_string(), 'prologin')
-
-    def test_list(self):
-        self.assertEqual(self.c.return_list(), list(range(10)))
-
-    def test_nested(self):
-        obj = {'test': 72, 'list': [1, 42, 33, {'object': '3'}]}
-        self.assertEqual(self.c.return_input(obj), obj)
-
-    def test_args_kwargs(self):
-        res = self.c.return_args_kwargs(1, 'c', kw1='a', kw2=None)
-        self.assertEqual(res, [[1, 'c'], {'kw1': 'a', 'kw2': None}])
-
-    def test_missing_method(self):
-        with self.assertRaises(prologin.rpc.client.RemoteError) as e:
-            self.c.missing_method()
-        self.assertEqual(e.exception.type, 'MethodError')
-
-    def test_raises_valueerror(self):
-        with self.assertRaises(prologin.rpc.client.RemoteError) as e:
-            self.c.raises_valueerror()
-        self.assertEqual(e.exception.type, 'ValueError')
-        self.assertEqual(e.exception.message, 'Monde de merde.')
+    async def stop(self):
+        await self.runner.cleanup()
 
 
-class RPCAsyncTest(unittest.TestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        cls.c = prologin.rpc.client.Client(URL)
-        cls.s = RPCServerInstance()
-        cls.s.start()
-        time.sleep(1)
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.s.stop()
-        time.sleep(0.5)
-
-    def test_async_number(self):
-        loop = asyncio.get_event_loop()
-        self.assertEqual(loop.run_until_complete(self.c.return_number()), 42)
+@pytest.fixture
+async def rpc_server(request, event_loop):
+    port = aiohttp.test_utils.unused_port()
+    url = 'http://127.0.0.1:{}'.format(port)
+    secret = (request.function.secret if hasattr(request.function, 'secret')
+              else None)
+    server = RPCServerInstance(port=port, secret=secret)
+    await server.start()
+    yield url
+    await server.stop()
 
 
-class RPCSecretTest(unittest.TestCase):
-    GOOD_SECRET = b'secret42'
-    BAD_SECRET = b'secret51'
-
-    @classmethod
-    def setUpClass(cls):
-        cls.s = RPCServerInstance(secret=cls.GOOD_SECRET)
-        cls.s.start()
-        time.sleep(0.5)  # Let it start
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.s.stop()
-
-    def test_good_secret(self):
-        c = prologin.rpc.client.SyncClient(URL, secret=self.GOOD_SECRET)
-        self.assertEqual(c.return_number(), 42)
-
-    def test_bad_secret(self):
-        c = prologin.rpc.client.SyncClient(URL, secret=self.BAD_SECRET)
-        with self.assertRaises(prologin.rpc.client.RemoteError) as e:
-            c.return_number()
-        self.assertEqual(e.exception.type, 'BadToken')
-
-    def test_missing_secret(self):
-        c = prologin.rpc.client.SyncClient(URL)
-        with self.assertRaises(prologin.rpc.client.RemoteError) as e:
-            c.return_number()
-        self.assertEqual(e.exception.type, 'MissingToken')
-
-    def test_public_good_secret(self):
-        c = prologin.rpc.client.SyncClient(URL, secret=self.GOOD_SECRET)
-        self.assertEqual(c.public_hello(), 'hello')
-
-    def test_public_bad_secret(self):
-        c = prologin.rpc.client.SyncClient(URL, secret=self.BAD_SECRET)
-        self.assertEqual(c.public_hello(), 'hello')
-
-    def test_public_missing_secret(self):
-        c = prologin.rpc.client.SyncClient(URL)
-        self.assertEqual(c.public_hello(), 'hello')
+def with_secret(secret):
+    def wrapper(f):
+        f.secret = secret
+        return f
+    return wrapper
 
 
+@pytest.fixture
+async def rpc_client(rpc_server):
+    return prologin.rpc.client.Client(rpc_server)
+
+
+@pytest.mark.asyncio
+async def test_number(rpc_client):
+    assert (await rpc_client.return_number()) == 42
+
+
+@pytest.mark.asyncio
+async def test_string(rpc_client):
+    assert (await rpc_client.return_string()) == 'prologin'
+
+
+@pytest.mark.asyncio
+async def test_list(rpc_client):
+    assert (await rpc_client.return_list()) == list(range(10))
+
+
+@pytest.mark.asyncio
+async def test_nested(rpc_client):
+    obj = {'test': 72, 'list': [1, 42, 33, {'object': '3'}]}
+    assert (await rpc_client.return_input(obj)) == obj
+
+
+@pytest.mark.asyncio
+async def test_args_kwargs(rpc_client):
+    res = rpc_client.return_args_kwargs(1, 'c', kw1='a', kw2=None)
+    assert (await res) == [[1, 'c'], {'kw1': 'a', 'kw2': None}]
+
+
+@pytest.mark.asyncio
+async def test_missing_method(rpc_client):
+    with pytest.raises(prologin.rpc.client.RemoteError) as e:
+        await rpc_client.missing_method()
+    assert e.value.type == 'MethodError'
+
+
+@pytest.mark.asyncio
+async def test_raises_valueerror(rpc_client):
+    with pytest.raises(prologin.rpc.client.RemoteError) as e:
+        await rpc_client.raises_valueerror()
+    assert e.value.type == 'ValueError'
+    assert e.value.message == 'Monde de merde.'
+
+
+GOOD_SECRET = b'secret42'
+BAD_SECRET = b'secret51'
+
+
+@pytest.mark.asyncio
+@with_secret(GOOD_SECRET)
+async def test_good_secret(rpc_server):
+    rpc_client = prologin.rpc.client.Client(rpc_server, secret=GOOD_SECRET)
+    assert (await rpc_client.return_number()) == 42
+
+
+@pytest.mark.asyncio
+@with_secret(GOOD_SECRET)
+async def test_bad_secret(rpc_server):
+    rpc_client = prologin.rpc.client.Client(rpc_server, secret=BAD_SECRET)
+    with pytest.raises(prologin.rpc.client.RemoteError) as e:
+        await rpc_client.return_number()
+    assert e.value.type == 'BadToken'
+
+
+@pytest.mark.asyncio
+@with_secret(GOOD_SECRET)
+async def test_missing_secret(rpc_server):
+    rpc_client = prologin.rpc.client.Client(rpc_server)
+    with pytest.raises(prologin.rpc.client.RemoteError) as e:
+        await rpc_client.return_number()
+    assert e.value.type == 'MissingToken'
+
+
+@pytest.mark.asyncio
+@with_secret(GOOD_SECRET)
+async def test_public_good_secret(rpc_server):
+    rpc_client = prologin.rpc.client.Client(rpc_server, secret=GOOD_SECRET)
+    assert (await rpc_client.public_hello()) == 'hello'
+
+
+@pytest.mark.asyncio
+@with_secret(GOOD_SECRET)
+async def test_public_bad_secret(rpc_server):
+    rpc_client = prologin.rpc.client.Client(rpc_server, secret=BAD_SECRET)
+    assert (await rpc_client.public_hello()) == 'hello'
+
+
+@pytest.mark.asyncio
+@with_secret(GOOD_SECRET)
+async def test_public_missing_secret(rpc_server):
+    rpc_client = prologin.rpc.client.Client(rpc_server)
+    assert (await rpc_client.public_hello()) == 'hello'
+
+
+# TODO: convert this to pytest
+"""
 @unittest.skip("FIXME: Race conditions, address already in use")
 class RPCRetryTest(unittest.TestCase):
     def test_retry_enough(self):
@@ -204,3 +211,4 @@ class RPCRetryTest(unittest.TestCase):
             with disable_logging():
                 c.return_number(max_retries=1, retry_delay=0.2)
         s.stop()
+"""

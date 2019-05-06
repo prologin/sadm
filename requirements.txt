@@ -13,6 +13,7 @@ psycopg2-binary==2.8.2
 py-postgresql==1.2.1
 Pygments==2.3.1
 PyYAML==5.1
+pytest==4.4.1
 requests==2.21.0
 tornado==4.5.1
 
