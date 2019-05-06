@@ -10,9 +10,9 @@ present. Just follow the guide!
 
 Maintainers:
 
-- Alexandre Macabies (2013, 2014, 2015, 2016, 2017, 2018)
-- Antoine Pietri (2013, 2014, 2015, 2016, 2017, 2018)
-- Rémi Audebert (2014, 2015, 2016, 2017, 2018)
+- Alexandre Macabies (2013-2019)
+- Antoine Pietri (2013-2018)
+- Rémi Audebert (2014-2019)
 - Paul Hervot (2014, 2015)
 - Marin Hannache (2013, 2014)
 - Pierre Bourdon (2013, 2014)
@@ -299,18 +299,9 @@ We now have a basic environment to start setting up services on our gateway
 server. We're going to start by installing ``mdb`` and configuring ``nginx`` as
 a reverse proxy for this application.
 
-First, we need to install ``Openresty``, a nginx extension with lua scripting.
-This is primarily used for Single Sign-On (SSO). The Prologin Arch Linux
-repository contains a pre-build package that you can install with ``pacman``::
+First, we need to install ``nginx``::
 
-    $ pacman -S openresty
-
-.. note::
-
-    This package is a drop-in replacement for nginx. Even though the package
-    is called ``openresty``, all paths and configuration files are the same
-    as the official ``nginx`` package, so you should be able to switch between
-    the two without changing anything.
+    $ pacman -S nginx
 
 In order to test if ``mdb`` is working properly, we need to go to query
 ``http://mdb/`` with a command line tool like ``curl``. However, to get DNS
@@ -835,12 +826,11 @@ You will want to ssh at this machine, so enable ``udbync_rootssh``::
   python install.py udbsync_rootssh
   systemctl enable --now udbsync_rootssh
 
-Then install another openresty instance from the Prologin Arch Linux
-repository::
+Then install another nginx instance::
 
-  pacman -S openresty
+  pacman -S nginx
 
-Then, install the ``nginx`` configuration from the repository::
+Then, install the nginx configuration from the repository::
 
   python install.py nginxcfg
   mv /etc/nginx/nginx.conf{.new,}

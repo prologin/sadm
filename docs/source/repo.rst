@@ -35,8 +35,6 @@ lastest revision possible.
 - ``stechec2``, ``stechec2-makefiles`` and ``stechec2-sphinxdoc``: built from
   `prologin/stechec2 <https://bitbucket.org/prologin/stechec2>`_ git repository
   in the ``pkg/`` folder.
-- ``openresty``: built from the `prologin/sadm
-  <https://bitbucket.org/prologin/sadm>`_ git repository in the ``pkg/`` folder.
 
 Uploading packages
 ------------------
