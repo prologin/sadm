@@ -580,22 +580,22 @@ Once again::
 presencesync_sso
 ~~~~~~~~~~~~~~~~
 
-This maintains a mapping of user machine IP addresses to logged-in usernames.
-This provides a way of telling which user is logged on which machine by knowing
-the machine IP address. This service was created because SSO needs such mapping
-to work, and it is rather costly to query both ``presencesync`` and ``mdb`` very
-often.
+This listens to both ``presencesync`` and ``mdb`` updates and maintains a double
+mapping ``ip addr → machine hostname → logged-in username``. This provides a way
+of knowing which user is logged on what machine by its IP address. This is used
+by nginx SSO to translate request IPs to logged-in username.
 
-This is usually served by ``gw`` nginx aat http://sso/. Install it with::
+We expose an HTTP endpoint on ``gw`` nginx at http://sso/. Install the daemon
+and nginx config with::
 
   python install.py presencesync_sso
 
   systemctl enable --now presencesync_sso
   systemctl reload nginx
 
-All services that can be SSO-enabled should already have the proper stubs in
-their respective nginx config. See the comments in
-``etc/nginx/sso/{handler,protect}`` for how to use them in new HTTP endpoints.
+All services that support SSO should already have the proper stubs in their
+respective nginx config. See the comments in ``etc/nginx/sso/{handler,protect}``
+for how to use these stubs in new HTTP endpoints.
 
 Debugging SSO
 *************
@@ -605,18 +605,23 @@ Typical symptoms of an incorrect SSO setup are:
 * you're not automatically logged-in on SSO-enabled websites such as http://udb
   or http://concours
 * nginx logs show entries mentioning ``__sso_auth`` or something about not being
-  able to connect to some upstream
+  able to connect to some ``sso`` upstream
 
-You're best chance at debugging is check the reply headers in your browser
+Your best chance at debugging this is to check the reply headers in your browser
 inspection tool.
 
+* if there is not any of the headers described below, it means your service
+  is not SSO-enabled, ie. doesn't contain the stubs mentioned above. Fix that.
 * ``X-SSO-Backend-Status`` should be ``working``, otherwise it means nginx
   cannot reach the SSO endpoint; in that case check that ``presencesync_sso``
   works and http://sso is reachable.
 * ``X-SSO-Status`` should be ``authenticated`` and ``X-SSO-User`` should be
-  filled-in
+  filled-in; if the website is not in a logged-in state, it means SSO is working
+  but the website does not understand, or doesn't correctly handle the SSO
+  headers. Maybe it is configured to get the user from a different header eg.
+  ``Remote-User``? Fix the website.
 * if ``X-SSO-Status`` is ``missing header``, it means nginx is not sending the
-  real IP address making the request; fix your nginx config!
+  real IP address making the request; are you missing ``include sso/handler``?
 * if ``X-SSO-Status`` is ``unknown IP``, it means ``presencesync_sso`` couldn't
   resolve the machine hostname from its IP; check the IP exists in http://mdb
   and that ``presencesync_sso`` is receiving ``mdb`` updates.
