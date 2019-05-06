@@ -577,23 +577,53 @@ Once again::
   systemctl enable --now presencesync
   systemctl reload nginx
 
-presencesync_cacheserver
-~~~~~~~~~~~~~~~~~~~~~~~~
+presencesync_sso
+~~~~~~~~~~~~~~~~
 
-*Cacheserver* maintains a mapping of user machine IP addresses to logged-in
-usernames. This provides a way of telling which user is logged on which machine
-by knowing the machine IP address. This service was created because SSO needs
-such mapping to work, and it is rather costly to query both ``presencesync``
-and ``mdb`` very often.
+This maintains a mapping of user machine IP addresses to logged-in usernames.
+This provides a way of telling which user is logged on which machine by knowing
+the machine IP address. This service was created because SSO needs such mapping
+to work, and it is rather costly to query both ``presencesync`` and ``mdb`` very
+often.
 
-On all machines with nginx (openresty) installed that require SSO::
+This is usually served by ``gw`` nginx aat http://sso/. Install it with::
 
-  python install.py presencesync_cacheserver
-  systemctl enable --now presencesync_cacheserver
-  $EDITOR /etc/nginx/nginx.conf
+  python install.py presencesync_sso
 
-Enable SSO on the services where it is needed. See the sample ``server`` block
-in ``/etc/nginx/nginx.conf`` (look for *SSO*).
+  systemctl enable --now presencesync_sso
+  systemctl reload nginx
+
+All services that can be SSO-enabled should already have the proper stubs in
+their respective nginx config. See the comments in
+``etc/nginx/sso/{handler,protect}`` for how to use them in new HTTP endpoints.
+
+Debugging SSO
+*************
+
+Typical symptoms of an incorrect SSO setup are:
+
+* you're not automatically logged-in on SSO-enabled websites such as http://udb
+  or http://concours
+* nginx logs show entries mentioning ``__sso_auth`` or something about not being
+  able to connect to some upstream
+
+You're best chance at debugging is check the reply headers in your browser
+inspection tool.
+
+* ``X-SSO-Backend-Status`` should be ``working``, otherwise it means nginx
+  cannot reach the SSO endpoint; in that case check that ``presencesync_sso``
+  works and http://sso is reachable.
+* ``X-SSO-Status`` should be ``authenticated`` and ``X-SSO-User`` should be
+  filled-in
+* if ``X-SSO-Status`` is ``missing header``, it means nginx is not sending the
+  real IP address making the request; fix your nginx config!
+* if ``X-SSO-Status`` is ``unknown IP``, it means ``presencesync_sso`` couldn't
+  resolve the machine hostname from its IP; check the IP exists in http://mdb
+  and that ``presencesync_sso`` is receiving ``mdb`` updates.
+* if ``X-SSO-Status`` is ``logged-out machine``, it means ``presencesync_sso``
+  believes no one is logged-in the machine from which you do the requests; check
+  that ``presencesync`` knows about the session (eg. using http://map/) and that
+  ``presencesync_sso`` is receiving ``presencesync`` updates.
 
 iptables
 ~~~~~~~~

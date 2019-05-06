@@ -2,7 +2,7 @@
 # SSO authentication. You also need to include sso/handler in the parent
 # server {} block.
 
-auth_request /__auth;
+auth_request /__sso_auth;
 
 # Get headers from auth response…
 auth_request_set $sso_user $upstream_http_x_sso_user;

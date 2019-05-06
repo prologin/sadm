@@ -3,7 +3,7 @@
 # You then need to include sso/protect in the server {} itself of any child
 # location {} blocks.
 
-location = /__auth {
+location = /__sso_auth {
     access_log logs/sso.access.log main;
     internal;
 
