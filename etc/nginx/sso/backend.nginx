@@ -1,5 +1,5 @@
 proxy_cache_path /var/run/nginx-cache-sso keys_zone=sso:64m max_size=64m use_temp_path=off;
 
 upstream sso_backend {
-    server http://sso;
+    server sso;
 }
