@@ -5,7 +5,7 @@ After=network-online.target
 [Service]
 Type=simple
 User=root
-ExecStart=/var/prologin/venv/bin/python -m prologin.udbsync_clients.passwd
+ExecStart=/opt/prologin/venv/bin/python -m prologin.udbsync_clients.passwd
 Restart=always
 RestartSec=2
 

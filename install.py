@@ -330,7 +330,7 @@ def django_migrate(name, user=None):
         user = name
 
     with cwd('/var/prologin/%s' % name):
-        cmd = 'su -c "/var/prologin/venv/bin/python manage.py migrate --noinput" '
+        cmd = 'su -c "/opt/prologin/venv/bin/python manage.py migrate --noinput" '
         cmd += user
         system(cmd)
 
@@ -561,7 +561,7 @@ def install_paste():
     if first_time:
         # Use specific venv
         with cwd('/var/prologin/paste'):
-            cmd = 'su -c "/var/prologin/venv_paste/bin/python manage.py migrate --noinput" '
+            cmd = 'su -c "/opt/prologin/venv_paste/bin/python manage.py migrate --noinput" '
             cmd += 'webservices'
             system(cmd)
 
@@ -1088,7 +1088,9 @@ if __name__ == '__main__':
         print('error: this script needs to be run as root')
         sys.exit(1)
 
-    if not (hasattr(sys, 'real_prefix') or 'VIRTUAL_ENV' in os.environ):
+    if not (hasattr(sys, 'real_prefix')
+            or hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix
+            or 'VIRTUAL_ENV' in os.environ):
         print('error: this script needs to be run in a venv')
         sys.exit(1)
 

@@ -4,7 +4,7 @@ Description=Firewall updating daemon
 [Service]
 Type=simple
 User=root
-ExecStart=/var/prologin/venv/bin/python -m prologin.presencesync_clients.firewall
+ExecStart=/opt/prologin/venv/bin/python -m prologin.presencesync_clients.firewall
 Restart=always
 RestartSec=2
 

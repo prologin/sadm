@@ -44,7 +44,7 @@ pacman -Sy --needed --noconfirm isolate-git
 echo '[+] Install debug tools'
 pacman -Sy --needed --noconfirm prologin/pamtester
 
-source /var/prologin/venv/bin/activate
+source /opt/prologin/venv/bin/activate
 python install.py libprologin
 python install.py presenced
 python install.py workernode

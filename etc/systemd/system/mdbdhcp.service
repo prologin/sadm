@@ -5,7 +5,7 @@ After=mdbsync.service
 [Service]
 Type=simple
 User=root
-ExecStart=/var/prologin/venv/bin/python -m prologin.mdbsync_clients.dhcp
+ExecStart=/opt/prologin/venv/bin/python -m prologin.mdbsync_clients.dhcp
 Restart=always
 RestartSec=2
 

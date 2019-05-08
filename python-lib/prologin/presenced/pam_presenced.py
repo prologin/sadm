@@ -1,4 +1,4 @@
-#! /var/prologin/venv/bin/python
+#! /opt/prologin/venv/bin/python
 """PAM script to handle {open,close}_session events.
 
 Exit with status code 0 if used for another event.  Exit with status code 0 if

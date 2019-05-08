@@ -6,7 +6,7 @@ After=redmine.service
 Type=simple
 User=redmine
 Group=redmine
-ExecStart=/var/prologin/venv/bin/python -m prologin.irc_utils.redmine_issues
+ExecStart=/opt/prologin/venv/bin/python -m prologin.irc_utils.redmine_issues
 
 [Install]
 WantedBy=multi-user.target

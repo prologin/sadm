@@ -6,7 +6,7 @@ After=network-online.target
 Type=simple
 User=concours
 LimitNOFILE=262144
-ExecStart=/var/prologin/venv/bin/python -m prologin.masternode
+ExecStart=/opt/prologin/venv/bin/python -m prologin.masternode
 
 [Install]
 WantedBy=multi-user.target

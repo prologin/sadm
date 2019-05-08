@@ -6,7 +6,7 @@ After=network-online.target
 Type=simple
 User=redmine
 WorkingDirectory=/var/prologin/redmine
-ExecStart=/var/prologin/venv/bin/python -m prologin.udbsync_clients.redmine
+ExecStart=/opt/prologin/venv/bin/python -m prologin.udbsync_clients.redmine
 Restart=always
 RestartSec=2
 

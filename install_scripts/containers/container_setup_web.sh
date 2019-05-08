@@ -18,7 +18,7 @@ function stage_setup_network {
   echo_status 'Stage setup network'
 
   echo '[-] Install SADM network setup'
-  container_run /var/prologin/venv/bin/python /root/sadm/install.py systemd_networkd_web nic_configuration
+  container_run /opt/prologin/venv/bin/python /root/sadm/install.py systemd_networkd_web nic_configuration
   # Skipped as the container's virtual interface does not support the tweaks we apply
   skip container_run /usr/bin/systemctl enable --now nic-configuration@host0
 
@@ -54,7 +54,7 @@ function stage_setup_web {
 function stage_setup_udbsync_rootssh {
   echo_status "Setup udbsync_rootssh"
 
-  container_run /var/prologin/venv/bin/python /root/sadm/install.py udbsync_rootssh
+  container_run /opt/prologin/venv/bin/python /root/sadm/install.py udbsync_rootssh
   container_run /usr/bin/systemctl enable --now udbsync_rootssh
 
   container_snapshot $FUNCNAME
@@ -71,7 +71,7 @@ function test_udbsync_rootssh {
 function stage_setup_concours {
   echo_status "Setup concours"
 
-  container_run /var/prologin/venv/bin/python /root/sadm/install.py concours
+  container_run /opt/prologin/venv/bin/python /root/sadm/install.py concours
   container_run /usr/bin/systemctl enable --now concours
   container_run /usr/bin/systemctl enable --now udbsync_django@concours
 
@@ -97,7 +97,7 @@ function test_concours {
 function stage_setup_homepage {
   echo_status "Setup homepage"
 
-  container_run /var/prologin/venv/bin/python /root/sadm/install.py homepage
+  container_run /opt/prologin/venv/bin/python /root/sadm/install.py homepage
   container_run /usr/bin/systemctl enable --now homepage
   container_run /usr/bin/systemctl enable --now udbsync_django@homepage
 
@@ -121,7 +121,7 @@ function test_homepage {
 function stage_setup_masternode {
   echo_status "Setup masternode"
 
-  container_run /var/prologin/venv/bin/python /root/sadm/install.py masternode
+  container_run /opt/prologin/venv/bin/python /root/sadm/install.py masternode
   container_run /usr/bin/systemctl enable --now masternode
 
   container_snapshot $FUNCNAME
@@ -136,7 +136,7 @@ function test_masternode {
 function stage_setup_redmine {
   echo_status "Setup redmine"
 
-  container_run /var/prologin/venv/bin/python /root/sadm/install.py redmine
+  container_run /opt/prologin/venv/bin/python /root/sadm/install.py redmine
 
   cat > $CONTAINER_ROOT/root/setup_redmine.sh <<EOF
 #!/bin/bash

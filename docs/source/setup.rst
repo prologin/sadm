@@ -183,7 +183,7 @@ executed on every systems: ``rhfs``, ``web``, ``rfs``.
 This script also creates a python virtual environment. Each time you log into a
 new system, activate the virtualenv::
 
-  source /var/prologin/venv/bin/activate
+  source /opt/prologin/venv/bin/activate
 
 Basic system: gw
 ~~~~~~~~~~~~~~~~

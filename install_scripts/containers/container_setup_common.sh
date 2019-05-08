@@ -101,7 +101,7 @@ function container_run {
   # PATH is configured for the python virtualenv
   systemd-run -M $CONTAINER_NAME --wait \
     --property WorkingDirectory=/root/sadm \
-    --setenv=PATH=/var/prologin/venv/bin:/usr/bin \
+    --setenv=PATH=/opt/prologin/venv/bin:/usr/bin \
     "$@"
 }
 
@@ -109,7 +109,7 @@ function container_run_verbose {
   # PATH is configured for the python virtualenv
   systemd-run -M $CONTAINER_NAME --wait --pipe \
     --property WorkingDirectory=/root/sadm \
-    --setenv=PATH=/var/prologin/venv/bin:/usr/bin \
+    --setenv=PATH=/opt/prologin/venv/bin:/usr/bin \
     "$@"
 }
 
@@ -117,7 +117,7 @@ function container_run_quiet {
   # PATH is configured for the python virtualenv
   systemd-run --quiet -M $CONTAINER_NAME --wait --pipe \
     --property WorkingDirectory=/root/sadm \
-    --setenv=PATH=/var/prologin/venv/bin:/usr/bin \
+    --setenv=PATH=/opt/prologin/venv/bin:/usr/bin \
     "$@"
 }
 

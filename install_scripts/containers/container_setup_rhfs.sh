@@ -20,7 +20,7 @@ function stage_setup_network {
   echo_status 'Stage setup network'
 
   echo '[-] Install SADM network setup'
-  container_run /var/prologin/venv/bin/python /root/sadm/install.py systemd_networkd_rhfs nic_configuration
+  container_run /opt/prologin/venv/bin/python /root/sadm/install.py systemd_networkd_rhfs nic_configuration
   # Skipped as the container's virtual interface does not support the tweaks we apply
   skip container_run /usr/bin/systemctl enable --now nic-configuration@host0
 
@@ -48,7 +48,7 @@ function stage_setup_rfs_nfs_archlinux {
   echo_status "Install exported Arch Linux"
 
   echo "[-] Running rfs_nfs_archlinux"
-  container_run /var/prologin/venv/bin/python /root/sadm/install.py rfs_nfs_archlinux
+  container_run /opt/prologin/venv/bin/python /root/sadm/install.py rfs_nfs_archlinux
 
   container_snapshot $FUNCNAME
 }
@@ -61,7 +61,7 @@ function stage_setup_rfs_nfs_sadm {
   echo_status "Setup exported Arch Linux for SADM"
 
   echo "[-] Running rfs_nfs_archlinux"
-  container_run /var/prologin/venv/bin/python /root/sadm/install.py rfs_nfs_sadm
+  container_run /opt/prologin/venv/bin/python /root/sadm/install.py rfs_nfs_sadm
 
   echo "[-] Copy kernel and initrd to gw"
   cp -v $CONTAINER_ROOT/export/nfsroot_staging/boot/vmlinuz-linux $CONTAINER_ROOT_GW/srv/tftp/kernel
@@ -78,7 +78,7 @@ function stage_install_rfs_nfs_packages_base {
   echo_status "Setup base rfs nfs packages"
 
   echo "[-] Install base packages"
-  container_run /var/prologin/venv/bin/python /root/sadm/install.py rfs_nfs_packages_base
+  container_run /opt/prologin/venv/bin/python /root/sadm/install.py rfs_nfs_packages_base
 
   container_snapshot $FUNCNAME
 }
@@ -92,7 +92,7 @@ function stage_install_rfs_nfs_packages_extra {
   echo_status "Setup extra rfs nfs packages"
 
   echo "[-] Install extra packages"
-  container_run /var/prologin/venv/bin/python /root/sadm/install.py rfs_nfs_packages_extra
+  container_run /opt/prologin/venv/bin/python /root/sadm/install.py rfs_nfs_packages_extra
 
   container_snapshot $FUNCNAME
 }
@@ -106,7 +106,7 @@ function stage_install_rfs {
   echo_status "Setup rfs"
 
   echo "[-] Install rfs"
-  container_run /var/prologin/venv/bin/python /root/sadm/install.py rfs
+  container_run /opt/prologin/venv/bin/python /root/sadm/install.py rfs
 
   for svc in {udbsync_passwd{,_nfsroot},udbsync_rootssh,rpcbind,nfs-server}.service rootssh.path; do
     echo "[-] Enable $svc"
@@ -149,7 +149,7 @@ function test_commit_rfs_staging {
 function stage_install_hfs {
   echo_status "Install hfs"
 
-  container_run /var/prologin/venv/bin/python /root/sadm/install.py hfs
+  container_run /opt/prologin/venv/bin/python /root/sadm/install.py hfs
 
   echo "[-] Enable and start hfs@$RHFS_ID"
   container_run /usr/bin/systemctl enable --now hfs@$RHFS_ID

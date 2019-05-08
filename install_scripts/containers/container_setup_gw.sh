@@ -41,7 +41,7 @@ function stage_setup_network {
   echo_status 'Stage setup network'
 
   echo '[-] Install SADM network setup'
-  container_run /var/prologin/venv/bin/python /root/sadm/install.py systemd_networkd_gw nic_configuration conntrack
+  container_run /opt/prologin/venv/bin/python /root/sadm/install.py systemd_networkd_gw nic_configuration conntrack
 
   # Skipped as the container's virtual interface does not support the tweaks we apply
   skip container_run /usr/bin/systemctl enable --now nic-configuration@host0
@@ -104,7 +104,7 @@ function test_gw {
 function stage_setup_mdb {
   echo_status 'Install mdb'
   echo '127.0.0.1 mdb' >> $CONTAINER_ROOT/etc/hosts
-  container_run /var/prologin/venv/bin/python install.py mdb
+  container_run /opt/prologin/venv/bin/python install.py mdb
 
   echo '[-] Enable mdb'
   container_run /usr/bin/systemctl enable --now mdb
@@ -134,7 +134,7 @@ function test_mdb {
 
 function stage_setup_mdbsync {
   echo_status 'Install mdbsync'
-  container_run /var/prologin/venv/bin/python install.py mdbsync
+  container_run /opt/prologin/venv/bin/python install.py mdbsync
   echo '127.0.0.1 mdbsync' >> $CONTAINER_ROOT/etc/hosts
 
   echo '[-] Enable and start the mdbsync service'
@@ -154,13 +154,13 @@ function test_mdbsync {
 
 function stage_setup_mdbdns {
   echo_status 'Install mdbdns'
-  container_run /var/prologin/venv/bin/python install.py mdbdns
+  container_run /opt/prologin/venv/bin/python install.py mdbdns
 
   container_run /usr/bin/mv /etc/named.conf{.new,}
   echo '[-] Enable and start the mdbdns service'
   container_run /usr/bin/systemctl enable --now mdbdns
 
-  container_run /var/prologin/venv/bin/python /var/prologin/mdb/manage.py \
+  container_run /opt/prologin/venv/bin/python /var/prologin/mdb/manage.py \
     addmachine --hostname gw --mac 11:22:33:44:55:66 \
       --ip 192.168.1.254 --rfs 0 --hfs 0 --mtype service --room pasteur \
       --aliases mdb,mdbsync,ns,netboot,udb,udbsync,presencesync,ntp,sso
@@ -201,7 +201,7 @@ function test_mdbdns {
 
 function stage_setup_mdbdhcp {
   echo_status 'Install mdbdhcp'
-  container_run /var/prologin/venv/bin/python install.py mdbdhcp
+  container_run /opt/prologin/venv/bin/python install.py mdbdhcp
 
   echo '[-] Enable and start the mdbdhcp service'
   container_run /usr/bin/systemctl enable --now mdbdhcp
@@ -229,7 +229,7 @@ function test_mdbdhcp {
 
 function stage_netboot {
   echo_status 'Install netboot'
-  container_run /var/prologin/venv/bin/python install.py netboot
+  container_run /opt/prologin/venv/bin/python install.py netboot
 
   echo '[-] Enable and start the netboot service'
   container_run /usr/bin/systemctl enable --now netboot
@@ -332,7 +332,7 @@ function stage_udb {
   echo_status 'Install udb'
 
   echo '[-] Configure udb'
-  container_run /var/prologin/venv/bin/python /root/sadm/install.py udb
+  container_run /opt/prologin/venv/bin/python /root/sadm/install.py udb
 
   echo '[-] Enable and start the udb service'
   container_run /usr/bin/systemctl enable --now udb
@@ -349,15 +349,15 @@ function test_udb {
   test_service_is_enabled_active udb
 
   echo '[-] Generate password sheet data for users'
-  container_run_verbose /var/prologin/venv/bin/python /var/prologin/udb/manage.py \
+  container_run_verbose /opt/prologin/venv/bin/python /var/prologin/udb/manage.py \
     pwdsheetdata --type=user
 
   echo '[-] Generate password sheet data for orgas'
-  container_run_verbose /var/prologin/venv/bin/python /var/prologin/udb/manage.py \
+  container_run_verbose /opt/prologin/venv/bin/python /var/prologin/udb/manage.py \
     pwdsheetdata --type=orga
 
   echo '[-] Generate password sheet data for roots'
-  container_run_verbose /var/prologin/venv/bin/python /var/prologin/udb/manage.py \
+  container_run_verbose /opt/prologin/venv/bin/python /var/prologin/udb/manage.py \
     pwdsheetdata --type=root
 }
 
@@ -383,15 +383,15 @@ marwan
 EOF
 
   echo '[-] Start batch import for users'
-  container_run /var/prologin/venv/bin/python /var/prologin/udb/manage.py \
+  container_run /opt/prologin/venv/bin/python /var/prologin/udb/manage.py \
     batchimport --update --file=/root/finalistes.txt
 
   echo '[-] Start batch import for orgas'
-  container_run /var/prologin/venv/bin/python /var/prologin/udb/manage.py \
+  container_run /opt/prologin/venv/bin/python /var/prologin/udb/manage.py \
     batchimport --update --logins --type=orga --pwdlen=10 --file=/root/orgas.txt
 
   echo '[-] Start batch import for root'
-  container_run /var/prologin/venv/bin/python /var/prologin/udb/manage.py \
+  container_run /opt/prologin/venv/bin/python /var/prologin/udb/manage.py \
     batchimport --update --logins --type=root --pwdlen=10 --file=/root/roots.txt
 
   container_snapshot $FUNCNAME
@@ -422,7 +422,7 @@ function test_root_ssh_key {
 function stage_add_ssh_key_to_udb {
   echo_status 'Add root@gw.prolo ssh fingerprint key to udb'
 
-  container_run /var/prologin/venv/bin/python /var/prologin/udb/manage.py \
+  container_run /opt/prologin/venv/bin/python /var/prologin/udb/manage.py \
     usermod root_gw --ssh-pubkey-file /root/.ssh/id_rsa.pub
 
   container_snapshot $FUNCNAME
@@ -438,7 +438,7 @@ function stage_udbsync {
   echo_status 'Install udbsync'
 
   echo '[-] Configure udbsync'
-  container_run /var/prologin/venv/bin/python /root/sadm/install.py udbsync
+  container_run /opt/prologin/venv/bin/python /root/sadm/install.py udbsync
 
   echo '[-] Enable and start the udbsync service'
   container_run /usr/bin/systemctl enable --now udbsync
@@ -460,7 +460,7 @@ function stage_udbsync_clients {
   echo_status 'Install udbsync clients'
 
   echo '[-] Configure udbsync_django udbsync_rootssh'
-  container_run /var/prologin/venv/bin/python /root/sadm/install.py udbsync_django udbsync_rootssh
+  container_run /opt/prologin/venv/bin/python /root/sadm/install.py udbsync_django udbsync_rootssh
 
   echo '[-] Enable and start the udbsync_django@mdb service'
   container_run /usr/bin/systemctl enable --now udbsync_django@mdb
@@ -488,7 +488,7 @@ function stage_presencesync {
   echo_status 'Install presencesync'
 
   echo '[-] Configure presencesync'
-  container_run /var/prologin/venv/bin/python /root/sadm/install.py presencesync
+  container_run /opt/prologin/venv/bin/python /root/sadm/install.py presencesync
 
   echo '[-] Enable and start the presencesync service'
   container_run /usr/bin/systemctl enable --now presencesync
@@ -510,12 +510,12 @@ function test_presencesync {
 function test_sso {
   echo '[>] Test that SSO authenticates logged-in users... '
 
-  container_run /var/prologin/venv/bin/python /var/prologin/mdb/manage.py \
+  container_run /opt/prologin/venv/bin/python /var/prologin/mdb/manage.py \
     addmachine --hostname localhost1 --mac 11:22:33:44:55:99 \
       --ip 127.0.0.1 --rfs 0 --hfs 0 --mtype service --room pasteur \
       --aliases localhost2
 
-  container_run_quiet /var/prologin/venv/bin/python \
+  container_run_quiet /opt/prologin/venv/bin/python \
     -m prologin.devtool.fakepresence nathalie localhost1 &
 
   echo 'Waiting for SSO to propagate...'
@@ -533,7 +533,7 @@ function stage_firewall {
   echo_status 'Install firewall'
 
   echo '[-] Configure firewall'
-  container_run /var/prologin/venv/bin/python /root/sadm/install.py firewall
+  container_run /opt/prologin/venv/bin/python /root/sadm/install.py firewall
 
   echo '[-] Enable and start the firewall service'
   container_run /usr/bin/systemctl enable --now firewall
@@ -551,7 +551,7 @@ function stage_setup_presencesync_firewall {
   echo_status 'Install presencesync firewall'
 
   echo '[-] Configure firewall with presencesync'
-  container_run /var/prologin/venv/bin/python /root/sadm/install.py presencesync_firewall
+  container_run /opt/prologin/venv/bin/python /root/sadm/install.py presencesync_firewall
 
   echo '[-] Enable and start the firewall with presencesync service'
   container_run /usr/bin/systemctl enable --now presencesync_firewall
@@ -571,7 +571,7 @@ function stage_hfsdb {
   echo_status 'Install hfsdb'
 
   echo '[-] Configure hfsdb'
-  container_run /var/prologin/venv/bin/python /root/sadm/install.py hfsdb
+  container_run /opt/prologin/venv/bin/python /root/sadm/install.py hfsdb
 
   container_snapshot $FUNCNAME
 }

@@ -26,8 +26,8 @@ pacman -Sy
 
 # Packages we expect to have installed on all the systems
 echo '[+] Installing packages from the Arch Linux repositories'
-pacman -S --needed --noconfirm base-devel git python python2 python-pip \
-    python-virtualenv libyaml libxslt postgresql-libs sqlite pwgen dnsutils \
+pacman -S --needed --noconfirm base-devel git python python2 \
+    libyaml libxslt postgresql-libs sqlite pwgen dnsutils \
     rsync tcpdump strace wget ethtool tree mtr iperf atop htop iotop iftop \
     nethogs jq tmux
 
@@ -38,13 +38,16 @@ echo '[+] Installing packages required for monitoring'
 pacman -S --needed --noconfirm prometheus-node-exporter-git
 
 echo '[+] Installing sadm'
+mkdir -p /opt/prologin
+python3 -m venv /opt/prologin/venv
+/opt/prologin/venv/bin/pip install -r /root/sadm/requirements.txt
+
+# Symlinks for backwards compatibility
 mkdir -p /var/prologin
-virtualenv3 /var/prologin/venv
-source /var/prologin/venv/bin/activate
-pip install -r /root/sadm/requirements.txt
+ln -s /opt/prologin/venv /opt/prologin/venv
 
 echo '[+] sadm setup: all done!'
 echo ''
 echo 'You can now run:'
-echo '  $ source /var/prologin/venv/bin/activate'
+echo '  $ source /opt/prologin/venv/bin/activate'
 echo 'and install the components needed'

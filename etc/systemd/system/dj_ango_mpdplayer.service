@@ -6,7 +6,7 @@ After=network-online.target
 Type=simple
 User=webservices
 WorkingDirectory=/var/prologin/dj_ango
-ExecStart=/var/prologin/venv_dj_ango/bin/python manage.py mpdplayerloop
+ExecStart=/opt/prologin/venv_dj_ango/bin/python manage.py mpdplayerloop
 
 [Install]
 WantedBy=multi-user.target

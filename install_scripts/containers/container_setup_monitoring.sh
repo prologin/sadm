@@ -24,7 +24,7 @@ function stage_setup_monitoring {
 function stage_setup_prometheus {
   echo_status 'Setup prometheus'
 
-  container_run /var/prologin/venv/bin/python /root/sadm/install.py prometheus
+  container_run /opt/prologin/venv/bin/python /root/sadm/install.py prometheus
   container_run /usr/bin/mv /etc/prometheus/prometheus.yml{.new,}
 
   echo '[-] Enable and start prometheus'
@@ -43,7 +43,7 @@ function test_prometheus {
 function stage_setup_grafana {
   echo_status 'Setup grafana'
 
-  container_run /var/prologin/venv/bin/python /root/sadm/install.py grafana
+  container_run /opt/prologin/venv/bin/python /root/sadm/install.py grafana
 
   echo '[-] Enable and start grafana'
   container_run /usr/bin/systemctl enable --now grafana

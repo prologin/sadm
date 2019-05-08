@@ -67,9 +67,9 @@ function stage_setup_libprologin {
   echo_status 'Stage setup libprologin and SADM master secret'
 
   echo '[-] Install master secret'
-  container_run --setenv=PROLOGIN_SADM_MASTER_SECRET="$SADM_MASTER_SECRET" /var/prologin/venv/bin/python install.py sadm_secret
+  container_run --setenv=PROLOGIN_SADM_MASTER_SECRET="$SADM_MASTER_SECRET" /opt/prologin/venv/bin/python install.py sadm_secret
   echo '[-] Install libprologin'
-  container_run /var/prologin/venv/bin/python install.py libprologin
+  container_run /opt/prologin/venv/bin/python install.py libprologin
 
   container_snapshot $FUNCNAME
 }
@@ -78,7 +78,7 @@ function test_libprologin {
   echo '[>] Test libprologin... '
 
   echo '[>] Import prologin'
-  container_run /var/prologin/venv/bin/python -c 'import prologin'
+  container_run /opt/prologin/venv/bin/python -c 'import prologin'
 }
 
 function test_network {
@@ -120,11 +120,11 @@ function stage_add_to_mdb {
 
     echo '[-] Remove system from mdb (can terminate with status=1)'
     # Can fail if it's the first time we add this system to mdb
-    container_run /var/prologin/venv/bin/python \
+    container_run /opt/prologin/venv/bin/python \
       /var/prologin/mdb/manage.py delmachine $CONTAINER_HOSTNAME || true
 
     echo '[-] Add system to mdb'
-    container_run /var/prologin/venv/bin/python \
+    container_run /opt/prologin/venv/bin/python \
       /var/prologin/mdb/manage.py addmachine --hostname $CONTAINER_HOSTNAME \
       --mac $mac_address --ip $CONTAINER_MAIN_IP --rfs $MDB_RFS_ID \
       --hfs $MDB_HFS_ID --mtype $MDB_MACHINE_TYPE --room $MDB_ROOM \
@@ -148,7 +148,7 @@ function stage_setup_nginx {
 
   container_run /usr/bin/pacman -S --noconfirm nginx
 
-  container_run /var/prologin/venv/bin/python install.py nginxcfg
+  container_run /opt/prologin/venv/bin/python install.py nginxcfg
   container_run /usr/bin/mv /etc/nginx/nginx.conf{.new,}
 
   echo '[-] Enable nginx'
@@ -167,7 +167,7 @@ function stage_setup_postgresql {
   echo_status 'Stage setup postgresql'
 
   echo '[-] Configure postgresql'
-  container_run /var/prologin/venv/bin/python install.py postgresql
+  container_run /opt/prologin/venv/bin/python install.py postgresql
 
   echo '[-] Enable and start the postgresql service'
   container_run /usr/bin/systemctl enable --now postgresql
@@ -193,7 +193,7 @@ function stage_presencesync_sso {
   echo_status 'Install presencesync SSO'
 
   echo '[-] Configure presencesync SSO'
-  container_run /var/prologin/venv/bin/python /root/sadm/install.py presencesync_sso
+  container_run /opt/prologin/venv/bin/python /root/sadm/install.py presencesync_sso
 
   echo '[-] Enable and start the presencesync SSO service'
   container_run /usr/bin/systemctl enable --now presencesync_sso

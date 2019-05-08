@@ -5,7 +5,7 @@ After=mdb.service
 [Service]
 Type=simple
 User=mdbsync
-ExecStart=/var/prologin/venv/bin/python -m prologin.mdbsync.server 20010
+ExecStart=/opt/prologin/venv/bin/python -m prologin.mdbsync.server 20010
 Restart=always
 RestartSec=2
 

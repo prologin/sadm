@@ -47,13 +47,13 @@ paste
 We will setup dpaste: https://github.com/bartTC/dpaste::
 
   # Switch to a special venv
-  virtualenv3 --no-site-packages /var/prologin/venv_paste
-  source /var/prologin/venv_paste/bin/activate
+  python3 -m venv /opt/prologin/venv_paste
+  source /opt/prologin/venv_paste/bin/activate
   pip install dpaste gunicorn
   # dpaste deps are broken for now
   pip install django==1.9.13
   # Back to the normal venv
-  source /var/prologin/venv/bin/activate
+  source /opt/prologin/venv/bin/activate
   python install.py paste
 
   systemctl enable paste && systemctl start paste
@@ -129,7 +129,7 @@ Install the SSO plugin::
   ( cd $PHOME/redmine/plugins && git clone https://github.com/prologin/redmine-sso-auth.git )
 
 Now it's time to install Redmine system configuration files. Ensure you are
-within the prologin virtualenv (``source /var/prologin/venv/bin/activate``), then::
+within the prologin virtualenv (``source /opt/prologin/venv/bin/activate``), then::
 
   cd /root/sadm
   python install.py redmine udbsync_redmine

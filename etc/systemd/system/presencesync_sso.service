@@ -5,7 +5,7 @@ After=network-online.target
 [Service]
 Type=simple
 User=presencesync_sso
-ExecStart=/var/prologin/venv/bin/python -m prologin.presencesync_clients.sso 20131
+ExecStart=/opt/prologin/venv/bin/python -m prologin.presencesync_clients.sso 20131
 Restart=always
 RestartSec=2
 
