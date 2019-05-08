@@ -9,7 +9,7 @@ function stage_setup_container {
     fi
     btrfs subvolume snapshot $ARCH_LINUX_BASE_ROOT $CONTAINER_ROOT
   else
-    rsync -Pha $ARCH_LINUX_BASE_ROOT $CONTAINER_ROOT
+    rsync -Pha $ARCH_LINUX_BASE_ROOT/ $CONTAINER_ROOT
   fi
 
   echo "[-] Create $CONTAINER_NAME.nspawn configuration file"

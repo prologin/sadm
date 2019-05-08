@@ -53,6 +53,8 @@ function container_bootstrap_arch_linux {
       container_remove_btrfs_root
     fi
     btrfs subvolume create $ARCH_LINUX_BASE_ROOT
+  else
+    mkdir -p $ARCH_LINUX_BASE_ROOT
   fi
 
   ../bootstrap_arch_linux.sh $ARCH_LINUX_BASE_ROOT fake_hostname <(echo $ROOT_PASSWORD)
