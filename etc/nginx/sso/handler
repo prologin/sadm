@@ -12,7 +12,9 @@ location = /__sso_auth {
     set $sso_backend_status "working";
 
     # Capture dead SSO endpoint
-    error_page 502 503 504 = @__deadsso;
+    # 404 is needed for when the sso nginx service has not been setup yet
+    error_page 404 502 503 504 = @__deadsso;
+    proxy_intercept_errors on;
 
     # Disable body
     proxy_pass_request_body off;
