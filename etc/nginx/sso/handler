@@ -8,7 +8,7 @@ location = /__sso_auth {
     internal;
 
     # SSO backend (see sso/backend.nginx)
-    proxy_pass http://sso_backend/;
+    proxy_pass http://sso/;
     set $sso_backend_status "working";
 
     # Capture dead SSO endpoint
