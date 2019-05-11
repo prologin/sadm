@@ -44,7 +44,7 @@ python3 -m venv /opt/prologin/venv
 
 # Symlinks for backwards compatibility
 mkdir -p /var/prologin
-ln -s /opt/prologin/venv /opt/prologin/venv
+ln -s /opt/prologin/venv /var/prologin/venv
 
 echo '[+] sadm setup: all done!'
 echo ''
