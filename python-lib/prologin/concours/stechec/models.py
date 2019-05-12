@@ -147,7 +147,7 @@ class Champion(ExportModelOperationsMixin('champion'), models.Model):
         return reverse('champion-delete', kwargs={'pk': self.id})
 
     def __str__(self):
-        return "%s, de %s" % (self.name, self.author)
+        return "%s (de %s)" % (self.name, self.author)
 
     class Meta:
         ordering = ['-ts']
@@ -168,7 +168,7 @@ class Tournament(ExportModelOperationsMixin('tournament'), models.Model):
                                   through='TournamentMap')
 
     def __str__(self):
-        return "%s, %s" % (self.name, self.ts)
+        return self.name
 
     class Meta:
         ordering = ['-ts']
