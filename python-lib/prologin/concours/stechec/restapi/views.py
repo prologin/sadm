@@ -1,10 +1,15 @@
-from rest_framework import viewsets, mixins, permissions as rest_permissions
-
-from prologin.concours.stechec.restapi import serializers, permissions, filtering
-from prologin.concours.stechec import models
+import collections
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from rest_framework.response import Response
+from rest_framework import viewsets, mixins, permissions as rest_permissions
+from rest_framework.decorators import detail_route
+
+from prologin.concours.stechec.restapi import (serializers, permissions,
+                                               filtering)
+from prologin.concours.stechec import models
+from prologin.concours.stechec.languages import LANGUAGES
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
@@ -20,7 +25,8 @@ class ChampionViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         champion = serializer.save(author=self.request.user, sources=None)
-        champion.sources = serializer.validated_data['sources']  # this is a special setter
+        # This is a special setter
+        champion.sources = serializer.validated_data['sources']
 
 
 class MatchViewSet(mixins.CreateModelMixin,
@@ -65,6 +71,52 @@ class TournamentViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.TournamentSerializer
     permission_classes = [rest_permissions.IsAuthenticated]
 
+    def get_stats(self):
+        tournament = self.get_object()
+
+        champions = {}
+        for p in tournament.tournamentplayers.prefetch_related('champion'):
+            champion = p.champion
+            champions[champion.id] = {
+                'name': champion.name,
+                'author': champion.author.username,
+                'sloc': champion.loc_count_main,
+                'language': champion.lang_code,
+                'tournament_score': p.score,
+                'sum_match_score': 0,
+                'avg_match_score': 0,
+                'num_matches': 0,
+            }
+        for mp in (models.MatchPlayer.objects
+                   .filter(match__tournament=tournament,
+                           match__status='done')):
+            champions[mp.champion.id]['num_matches'] += 1
+            champions[mp.champion.id]['sum_match_score'] += mp.score
+        for c in champions.values():
+            c['avg_match_score'] = c['sum_match_score'] // c['num_matches']
+        return list(champions.values())
+
+    @detail_route(['get'], url_path='stats')
+    def stats(self, request, pk):
+        return Response(self.get_stats())
+
+    @detail_route(['get'], url_path='plot_sloc')
+    def plot_sloc(self, request, pk):
+        stats = self.get_stats()
+        series = collections.defaultdict(list)
+        for c in stats:
+            series[c['language']].append({
+                'name': c['name'],
+                'author': c['author'],
+                'x': c['sloc'],
+                'y': c['avg_match_score'],
+            })
+        series = [{'name': LANGUAGES[k]['name'],
+                   'color': LANGUAGES[k]['color'],
+                   'data': v}
+                  for k, v in series.items()]
+        return Response(series)
+
 
 class MapViewSet(viewsets.ModelViewSet):
     queryset = models.Map.objects.all()
@@ -74,4 +126,5 @@ class MapViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         map = serializer.save(author=self.request.user, contents=None)
-        map.contents = serializer.validated_data['contents']  # this is a special setter
+        # This is a special setter
+        map.contents = serializer.validated_data['contents']
