@@ -26,8 +26,9 @@ class MatchAdmin(admin.ModelAdmin):
     @mark_safe
     def player_list(self, obj):
         return ' vs '.join(
-            ['<a href="{}">{}</a>'.format(c.get_absolute_url(), c)
-             for c in obj.players.all()])
+            ['<a href="{}">{}</a>'.format(tp.champion.get_absolute_url(),
+                                          tp.champion)
+             for tp in obj.matchplayers.order_by('id')])
 
 
 class TournamentMapInline(admin.TabularInline):

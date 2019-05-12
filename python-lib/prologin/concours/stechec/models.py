@@ -158,6 +158,10 @@ class Champion(ExportModelOperationsMixin('champion'), models.Model):
 class Tournament(ExportModelOperationsMixin('tournament'), models.Model):
     name = models.CharField("nom", max_length=100)
     ts = models.DateTimeField("date", auto_now_add=True)
+    author = models.ForeignKey(settings.AUTH_USER_MODEL,
+                               related_name='tournaments',
+                               on_delete=models.CASCADE,
+                               verbose_name="créé par")
     players = models.ManyToManyField(Champion,
                                      verbose_name="participants",
                                      related_name='tournaments',
@@ -376,9 +380,11 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
 
 class MatchPlayer(ExportModelOperationsMixin('match_player'), models.Model):
     champion = models.ForeignKey(Champion,
+                                 related_name='matchplayers',
                                  verbose_name="champion",
                                  on_delete=models.CASCADE)
     match = models.ForeignKey(Match,
+                              related_name='matchplayers',
                               verbose_name="match",
                               on_delete=models.CASCADE)
     score = models.IntegerField(default=0, verbose_name="score")
