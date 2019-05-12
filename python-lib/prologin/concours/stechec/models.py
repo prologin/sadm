@@ -191,8 +191,8 @@ class TournamentPlayer(ExportModelOperationsMixin('tournament_player'),
 
     class Meta:
         ordering = ["-tournament", "-score"]
-        verbose_name = "participant à un tournoi"
-        verbose_name_plural = "participants à un tournoi"
+        verbose_name = "participant au tournoi"
+        verbose_name_plural = "participants au tournoi"
 
 
 class TournamentMap(ExportModelOperationsMixin('tournament_map'),
@@ -209,8 +209,8 @@ class TournamentMap(ExportModelOperationsMixin('tournament_map'),
 
     class Meta:
         ordering = ["-tournament"]
-        verbose_name = "carte utilisée dans un tournoi"
-        verbose_name_plural = "cartes utilisées dans un tournoi"
+        verbose_name = "carte utilisée dans le tournoi"
+        verbose_name_plural = "cartes utilisées dans le tournoi"
 
 
 class Match(ExportModelOperationsMixin('match'), models.Model):
