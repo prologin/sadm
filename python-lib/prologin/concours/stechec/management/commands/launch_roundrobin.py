@@ -21,8 +21,6 @@ class Command(BaseCommand):
                                "present in tournament.")
 
         matches = []
-        print(list(itertools.product(tournament.players.all(),
-                                     repeat=settings.STECHEC_NPLAYERS)))
         for chs in itertools.product(tournament.players.all(),
                                      repeat=settings.STECHEC_NPLAYERS):
             # Don't fight against yourself
@@ -48,4 +46,12 @@ class Command(BaseCommand):
         except Tournament.DoesNotExist:
             sys.exit("Tournament {} does not exist.".format(tournament_id))
         matches = self.gen_matches(tournament)
+
+        print("You are about to schedule {} matchs for {} champions "
+              "on {} maps.".format(len(matches), tournament.players.count(),
+                                   tournament.maps.count()))
+        confirm = input("Confirm? (yes/no) ")
+        if confirm.lower() not in ("yes", "y"):
+            sys.exit(1)
+
         Match.launch_bulk(matches)
