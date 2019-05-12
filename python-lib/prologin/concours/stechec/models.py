@@ -10,6 +10,7 @@ from django.conf import settings
 from django.urls import reverse
 from django.db import models, transaction
 from django.utils import timezone
+from django.utils.functional import cached_property
 from django_prometheus.models import ExportModelOperationsMixin
 
 import prologin.rpc.client
@@ -123,18 +124,21 @@ class Champion(ExportModelOperationsMixin('champion'), models.Model):
 
     @contextlib.contextmanager
     def _extract_sources(self):
-        with tempfile.TemporaryDirectory(prefix='lang-check-') as tmpd:
+        with tempfile.TemporaryDirectory(prefix='champion-src-') as tmpd:
             with self.sources as tarball:
                 with tarfile.open(fileobj=tarball, mode='r:gz') as tar:
                     tar.extractall(tmpd)
                     yield tmpd
 
-    def get_lang_code(self):
+    @cached_property
+    def lang_code(self):
         with self._extract_sources() as tmpd:
             with open(os.path.join(tmpd, '_lang')) as langf:
                 return langf.read().strip()
 
-    def get_main_loc_count(self):
+    @cached_property
+    def loc_count_main(self):
+        # TODO: use sloccount?
         with self._extract_sources() as tmpd:
             for mainf in glob.glob(os.path.join(tmpd, '[pP]rologin.*')):
                 with open(mainf) as f:
