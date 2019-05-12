@@ -184,9 +184,11 @@ class TournamentPlayer(ExportModelOperationsMixin('tournament_player'),
                        models.Model):
     champion = models.ForeignKey(Champion,
                                  on_delete=models.CASCADE,
+                                 related_name='tournamentplayers',
                                  verbose_name="champion")
     tournament = models.ForeignKey(Tournament,
                                    on_delete=models.CASCADE,
+                                   related_name='tournamentplayers',
                                    verbose_name="tournoi")
     score = models.IntegerField("score", default=0)
 
