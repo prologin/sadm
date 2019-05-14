@@ -34,3 +34,7 @@ i.champ-status {
 .official-map {
     color: gold;
 }
+
+#replay * {
+    max-width: 100%;
+}
