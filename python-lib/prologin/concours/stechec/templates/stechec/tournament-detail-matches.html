@@ -15,10 +15,11 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
+{% if matrix %}
 <table class="table table-striped match-matrix">
   <thead>
     <tr>
-      <th>Contre</th>
+      <th>Joueurs</th>
       <th>Auteur</th>
       {% for m in match_range %}
         <th>Match {{ m }}</th>
@@ -33,7 +34,7 @@
         <td>{{ r.enemy.champion.author.get_full_name }}</td>
         {% for m in r.matches %}
           <td class="match-matrix-{{ m.result }}">
-            <a href="{% url 'match-detail' m.id %}">{{ m.score }}</a>
+            <a href="{% url 'match-detail' m.id %}">{{ m.my_score }}</a>
           </td>
         {% empty %}
           <td colspan="8" >Aucun match</td>
@@ -42,4 +43,31 @@
     {% endfor %}
   </tbody>
 </table>
+{% else %}
+<table class="table table-striped match-matrix">
+  <thead>
+    <tr>
+      <th>Joueurs</th>
+      <th>Match</th>
+      <th>Result</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for match in matches %}
+      <tr>
+        <td>
+          {% for enemy in match.players.all %}
+          <a href="{% url 'champion-detail' enemy.id %}">
+            {{ enemy.name }}</a>
+            (de {{ enemy.author.username }}){% if not forloop.last %}, {% endif %}
+          {% endfor %}
+        </td>
+        <td><a href="{% url 'match-detail' match.id %}">
+            Match #{{ match.id }}</a></td>
+        <td class="match-matrix-{{ match.result }}">{{ match.my_score }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
 {% endblock %}

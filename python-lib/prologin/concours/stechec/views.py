@@ -3,7 +3,8 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse
 from django.db import transaction
-from django.db.models import Max, Min, F, Q, Value, Count
+from django.db.models import (Max, Min, F, Q, Value, Count, Case, When,
+                              CharField)
 from django.db.models.functions import Concat
 from django.http import (HttpResponseRedirect, HttpResponse,
                          HttpResponseForbidden, Http404)
@@ -363,16 +364,31 @@ class TournamentMatchesView(DetailView):
     def champion(self):
         return get_object_or_404(models.Champion, pk=self.kwargs['champion'])
 
+    def matches(self):
+        tournament = self.get_object()
+        champion = self.champion()
+        return (models.Match.objects
+                .filter(status='done', tournament=tournament.pk)
+                .annotate(max_score=Max('matchplayers__score'))
+                .filter(players__id=champion.pk)
+                .annotate(my_score=Max(
+                    'matchplayers__score',
+                    filter=Q(matchplayers__champion=champion)))
+                .annotate(result=Case(
+                    When(my_score=F('max_score'),
+                         then=Value('won')),
+                    default=Value('lost'),
+                    output_field=CharField(),
+                ))
+                .prefetch_related('matchplayers__champion__author'))
+
     def match_matrix(self):
         if settings.STECHEC_NPLAYERS > 2:
             raise RuntimeError("match_matrix() is only for 2 player games.")
 
         tournament = self.get_object()
         champion = self.champion()
-        matches = (models.Match.objects
-                   .filter(status='done', tournament=tournament.pk,
-                           players__id=champion.pk)
-                   .prefetch_related('matchplayers__champion__author'))
+        matches = self.matches()
         enemies = (tournament.tournamentplayers
                    .exclude(champion=champion)
                    .order_by('-score'))
@@ -381,11 +397,7 @@ class TournamentMatchesView(DetailView):
         for m in matches:
             p1, p2 = m.matchplayers.all()
             me, other = (p1, p2) if p1.champion == champion else (p2, p1)
-            against[other.champion.id].append({
-                'id': m.id,
-                'score': me.score,
-                'result': 'won' if me.score > other.score else 'lost'
-            })
+            against[other.champion.id].append(m)
         matrix = [{'enemy': e, 'matches': against[e.champion.id]}
                   for e in enemies]
         return matrix
@@ -393,9 +405,12 @@ class TournamentMatchesView(DetailView):
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context['champion'] = self.champion()
-        context['matrix'] = self.match_matrix()
-        context['match_range'] = range(
-            1, max(len(e['matches']) for e in context['matrix']) + 1)
+        if settings.STECHEC_NPLAYERS == 2:
+            context['matrix'] = self.match_matrix()
+            context['match_range'] = range(
+                1, max(len(e['matches']) for e in context['matrix']) + 1)
+        else:
+            context['matches'] = self.matches()
         return context
 
 
