@@ -1,14 +1,17 @@
 {% load navigation %}
 <ul class="nav nav-pills nav-stacked">
   {% url 'home' as u_home %}
-  <li class="{% active u_home %}"><a href="{{ u_home }}">Accueil</a></li>
   {% url 'tournaments-all' as u_tournaments_all %}
-  <li class="{% active u_tournaments_all %}"><a href="{{ u_tournaments_all }}">
-    Tournois</a></li>
   {% url 'status' as u_status %}
+  <li class="{% active u_home %}"><a href="{{ u_home }}">Accueil</a></li>
   <li class="{% active u_status %}"><a href="{{ u_status }}">
     État des serveurs
   </a></li>
+  <li class="{% active u_tournaments_all %}">
+    <a href="{{ u_tournaments_all }}">
+    Tournois
+    <span class="challenge-trophy-1">&nbsp;<i class="fa fa-trophy"></i></span>
+    </a></li>
   <h4>Champions</h4>
   <ul class="nav nav-pills nav-stacked">
     {% url 'champions-mine' as u_champions_mine %}
