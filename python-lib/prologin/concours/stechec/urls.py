@@ -1,10 +1,46 @@
 import django.contrib.auth.views
 from django.conf import settings
-from django.urls import path
+from django.urls import path, include
 from django.views.generic import TemplateView
 
 from prologin.concours.stechec import views
 from prologin.concours.stechec.forms import LoginForm
+
+champion_patterns = [
+    path('<int:pk>/', views.ChampionView.as_view(), name='champion-detail'),
+    path('<int:pk>/delete/', views.ConfirmDeleteChampion.as_view(),
+         name='champion-delete'),
+    path('<int:pk>/sources/', views.ChampionSources.as_view(),
+         name='champion-sources'),
+    path('all/', views.AllChampionsView.as_view(), name='champions-all'),
+    path('mine/', views.MyChampionsView.as_view(), name='champions-mine'),
+    path('new/', views.NewChampionView.as_view(), name='champion-new'),
+]
+
+match_patterns = [
+    path('<int:pk>/', views.MatchView.as_view(), name='match-detail'),
+    path('<int:pk>/dump/', views.MatchDumpView.as_view(), name='match-dump'),
+    path('all/', views.AllMatchesView.as_view(), name='matches-all'),
+    path('mine/by-champion/', views.MyChampionMatchesView.as_view(),
+         name='mine-by-champion'),
+    path('mine/', views.MyMatchesView.as_view(), name='matches-mine'),
+    path('new/', views.NewMatchView.as_view(), name='match-new'),
+]
+
+tournament_patterns = [
+    path('all/', views.AllTournamentsView.as_view(), name='tournaments-all'),
+    path('<int:pk>/', views.TournamentView.as_view(),
+         name='tournament-detail'),
+    path('<int:pk>/matches/<int:champion>/',
+         views.TournamentMatchesView.as_view(),
+         name='tournament-matches-view'),
+]
+
+map_patterns = [
+    path('<int:pk>/', views.MapView.as_view(), name='map-detail'),
+    path('all/', views.AllMapsView.as_view(), name='maps-all'),
+    path('new/', views.NewMapView.as_view(), name='map-new'),
+]
 
 urlpatterns = [
     path('', (TemplateView.as_view(template_name='stechec/home.html')),
@@ -26,50 +62,14 @@ urlpatterns = [
          views.ReportBugList.as_view(),
          name='report-bug-list'),
 
-    path('champions/<int:pk>/',
-         views.ChampionView.as_view(),
-         name='champion-detail'),
-    path('champions/<int:pk>/delete/',
-         views.ConfirmDeleteChampion.as_view(),
-         name='champion-delete'),
-    path('champions/<int:pk>/sources/',
-         views.ChampionSources.as_view(),
-         name='champion-sources'),
-    path('champions/all/',
-         views.AllChampionsView.as_view(),
-         name='champions-all'),
-    path('champions/mine/',
-         views.MyChampionsView.as_view(),
-         name='champions-mine'),
-    path('champions/new/',
-         views.NewChampionView.as_view(),
-         name='champion-new'),
-
-    path('matches/<int:pk>/', views.MatchView.as_view(), name='match-detail'),
-    path('matches/<int:pk>/dump/',
-         views.MatchDumpView.as_view(),
-         name='match-dump'),
-    path('matches/all/', views.AllMatchesView.as_view(), name='matches-all'),
-    path('matches/mine/by-champion/',
-         views.MyChampionMatchesView.as_view(),
-         name='matches-mine-by-champion'),
-    path('matches/mine/', views.MyMatchesView.as_view(), name='matches-mine'),
-    path('matches/new/', views.NewMatchView.as_view(), name='match-new'),
-
-    path('tournaments/all/', views.AllTournamentsView.as_view(),
-         name='tournaments-all'),
-    path('tournaments/<int:pk>/', views.TournamentView.as_view(),
-         name='tournament-detail'),
-    path('tournaments/<int:pk>/matches/<int:champion>/',
-         views.TournamentMatchesView.as_view(),
-         name='tournament-matches-view'),
-
     path('status/', views.MasterStatus.as_view(), name='status'),
+
+    path('champions/', include(champion_patterns)),
+    path('matches/', include(match_patterns)),
+    path('tournaments/', include(tournament_patterns)),
 ]
 
 if settings.STECHEC_USE_MAPS:
     urlpatterns += [
-        path('maps/<int:pk>/', views.MapView.as_view(), name='map-detail'),
-        path('maps/all/', views.AllMapsView.as_view(), name='maps-all'),
-        path('maps/new/', views.NewMapView.as_view(), name='map-new'),
+        path('maps/', include(map_patterns)),
     ]
