@@ -148,12 +148,12 @@ var lang_share_chart = {
   }]
 };
 
-$.getJSON('/api/tournaments/31/plot_sloc/', function(data) {
+$.getJSON('/api/tournaments/{{ tournament.id }}/plot_sloc/', function(data) {
   plot_sloc_chart.series = data;
   Highcharts.chart('graph_plot_sloc', plot_sloc_chart);
 });
 
-$.getJSON('/api/tournaments/31/lang_share/', function(data) {
+$.getJSON('/api/tournaments/{{ tournament.id }}/lang_share/', function(data) {
   lang_share_chart.series[0].data = data;
   Highcharts.chart('graph_lang_share', lang_share_chart);
 });

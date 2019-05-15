@@ -72,3 +72,33 @@ i.champ-status {
   font-style: italic;
   text-decoration: underline;
 }
+
+@keyframes tournament-winner {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 200%;
+  }
+}
+
+.tournament-winner {
+  position: relative;
+  overflow: hidden;
+  background-color: palegoldenrod;
+}
+
+.tournament-winner:after {
+  position: absolute;
+  content: '';
+  top: -33px;
+  height: 100px;
+  width: 50px;
+  transform: rotate(45deg);
+  background: linear-gradient(to right, palegoldenrod, goldenrod, palegoldenrod);
+  opacity: 0.3;
+  animation-timing-function: ease-in;
+  animation-name: tournament-winner;
+  animation-duration: 2s;
+  animation-iteration-count: infinite;
+}

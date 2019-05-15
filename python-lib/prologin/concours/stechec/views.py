@@ -3,7 +3,8 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse
 from django.db import transaction
-from django.db.models import Max, Min
+from django.db.models import Max, Min, F, Q, Value, Count
+from django.db.models.functions import Concat
 from django.http import (HttpResponseRedirect, HttpResponse,
                          HttpResponseForbidden, Http404)
 from django.shortcuts import get_object_or_404
@@ -312,6 +313,21 @@ class AllTournamentsView(ListView):
     paginate_by = 100
     template_name = "stechec/tournament-list.html"
     ordering = ['-id']
+
+    def get_queryset(self):
+        me = Q(tournamentplayers__champion__author__id=self.request.user.id)
+        qs = (super().get_queryset()
+              .annotate(
+                  winner_score=Max('tournamentplayers__score'),
+                  winner=Concat(
+                      F('tournamentplayers__champion__author__first_name'),
+                      Value(' '),
+                      F('tournamentplayers__champion__author__last_name')),
+                  winner_id=F('tournamentplayers__champion__author'))
+              .annotate(num_champions=Count('players'))
+              .prefetch_related('tournamentplayers')
+              .annotate(my_score=Max('tournamentplayers__score', filter=me)))
+        return qs
 
 
 class TournamentView(DetailView):

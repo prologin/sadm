@@ -5,14 +5,14 @@
 
 {% block content %}
 
-<p class="intro">Voici la liste de tous les tournois</p>
+<p class="intro">Voici la liste de tous les tournois.</p>
 
 {% if is_paginated %}{% load paginator %}{% paginator 5 %}{% endif %}
 
 <table class="table table-striped">
     <thead>
         <tr>
-            <th>Nom</th>
+            <th>Tournoi</th>
             <th>Votre score</th>
             <th>Nombre de champions</th>
             <th>Gagnant</th>
@@ -23,12 +23,16 @@
         {% for tournament in tournament_list %}
         <tr>
             <td>{{ tournament.name }}</td>
-            <td>-</td>
-            <td>-</td>
-            <td>-</td>
+            <td>{{ tournament.my_score|default:"-" }}</td>
+            <td>{{ tournament.num_champions }}</td>
+            <td><span class="challenge-trophy-1">
+                <i class="fa fa-trophy"></i></span>
+                {{ tournament.winner|default:"-" }}</td>
             <td>
               <a href="{{ tournament.get_absolute_url }}"
-                 class="btn btn-default btn-xs"><i class="fa fa-info"></i>
+                 class="btn btn-default btn-xs
+                 {% if tournament.winner_id == request.user.id %}tournament-winner{% endif %}">
+                <i class="fa fa-info"></i>
                  Détails
               </a>
             </td>
