@@ -6,7 +6,11 @@ from django.utils.safestring import mark_safe
 from django.utils.timezone import now
 from prologin.concours.stechec import models
 
-admin.site.register(models.Champion)
+
+@admin.register(models.Champion)
+class ChampionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'author', 'status')
+    list_filter = ('status',)
 
 
 class MatchPlayerInline(admin.TabularInline):
@@ -117,5 +121,7 @@ class TournamentAdmin(admin.ModelAdmin):
 
 
 if settings.STECHEC_USE_MAPS:
-    admin.site.register(models.Map)
-    admin.site.register(models.TournamentMap)
+    @admin.register(models.Map)
+    class MapAdmin(admin.ModelAdmin):
+        list_display = ('id', 'name', 'author', 'official')
+        list_filter = ('official',)
