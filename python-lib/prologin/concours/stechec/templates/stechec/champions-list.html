@@ -1,7 +1,13 @@
 {% extends "stechec/base.html" %}
+{% load django_bootstrap_breadcrumbs %}
 
 {% block title %}{{ title }}{% endblock %}
 {% block titleh1 %}{{ title }}{% endblock %}
+
+{% block breadcrumbs %}
+  {{ block.super }}
+  {% breadcrumb_for "champions-all" %}Champions{% endbreadcrumb_for %}
+{% endblock breadcrumbs %}
 
 {% block content %}
 

@@ -1,9 +1,16 @@
 {% extends "stechec/base.html" %}
 {% load staticfiles %}
+{% load django_bootstrap_breadcrumbs %}
 
 {% block title %}Carte {{ map.name }}{% endblock %}
 {% block titleh1 %}Carte {{ map.name }}
   <small>#{{ map.id }}</small>{% endblock %}
+
+{% block breadcrumbs %}
+  {{ block.super }}
+  {% breadcrumb_for "maps-all" %}Cartes{% endbreadcrumb_for %}
+  {% breadcrumb_for "map-detail" map.id %}{{ map.name }}{% endbreadcrumb_for %}
+{% endblock breadcrumbs %}
 
 {% block content %}
 

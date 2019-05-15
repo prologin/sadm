@@ -1,11 +1,17 @@
 {% extends "stechec/base.html" %}
 {% load static %}
+{% load django_bootstrap_breadcrumbs %}
 
 {% block title %}État des serveurs{% endblock %}
 {% block titleh1 %}État des serveurs{% endblock %}
 
 {% block head %}
 {% endblock %}
+
+{% block breadcrumbs %}
+  {{ block.super }}
+  {% breadcrumb_for "status" %}État des serveurs{% endbreadcrumb_for %}
+{% endblock breadcrumbs %}
 
 {% block content %}
 

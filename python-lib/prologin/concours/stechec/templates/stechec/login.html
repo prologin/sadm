@@ -1,8 +1,14 @@
 {% extends "stechec/base.html" %}
 {% load crispy_forms_tags %}
+{% load django_bootstrap_breadcrumbs %}
 
 {% block title %}Connexion{% endblock %}
 {% block titleh1 %}Connexion{% endblock %}
+
+{% block breadcrumbs %}
+  {{ block.super }}
+  {% breadcrumb_for "login" %}Connexion{% endbreadcrumb_for %}
+{% endblock breadcrumbs %}
 
 {% block content %}
 

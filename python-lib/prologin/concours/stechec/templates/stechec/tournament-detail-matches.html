@@ -1,10 +1,18 @@
 {% extends "stechec/base.html" %}
 {% load static %}
+{% load django_bootstrap_breadcrumbs %}
 
 {% block title %}{{ champion.name }} — {{ tournament.name }}{% endblock %}
 {% block titleh1 %}
 {{ tournament.name }} : matchs de {{ champion.name }}
 {% endblock %}
+
+{% block breadcrumbs %}
+  {{ block.super }}
+  {% breadcrumb_for "tournaments-all" %}Tournois{% endbreadcrumb_for %}
+  {% breadcrumb_for "tournament-detail" tournament.id %}{{ tournament.name }}{% endbreadcrumb_for %}
+  {% breadcrumb_for "tournament-matches-view" tournament.id champion.id %}Matchs de {{ champion.name }}{% endbreadcrumb_for %}
+{% endblock breadcrumbs %}
 
 {% block content %}
 <table class="table table-striped match-matrix">

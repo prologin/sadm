@@ -1,8 +1,15 @@
 {% extends "stechec/base.html" %}
 {% load crispy_forms_tags %}
+{% load django_bootstrap_breadcrumbs %}
 
 {% block title %}Envoyer un champion{% endblock %}
 {% block titleh1 %}Envoyer un champion{% endblock %}
+
+{% block breadcrumbs %}
+  {{ block.super }}
+  {% breadcrumb_for "champions-all" %}Champions{% endbreadcrumb_for %}
+  {% breadcrumb_for "champion-new" %}Envoyer un champion{% endbreadcrumb_for %}
+{% endblock breadcrumbs %}
 
 {% block content %}
 

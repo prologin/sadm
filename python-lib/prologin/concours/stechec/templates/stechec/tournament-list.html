@@ -1,10 +1,15 @@
 {% extends "stechec/base.html" %}
+{% load django_bootstrap_breadcrumbs %}
 
 {% block title %}Liste des tournois{% endblock %}
 {% block titleh1 %}Liste des tournois{% endblock %}
 
-{% block content %}
+{% block breadcrumbs %}
+  {{ block.super }}
+  {% breadcrumb_for "tournaments-all" %}Tournois{% endbreadcrumb_for %}
+{% endblock breadcrumbs %}
 
+{% block content %}
 <p class="intro">Voici la liste de tous les tournois.</p>
 
 {% if is_paginated %}{% load paginator %}{% paginator 5 %}{% endif %}

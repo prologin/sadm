@@ -20,6 +20,15 @@ textarea.monospace, input.monospace {
     font-family: monospace;
 }
 
+.breadcrumb > li {
+  font-size: 0.8em;
+}
+
+.breadcrumb > li + li:before {
+  content: "\203a";
+}
+
+
 i.champ-status {
     width: 1.1em;
     text-align: center;

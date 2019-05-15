@@ -1,9 +1,16 @@
 {% extends "stechec/base.html" %}
 {% load static %}
+{% load django_bootstrap_breadcrumbs %}
 
 {% block title %}{{ champion.name }} – Champion{% endblock %}
 {% block titleh1 %}Détails du champion {{ champion.name }}
   <small>#{{ champion.id }}</small>{% endblock %}
+
+{% block breadcrumbs %}
+  {{ block.super }}
+  {% breadcrumb_for "champions-all" %}Champions{% endbreadcrumb_for %}
+  {% breadcrumb_for "champion-detail" champion.id %}{{ champion.name }}{% endbreadcrumb_for %}
+{% endblock breadcrumbs %}
 
 {% block content %}
 

@@ -1,8 +1,15 @@
 {% extends "stechec/base.html" %}
 {% load static %}
+{% load django_bootstrap_breadcrumbs %}
 
 {% block title %}{{ tournament.name }} – Tournoi{% endblock %}
 {% block titleh1 %}Détails du tournoi {{ tournament.name }}{% endblock %}
+
+{% block breadcrumbs %}
+  {{ block.super }}
+  {% breadcrumb_for "tournaments-all" %}Tournois{% endbreadcrumb_for %}
+  {% breadcrumb_for "tournament-detail" tournament.id %}{{ tournament.name }}{% endbreadcrumb_for %}
+{% endblock breadcrumbs %}
 
 {% block content %}
 

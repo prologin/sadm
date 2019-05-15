@@ -1,8 +1,15 @@
 {% extends "stechec/base.html" %}
 {% load humanize static substract %}
+{% load django_bootstrap_breadcrumbs %}
 
 {% block title %}Détail du match{% endblock %}
 {% block titleh1 %}Détail du match <small>#{{ match.id }}</small>{% endblock %}
+
+{% block breadcrumbs %}
+  {{ block.super }}
+  {% breadcrumb_for "matches-all" %}Matchs{% endbreadcrumb_for %}
+  {% breadcrumb_for "match-detail" match.id %}Match #{{ match.id }}{% endbreadcrumb_for %}
+{% endblock breadcrumbs %}
 
 {% block content %}
 

@@ -3,6 +3,7 @@ aiohttp==3.5.4
 aiopg==0.16.0
 django-crispy-forms==1.7.2
 django-prometheus==1.0.15
+django-bootstrap-breadcrumbs==0.9.1
 Django==2.2
 djangorestframework==3.9.2
 gunicorn==19.9.0

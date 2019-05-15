@@ -94,7 +94,7 @@ class MatchesListMixin:
     context_object_name = 'matches'
     paginate_by = 100
     template_name = 'stechec/matches-list.html'
-    title = "Tous les matches"
+    title = "Tous les matchs"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -129,7 +129,7 @@ class MatchView(DetailView):
 
 class AllMatchesView(MatchesListMixin, ListView):
     queryset = models.Match.objects.all().select_related('author')
-    explanation_text = "Voici la liste de tous les matches ayant été réalisés."
+    explanation_text = "Voici la liste de tous les matchs ayant été réalisés."
     show_creator = True
 
     def get_queryset(self):

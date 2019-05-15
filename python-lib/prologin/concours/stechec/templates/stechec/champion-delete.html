@@ -1,7 +1,15 @@
 {% extends "stechec/base.html" %}
+{% load django_bootstrap_breadcrumbs %}
 
 {% block title %}Suppression du champion{% endblock %}
 {% block titleh1 %}Suppression du champion {{ object.name }} <small>#{{ object.id }}</small>{% endblock %}
+
+{% block breadcrumbs %}
+  {{ block.super }}
+  {% breadcrumb_for "champions-all" %}Champions{% endbreadcrumb_for %}
+  {% breadcrumb_for "champion-detail" champion.id %}{{ champion.name }}{% endbreadcrumb_for %}
+  {% breadcrumb_for "champion-delete" champion.id %}Supprimer{% endbreadcrumb_for %}
+{% endblock breadcrumbs %}
 
 {% block content %}
 

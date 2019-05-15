@@ -1,4 +1,4 @@
-{% load static %}
+{% load static django_bootstrap_breadcrumbs %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -48,6 +48,12 @@
 
       {# Content #}
       <div id="content">
+        {% block breadcrumbs %}
+        {% clear_breadcrumbs %}
+        {% breadcrumb_for "home" %}Prologin{% endbreadcrumb_for %}
+        {% endblock %}
+        {% render_breadcrumbs "django_bootstrap_breadcrumbs/bootstrap3.html" %}
+
         <h1>{% block titleh1 %}{% endblock %}</h1>
 
         {% for message in messages %}

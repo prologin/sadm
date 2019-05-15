@@ -1,5 +1,12 @@
 {% extends "stechec/base.html" %}
 {% load crispy_forms_tags %}
+{% load django_bootstrap_breadcrumbs %}
+
+{% block breadcrumbs %}
+  {{ block.super }}
+  {% breadcrumb_for "maps-all" %}Cartes{% endbreadcrumb_for %}
+  {% breadcrumb_for "map-new" %}Envoyer une carte{% endbreadcrumb_for %}
+{% endblock breadcrumbs %}
 
 {% block title %}Envoyer une carte{% endblock %}
 {% block titleh1 %}Envoyer une carte{% endblock %}

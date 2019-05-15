@@ -89,6 +89,7 @@ INSTALLED_APPS = (
 
     # Vendor
     'crispy_forms',
+    'django_bootstrap_breadcrumbs',
 
     # Prologin
     'prologin.concours.stechec',
