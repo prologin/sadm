@@ -38,3 +38,37 @@ i.champ-status {
 #replay * {
     max-width: 100%;
 }
+
+.challenge-trophy-1 {
+  color: goldenrod;
+}
+
+.challenge-trophy-2 {
+  color: #a8a8a8;
+}
+
+.challenge-trophy-3 {
+  color: #965a38;
+}
+
+.match-matrix-won {
+  background-color: #d4edda;
+  text-align: center;
+}
+
+.match-matrix-lost {
+  background-color: #f8d7da;
+  text-align: center;
+}
+
+.match-matrix-won > a{
+  color: #28a745;
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.match-matrix-lost > a {
+  color: #dc3545;
+  font-style: italic;
+  text-decoration: underline;
+}

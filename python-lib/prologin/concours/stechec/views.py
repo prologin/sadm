@@ -18,10 +18,11 @@ import urllib.parse
 
 from prologin.concours.stechec import forms
 from prologin.concours.stechec import models
+from prologin.concours.stechec.restapi.permissions import (
+    CreateMatchUserThrottle)
 # Use API throttling in the standard view
-from prologin.concours.stechec.restapi.permissions import CreateMatchUserThrottle
 # Imported for side-effect
-import prologin.concours.stechec.monitoring
+import prologin.concours.stechec.monitoring # noqa
 
 
 class ChampionView(DetailView):
@@ -41,9 +42,9 @@ class ChampionView(DetailView):
 
     def get(self, request, *args, **kwargs):
         match = self.get_object()
-        if (settings.STECHEC_FIGHT_ONLY_OWN_CHAMPIONS
+        if ((settings.STECHEC_FIGHT_ONLY_OWN_CHAMPIONS
                 and not self.request.user.is_staff
-            ) and match.author != request.user:
+             )) and match.author != request.user:
             return HttpResponseForbidden()
         return super().get(request, *args, **kwargs)
 
@@ -66,7 +67,8 @@ class ChampionsListMixin:
 class AllChampionsView(ChampionsListMixin, ListView):
     queryset = models.Champion.objects.filter(
         deleted=False).select_related('author')
-    explanation_text = "Voici la liste de tous les champions participant actuellement."
+    explanation_text = ("Voici la liste de tous les champions participant "
+                        "actuellement.")
     show_for_all = True
 
     def get(self, request, *args, **kwargs):
@@ -77,7 +79,8 @@ class AllChampionsView(ChampionsListMixin, ListView):
 
 
 class MyChampionsView(LoginRequiredMixin, ChampionsListMixin, ListView):
-    explanation_text = "Voici la liste de tous vos champions participant actuellement."
+    explanation_text = ("Voici la liste de tous vos champions participant "
+                        "actuellement.")
     title = "Mes champions"
     show_for_all = False
 
@@ -118,8 +121,8 @@ class MatchView(DetailView):
         if (settings.STECHEC_FIGHT_ONLY_OWN_CHAMPIONS
                 and not self.request.user.is_staff):
             queryset = queryset.filter(author=self.request.user.id)
-        queryset = (queryset.annotate(Max('matchplayer__score')).annotate(
-            Min('matchplayer__id')))
+        queryset = (queryset.annotate(Max('matchplayers__score')).annotate(
+            Min('matchplayers__id')))
         return queryset
 
 
@@ -185,7 +188,8 @@ class NewChampionView(LoginRequiredMixin, FormView):
                                    status='new',
                                    comment=form.cleaned_data['comment'])
         champion.save()
-        # It's important to save() before sources =, as the latter needs the row id
+        # It's important to save() before sources =, as the latter needs the
+        # row id
         champion.sources = form.cleaned_data['tarball']
 
         return HttpResponseRedirect(champion.get_absolute_url())
@@ -274,9 +278,9 @@ class MatchDumpView(SingleObjectMixin, View):
 
     def get(self, request, *args, **kwargs):
         match = self.get_object()
-        if (settings.STECHEC_FIGHT_ONLY_OWN_CHAMPIONS
-                and not self.request.user.is_staff
-            ) and match.author != request.user:
+        if ((settings.STECHEC_FIGHT_ONLY_OWN_CHAMPIONS
+             and not self.request.user.is_staff
+             )) and match.author != request.user:
             return HttpResponseForbidden()
 
         dump = match.dump
@@ -301,6 +305,82 @@ class NewMapView(LoginRequiredMixin, FormView):
         map.save()
         map.contents = form.cleaned_data['contents']
         return HttpResponseRedirect(map.get_absolute_url())
+
+
+class AllTournamentsView(ListView):
+    queryset = models.Tournament.objects.filter(visible=True)
+    paginate_by = 100
+    template_name = "stechec/tournament-list.html"
+    ordering = ['-id']
+
+
+class TournamentView(DetailView):
+    queryset = models.Tournament.objects.filter(visible=True)
+    template_name = "stechec/tournament-detail.html"
+
+    def players(self):
+        tournament = self.get_object()
+
+        players = (models.TournamentPlayer.objects
+                   .filter(tournament=tournament)
+                   .prefetch_related('champion__author'))
+
+        rank = 1
+        previous_score = None
+        for i, player in enumerate(players, 1):
+            score = player.score
+            ex_aequo = True
+            if previous_score is None or previous_score != score:
+                rank = i
+                ex_aequo = False
+                previous_score = score
+            player.score = score
+            player.rank = rank
+            player.ex_aequo = ex_aequo
+        return players
+
+
+class TournamentMatchesView(DetailView):
+    queryset = models.Tournament.objects.filter(visible=True)
+    template_name = "stechec/tournament-detail-matches.html"
+
+    def champion(self):
+        return get_object_or_404(models.Champion, pk=self.kwargs['champion'])
+
+    def match_matrix(self):
+        if settings.STECHEC_NPLAYERS > 2:
+            raise RuntimeError("match_matrix() is only for 2 player games.")
+
+        tournament = self.get_object()
+        champion = self.champion()
+        matches = (models.Match.objects
+                   .filter(status='done', tournament=tournament.pk,
+                           players__id=champion.pk)
+                   .prefetch_related('matchplayers__champion__author'))
+        enemies = (tournament.tournamentplayers
+                   .exclude(champion=champion)
+                   .order_by('-score'))
+
+        against = collections.defaultdict(list)
+        for m in matches:
+            p1, p2 = m.matchplayers.all()
+            me, other = (p1, p2) if p1.champion == champion else (p2, p1)
+            against[other.champion.id].append({
+                'id': m.id,
+                'score': me.score,
+                'result': 'won' if me.score > other.score else 'lost'
+            })
+        matrix = [{'enemy': e, 'matches': against[e.champion.id]}
+                  for e in enemies]
+        return matrix
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['champion'] = self.champion()
+        context['matrix'] = self.match_matrix()
+        context['match_range'] = range(
+            1, max(len(e['matches']) for e in context['matrix']) + 1)
+        return context
 
 
 class MasterStatus(TemplateView):

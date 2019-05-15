@@ -25,6 +25,7 @@ urlpatterns = [
     path('report-bug/list/',
          views.ReportBugList.as_view(),
          name='report-bug-list'),
+
     path('champions/<int:pk>/',
          views.ChampionView.as_view(),
          name='champion-detail'),
@@ -43,6 +44,7 @@ urlpatterns = [
     path('champions/new/',
          views.NewChampionView.as_view(),
          name='champion-new'),
+
     path('matches/<int:pk>/', views.MatchView.as_view(), name='match-detail'),
     path('matches/<int:pk>/dump/',
          views.MatchDumpView.as_view(),
@@ -53,6 +55,15 @@ urlpatterns = [
          name='matches-mine-by-champion'),
     path('matches/mine/', views.MyMatchesView.as_view(), name='matches-mine'),
     path('matches/new/', views.NewMatchView.as_view(), name='match-new'),
+
+    path('tournaments/all/', views.AllTournamentsView.as_view(),
+         name='tournaments-all'),
+    path('tournaments/<int:pk>/', views.TournamentView.as_view(),
+         name='tournament-detail'),
+    path('tournaments/<int:pk>/matches/<int:champion>/',
+         views.TournamentMatchesView.as_view(),
+         name='tournament-matches-view'),
+
     path('status/', views.MasterStatus.as_view(), name='status'),
 ]
 

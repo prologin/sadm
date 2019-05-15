@@ -14,6 +14,7 @@ from django.utils.functional import cached_property
 from django_prometheus.models import ExportModelOperationsMixin
 
 import prologin.rpc.client
+from prologin.concours.stechec.languages import LANGUAGES
 
 stripper_re = re.compile(r'\033\[.*?m')
 
@@ -131,10 +132,11 @@ class Champion(ExportModelOperationsMixin('champion'), models.Model):
                     yield tmpd
 
     @cached_property
-    def lang_code(self):
+    def language(self):
         with self._extract_sources() as tmpd:
             with open(os.path.join(tmpd, '_lang')) as langf:
-                return langf.read().strip()
+                lang_code = langf.read().strip()
+        return {'code': lang_code, **LANGUAGES.get(lang_code)}
 
     @cached_property
     def loc_count_main(self):
@@ -174,9 +176,13 @@ class Tournament(ExportModelOperationsMixin('tournament'), models.Model):
                                   verbose_name="maps",
                                   related_name='tournaments',
                                   through='TournamentMap')
+    visible = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
+
+    def get_absolute_url(self):
+        return reverse("tournament-detail", kwargs={"pk": self.id})
 
     class Meta:
         ordering = ['-ts']

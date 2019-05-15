@@ -1,0 +1,161 @@
+{% extends "stechec/base.html" %}
+{% load static %}
+
+{% block title %}{{ tournament.name }} – Tournoi{% endblock %}
+{% block titleh1 %}Détails du tournoi {{ tournament.name }}{% endblock %}
+
+{% block content %}
+
+<h2>Classement</h2>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th width="2em"></th>
+            <th>Rang</th>
+            <th>Candidat</th>
+            <th>Champion</th>
+            <th>Langage</th>
+            <th>Score</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for player in view.players %}
+        <tr>
+          <td>{% if player.rank <= 3 %}
+            <span class="challenge-trophy-{{ player.rank }}">
+              <i class="fa fa-trophy"></i>
+            </span>
+            {% endif %}</td>
+            <td>{{ player.rank }} </td>
+            <td>{{ player.champion.author.get_full_name }}</td>
+            <td><a href="{{ player.champion.get_absolute_url }}">
+                {{ player.champion.name }}</a></td>
+            <td style="color: {{ player.champion.language.color }}">
+              <strong>{{ player.champion.language.name }}</strong></td>
+            <td>{{ player.score }}</td>
+            <td>
+              <a href="{% url 'tournament-matches-view' pk=tournament.pk champion=player.champion.pk %}"
+                 class="btn btn-default btn-xs"><i class="fa fa-info"></i>
+                 Détails des matchs
+              </a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="8" class="text-muted"><i class="fa fa-frown-o"></i>
+              Aucun champion dans ce tournoi.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2>Statistiques</h2>
+
+<div id="graph_plot_sloc" style="min-width: 310px; height: 400px; max-width: 800px; margin: 0 auto"></div>
+<div id="graph_lang_share" style="min-width: 310px; height: 400px; max-width: 800px; margin: 0 auto"></div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/highcharts.src.js' %}" type="text/javascript"></script>
+<script type="text/javascript">
+var plot_sloc_chart = {
+  chart: {
+    type: 'scatter',
+    zoomType: 'xy'
+  },
+  title: {
+    text: 'Score en fonction du nombre de lignes de code'
+  },
+  xAxis: {
+    title: {
+      enabled: true,
+      text: 'Lignes de code'
+    },
+    startOnTick: true,
+    endOnTick: true,
+    showLastLabel: true
+  },
+  yAxis: {
+    title: {
+      text: 'Score'
+    }
+  },
+  plotOptions: {
+    scatter: {
+      marker: {
+        radius: 5,
+        states: {
+          hover: {
+            enabled: true,
+            lineColor: 'rgb(100,100,100)'
+          }
+        }
+      },
+      states: {
+        hover: {
+          marker: {
+            enabled: false
+          }
+        }
+      },
+      tooltip: {
+        headerFormat: '',
+        pointFormat: '<b>{point.author}</b><br/>{point.name} ({series.name})'
+      }
+    }
+  }
+};
+
+var lang_share_chart = {
+  chart: {
+    type: 'pie',
+    plotBackgroundColor: null,
+    plotBorderWidth: 0,
+    plotShadow: false
+  },
+  title: {
+    text: 'Langages<br/>utilisés',
+    align: 'center',
+    verticalAlign: 'middle',
+    y: 40
+  },
+  tooltip: {
+    pointFormat: "Part: <b>{point.percentage:.1f}%</b>"
+  },
+  plotOptions: {
+    pie: {
+      dataLabels: {
+        enabled: true,
+        distance: -50,
+        style: {
+          fontWeight: 'bold',
+          color: 'white'
+        }
+      },
+      startAngle: -90,
+      endAngle: 90,
+      center: ['50%', '75%'],
+      size: '110%'
+    }
+  },
+  series: [{
+    name: 'Langages',
+    innerSize: '50%',
+    data: []
+  }]
+};
+
+$.getJSON('/api/tournaments/31/plot_sloc/', function(data) {
+  plot_sloc_chart.series = data;
+  Highcharts.chart('graph_plot_sloc', plot_sloc_chart);
+});
+
+$.getJSON('/api/tournaments/31/lang_share/', function(data) {
+  lang_share_chart.series[0].data = data;
+  Highcharts.chart('graph_lang_share', lang_share_chart);
+});
+</script>
+{% endblock %}

@@ -81,7 +81,7 @@ class TournamentViewSet(viewsets.ReadOnlyModelViewSet):
                 'name': champion.name,
                 'author': champion.author.username,
                 'sloc': champion.loc_count_main,
-                'language': champion.lang_code,
+                'language': champion.language,
                 'tournament_score': p.score,
                 'sum_match_score': 0,
                 'avg_match_score': 0,
@@ -93,29 +93,40 @@ class TournamentViewSet(viewsets.ReadOnlyModelViewSet):
             champions[mp.champion.id]['num_matches'] += 1
             champions[mp.champion.id]['sum_match_score'] += mp.score
         for c in champions.values():
-            c['avg_match_score'] = c['sum_match_score'] // c['num_matches']
+            if c['num_matches']:
+                c['avg_match_score'] = c['sum_match_score'] / c['num_matches']
         return list(champions.values())
 
-    @detail_route(['get'], url_path='stats')
+    @detail_route(['get'])
     def stats(self, request, pk):
         return Response(self.get_stats())
 
-    @detail_route(['get'], url_path='plot_sloc')
+    @detail_route(['get'])
     def plot_sloc(self, request, pk):
         stats = self.get_stats()
         series = collections.defaultdict(list)
         for c in stats:
-            series[c['language']].append({
+            series[c['language']['code']].append({
                 'name': c['name'],
                 'author': c['author'],
                 'x': c['sloc'],
-                'y': c['avg_match_score'],
+                'y': c['tournament_score'],
             })
-        series = [{'name': LANGUAGES[k]['name'],
-                   'color': LANGUAGES[k]['color'],
-                   'data': v}
+        series = [{'name': LANGUAGES[k]['name'], 'data': v,
+                   **({'color': LANGUAGES[k]['color']}
+                      if k in LANGUAGES else {})}
                   for k, v in series.items()]
         return Response(series)
+
+    @detail_route(['get'])
+    def lang_share(self, request, pk):
+        stats = self.get_stats()
+        counter = collections.Counter(c['language']['code'] for c in stats)
+        data = [{'name': LANGUAGES[k]['name'], 'y': v,
+                 **({'color': LANGUAGES[k]['color']}
+                    if k in LANGUAGES else {})}
+                for k, v in counter.items()]
+        return Response(data)
 
 
 class MapViewSet(viewsets.ModelViewSet):

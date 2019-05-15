@@ -1,0 +1,37 @@
+{% extends "stechec/base.html" %}
+{% load static %}
+
+{% block title %}{{ champion.name }} — {{ tournament.name }}{% endblock %}
+{% block titleh1 %}
+{{ tournament.name }} : matchs de {{ champion.name }}
+{% endblock %}
+
+{% block content %}
+<table class="table table-striped match-matrix">
+  <thead>
+    <tr>
+      <th>Contre</th>
+      <th>Auteur</th>
+      {% for m in match_range %}
+        <th>Match {{ m }}</th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in matrix %}
+      <tr>
+        <td><a href="{% url 'champion-detail' r.enemy.champion.pk %}">
+            {{ r.enemy.champion.name }}</a></td>
+        <td>{{ r.enemy.champion.author.get_full_name }}</td>
+        {% for m in r.matches %}
+          <td class="match-matrix-{{ m.result }}">
+            <a href="{% url 'match-detail' m.id %}">{{ m.score }}</a>
+          </td>
+        {% empty %}
+          <td colspan="8" >Aucun match</td>
+        {% endfor %}
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
