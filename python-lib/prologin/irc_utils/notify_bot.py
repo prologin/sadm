@@ -61,7 +61,7 @@ class NotifierBot(IRC):
                 self.ident(gen_nick())
                 self.run()
                 break
-            except:
+            except Exception:
                 logger.error('Attempt failed. Retrying in 30s...')
             time.sleep(30)
 

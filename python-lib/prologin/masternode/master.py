@@ -203,7 +203,9 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                                         worker)
                         self.redispatch_worker(worker)
                     self.redispatch_timeout_tasks(worker)
-            except:
+            except asyncio.CancelledError:
+                raise
+            except Exception:
                 logging.exception('Janitor task triggered an exception')
             await asyncio.sleep(1)
 
@@ -264,6 +266,8 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             try:
                 t = MatchTask(self.config, mid, players, opts, file_opts)
                 self.worker_tasks.append(t)
+            except asyncio.CancelledError:
+                raise
             except Exception:
                 logging.exception('Unable to create task for match %s', mid)
 
@@ -280,7 +284,9 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                     await self.check_requested_compilations()
                     await self.check_requested_matches()
                     await asyncio.sleep(1)
-            except:
+            except asyncio.CancelledError:
+                raise
+            except Exception:
                 logging.exception('DB Watcher task triggered an exception')
                 await asyncio.sleep(5)
                 continue
@@ -325,7 +331,9 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                 # but be called as soon as all the functions at the top of the
                 # heap have been executed
                 await asyncio.sleep(0)
-            except:
+            except asyncio.CancelledError:
+                raise
+            except Exception:
                 logging.exception('Dispatcher task triggered an exception')
                 await asyncio.sleep(3)
                 continue

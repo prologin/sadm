@@ -45,7 +45,9 @@ class Worker(object):
     async def reachable(self):
         try:
             return (await self.rpc.reachable())
-        except:
+        except asyncio.CancelledError:
+            raise
+        except Exception:
             return False
 
     def update(self, slots, max_slots):
