@@ -1,6 +1,7 @@
 [Unit]
 Description=Concours website
-After=network-online.target
+After=network-online.target postgresql.service
+Requires=postgresql.service
 
 [Service]
 Type=simple
