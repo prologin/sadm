@@ -47,6 +47,7 @@ List of packages for contestants' environment
 
 # Additional config
 
+* merlin
 * emacs-haskell-mode
 * grml-zsh-config
 
