@@ -48,6 +48,7 @@ List of packages for contestants' environment
 # Additional config
 
 * merlin
+* emacs-tuareg-mode-git
 * emacs-haskell-mode
 * grml-zsh-config
 

@@ -2,7 +2,7 @@
 
 pkgname=emacs-tuareg-mode-git
 _realname=tuareg
-pkgver=2.1.0
+pkgver=2.3.0
 pkgrel=1
 pkgdesc='Emacs tuareg mode for ocaml'
 arch=('any')

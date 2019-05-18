@@ -1,8 +1,12 @@
-(load "~/.tuareg-mode/tuareg.el")
+;; OCaml configuration
 
-(setq auto-mode-alist
-      (append '(("\\.ml[ily]?$" . tuareg-mode))
-              auto-mode-alist))
+; load tuareg
+(load "/usr/share/emacs/site-lisp/tuareg/tuareg-site-file")
+; opam isn't installed, explicitly give the path to merlin
+(setq merlin-command "/usr/bin/ocamlmerlin")
+; enable merlin whenever entering tuareg
+(autoload 'merlin-mode "merlin" "Merlin mode" t)
+(add-hook 'tuareg-mode-hook 'merlin-mode)
 
 ;;; Appearance
 (line-number-mode t)
@@ -30,3 +34,11 @@
           (lambda ()
             (haskell-indentation-mode t)
             (inf-haskell-mode t)))
+
+;; autocompletion
+(require 'auto-complete)
+(require 'auto-complete-config)
+(ac-config-default)
+(setq ac-show-menu-immediately-on-auto-complete t)
+(setq ac-auto-start t)
+(setq ac-auto-show-menu 0.5)
