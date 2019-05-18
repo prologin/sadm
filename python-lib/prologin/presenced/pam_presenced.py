@@ -131,12 +131,22 @@ elif PAM_TYPE == 'close_session':
             stderr=sys.stderr)
 
         # And finally stop the nbd client
-        subprocess.check_call([
-            '/usr/sbin/nbd-client', '-d', '-nonetlink',
-            get_block_device(login)
-        ],
-                              stdout=sys.stderr,
-                              stderr=sys.stderr)
+        block_device = get_block_device(login)
+
+        # due to a bug somewhere between nbd-client and the kernel, detaching
+        # with -nonetlink fails with: Invalid nbd device target /dev/nbd0
+        try:
+            subprocess.check_call(
+                ['/usr/sbin/nbd-client', '-d', block_device],
+                stdout=sys.stderr,
+                stderr=sys.stderr)
+        # here's the workaround : only try without -nonetlink if the above
+        # command fails
+        except subprocess.CalledProcessError:
+            subprocess.check_call(
+                ['/usr/sbin/nbd-client', '-d', '-nonetlink', block_device],
+                stdout=sys.stderr,
+                stderr=sys.stderr)
     sys.exit(0)
 
 else:
