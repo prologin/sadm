@@ -73,6 +73,12 @@ def raise_isolate_error(message, cmd, isolator):
     what += "\n"
     what += "\nCommand: " + ' '.join(cmd)
     what += "\nOutput:\n" + output
+    if isolator.isolate_stdout:
+        what += ("\nIsolate output:\n" +
+                 isolator.isolate_stdout.decode(errors='replace'))
+    if isolator.isolate_stderr:
+        what += ("\nIsolate error:\n" +
+                 isolator.isolate_stderr.decode(errors='replace'))
     raise RuntimeError(what)
 
 
@@ -165,6 +171,9 @@ async def spawn_server(config, rep_addr, pub_addr, nb_players, sockets_dir,
             dump_path = isolator.path / 'dump.json'
             with dump_path.open('rb') as dump:
                 gzdump = gzip.compress(dump.read())
+        except PermissionError:
+            raise_isolate_error("server: dump.json does not have the correct "
+                                "permissions.\n", cmd, isolator)
         except FileNotFoundError:
             raise_isolate_error("server: dump.json was not created.\n", cmd,
                                 isolator)
