@@ -35,7 +35,7 @@
               <i class="fa fa-trophy"></i>
             </span>
             {% endif %}</td>
-            <td>{{ player.rank }} </td>
+            <td>{{ player.rank }} {% if player.ex_aequo %}(ex-aequo){% endif %}</td>
             <td>{{ player.champion.author.username }}</td>
             <td><a href="{{ player.champion.get_absolute_url }}">
                 {{ player.champion.name }}</a></td>
