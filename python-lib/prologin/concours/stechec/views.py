@@ -336,7 +336,10 @@ class AllTournamentsView(ListView):
         winner = (
             models.Tournament.objects
             .filter(pk=OuterRef('pk'))
-            .annotate(max_score=Max('tournamentplayers__score'))
+            .annotate(max_score=Max(
+                'tournamentplayers__score',
+                filter=Q(tournamentplayers__score__gt=0)
+            ))
             .filter(tournamentplayers__score=F('max_score')))
         winner_id = (winner.annotate(winner_id=Max(
             'tournamentplayers__champion__author'))
