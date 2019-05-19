@@ -33,7 +33,7 @@ class Command(BaseCommand):
                      'champions': chs}
 
             if settings.STECHEC_USE_MAPS:
-                for map in tournament.maps:
+                for map in tournament.maps.all():
                     matches.append({**match, 'map': map})
             else:
                 matches.append(match)
