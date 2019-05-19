@@ -107,11 +107,10 @@ import os
 import sys
 import ctypes
 
-# Test additional opts
-print('test_opt:', sys.argv[sys.argv.index('--test_opt') + 1])
-fopt = sys.argv[sys.argv.index('--test_fopt') + 1]
-assert os.access(fopt, os.R_OK)
-print('test_fopt:', open(fopt).read())
+# Test map
+map = sys.argv[sys.argv.index('--map') + 1]
+assert os.access(map, os.R_OK)
+print('test_map:', open(map).read())
 
 # Write on all outputs
 dump_path = sys.argv[sys.argv.index('--dump') + 1]
@@ -153,11 +152,10 @@ import ctypes
 print('name:', sys.argv[sys.argv.index('--name') + 1])
 print('client_id:', sys.argv[sys.argv.index('--client_id') + 1])
 
-# Test additional opts
-print('test_opt:', sys.argv[sys.argv.index('--test_opt') + 1])
-fopt = sys.argv[sys.argv.index('--test_fopt') + 1]
-assert os.access(fopt, os.R_OK)
-print('test_fopt:', open(fopt).read())
+# Test map
+map = sys.argv[sys.argv.index('--map') + 1]
+assert os.access(map, os.R_OK)
+print('test_map:', open(map).read())
 
 # Write on all outputs
 print('some log on stdout')
@@ -235,12 +233,11 @@ class FakeMatchTest(unittest.TestCase):
             # Construct map player_id -> [champion id, tarball]
             match_id = 4224
             players = {42: [0, ctgz], 1337: [0, ctgz]}
-            opts = {'--test_opt': 'TEST_OPT'}
-            f_opts = {'--test_fopt': b64encode(b'TEST_FOPT')}
+            map_contents = 'TEST_MAP'
 
             server_result, server_out, dump, players_info = (
                 loop.run_until_complete(operations.spawn_match(
-                    config, match_id, players, opts, f_opts)))
+                    config, match_id, players, map_contents)))
 
         self.assertEqual(gzip.decompress(b64decode(dump)), b'DUMP TEST\n')
 
@@ -248,8 +245,7 @@ class FakeMatchTest(unittest.TestCase):
                        {'player': 2, 'score': 1337, 'nb_timeout': 0}]
         self.assertEqual(server_result, sr_expected)
 
-        self.assertIn('test_opt: TEST_OPT', server_out)
-        self.assertIn('test_fopt: TEST_FOPT', server_out)
+        self.assertIn('map: TEST_MAP', server_out)
         self.assertIn('some log on stderr', server_out)
 
         players_it = enumerate(sorted(players_info.items()), 1)
@@ -258,7 +254,6 @@ class FakeMatchTest(unittest.TestCase):
                              msg='\nClient script output:\n' + output)
             self.assertIn('some log on stdout', output)
             self.assertIn('some log on stderr', output)
-            self.assertIn('test_opt: TEST_OPT', output)
-            self.assertIn('test_fopt: TEST_FOPT', output)
+            self.assertIn('map: TEST_MAP', output)
             self.assertIn('name: {}'.format(pl_id), output)
             self.assertIn('client_id: {}'.format(o_id), output)
