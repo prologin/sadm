@@ -5,7 +5,6 @@ from django.urls import reverse
 from django.db import transaction
 from django.db.models import (Max, Min, F, Q, Value, Count, Case, When,
                               CharField)
-from django.db.models.functions import Concat
 from django.http import (HttpResponseRedirect, HttpResponse,
                          HttpResponseForbidden, Http404)
 from django.shortcuts import get_object_or_404
@@ -314,10 +313,7 @@ class AllTournamentsView(ListView):
         qs = (super().get_queryset()
               .annotate(
                   winner_score=Max('tournamentplayers__score'),
-                  winner=Concat(
-                      F('tournamentplayers__champion__author__first_name'),
-                      Value(' '),
-                      F('tournamentplayers__champion__author__last_name')),
+                  winner=F('tournamentplayers__champion__author__username'),
                   winner_id=F('tournamentplayers__champion__author'))
               .annotate(num_champions=Count('players'))
               .prefetch_related('tournamentplayers')

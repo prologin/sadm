@@ -31,7 +31,7 @@
       <tr>
         <td><a href="{% url 'champion-detail' r.enemy.champion.pk %}">
             {{ r.enemy.champion.name }}</a></td>
-        <td>{{ r.enemy.champion.author.get_full_name }}</td>
+        <td>{{ r.enemy.champion.author.username }}</td>
         {% for m in r.matches %}
           <td class="match-matrix-{{ m.result }}">
             <a href="{% url 'match-detail' m.id %}">{{ m.my_score }}</a>

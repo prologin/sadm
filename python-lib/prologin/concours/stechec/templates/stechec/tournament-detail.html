@@ -36,7 +36,7 @@
             </span>
             {% endif %}</td>
             <td>{{ player.rank }} </td>
-            <td>{{ player.champion.author.get_full_name }}</td>
+            <td>{{ player.champion.author.username }}</td>
             <td><a href="{{ player.champion.get_absolute_url }}">
                 {{ player.champion.name }}</a></td>
             <td style="color: {{ player.champion.language.color }}">
