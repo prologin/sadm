@@ -25,24 +25,36 @@ class MatchAdmin(admin.ModelAdmin):
     inlines = [MatchPlayerInline]
 
     def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related('players')
+        return (super().get_queryset(request)
+                .prefetch_related('matchplayers__champion__author'))
 
     @mark_safe
     def player_list(self, obj):
         return ' vs '.join(
-            ['<a href="{}">{}</a>'.format(tp.champion.get_absolute_url(),
-                                          tp.champion)
-             for tp in obj.matchplayers.order_by('id')])
+            ['<a href="{}">{}</a>'.format(mp.champion.get_absolute_url(),
+                                          mp.champion)
+             for mp in sorted(obj.matchplayers.all(), key=lambda o: o.id)])
 
 
 class TournamentMapInline(admin.TabularInline):
     model = models.Tournament.maps.through
     extra = 1
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "map":
+            kwargs["queryset"] = models.Map.objects.select_related('author')
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
 
 class TournamentPlayerInline(admin.TabularInline):
     model = models.Tournament.players.through
     extra = 1
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "champion":
+            kwargs["queryset"] = (models.Champion.objects
+                                  .select_related('author'))
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 class TournamentAddAdminForm(forms.ModelForm):
@@ -67,7 +79,7 @@ class TournamentAddAdminForm(forms.ModelForm):
 
 @admin.register(models.Tournament)
 class TournamentAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'ts')
+    list_display = ('id', 'name', 'ts', 'visible')
     inlines = [TournamentMapInline, TournamentPlayerInline]
 
     add_form = TournamentAddAdminForm
@@ -125,3 +137,6 @@ if settings.STECHEC_USE_MAPS:
     class MapAdmin(admin.ModelAdmin):
         list_display = ('id', 'name', 'author', 'official')
         list_filter = ('official',)
+
+        def get_queryset(self, request):
+            return super().get_queryset(request).select_related('author')

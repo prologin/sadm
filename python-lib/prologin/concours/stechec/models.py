@@ -37,7 +37,7 @@ class Map(ExportModelOperationsMixin('map'), models.Model):
         return reverse("map-detail", kwargs={"pk": self.id})
 
     def __str__(self):
-        return "%s, de %s%s" % (self.name, self.author,
+        return "%s, de %s%s" % (self.name, self.author.username,
                                 " (officielle)" if self.official else "")
 
     class Meta:
@@ -202,7 +202,7 @@ class TournamentMap(ExportModelOperationsMixin('tournament_map'),
                                    verbose_name="tournoi")
 
     def __str__(self):
-        return "%s pour tournoi %s" % (self.map, self.tournament)
+        return "%s pour tournoi %s" % (self.map.name, self.tournament.name)
 
     class Meta:
         ordering = ["-tournament"]
