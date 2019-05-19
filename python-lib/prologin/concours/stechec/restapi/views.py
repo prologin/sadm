@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from rest_framework.response import Response
 from rest_framework import viewsets, mixins, permissions as rest_permissions
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import action
 
 from prologin.concours.stechec.restapi import (serializers, permissions,
                                                filtering)
@@ -67,7 +67,7 @@ class MatchViewSet(mixins.CreateModelMixin,
 
 
 class TournamentViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = models.Tournament.objects.all()
+    queryset = models.Tournament.objects.filter(visible=True)
     serializer_class = serializers.TournamentSerializer
     permission_classes = [rest_permissions.IsAuthenticated]
 
@@ -75,7 +75,9 @@ class TournamentViewSet(viewsets.ReadOnlyModelViewSet):
         tournament = self.get_object()
 
         champions = {}
-        for p in tournament.tournamentplayers.prefetch_related('champion'):
+        tournaments = (tournament.tournamentplayers
+                       .prefetch_related('champion__author'))
+        for p in tournaments:
             champion = p.champion
             champions[champion.id] = {
                 'name': champion.name,
@@ -90,18 +92,18 @@ class TournamentViewSet(viewsets.ReadOnlyModelViewSet):
         for mp in (models.MatchPlayer.objects
                    .filter(match__tournament=tournament,
                            match__status='done')):
-            champions[mp.champion.id]['num_matches'] += 1
-            champions[mp.champion.id]['sum_match_score'] += mp.score
+            champions[mp.champion_id]['num_matches'] += 1
+            champions[mp.champion_id]['sum_match_score'] += mp.score
         for c in champions.values():
             if c['num_matches']:
                 c['avg_match_score'] = c['sum_match_score'] / c['num_matches']
         return list(champions.values())
 
-    @detail_route(['get'])
+    @action(['get'], detail=True)
     def stats(self, request, pk):
         return Response(self.get_stats())
 
-    @detail_route(['get'])
+    @action(['get'], detail=True)
     def plot_sloc(self, request, pk):
         stats = self.get_stats()
         series = collections.defaultdict(list)
@@ -118,7 +120,7 @@ class TournamentViewSet(viewsets.ReadOnlyModelViewSet):
                   for k, v in series.items()]
         return Response(series)
 
-    @detail_route(['get'])
+    @action(['get'], detail=True)
     def lang_share(self, request, pk):
         stats = self.get_stats()
         counter = collections.Counter(c['language']['code'] for c in stats)
@@ -126,6 +128,25 @@ class TournamentViewSet(viewsets.ReadOnlyModelViewSet):
                  **({'color': LANGUAGES[k]['color']}
                     if k in LANGUAGES else {})}
                 for k, v in counter.items()]
+        return Response(data)
+
+    @action(['get'], detail=False)
+    def evolution(self, request):
+        tournaments = (
+            self.get_queryset()
+            .prefetch_related('tournamentplayers')
+            .prefetch_related('players__author'))
+        users = {c.author.username
+                 for t in tournaments for c in t.players.all()}
+        rankings = {u: [None] * len(tournaments) for u in users}
+        for tid, tournament in enumerate(tournaments):
+            players = sorted(tournament.tournamentplayers.all(),
+                             key=lambda p: -p.score)
+            for rank, p in enumerate(players, 1):
+                rankings[p.champion.author.username][tid] = rank
+
+        data = [{'name': k, 'data': v, 'visible': False}
+                for k, v in sorted(rankings.items())]
         return Response(data)
 
 
