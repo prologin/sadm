@@ -146,7 +146,7 @@ class TournamentViewSet(viewsets.ReadOnlyModelViewSet):
         tournaments = (
             self.get_queryset()
             .order_by('id')
-            .prefetch_related('tournamentplayers')
+            .prefetch_related('tournamentplayers__champion__author')
             .prefetch_related('players__author'))
         users = {c.author.username
                  for t in tournaments for c in t.players.all()}

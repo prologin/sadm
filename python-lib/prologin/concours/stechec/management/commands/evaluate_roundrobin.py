@@ -33,7 +33,7 @@ class Command(BaseCommand):
             sys.exit("The tournament isn't over yet ({} matchs / {})."
                      .format(done, total))
 
-        matches = tournament.matches.all().prefetch_related('players')
+        matches = tournament.matches.prefetch_related('matchplayers')
 
         score_wins = collections.defaultdict(int)
         score_cum = collections.defaultdict(int)
@@ -42,7 +42,7 @@ class Command(BaseCommand):
             # Cumulative scoring
             players = m.matchplayers.all()
             for player in players:
-                score_cum[player.champion.id] += player.score
+                score_cum[player.champion_id] += player.score
 
             # Wins scoring
             # One winner: +2 points for the winner, +0 for the losers
@@ -50,7 +50,7 @@ class Command(BaseCommand):
             # XXX(seirl): I don't think this is a good way of scoring
             # tournaments of >2 player matches at all.
             max_score = max(p.score for p in players)
-            winners = [p.champion.id for p in players if p.score == max_score]
+            winners = [p.champion_id for p in players if p.score == max_score]
             if len(winners) == 1:
                 score_wins[winners[0]] += 2
             else:
@@ -60,7 +60,7 @@ class Command(BaseCommand):
         players = tournament.tournamentplayers.all()
         for player in players:
             if options['scoring'] == 'wins':
-                player.score = score_wins[player.champion.id]
+                player.score = score_wins[player.champion_id]
             elif options['scoring'] == 'cumulative':
-                player.score = score_cum[player.champion.id]
+                player.score = score_cum[player.champion_id]
         TournamentPlayer.objects.bulk_update(players, ('score',))

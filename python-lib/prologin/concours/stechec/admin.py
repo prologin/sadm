@@ -40,6 +40,10 @@ class TournamentMapInline(admin.TabularInline):
     model = models.Tournament.maps.through
     extra = 1
 
+    def get_queryset(self, request):
+        return (super().get_queryset(request)
+                .select_related('map__author', 'tournament'))
+
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "map":
             kwargs["queryset"] = models.Map.objects.select_related('author')
@@ -49,6 +53,12 @@ class TournamentMapInline(admin.TabularInline):
 class TournamentPlayerInline(admin.TabularInline):
     model = models.Tournament.players.through
     extra = 1
+    fields = ('champion', 'score')
+    readonly_fields = ('champion',)
+
+    def get_queryset(self, request):
+        return (super().get_queryset(request)
+                .select_related('champion__author', 'tournament'))
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "champion":
