@@ -16,6 +16,7 @@
 
 {% block content %}
 {% if matrix %}
+<div style="overflow-x: auto">
 <table class="table table-striped match-matrix">
   <thead>
     <tr>
@@ -43,6 +44,7 @@
     {% endfor %}
   </tbody>
 </table>
+</div>
 {% else %}
 <table class="table table-striped match-matrix">
   <thead>
