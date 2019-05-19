@@ -105,7 +105,7 @@ async def compile_champion(config, ctgz):
         'wall-time': config['timeout'].get('compile', 400),
         'fsize': 50 * 1024
     }
-    allowed_dirs = ['/tmp:rw', code_dir, '/etc']
+    allowed_dirs = ['/tmp:rw', code_dir, '/etc', config['path']['makefiles']]
 
     isolator = isolate.Isolator(limits, allowed_dirs=allowed_dirs)
     async with isolator:
@@ -160,8 +160,12 @@ async def spawn_server(config, rep_addr, pub_addr, nb_players, sockets_dir,
 
     # Create the isolator
     limits = {'wall-time': config['timeout'].get('server', 400)}
-    isolator = isolate.Isolator(
-        limits, allowed_dirs=['/var', '/tmp', sockets_dir + ':rw'])
+    allowed_dirs = [
+        '/var', '/tmp', sockets_dir + ':rw',
+        os.path.dirname(config['path']['stechec_server']),
+        os.path.dirname(config['path']['rules'])
+    ]
+    isolator = isolate.Isolator(limits, allowed_dirs=allowed_dirs)
     async with isolator:
         # Run the isolated server
         await isolator.run(cmd, merge_outputs=True)
@@ -226,6 +230,11 @@ async def spawn_client(config,
         'processes': config['isolate'].get('processes', 50),
         'fsize': 256,
     }
+    allowed_dirs = [
+        '/var', '/tmp', sockets_dir + ':rw', champion_path,
+        os.path.dirname(config['path']['stechec_client']),
+        os.path.dirname(config['path']['rules'])
+    ]
 
     # Remove memory limit if Java
     if os.path.exists(os.path.join(champion_path, 'Prologin.class')):
@@ -233,11 +242,7 @@ async def spawn_client(config,
 
     # Run the isolated client
     result = await isolate_communicate(
-        cmd,
-        limits,
-        env=env,
-        allowed_dirs=['/var', '/tmp', sockets_dir + ':rw'],
-        merge_outputs=True)
+        cmd, limits, env=env, allowed_dirs=allowed_dirs, merge_outputs=True)
     return result.isolate_retcode, get_output(result)
 
 
