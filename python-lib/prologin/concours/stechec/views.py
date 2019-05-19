@@ -418,6 +418,7 @@ class TournamentMatchesView(DetailView):
         champion = self.champion()
         matches = self.matches()
         enemies = (tournament.tournamentplayers
+                   .select_related('champion__author')
                    .exclude(champion=champion)
                    .order_by('-score'))
 
@@ -425,8 +426,8 @@ class TournamentMatchesView(DetailView):
         for m in matches:
             p1, p2 = m.matchplayers.all()
             me, other = (p1, p2) if p1.champion == champion else (p2, p1)
-            against[other.champion.id].append(m)
-        matrix = [{'enemy': e, 'matches': against[e.champion.id]}
+            against[other.champion_id].append(m)
+        matrix = [{'enemy': e, 'matches': against[e.champion_id]}
                   for e in enemies]
         return matrix
 

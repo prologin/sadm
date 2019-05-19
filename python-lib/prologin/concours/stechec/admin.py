@@ -16,6 +16,13 @@ class ChampionAdmin(admin.ModelAdmin):
 class MatchPlayerInline(admin.TabularInline):
     model = models.Match.players.through
     extra = 1
+    readonly_fields = ('champion',)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "champion":
+            kwargs["queryset"] = (models.Champion.objects
+                                  .select_related('author'))
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 @admin.register(models.Match)
