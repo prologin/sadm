@@ -71,7 +71,11 @@
 var plot_sloc_chart = {
   chart: {
     type: 'scatter',
-    zoomType: 'xy'
+    zoomType: 'xy',
+    backgroundColor: null,
+  },
+  credits: {
+      enabled: false
   },
   title: {
     text: 'Score en fonction du nombre de lignes de code'
@@ -119,9 +123,12 @@ var plot_sloc_chart = {
 var lang_share_chart = {
   chart: {
     type: 'pie',
-    plotBackgroundColor: null,
+    backgroundColor: null,
     plotBorderWidth: 0,
     plotShadow: false
+  },
+  credits: {
+      enabled: false
   },
   title: {
     text: 'Langages<br/>utilisés',
