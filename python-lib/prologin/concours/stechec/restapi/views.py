@@ -157,6 +157,4 @@ class MapViewSet(viewsets.ModelViewSet):
     filter_backends = [filtering.IsOwnerUsing('author')]
 
     def perform_create(self, serializer):
-        map = serializer.save(author=self.request.user, contents=None)
-        # This is a special setter
-        map.contents = serializer.validated_data['contents']
+        serializer.save(author=self.request.user)

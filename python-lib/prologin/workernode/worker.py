@@ -136,12 +136,12 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
 
     @prologin.rpc.remote_method
     @async_work(slots=5)
-    async def run_match(self, match_id, players, opts=None, file_opts=None):
+    async def run_match(self, match_id, players, map_contents=None):
         logging.info('starting match %s', match_id)
         run_match_start = time.monotonic()
 
         server_result, server_out, dump, players_info = await (
-            operations.spawn_match(self.config, players, opts, file_opts))
+            operations.spawn_match(self.config, players, map_contents))
         logging.info('match %s done', match_id)
 
         try:

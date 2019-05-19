@@ -81,19 +81,17 @@ class CompilationTask(Task):
         super().execute()
         with open(self.champ_path, 'rb') as f:
             ctgz = b64encode(f.read()).decode()
-        await worker.rpc.compile_champion(self.user,
-                self.champ_id, ctgz)
+        await worker.rpc.compile_champion(self.user, self.champ_id, ctgz)
 
     def __repr__(self):
         return "<Compilation: {}>".format(self.champ_id)
 
 
 class MatchTask(Task):
-    def __init__(self, config, mid, players, opts, file_opts):
+    def __init__(self, config, mid, players, map_contents):
         super().__init__(timeout=config['worker']['match_timeout_secs'])
         self.mid = mid
-        self.opts = opts
-        self.file_opts = file_opts
+        self.map_contents = map_contents
         self.players = {}
         self.match_path = match_path(config, self.mid)
 
@@ -114,5 +112,4 @@ class MatchTask(Task):
         except OSError:
             pass
 
-        await worker.rpc.run_match(self.mid, self.players, self.opts,
-                                        self.file_opts)
+        await worker.rpc.run_match(self.mid, self.players, self.map_contents)

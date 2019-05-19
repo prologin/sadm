@@ -10,7 +10,7 @@ from django.http import (HttpResponseRedirect, HttpResponse,
                          HttpResponseForbidden, Http404)
 from django.shortcuts import get_object_or_404
 from django.views.generic import (DetailView, ListView, FormView, TemplateView,
-                                  RedirectView)
+                                  RedirectView, CreateView)
 from django.views.generic.base import View
 from django.views.generic.detail import SingleObjectMixin
 
@@ -105,9 +105,8 @@ class MatchesListMixin:
         context['show_creator'] = self.show_creator
         matches = []
         for m in context['matches']:
-            if settings.STECHEC_USE_MAPS:
-                map = m.map
-                matches.append((m, map.id, map.name))
+            if settings.STECHEC_USE_MAPS and m.map is not None:
+                matches.append((m, m.map.id, m.map.name))
             else:
                 matches.append((m, None, None))
         context['matches'] = matches
@@ -253,12 +252,9 @@ class NewMatchView(LoginRequiredMixin, FormView):
             return HttpResponseRedirect(reverse('match-new'))
 
         with transaction.atomic():
-            match = models.Match(author=self.request.user,
-                                 status='creating',
-                                 tournament=None,
-                                 options='')
+            match = models.Match(author=self.request.user, status='creating')
             if settings.STECHEC_USE_MAPS:
-                match.map = form.cleaned_data['map'].path
+                match.map = form.cleaned_data['map']
             match.save()
 
             for i in range(1, settings.STECHEC_NPLAYERS + 1):
@@ -296,17 +292,15 @@ class MatchDumpView(SingleObjectMixin, View):
         return h
 
 
-class NewMapView(LoginRequiredMixin, FormView):
+class NewMapView(LoginRequiredMixin, CreateView):
+    model = models.Map
     form_class = forms.MapCreationForm
     template_name = 'stechec/map-new.html'
+    success_url = '/maps/{id}'
 
     def form_valid(self, form):
-        map = models.Map(author=self.request.user,
-                         name=form.cleaned_data['name'],
-                         official=False)
-        map.save()
-        map.contents = form.cleaned_data['contents']
-        return HttpResponseRedirect(map.get_absolute_url())
+        form.instance.author = self.request.user
+        return super().form_valid(form)
 
 
 class AllTournamentsView(ListView):

@@ -46,13 +46,14 @@ REQUESTS = {
     'get_matches': '''
           SELECT
             stechec_match.id AS match_id,
-            stechec_match.options AS match_options,
-            stechec_match.file_options AS match_file_options,
+            stechec_map.contents AS map_contents,
             array_agg(stechec_champion.id) AS champion_ids,
             array_agg(stechec_matchplayer.id) AS match_player_ids,
             array_agg(auth_user.username) AS user_names
           FROM
             stechec_match
+          LEFT JOIN stechec_map
+            ON stechec_match.map_id = stechec_map.id
           LEFT JOIN stechec_matchplayer
             ON stechec_matchplayer.match_id = stechec_match.id
           LEFT JOIN stechec_champion
@@ -62,8 +63,7 @@ REQUESTS = {
           WHERE
             stechec_match.status = %(match_status)s
           GROUP BY
-            stechec_match.id,
-            stechec_match.options
+            stechec_match.id, stechec_map.id
     ''',
 
 

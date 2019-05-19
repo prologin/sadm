@@ -20,7 +20,6 @@
 import asyncio
 import gzip
 import io
-import itertools
 import os
 import os.path
 import tarfile
@@ -45,20 +44,6 @@ def untar(content, path, compression='gz'):
     obj = io.BytesIO(content)
     with tarfile.open(fileobj=obj, mode='r:' + compression) as tar:
         tar.extractall(path)
-
-
-def create_file_opts(file_opts):
-    opts = []
-    files = []
-    for l, content in file_opts.items():
-        f = tempfile.NamedTemporaryFile()
-        f.write(b64decode(content))
-        f.flush()
-        os.chmod(f.name, 0o644)
-        opts.append(l)
-        opts.append(f.name)
-        files.append(f)
-    return opts, files
 
 
 def get_output(isolate_result):
@@ -138,7 +123,7 @@ async def compile_champion(config, ctgz):
 
 
 async def spawn_server(config, rep_addr, pub_addr, nb_players, sockets_dir,
-                       opts, file_opts):
+                       map_contents):
     # Build command
     cmd = [
         config['path']['stechec_server'],
@@ -152,11 +137,12 @@ async def spawn_server(config, rep_addr, pub_addr, nb_players, sockets_dir,
         "--verbose", "1",
     ]
 
-    if opts is not None:
-        cmd += opts
-    if file_opts is not None:
-        fopts, tmp_files = create_file_opts(file_opts)
-        cmd.extend(fopts)
+    if map_contents is not None:
+        f = tempfile.NamedTemporaryFile(mode='w')
+        f.write(map_contents)
+        f.flush()
+        os.chmod(f.name, 0o644)
+        cmd += ['--map', f.name]
 
     # Create the isolator
     limits = {'wall-time': config['timeout'].get('server', 400)}
@@ -196,8 +182,7 @@ async def spawn_client(config,
                        pl_id,
                        champion_path,
                        sockets_dir,
-                       opts,
-                       file_opts=None,
+                       map_contents,
                        order_id=None):
     # Build environment
     env = {'CHAMPION_PATH': champion_path + '/',
@@ -217,11 +202,12 @@ async def spawn_client(config,
     ]
     cmd += ["--client_id", str(order_id)] if order_id is not None else []
 
-    if opts is not None:
-        cmd += opts
-    if file_opts is not None:
-        fopts, tmp_files = create_file_opts(file_opts)
-        cmd.extend(fopts)
+    if map_contents is not None:
+        f = tempfile.NamedTemporaryFile(mode='w')
+        f.write(map_contents)
+        f.flush()
+        os.chmod(f.name, 0o644)
+        cmd += ['--map', f.name]
 
     # Build resource limits
     limits = {
@@ -246,7 +232,7 @@ async def spawn_client(config,
     return result.isolate_retcode, get_output(result)
 
 
-async def spawn_match(config, players, opts=None, file_opts=None):
+async def spawn_match(config, players, map_contents):
     # Build the domain sockets
     socket_dir = tempfile.TemporaryDirectory(prefix='workernode-')
     os.chmod(socket_dir.name, 0o777)
@@ -255,12 +241,10 @@ async def spawn_match(config, players, opts=None, file_opts=None):
     s_reqrep = 'ipc://' + f_reqrep
     s_pubsub = 'ipc://' + f_pubsub
 
-    opts = list(itertools.chain(*opts.items()))
-
     # Server task
     task_server = asyncio.Task(
         spawn_server(config, s_reqrep, s_pubsub, len(players), socket_dir.name,
-                     opts, file_opts))
+                     map_contents))
     await asyncio.sleep(0.1)  # Let the server start
 
     # Retry every seconds for 5 seconds
@@ -289,8 +273,7 @@ async def spawn_match(config, players, opts=None, file_opts=None):
                 pl_id,
                 cdir.name,
                 socket_dir.name,
-                opts,
-                file_opts,
+                map_contents,
                 order_id=oid))
 
     # Wait for the match to complete

@@ -1,5 +1,4 @@
 import contextlib
-import json
 import os
 import re
 import tarfile
@@ -32,25 +31,7 @@ class Map(ExportModelOperationsMixin('map'), models.Model):
     name = models.CharField("nom", max_length=100)
     official = models.BooleanField("officielle", default=False)
     ts = models.DateTimeField("date", auto_now_add=True)
-
-    @property
-    def maps_dir(self):
-        return settings.STECHEC_ROOT / settings.STECHEC_CONTEST / 'maps'
-
-    @property
-    def path(self):
-        return self.maps_dir / str(self.id)
-
-    @property
-    def contents(self):
-        return self.path.open().read()
-
-    @contents.setter
-    def contents(self, value):
-        if value is None:
-            return
-        self.maps_dir.mkdir(mode=0o755, parents=True, exist_ok=True)
-        self.path.open('w').write(value)
+    contents = models.TextField("contenu")
 
     def get_absolute_url(self):
         return reverse("map-detail", kwargs={"pk": self.id})
@@ -258,10 +239,11 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
                                      related_name='matches',
                                      through='MatchPlayer')
     ts = models.DateTimeField("date", default=timezone.now)
-    options = models.CharField("options", max_length=500, default="{}")
-    file_options = models.CharField("file_options",
-                                    max_length=500,
-                                    default="{}")
+    map = models.ForeignKey(Map,
+                            null=True, blank=True,
+                            related_name='matches',
+                            on_delete=models.CASCADE,
+                            verbose_name="carte")
 
     @property
     def directory(self):
@@ -292,37 +274,6 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
             return self.dump_path.open('rb').read()
         except Exception:
             pass
-
-    @property
-    def options_dict(self):
-        return json.loads(self.options)
-
-    @options_dict.setter
-    def options_dict(self, value):
-        self.options = json.dumps(value)
-
-    @property
-    def file_options_dict(self):
-        return json.loads(self.file_options)
-
-    @file_options_dict.setter
-    def file_options_dict(self, value):
-        self.file_options = json.dumps(value)
-
-    @property
-    def map(self):
-        try:
-            map_id = int(
-                self.file_options_dict.get('--map', '').split('/')[-1])
-            return Map.objects.get(pk=map_id)
-        except Exception:
-            return None
-
-    @map.setter
-    def map(self, value):
-        d = self.file_options_dict
-        d['--map'] = str(value)
-        self.file_options_dict = d
 
     @property
     def is_done(self):
@@ -371,7 +322,7 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
                 if 'tournament' in match:
                     m.tournament = match['tournament']
                 if 'map' in match:
-                    m.map = match['map'].path
+                    m.map = match['map']
                 match_objs.append(m)
             # Returning created ids requires PostgreSQL
             created_matches = Match.objects.bulk_create(match_objs)

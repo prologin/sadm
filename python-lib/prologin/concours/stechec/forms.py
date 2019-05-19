@@ -157,11 +157,12 @@ class MatchCreationForm(forms.Form):
         return value
 
 
-class MapCreationForm(forms.Form):
+class MapCreationForm(forms.ModelForm):
     name = forms.CharField(max_length=25, required=True, label="Nom")
-    contents = forms.CharField(required=True,
-                               widget=forms.widgets.Textarea(attrs={'class': 'monospace'}),
-                               label="Contenu")
+    contents = forms.CharField(
+        required=True,
+        widget=forms.widgets.Textarea(attrs={'class': 'monospace'}),
+        label="Contenu")
 
     @classmethod
     def clean_validate_contents(cls, data):
@@ -175,6 +176,10 @@ class MapCreationForm(forms.Form):
 
     def clean_contents(self):
         return self.clean_validate_contents(self.cleaned_data['contents'])
+
+    class Meta:
+        model = models.Map
+        fields = ['name', 'contents']
 
     helper = BaseFormHelper()
     helper.append_field('name')

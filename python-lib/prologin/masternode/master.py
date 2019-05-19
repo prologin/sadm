@@ -19,14 +19,13 @@
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 import asyncio
-import json
 import logging
 import os.path
 import prologin.rpc.server
 import random
 import time
 
-from base64 import b64decode, b64encode
+from base64 import b64decode
 
 from .concoursquery import ConcoursQuery
 from .monitoring import (
@@ -234,37 +233,14 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         for r in c:
             logging.info('request match id %s launch', r[0])
             mid = r[0]
-            opts_json = r[1]
-            file_opts_json = r[2]
-            players = list(zip(r[3], r[4], r[5]))
-
-            opts = {}
-            if opts_json:
-                try:
-                    opts = json.loads(opts_json)
-                except (TypeError, ValueError):
-                    logging.warning('cannot decode the custom options json,'
-                                    'assuming it is empty', exc_info=1)
-
-            file_opts = {}
-            if file_opts_json:
-                try:
-                    file_opts_paths = json.loads(file_opts_json)
-                except (TypeError, ValueError):
-                    logging.warning('cannot decode the custom options json,'
-                                    'assuming it is empty', exc_info=1)
-            for k, path in file_opts_paths.items():
-                try:
-                    file_opts[k] = b64encode(open(path, 'rb').read()).decode()
-                except FileNotFoundError:
-                    logging.warning('file for option %s not found: %s', k, path)
-
+            map_contents = r[1]
+            players = list(zip(r[2], r[3], r[4]))
             to_set_pending.append({
                 'match_id': mid,
                 'match_status': 'pending',
             })
             try:
-                t = MatchTask(self.config, mid, players, opts, file_opts)
+                t = MatchTask(self.config, mid, players, map_contents)
                 self.worker_tasks.append(t)
             except asyncio.CancelledError:
                 raise
