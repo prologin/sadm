@@ -13,12 +13,14 @@ from prologin.concours.stechec.languages import LANGUAGES
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = get_user_model().objects.all()
+    queryset = (get_user_model().objects.all()
+                .prefetch_related('maps', 'champions', 'matches'))
     serializer_class = serializers.UserSerializer
 
 
 class ChampionViewSet(viewsets.ModelViewSet):
-    queryset = models.Champion.objects.filter(deleted=False)
+    queryset = (models.Champion.objects.filter(deleted=False)
+                .select_related('author'))
     serializer_class = serializers.ChampionSerializer
     permission_classes = [permissions.IsOwnerUsing('author')]
     filter_backends = [filtering.IsOwnerUsing('author')]
@@ -33,10 +35,17 @@ class MatchViewSet(mixins.CreateModelMixin,
                    mixins.RetrieveModelMixin,
                    mixins.ListModelMixin,
                    viewsets.GenericViewSet):
-    queryset = models.Match.objects.all()
+    queryset = (models.Match.objects
+                .select_related('author')
+                .prefetch_related('players__author'))
     serializer_class = serializers.MatchSerializer
-    permission_classes = [permissions.IsOwnerUsing('author')]
-    filter_backends = [filtering.IsOwnerUsing('author')]
+    # permission_classes = [permissions.IsOwnerUsing('author')]
+    # filter_backends = [filtering.IsOwnerUsing('author')]
+
+    def get_context(self, *args, **kwargs):
+        ctx = super().get_context(*args, **kwargs)
+        ctx['display_edit_forms'] = False
+        return ctx
 
     def get_serializer_class(self):
         if self.action == 'create':
@@ -67,7 +76,9 @@ class MatchViewSet(mixins.CreateModelMixin,
 
 
 class TournamentViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = models.Tournament.objects.filter(visible=True)
+    queryset = (models.Tournament.objects.filter(visible=True)
+                .select_related('author')
+                .prefetch_related('matches'))
     serializer_class = serializers.TournamentSerializer
     permission_classes = [rest_permissions.IsAuthenticated]
 
@@ -153,7 +164,7 @@ class TournamentViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class MapViewSet(viewsets.ModelViewSet):
-    queryset = models.Map.objects.all()
+    queryset = models.Map.objects.all().select_related('author')
     serializer_class = serializers.MapSerializer
     permission_classes = [permissions.IsOwnerUsing('author')]
     filter_backends = [filtering.IsOwnerUsing('author')]

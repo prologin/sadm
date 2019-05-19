@@ -20,7 +20,8 @@ class ChampionSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = models.Champion
-        read_only_fields = ('url', 'id', 'author', 'status', 'status_human', 'created')
+        read_only_fields = ('url', 'id', 'author', 'status', 'status_human',
+                            'created')
         fields = read_only_fields + ('name', 'sources', 'comment')
 
 
@@ -31,7 +32,8 @@ class MatchSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = models.Match
-        read_only_fields = ('url', 'id', 'author', 'status', 'status_human', 'tournament', 'players', 'created')
+        read_only_fields = ('url', 'id', 'author', 'status', 'status_human',
+                            'created', 'tournament', 'players', 'created')
         fields = read_only_fields
 
 
@@ -40,11 +42,15 @@ class CreateMatchSerializer(serializers.HyperlinkedModelSerializer):
         super().__init__(*args, **kwargs)
 
         for i in range(1, settings.STECHEC_NPLAYERS + 1):
-            f = serializers.PrimaryKeyRelatedField(queryset=models.Champion.objects.all(), write_only=True)
+            f = serializers.PrimaryKeyRelatedField(
+                queryset=models.Champion.objects.select_related('author'),
+                write_only=True)
             self.fields['champion_%d' % i] = f
 
         if settings.STECHEC_USE_MAPS:
-            self.fields['map'] = serializers.PrimaryKeyRelatedField(queryset=models.Map.objects.all(), write_only=True)
+            self.fields['map'] = serializers.PrimaryKeyRelatedField(
+                queryset=models.Map.objects.select_related('author'),
+                write_only=True)
 
     class Meta:
         model = models.Match
@@ -56,8 +62,6 @@ class CreateMatchSerializer(serializers.HyperlinkedModelSerializer):
 class MapSerializer(serializers.HyperlinkedModelSerializer):
     author = MinimalUserSerializer(read_only=True)
     created = serializers.DateTimeField(source='ts', read_only=True)
-    contents = serializers.CharField(
-        style={'base_template': 'textarea.html'})  # required because it's not a model field
 
     class Meta:
         model = models.Map
@@ -65,24 +69,24 @@ class MapSerializer(serializers.HyperlinkedModelSerializer):
         fields = read_only_fields + ('name', 'contents')
 
 
-class TournamentSerializer(serializers.ModelSerializer):
+class TournamentSerializer(serializers.HyperlinkedModelSerializer):
     players = ChampionSerializer(many=True, read_only=True)
     maps = MapSerializer(many=True, read_only=True)
-    matches = MatchSerializer(many=True, read_only=True)
     created = serializers.DateTimeField(source='ts', read_only=True)
 
     class Meta:
         model = models.Tournament
-        read_only_fields = ('name', 'players', 'maps', 'matches', 'created')
+        read_only_fields = ('name', 'author', 'players', 'maps', 'matches',
+                            'created')
         fields = read_only_fields
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     maps = MapSerializer(many=True, read_only=True)
-    matches = MatchSerializer(many=True, read_only=True)
     champions = ChampionSerializer(many=True, read_only=True)
 
     class Meta:
         model = get_user_model()
-        read_only_fields = ('url', 'id', 'username', 'maps', 'matches', 'champions')
+        read_only_fields = ('url', 'id', 'username', 'maps', 'matches',
+                            'champions')
         fields = read_only_fields
