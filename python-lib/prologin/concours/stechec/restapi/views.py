@@ -134,6 +134,7 @@ class TournamentViewSet(viewsets.ReadOnlyModelViewSet):
     def evolution(self, request):
         tournaments = (
             self.get_queryset()
+            .order_by('id')
             .prefetch_related('tournamentplayers')
             .prefetch_related('players__author'))
         users = {c.author.username
@@ -145,9 +146,10 @@ class TournamentViewSet(viewsets.ReadOnlyModelViewSet):
             for rank, p in enumerate(players, 1):
                 rankings[p.champion.author.username][tid] = rank
 
-        data = [{'name': k, 'data': v, 'visible': False}
-                for k, v in sorted(rankings.items())]
-        return Response(data)
+        series = [{'name': k, 'data': v}
+                  for k, v in sorted(rankings.items())]
+        categories = [t.name for t in tournaments]
+        return Response({'series': series, 'categories': categories})
 
 
 class MapViewSet(viewsets.ModelViewSet):
