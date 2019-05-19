@@ -53,6 +53,7 @@ MIDDLEWARE = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django_prometheus.middleware.PrometheusAfterMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 )
 
 AUTHENTICATION_BACKENDS = (
@@ -100,6 +101,8 @@ INSTALLED_APPS = (
 
     # Monitoring
     'django_prometheus',
+
+    'debug_toolbar',
 )
 
 # A sample logging configuration. The only tangible logging
@@ -144,4 +147,14 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
     'DEFAULT_VERSION': '1',
+}
+
+
+INTERNAL_IPS = ['*']
+
+def show_toolbar(request):
+    return True
+
+DEBUG_TOOLBAR_CONFIG = {
+    'SHOW_TOOLBAR_CALLBACK': 'prologin.concours.settings.show_toolbar'
 }

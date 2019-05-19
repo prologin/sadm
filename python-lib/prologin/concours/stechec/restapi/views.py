@@ -2,6 +2,8 @@ import collections
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework.response import Response
 from rest_framework import viewsets, mixins, permissions as rest_permissions
 from rest_framework.decorators import action
@@ -141,6 +143,7 @@ class TournamentViewSet(viewsets.ReadOnlyModelViewSet):
                 for k, v in counter.items()]
         return Response(data)
 
+    @method_decorator(cache_page(60 * 5))  # 5 minutes cache
     @action(['get'], detail=False)
     def evolution(self, request):
         tournaments = (
