@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse
 from django.db import transaction
 from django.db.models import (Max, Min, F, Q, Value, Count, Case, When,
-                              CharField)
+                              CharField, IntegerField, Subquery, OuterRef)
 from django.http import (HttpResponseRedirect, HttpResponse,
                          HttpResponseForbidden, Http404)
 from django.shortcuts import get_object_or_404
@@ -309,15 +309,50 @@ class AllTournamentsView(ListView):
     ordering = ['-id']
 
     def get_queryset(self):
-        me = Q(tournamentplayers__champion__author__id=self.request.user.id)
-        qs = (super().get_queryset()
-              .annotate(
-                  winner_score=Max('tournamentplayers__score'),
-                  winner=F('tournamentplayers__champion__author__username'),
-                  winner_id=F('tournamentplayers__champion__author'))
-              .annotate(num_champions=Count('players'))
-              .prefetch_related('tournamentplayers')
-              .annotate(my_score=Max('tournamentplayers__score', filter=me)))
+        qs = super().get_queryset()
+
+        num_champions = (
+            models.TournamentPlayer.objects
+            .filter(tournament=OuterRef('pk'))
+            .order_by().values('tournament')
+            .annotate(num_champions=Count('tournament'))
+            .values('num_champions'))
+
+        num_matches = (
+            models.Match.objects
+            .filter(tournament=OuterRef('pk'))
+            .order_by().values('tournament')
+            .annotate(num_matches=Count('tournament'))
+            .values('num_matches'))
+
+        my_score = (
+            models.TournamentPlayer.objects
+            .filter(tournament=OuterRef('pk'),
+                    champion__author=self.request.user.id)
+            .order_by().values('score')
+            .annotate(my_score=Max('score'))
+            .values('my_score'))
+
+        winner = (
+            models.Tournament.objects
+            .filter(pk=OuterRef('pk'))
+            .annotate(max_score=Max('tournamentplayers__score'))
+            .filter(tournamentplayers__score=F('max_score')))
+        winner_id = (winner.annotate(winner_id=Max(
+            'tournamentplayers__champion__author'))
+            .values('winner_id'))
+        winner_name = (winner.annotate(winner_name=Max(
+            'tournamentplayers__champion__author__username'))
+            .values('winner_name'))
+
+        qs = (qs
+              .annotate(num_champions=Subquery(num_champions),
+                        num_matches=Subquery(num_matches),
+                        my_score=Subquery(my_score),
+                        winner_id=Subquery(winner_id,
+                                           output_field=IntegerField()),
+                        winner_name=Subquery(winner_name,
+                                             output_field=CharField())))
         return qs
 
 

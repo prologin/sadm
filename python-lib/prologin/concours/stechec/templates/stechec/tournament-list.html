@@ -21,6 +21,7 @@
             <th>Tournoi</th>
             <th>Votre score</th>
             <th>Nombre de champions</th>
+            <th>Nombre de matchs</th>
             <th>Gagnant</th>
             <th>Actions</th>
         </tr>
@@ -31,9 +32,10 @@
             <td>{{ tournament.name }}</td>
             <td>{{ tournament.my_score|default:"-" }}</td>
             <td>{{ tournament.num_champions }}</td>
+            <td>{{ tournament.num_matches }}</td>
             <td><span class="challenge-trophy-1">
                 <i class="fa fa-trophy"></i></span>
-                {{ tournament.winner|default:"-" }}</td>
+                {{ tournament.winner_name|default:"-" }}</td>
             <td>
               <a href="{{ tournament.get_absolute_url }}"
                  class="btn btn-default btn-xs
