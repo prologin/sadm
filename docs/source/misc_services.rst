@@ -189,15 +189,3 @@ IRC
 ---
 
 TODO
-
-Notify bot
-----------
-
-You should install the ``pypeul`` python library and the ``python-gobject`` and
-``libnotify`` archlinux packages first on the RFS. Then, copy notify-bot.py to
-``/usr/share/notify-bot.py``.
-
-The notify bot must be started after being logged in KDM. Add this line to
-the ``.xsession`` of the users home skeleton::
-
-  python /usr/share/libnotify.py &
