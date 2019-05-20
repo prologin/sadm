@@ -58,6 +58,14 @@ sleep 30
 reboot
 """
 
+BOOT_FAULTY_SCRIPT = """#!ipxe
+echo ERROR: This machine was marked as faulty.
+echo Reason: {}
+echo
+sleep 60
+reboot
+"""
+
 
 class BootHandler(tornado.web.RequestHandler):
     """Send the initrd and kernel urls to registered machines."""
@@ -71,6 +79,10 @@ class BootHandler(tornado.web.RequestHandler):
             return
 
         machine = machine[0]
+        if machine['is_faulty']:
+            self.finish(BOOT_FAULTY_SCRIPT.format(machine['is_faulty_details']))
+            return
+
         rfs_hostname = 'rfs%d' % machine['rfs']
         rfs = prologin.mdb.client.connect().query(aliases__contains=rfs_hostname)
         try:
