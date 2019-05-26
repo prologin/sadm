@@ -48,6 +48,7 @@ class Command(BaseCommand):
             m.allocate_ip()
         else:
             m.ip = options['ip']
+        m.full_clean()
         m.save()
 
         # Sleep to let time for the sync message
