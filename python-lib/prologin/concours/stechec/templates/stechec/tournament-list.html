@@ -55,7 +55,22 @@
 </table>
 
 {% if tournament_list|length > 1 %}
-<div id="chart_evolution" style="min-width: 310px; height: 1000px; max-width: 800px; margin: 0 auto"></div>
+<div id="chart_evolution" style="min-width: 310px; height: 600px; max-width: 800px; margin: 0 auto"></div>
+
+<div class="form-inline text-center">
+    <label class="checkbox-inline" for="evolution_checkbox_me">
+        <input id="evolution_checkbox_me" type="checkbox" checked>
+        Mon rang
+    </label>
+    <label class="checkbox-inline" for="evolution_checkbox_top10">
+        <input id="evolution_checkbox_top10" type="checkbox">
+        Top 10
+    </label>
+    <label class="checkbox-inline" for="evolution_checkbox_all">
+        <input id="evolution_checkbox_all" type="checkbox">
+        Tout le monde
+    </label>
+</div>
 {% endif %}
 {% endblock %}
 
@@ -89,6 +104,31 @@ $.getJSON('/api/tournaments/evolution/', function(data) {
   chart_evolution.series = data.series;
   chart_evolution.xAxis.categories = data.categories;
   Highcharts.chart('chart_evolution', chart_evolution);
+
+  function updateVisibleSeries() {
+    var show_me = $("#evolution_checkbox_me").is(":checked");
+    var show_top10 = $("#evolution_checkbox_top10").is(":checked");
+    var show_all = $("#evolution_checkbox_all").is(":checked");
+    var chart = $("#chart_evolution").highcharts();
+
+    for (i = 0; i < chart.series.length; i++) {
+      series = chart.series[i];
+      if (show_all
+        || (show_top10 && i < 10)
+        || (show_me && series.name == "{{ request.user.username }}")) {
+        series.setVisible(true, false);
+      } else {
+        series.setVisible(false, false);
+      }
+    }
+    chart.redraw();
+  }
+
+  $("#evolution_checkbox_me").click(updateVisibleSeries);
+  $("#evolution_checkbox_top10").click(updateVisibleSeries);
+  $("#evolution_checkbox_all").click(updateVisibleSeries);
+
+  updateVisibleSeries();
 });
 </script>
 {% endblock %}

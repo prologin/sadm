@@ -170,7 +170,8 @@ class TournamentViewSet(viewsets.ReadOnlyModelViewSet):
             for rank, p in enumerate(players, 1):
                 rankings[p.champion.author.username][tid] = rank
 
-        series = [{'name': k, 'data': v}
-                  for k, v in sorted(rankings.items())]
+        series = [{'name': k, 'data': v, 'visible': False}
+                  for k, v in sorted(rankings.items(),
+                                     key=lambda x: x[1][-1])]
         categories = [t.name for t in tournaments]
         return Response({'series': series, 'categories': categories})
