@@ -33,6 +33,16 @@ class ChampionViewSet(viewsets.ModelViewSet):
         champion.sources = serializer.validated_data['sources']
 
 
+class MapViewSet(viewsets.ModelViewSet):
+    queryset = models.Map.objects.all().select_related('author')
+    serializer_class = serializers.MapSerializer
+    permission_classes = [permissions.IsOwnerUsing('author')]
+    filter_backends = [filtering.IsOwnerUsing('author')]
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+
 class MatchViewSet(mixins.CreateModelMixin,
                    mixins.RetrieveModelMixin,
                    mixins.ListModelMixin,
@@ -164,13 +174,3 @@ class TournamentViewSet(viewsets.ReadOnlyModelViewSet):
                   for k, v in sorted(rankings.items())]
         categories = [t.name for t in tournaments]
         return Response({'series': series, 'categories': categories})
-
-
-class MapViewSet(viewsets.ModelViewSet):
-    queryset = models.Map.objects.all().select_related('author')
-    serializer_class = serializers.MapSerializer
-    permission_classes = [permissions.IsOwnerUsing('author')]
-    filter_backends = [filtering.IsOwnerUsing('author')]
-
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
