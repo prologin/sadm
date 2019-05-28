@@ -20,6 +20,7 @@ clients.
 """
 
 
+import aiohttp
 import json
 import logging
 import prologin.timeauth
@@ -316,7 +317,8 @@ class Client(prologin.webapi.Client):
 
 class AsyncClient(prologin.webapi.AsyncClient):
     def __init__(self, url, pk, pub_secret=None, sub_secret=None):
-        super().__init__(url)
+        timeout = aiohttp.ClientTimeout(total=0)
+        super().__init__(url, timeout=timeout)
         self.pk = pk
         self.pub_secret = pub_secret and pub_secret.encode('utf-8')
         self.sub_secret = sub_secret.encode('utf-8')

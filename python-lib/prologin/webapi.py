@@ -52,9 +52,20 @@ class Client:
 class AsyncClient:
     """Async base client for sending authenticated requests."""
 
-    def __init__(self, url):
+    def __init__(self, url, timeout=None):
+        self.timeout = timeout
         self.url = url
-        self.client = aiohttp.client.ClientSession(raise_for_status=True)
+        self.client = aiohttp.client.ClientSession(
+            raise_for_status=True,
+            timeout=self.timeout,
+        )
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *args):
+        await self.client.close()
+        self.client = None
 
     async def send_request(self, resource, secret, msg, url=None,
                            method='post'):
