@@ -1,0 +1,19 @@
+# Maintainer: Victor Collod <victor.collod@prologin.org>
+pkgname=vscode-python-docstring
+# TODO: proper versionning
+pkgver=1
+pkgrel=1
+pkgdesc="python-docstring for vscode"
+depends=(vscode-global-plugins)
+makedepends=(code)
+options=()
+noextract=()
+md5sums=()
+validpgpkeys=()
+arch=("x86_64")
+
+package() {
+        extensions="$pkgdir/usr/share/vscode-extensions/"
+        mkdir -p -- "$extensions"
+        code --extensions-dir "$extensions" --install-extension iansan5653.format-python-docstrings
+}
