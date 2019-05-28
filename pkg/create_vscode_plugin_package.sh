@@ -12,18 +12,19 @@ fi
 
 echo "extension coolname: "
 
-if [ -z "$EXTENSION" ]
+read COOLNAME
+
+if [ -z "$COOLNAME" ]
 then
   echo "extension coolname should not be empty"
   exit 128
 fi
 
-read COOLNAME
 
 
-mkdir vscode-$COOLNAME
+mkdir "vscode-$COOLNAME"
 
-cp PKGBUILD.vscode-plugin-template ./vscode-$COOLNAME/PKGBUILD
+cp PKGBUILD.vscode-plugin-template "./vscode-$COOLNAME/PKGBUILD"
 
-sed -i "s/%COOLNAME%/$COOLNAME/g" ./vscode-$COOLNAME/PKGBUILD
-sed -i "s/%EXTENSION%/$EXTENSION/g" ./vscode-$COOLNAME/PKGBUILD
+sed -i "s/%COOLNAME%/$COOLNAME/g" "./vscode-$COOLNAME/PKGBUILD"
+sed -i "s/%EXTENSION%/$EXTENSION/g" "./vscode-$COOLNAME/PKGBUILD"
