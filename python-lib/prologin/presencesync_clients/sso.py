@@ -107,6 +107,51 @@ class PresenceSyncSSOServer:
                       len(self.ip_to_hostname), len(self.hostname_to_login))
 
 
+async def wait_for_tasks(tasks):
+    done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_EXCEPTION)
+    for task in done:
+        try:
+            await task
+        except Exception:
+            logging.exception("worker failed")
+
+    for task in pending:
+        task.cancel()
+
+    await asyncio.gather(*pending, return_exceptions=True)
+    for task in pending:
+        if task.cancelled():
+            continue
+        if task.exception() is not None:
+            logging.error("exception in pending task: %s", task.exception())
+
+
+async def serve(port):
+    server = PresenceSyncSSOServer()
+
+    web_runner = web.AppRunner(server.make_app())
+    await web_runner.setup()
+    web_server = web.TCPSite(web_runner, '127.0.0.1', port)
+    await web_server.start()
+
+    async def sync_dict(client_class, dict_to_update):
+        async with client_class.aio_connect() as client:
+            async for state, meta in client.poll_updates():
+                dict_to_update.clear()
+                dict_to_update.update(state)
+                server.update_cache()
+
+    tasks = list(map(asyncio.create_task, [
+        sync_dict(prologin.mdbsync.client, server.mdb_machines),
+        sync_dict(prologin.presencesync.client, server.login_to_machine),
+    ]))
+
+    try:
+        await wait_for_tasks(tasks)
+    finally:
+        await web_runner.cleanup()
+
+
 if __name__ == '__main__':
     prologin.log.setup_logging('presencesync_sso')
 
@@ -115,34 +160,7 @@ if __name__ == '__main__':
     else:
         port = 8000
 
-
-    async def serve():
-        server = PresenceSyncSSOServer()
-
-        web_runner = web.AppRunner(server.make_app())
-        await web_runner.setup()
-        web_server = web.TCPSite(web_runner, '127.0.0.1', port)
-        await web_server.start()
-
-        mdbsync_client = prologin.mdbsync.client.aio_connect()
-        presencesync_client = prologin.presencesync.client.aio_connect()
-
-        def sync_dict(client: AsyncClient, dict_to_update):
-            async def coroutine():
-                async for state, meta in client.poll_updates():
-                    dict_to_update.clear()
-                    dict_to_update.update(state)
-                    server.update_cache()
-
-            return asyncio.create_task(coroutine())
-
-        tasks = [
-            sync_dict(mdbsync_client, server.mdb_machines),
-            sync_dict(presencesync_client, server.login_to_machine),
-        ]
-        await asyncio.wait(tasks, return_when=asyncio.FIRST_EXCEPTION)
-        [task.cancel() for task in tasks]
-        await web_runner.cleanup()
-
-
-    asyncio.run(serve())
+    try:
+        asyncio.run(serve(port))
+    except KeyboardInterrupt:
+        pass
