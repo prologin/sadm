@@ -1,5 +1,14 @@
 #! /bin/bash
 
+echo "maintainer (Name <email>) :"
+
+read MAINTAINER
+if [ -z "$MAINTAINER" ]
+then
+  echo "maintainer name should not be empty"
+  exit 126
+fi
+
 echo "extension marketplace id: "
 
 read EXTENSION
@@ -10,21 +19,22 @@ then
   exit 127
 fi
 
-echo "extension coolname: "
+echo "extension package name: "
 
-read COOLNAME
+read PKGNAME
 
-if [ -z "$COOLNAME" ]
+if [ -z "$PKGNAME" ]
 then
-  echo "extension coolname should not be empty"
+  echo "extension pkgname should not be empty"
   exit 128
 fi
 
 
 
-mkdir "vscode-$COOLNAME"
+mkdir "vscode-$PKGNAME"
 
-cp PKGBUILD.vscode-plugin-template "./vscode-$COOLNAME/PKGBUILD"
+cp PKGBUILD.vscode-plugin-template "./vscode-$PKGNAME/PKGBUILD"
 
-sed -i "s/%COOLNAME%/$COOLNAME/g" "./vscode-$COOLNAME/PKGBUILD"
-sed -i "s/%EXTENSION%/$EXTENSION/g" "./vscode-$COOLNAME/PKGBUILD"
+sed -i "s/%COOLNAME%/$PKGNAME/g" "./vscode-$PKGNAME/PKGBUILD"
+sed -i "s/%EXTENSION%/$EXTENSION/g" "./vscode-$PKGNAME/PKGBUILD"
+sed -i "s/%MAINTAINER/$MAINTAINER/g" "./vscode-$PKGBUILD/PKGBUILD"

@@ -1,4 +1,4 @@
-# Maintainer: Victor Collod <victor.collod@prologin.org>
+# Maintainer: %MAINTAINER% 
 pkgname=vscode-%COOLNAME%
 # TODO: proper versionning
 pkgver=1

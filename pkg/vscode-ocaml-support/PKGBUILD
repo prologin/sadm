@@ -1,4 +1,4 @@
-# Maintainer: Victor Collod <victor.collod@prologin.org>
+# Maintainer: Léo PORTEMONT <leo.portemont@prologin.org>
 pkgname=vscode-ocaml-support
 # TODO: proper versionning
 pkgver=1
