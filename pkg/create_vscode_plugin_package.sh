@@ -1,40 +1,27 @@
 #! /bin/bash
 
-echo "maintainer (Name <email>) :"
-
-read MAINTAINER
-if [ -z "$MAINTAINER" ]
+if [ -z "$1" ]
 then
-  echo "maintainer name should not be empty"
-  exit 126
+  echo "usage ./create_vscode_plugin_package.sh <marketplace_extension_id> <pkgname> <maintainer>"
+  exit 1
 fi
 
-echo "extension marketplace id: "
-
-read EXTENSION
-
-if [ -z "$EXTENSION" ]
+if [ -z "$2" ]
 then
-  echo "extension should not be empty"
-  exit 127
+  echo "usage ./create_vscode_plugin_package.sh <marketplace_extension_id> <pkgname> <maintainer>"
+  exit 1
 fi
 
-echo "extension package name: "
-
-read PKGNAME
-
-if [ -z "$PKGNAME" ]
+if [ -z "$2" ]
 then
-  echo "extension pkgname should not be empty"
-  exit 128
+  echo "usage ./create_vscode_plugin_package.sh <marketplace_extension_id> <pkgname> <maintainer>"
+  exit 1
 fi
 
+mkdir "vscode-$2"
 
+cp PKGBUILD.vscode-plugin-template "./vscode-$2/PKGBUILD"
 
-mkdir "vscode-$PKGNAME"
-
-cp PKGBUILD.vscode-plugin-template "./vscode-$PKGNAME/PKGBUILD"
-
-sed -i "s/%COOLNAME%/$PKGNAME/g" "./vscode-$PKGNAME/PKGBUILD"
-sed -i "s/%EXTENSION%/$EXTENSION/g" "./vscode-$PKGNAME/PKGBUILD"
-sed -i "s/%MAINTAINER/$MAINTAINER/g" "./vscode-$PKGBUILD/PKGBUILD"
+sed -i "s/%PKGNAME%/$2/g" "./vscode-$2/PKGBUILD"
+sed -i "s/%EXTENSION%/$1/g" "./vscode-$2/PKGBUILD"
+sed -i "s/%MAINTAINER%/$3/g" "./vscode-$2/PKGBUILD"

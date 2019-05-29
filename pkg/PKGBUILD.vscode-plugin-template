@@ -1,9 +1,9 @@
 # Maintainer: %MAINTAINER% 
-pkgname=vscode-%COOLNAME%
+pkgname=vscode-%PKGNAME%
 # TODO: proper versionning
 pkgver=1
 pkgrel=1
-pkgdesc="%COOLNAME% for vscode"
+pkgdesc="%PKGNAME% for vscode"
 depends=(vscode-global-plugins)
 makedepends=(code)
 options=()
