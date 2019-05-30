@@ -87,6 +87,11 @@ MIDDLEWARE = (
     'django_prometheus.middleware.PrometheusAfterMiddleware',
 )
 
+AUTHENTICATION_BACKENDS = (
+    'prologin.sso.django.SSOUserBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
 ROOT_URLCONF = 'prologin.homepage.urls'
 
 TEMPLATES = [

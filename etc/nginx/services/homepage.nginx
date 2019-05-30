@@ -4,8 +4,11 @@ server {
 
     access_log logs/homepage.access.log main;
 
+    include sso/handler;
+
     location / {
         proxy_pass http://localhost:20110;
         include include/proxy_params;
+        include sso/protect;
     }
 }
