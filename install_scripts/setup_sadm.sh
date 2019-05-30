@@ -35,7 +35,7 @@ echo '[+] Installing packages from the Prologin Arch Linux repository'
 pacman -S --needed --noconfirm bash-eternal-history
 
 echo '[+] Installing packages required for monitoring'
-pacman -S --needed --noconfirm prometheus-node-exporter-git
+pacman -S --needed --noconfirm prometheus-node-exporter
 
 echo '[+] Installing sadm'
 mkdir -p /opt/prologin
