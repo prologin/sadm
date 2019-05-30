@@ -15,10 +15,12 @@ scrape_configs:
       - targets:
         - gw:9100
         - misc:9100
+        - monitoring:9100
         - rhfs01:9100
         - rhfs23:9100
         - rhfs45:9100
         - rhfs67:9100
+        - rhfs89:9100
         - web:9100
 
   - job_name: node-users
@@ -146,17 +148,6 @@ scrape_configs:
         - pas-r11p10:9100
         - pas-r11p11:9100
 
-  - job_name: sshd
-    static_configs:
-      - targets:
-        - gw:9022
-        - misc:9022
-        - rhfs01:9022
-        - rhfs23:9022
-        - rhfs45:9022
-        - rhfs67:9022
-        - web:9022
-
   - job_name: hfs
     static_configs:
       - targets:
@@ -186,19 +177,20 @@ scrape_configs:
       - targets:
         - concours
 
-  - job_name: 'blackbox'
+  - job_name: blackbox
     metrics_path: /probe
     params:
       module: [icmp_ping_gw]
     static_configs:
       - targets:
+        - misc
+        - monitoring
         - rhfs01
         - rhfs23
         - rhfs45
         - rhfs67
-        - misc
+        - rhfs89
         - web
-        - monitoring
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
