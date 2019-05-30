@@ -26,48 +26,47 @@ scrape_configs:
   - job_name: node-users
     static_configs:
       - targets:
-        - alt-r00p00:9100
-        - alt-r00p01:9100
-        - alt-r01p00:9100
         - alt-r01p01:9100
         - alt-r01p02:9100
         - alt-r01p03:9100
-        - alt-r01p04:9100
-        - alt-r01p05:9100
-        - alt-r01p06:9100
-        - alt-r02p00:9100
         - alt-r02p01:9100
         - alt-r02p02:9100
         - alt-r02p03:9100
-        - alt-r02p04:9100
-        - alt-r02p05:9100
-        - alt-r03p00:9100
         - alt-r03p01:9100
         - alt-r03p02:9100
-        - alt-r04p00:9100
         - alt-r04p01:9100
         - alt-r04p02:9100
         - alt-r04p03:9100
-        - alt-r04p04:9100
-        - alt-r04p05:9100
-        - alt-r05p00:9100
         - alt-r05p01:9100
         - alt-r05p02:9100
-        - alt-r05p03:9100
-        - alt-r05p04:9100
-        - alt-r05p05:9100
-        - alt-r06p00:9100
         - alt-r06p01:9100
         - alt-r06p02:9100
         - alt-r06p03:9100
-        - alt-r06p04:9100
-        - alt-r06p05:9100
-        - alt-r07p00:9100
         - alt-r07p01:9100
         - alt-r07p02:9100
         - alt-r07p03:9100
-        - alt-r07p04:9100
-        - alt-r07p05:9100
+        - alt-r08p01:9100
+        - alt-r08p02:9100
+        - alt-r08p03:9100
+        - alt-r09p01:9100
+        - alt-r09p02:9100
+        - alt-r10p01:9100
+        - alt-r10p02:9100
+        - alt-r10p03:9100
+        - alt-r11p01:9100
+        - alt-r11p02:9100
+        - alt-r11p03:9100
+        - alt-r12p01:9100
+        - alt-r12p02:9100
+        - alt-r12p03:9100
+        - alt-r12p04:9100
+        - alt-r13p01:9100
+        - alt-r13p02:9100
+        - alt-r13p03:9100
+        - alt-r13p04:9100
+        - alt-r13p05:9100
+        - alt-r13p06:9100
+        - pas-r01p01:9100
         - pas-r01p02:9100
         - pas-r01p03:9100
         - pas-r01p04:9100
@@ -91,10 +90,10 @@ scrape_configs:
         - pas-r05p03:9100
         - pas-r05p04:9100
         - pas-r05p05:9100
+        - pas-r0604:9100
         - pas-r06p01:9100
         - pas-r06p02:9100
         - pas-r06p03:9100
-        - pas-r06p04:9100
         - pas-r06p05:9100
         - pas-r07p01:9100
         - pas-r07p02:9100
@@ -125,11 +124,15 @@ scrape_configs:
         - pas-r09p01:9100
         - pas-r09p02:9100
         - pas-r09p03:9100
+        - pas-r09p04:9100
         - pas-r09p05:9100
         - pas-r09p06:9100
+        - pas-r09p07:9100
         - pas-r09p08:9100
         - pas-r09p09:9100
         - pas-r09p10:9100
+        - pas-r09p11:9100
+        - pas-r09p12:9100
         - pas-r09p13:9100
         - pas-r10p01:9100
         - pas-r10p02:9100
@@ -144,9 +147,10 @@ scrape_configs:
         - pas-r10p11:9100
         - pas-r10p12:9100
         - pas-r10p13:9100
-        - pas-r11p05:9100
-        - pas-r11p10:9100
-        - pas-r11p11:9100
+        - pas-r11p03:9100
+        - pas-r11p06:9100
+        - pas-r13p08:9100
+        - pas-r13p13:9100
 
   - job_name: hfs
     static_configs:
