@@ -1,0 +1,25 @@
+# Maintainer: Leo Portemont <leo.portemont@prologin.org>
+pkgname=vscode-extensions
+# TODO: proper versionning
+pkgver=1
+pkgrel=1
+pkgdesc="extensions for vscode"
+depends=(vscode-global-plugins)
+makedepends=(code)
+options=()
+noextract=()
+md5sums=()
+validpgpkeys=()
+arch=("x86_64")
+
+package() {
+        extensions="$pkgdir/usr/share/vscode-extensions/"
+        mkdir -p -- "$extensions"
+        for extension in alanz.vscode-hie-server iansan5653.format-python-docstrings \
+                         hackwaly.ocaml felixfbecker.php-intellisense hoovercj.haskell-linter \
+                         Fudge.auto-using Equinusocio.vsc-material-theme ms-python.python \
+                         hackwaly.ocaml-debugger Sophisticode.php-formatter \
+                         ms-vscode.csharp justusadam.language-haskell; do
+                code --extensions-dir "$extensions" --install-extension "$extension"
+        done
+}
