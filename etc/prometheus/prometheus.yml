@@ -167,6 +167,8 @@ scrape_configs:
         - hfs4:9030
         - hfs5:9030
         - hfs6:9030
+        - hfs7:9030
+        - hfs8:9030
 
   - job_name: masternode
     scrape_interval: 1s
@@ -184,5 +186,27 @@ scrape_configs:
       - targets:
         - concours
 
+  - job_name: 'blackbox'
+    metrics_path: /probe
+    params:
+      module: [icmp_ping_gw]
+    static_configs:
+      - targets:
+        - rhfs01
+        - rhfs23
+        - rhfs45
+        - rhfs67
+        - misc
+        - web
+        - monitoring
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: gw:9115
+
 rule_files:
   - alert.rules.yml
+
