@@ -137,6 +137,11 @@ class AllMatchesView(MatchesListMixin, ListView):
                 and not self.request.user.is_staff):
             qs = qs.filter(author=self.request.user.id)
         authors = self.request.GET.getlist('author')
+        if ((settings.STECHEC_FIGHT_ONLY_OWN_CHAMPIONS and not
+             self.request.user.is_staff)):
+            for author in authors:
+                if author != self.request.user:
+                    return HttpResponseForbidden()
         if authors:
             qs = qs.filter(author__pk__in=authors)
         champions = self.request.GET.getlist('champion')
