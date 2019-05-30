@@ -182,6 +182,7 @@ scrape_configs:
         - concours
 
   - job_name: blackbox
+    scrape_interval: 1s
     metrics_path: /probe
     params:
       module: [icmp_ping_gw]
