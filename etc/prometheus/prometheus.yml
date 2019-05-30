@@ -183,3 +183,6 @@ scrape_configs:
     static_configs:
       - targets:
         - concours
+
+rule_files:
+  - alert.rules.yml

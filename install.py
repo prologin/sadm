@@ -969,6 +969,10 @@ def install_prometheus():
         'prometheus/prometheus.yml',
         '/etc/prometheus/',
         owner='prometheus:prometheus')
+    install_cfg(
+        'prometheus/alert.rules.yml',
+        '/etc/prometheus/',
+        owner='prometheus:prometheus')
     install_systemd_unit('prometheus')
 
 
