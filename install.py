@@ -823,6 +823,15 @@ def install_rfs_nfs_archlinux():
             ROOTFS_STAGING, '""', '/dev/null'))
 
 
+def install_resource_limits():
+    mkdir('/etc/systemd/system/user-.slice.d/', 0o755)
+    copy('etc/systemd/system/user-.slice.d/20-max-memory.con',
+         '/etc/systemd/system/user-.slice.d/20-max-memory.conf')
+    copy('etc/systemd/system/user-.slice.d/20-no-fork-bomb-plz.conf',
+         '/etc/systemd/system/user-.slice.d/20-no-fork-bomb-plz.conf')
+    copy('etc/sysctl/memory.conf', '/etc/sysctl.d/memory.conf')
+
+
 def install_rfs_nfs_sadm():
     requires('sadm_secret')
 
@@ -1020,6 +1029,7 @@ COMPONENTS = [
     'prometheus',
     'pull_secret',
     'redmine',
+    'resource_limits',
     'rfs',
     'rfs_nfs_archlinux',
     'rfs_nfs_packages_base',

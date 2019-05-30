@@ -49,6 +49,7 @@ python install.py libprologin
 python install.py presenced
 python install.py workernode
 python install.py sddmcfg
+python install.py resource_limits
 
 echo '[+] Enable systemd services'
 systemctl enable presenced sddm workernode
