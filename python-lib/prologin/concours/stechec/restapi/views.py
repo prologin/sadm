@@ -1,7 +1,9 @@
 import collections
+import random
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.db.models import Sum
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from rest_framework.response import Response
@@ -49,7 +51,7 @@ class MatchViewSet(mixins.CreateModelMixin,
                    viewsets.GenericViewSet):
     queryset = (models.Match.objects
                 .select_related('author')
-                .prefetch_related('players__author'))
+                .prefetch_related('players__author', 'matchplayers'))
     serializer_class = serializers.MatchSerializer
     # permission_classes = [permissions.IsOwnerUsing('author')]
     # filter_backends = [filtering.IsOwnerUsing('author')]
@@ -85,6 +87,18 @@ class MatchViewSet(mixins.CreateModelMixin,
 
                 match.status = 'new'
                 match.save()
+
+    @action(['get'], detail=False)
+    def interesting(self, request):
+        matches = list(self.get_queryset()
+                       .annotate(sum_scores=Sum('matchplayers__score'))
+                       .order_by('-sum_scores'))
+        if len(matches) > 50:
+            # Only take the 33% most interesting
+            matches = matches[:len(matches) // 3 + 1]
+        random.shuffle(matches)
+        serializer = self.get_serializer(matches, many=True)
+        return Response(serializer.data)
 
 
 class TournamentViewSet(viewsets.ReadOnlyModelViewSet):
