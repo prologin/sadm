@@ -1,5 +1,5 @@
 [Unit]
-Description=presencesync client that replies to SSO authentication checks
+Description=Maintains an ip-to-login mapping to serve nginx SSO requests
 After=network-online.target
 
 [Service]
