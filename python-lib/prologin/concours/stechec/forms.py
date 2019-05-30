@@ -168,8 +168,14 @@ class MapCreationForm(forms.ModelForm):
     def clean_validate_contents(cls, data):
         data = '\n'.join(data.splitlines())
         if settings.STECHEC_MAP_VALIDATOR_SCRIPT is not None:
-            p = subprocess.run(settings.STECHEC_MAP_VALIDATOR_SCRIPT,
-                               input=data.encode(), stderr=subprocess.PIPE)
+            try:
+                p = subprocess.run(settings.STECHEC_MAP_VALIDATOR_SCRIPT,
+                                   input=data.encode(), stderr=subprocess.PIPE,
+                                   timeout=2)
+            except subprocess.TimeoutExpired:
+                raise forms.ValidationError(
+                        "Command timeout after 2 seconds: {}"
+                        .format(settings.STECHEC_MAP_VALIDATOR_SCRIPT))
             if p.returncode:
                 raise forms.ValidationError(p.stderr.decode())
         return data
