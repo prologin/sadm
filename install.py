@@ -976,6 +976,12 @@ def install_prometheus():
     install_systemd_unit('prometheus')
 
 
+def install_ircd():
+    install_cfg(
+        'unrealircd/unrealircd.conf', '/etc/unrealircd', owner='root:root', mode=0o644)
+    install_systemd_unit('irc_gatessh')
+
+
 COMPONENTS = [
     'base',
     'bindcfg',
@@ -989,6 +995,7 @@ COMPONENTS = [
     'hfsdb',
     'homepage',
     'irc_redmine_issues',
+    'ircd',
     'libprologin',
     'masternode',
     'mdb',

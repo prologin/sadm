@@ -188,4 +188,27 @@ See dj_ango README: https://bitbucket.org/Zeletochoy/dj-ango/
 IRC
 ---
 
-TODO
+Install the ircd, then install the config::
+
+    pacman -S unrealircd
+    python install.py ircd
+    mv /etc/unrealircd/unrealircd.conf{.new,}
+
+Change the OPER password in the config::
+
+   vim /etc/unrealircd/unrealircd.conf
+
+Then enable and start the IRCd::
+
+   systemctl enable --now unrealircd
+
+Now you need to enable the SOCKS tunnel so that IRC is available from the
+outside. First, generate a ssh key in misc, and add it to an user of the
+public-facing server (e.g prologin.org)::
+
+   ssh-keygen -t ed25519 -q -N "" < /dev/zero
+   ssh-copy-id dev@prologin.org
+
+Then, enable and start the IRC gatessh::
+
+   systemctl enable --now irc_gatessh
