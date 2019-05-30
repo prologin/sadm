@@ -284,9 +284,9 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                              len(self.worker_tasks))
                 await self.to_dispatch.wait()
 
-                # Try to schedule up to 25 tasks. The throttling is in place to
-                # avoid potential overload.
-                for i in range(25):
+                # Try to schedule up to 100 tasks. The throttling is in place
+                # to avoid potential overload.
+                for i in range(100):
                     if not self.worker_tasks:
                         break
                     task = self.worker_tasks[0]
