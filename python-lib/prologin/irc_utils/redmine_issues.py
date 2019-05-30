@@ -15,7 +15,6 @@ class RedmineIssuePlugin:
         'irc3.plugins.core',
         'irc3.plugins.userlist',
         'irc3.plugins.command',
-        'irc3.plugins.human',
     ]
 
     def __init__(self, bot):
@@ -90,7 +89,6 @@ def main():
     bot_config['includes'] = [
         'irc3.plugins.core',
         'irc3.plugins.command',
-        'irc3.plugins.human',
         __name__,
     ]
     bot = irc3.IrcBot.from_config(bot_config)
