@@ -554,20 +554,11 @@ def install_docs():
 def install_paste():
     requires('nginxcfg')
 
-    # TODO: use the appropriate database_exists check
-    first_time = not os.path.exists('/var/prologin/mdb')
-
     install_service_dir(
         'webservices/paste', mode=0o755, owner='webservices:http')
     install_nginx_service('paste')
     install_systemd_unit('paste')
-
-    if first_time:
-        # Use specific venv
-        with cwd('/var/prologin/paste'):
-            cmd = 'su -c "/opt/prologin/venv_paste/bin/python manage.py migrate --noinput" '
-            cmd += 'webservices'
-            system(cmd)
+    django_migrate('paste', user='webservices')
 
 
 def install_redmine():

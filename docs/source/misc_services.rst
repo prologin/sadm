@@ -46,14 +46,7 @@ paste
 
 We will setup dpaste: https://github.com/bartTC/dpaste::
 
-  # Switch to a special venv
-  python3 -m venv /opt/prologin/venv_paste
-  source /opt/prologin/venv_paste/bin/activate
-  pip install dpaste gunicorn
-  # dpaste deps are broken for now
-  pip install django==1.9.13
-  # Back to the normal venv
-  source /opt/prologin/venv/bin/activate
+  pip install dpaste
   python install.py paste
 
   systemctl enable paste && systemctl start paste

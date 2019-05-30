@@ -1,9 +1,7 @@
-from django.conf.urls import patterns, include, url
-
+from django.urls import include, path
 from django.contrib import admin
-admin.autodiscover()
 
-urlpatterns = patterns('',
-    url(r'^admin/', include(admin.site.urls)),
-    url(r'', include('dpaste.urls.dpaste')),
-)
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('dpaste.urls.dpaste')),
+]
