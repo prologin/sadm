@@ -29,6 +29,7 @@ class MatchSerializer(serializers.HyperlinkedModelSerializer):
     author = MinimalUserSerializer(read_only=True)
     status_human = serializers.ReadOnlyField(source='get_status_display')
     created = serializers.DateTimeField(source='ts', read_only=True)
+    players = ChampionSerializer(many=True, read_only=True)
 
     class Meta:
         model = models.Match
