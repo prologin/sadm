@@ -512,9 +512,13 @@ def install_mdb():
         execute_sql('mdb')
     django_migrate('mdb')
 
+    # Ansible inventory using mdb
     mkdir('/etc/ansible', mode=0o755, owner='root:root')
     install_cfg('ansible/hosts', '/etc/ansible/', mode=0o700)
-
+    install_cfg(
+        'ansible/ansible.cfg',
+        '/etc/ansible/',
+         owner='ansible:ansible')
 
 def install_mdbsync():
     requires('postgresql')
