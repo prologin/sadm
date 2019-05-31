@@ -105,7 +105,10 @@
 
   {% if settings.STECHEC_REPLAY %}
     <h2>Replay</h2>
-    <div id="replay">
+    <div id="replay"
+         data-match-id="{{ match.id }}"
+         data-match-dump-url="{% url 'match-dump' match.id %}"
+         data-match-info-url="{% url 'v1:match-detail' match.id %}">
       <div id="replay-board">{# insert graphics here #}</div>
       <div id="replay-legend">
         {% for player in match.matchplayers.all %}
