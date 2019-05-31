@@ -174,7 +174,7 @@ scrape_configs:
   - job_name: presencesync
     static_configs:
       - targets:
-        - presencesync:9021
+        - presencesync:9040
 
   - job_name: concours
     static_configs:
