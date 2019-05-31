@@ -112,3 +112,10 @@ If still not fixed, also create ``/etc/systemd/system/systemd-journal-upload.ser
 Then::
 
   $ systemctl enable --now systemd-journal-upload
+
+As an useful first request:
+
+::
+  not SYSTEMD_USER_SLICE:* and (error or (PRIORITY < 5) or (EXIT_STATUS:* and not EXIT_STATUS:0))
+
+This request filters non-user errors.
