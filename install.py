@@ -770,6 +770,7 @@ def install_presencesync_sso():
     requires('libprologin')
 
     install_nginx_service('sso')
+    install_cfg_profile('presencesync_sso', group='presencesync_sso')
     install_systemd_unit('presencesync_sso')
 
 
