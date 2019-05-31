@@ -12,7 +12,7 @@ import threading
 import tornado.web
 import tornado.ioloop
 
-CFG = prologin.config.load('presencesync_sso')
+CFG = prologin.config.load('presencesync-sso')
 
 
 class WhoisHandler(tornado.web.RequestHandler):
