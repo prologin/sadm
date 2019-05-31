@@ -192,6 +192,6 @@ class TournamentViewSet(viewsets.ReadOnlyModelViewSet):
 
         series = [{'name': k, 'data': v, 'visible': False}
                   for k, v in sorted(rankings.items(),
-                                     key=lambda x: x[1][-1])]
+                                     key=(lambda x: x[1][-1] or 0))]
         categories = [t.name for t in tournaments]
         return Response({'series': series, 'categories': categories})
