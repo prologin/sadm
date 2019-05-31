@@ -1,0 +1,5 @@
+# Mapping of hostname -> login
+# This takes precedence over the mapping computed from presencesync.
+
+overrides:
+#  zopieuxlaptop: zopieux

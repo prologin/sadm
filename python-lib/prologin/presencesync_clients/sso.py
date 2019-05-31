@@ -12,6 +12,8 @@ import threading
 import tornado.web
 import tornado.ioloop
 
+CFG = prologin.config.load('presencesync-sso')
+
 
 class WhoisHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
@@ -31,7 +33,7 @@ class WhoisHandler(tornado.web.RequestHandler):
         if not login:
             logging.warning("service '%s' requested SSO for machine %s that"
                             " has no login", self.request.remote_ip, ipaddr)
-            self.set_header('X-SSO-Status', f'unknown: machine {ipaddr} has no login') 
+            self.set_header('X-SSO-Status', f'unknown: machine {ipaddr} has no login')
             self.finish()
             return
 
@@ -75,6 +77,14 @@ class PresenceCacheServer(prologin.web.TornadoApp):
         ip_to_hostname = {m['ip']: m['hostname'] for m in mdb_machines}
         # Translates logins to hostnames
         hostname_to_login = {m['hostname']: login for login, m in login_to_machine.items()}
+
+        # Apply overrides.
+        try:
+            overrides = CFG.get('overrides', {})
+            assert isinstance(overrides, dict)
+            hostname_to_login.update(overrides)
+        except Exception:
+            logging.exception("Error applying config overrides")
 
         with self.lock:
             # FIXME: self.ip_to_login may contain multiple similar logins
