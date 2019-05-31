@@ -7,7 +7,7 @@ LANGUAGES = {
   'python': {'name': 'Python', 'color': '#3572a5'},
   'java': {'name': 'Java', 'color': '#b07219'},
   'rust': {'name': 'Rust', 'color': '#dea584'},
-  'ocaml': {'name': 'OCaml', 'color': '#3be133'},
+  'caml': {'name': 'OCaml', 'color': '#3be133'},
   'haskell': {'name': 'Haskell', 'color': '#5e5086'},
   'php': {'name': 'PHP', 'color': '#4f5d95'},
 }

@@ -367,8 +367,14 @@ class AllTournamentsView(ListView):
 
 
 class TournamentView(DetailView):
-    queryset = models.Tournament.objects.filter(visible=True)
+    queryset = models.Tournament.objects.all()
     template_name = "stechec/tournament-detail.html"
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if not self.request.user.is_staff:
+            qs = qs.filter(visible=True)
+        return qs
 
     def players(self):
         tournament = self.get_object()
@@ -393,8 +399,14 @@ class TournamentView(DetailView):
 
 
 class TournamentMatchesView(DetailView):
-    queryset = models.Tournament.objects.filter(visible=True)
+    queryset = models.Tournament.objects.all()
     template_name = "stechec/tournament-detail-matches.html"
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if not self.request.user.is_staff:
+            qs = qs.filter(visible=True)
+        return qs
 
     def champion(self):
         return get_object_or_404(models.Champion, pk=self.kwargs['champion'])

@@ -102,11 +102,17 @@ class MatchViewSet(mixins.CreateModelMixin,
 
 
 class TournamentViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = (models.Tournament.objects.filter(visible=True)
+    queryset = (models.Tournament.objects.all()
                 .select_related('author')
                 .prefetch_related('matches'))
     serializer_class = serializers.TournamentSerializer
     permission_classes = [rest_permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if not self.request.user.is_staff:
+            qs = qs.filter(visible=True)
+        return qs
 
     def get_stats(self):
         tournament = self.get_object()

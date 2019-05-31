@@ -117,7 +117,7 @@ class Champion(ExportModelOperationsMixin('champion'), models.Model):
         with self._extract_sources() as tmpd:
             with open(os.path.join(tmpd, '_lang')) as langf:
                 lang_code = langf.read().strip()
-        return {'code': lang_code, **LANGUAGES.get(lang_code)}
+        return {'code': lang_code, **LANGUAGES.get(lang_code, {})}
 
     @cached_property
     def loc_count_main(self):
