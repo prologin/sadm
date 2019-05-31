@@ -64,3 +64,51 @@ Disable the screen saver and DPMS using on the monitoring display using::
 
   $ xset -dpms
   $ xset s off
+
+Log monitoring
+--------------
+
+On monitoring::
+
+  $ pacman -S elasticsearch kibana
+  $ systemctl enable --now elasticsearch kibana
+
+In the kibana web UI, go to the dev tools tab and run::
+
+  # Make sure the index isn't there
+  DELETE /logs
+
+  # Create the index
+  PUT /logs
+
+  PUT logs/_mapping
+  {
+    "properties": {
+      "REALTIME_TIMESTAMP": {
+        "type": "date",
+        "format": "epoch_millis"
+      }
+    }
+  }
+
+It creates an index called logs, as well as proper metadata for time filtering.
+
+Install https://github.com/multun/journal-upload-aggregator on the monitoring
+server, and *please do not* configure nginx as a front-end on ``journal-aggregator``.
+Don't forget
+to add the alias in ``mdb``.
+
+On the machines that need to be monitored, create ``/etc/systemd/journal-upload.conf``::
+
+  [Upload]
+  Url=http://journal-aggregator:20200/gateway
+
+If still not fixed, also create ``/etc/systemd/system/systemd-journal-upload.service.d/restart.conf``: ::
+
+  [Service]
+  Restart=on-failure
+  RestartSec=4
+
+Then::
+
+  $ systemctl enable --now systemd-journal-upload
