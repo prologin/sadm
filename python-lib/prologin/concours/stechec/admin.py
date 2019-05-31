@@ -97,6 +97,7 @@ class TournamentAddAdminForm(forms.ModelForm):
 @admin.register(models.Tournament)
 class TournamentAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'ts', 'visible')
+    list_select_related = []
     inlines = [TournamentMapInline, TournamentPlayerInline]
 
     add_form = TournamentAddAdminForm
@@ -122,6 +123,11 @@ class TournamentAdmin(admin.ModelAdmin):
         if not change:
             obj.author = request.user
         super().save_model(request, obj, form, change)
+
+    def get_deleted_objects(self, objs, request):
+        # Avoid recursion to avoid tons of subqueries
+        # TODO: find a way to select_related the delete confirmation page.
+        return (objs, {}, None, None)
 
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)
