@@ -22,7 +22,7 @@ match_patterns = [
     path('<int:pk>/dump/', views.MatchDumpView.as_view(), name='match-dump'),
     path('all/', views.AllMatchesView.as_view(), name='matches-all'),
     path('mine/by-champion/', views.MyChampionMatchesView.as_view(),
-         name='mine-by-champion'),
+         name='matches-mine-by-champion'),
     path('mine/', views.MyMatchesView.as_view(), name='matches-mine'),
     path('new/', views.NewMatchView.as_view(), name='match-new'),
 ]
