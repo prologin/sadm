@@ -25,16 +25,25 @@ class ChampionSerializer(serializers.HyperlinkedModelSerializer):
         fields = read_only_fields + ('name', 'sources', 'comment')
 
 
+class MatchPlayerSerializer(serializers.HyperlinkedModelSerializer):
+    champion = ChampionSerializer(read_only=True)
+
+    class Meta:
+        model = models.MatchPlayer
+        read_only_fields = ('id', 'champion', 'score')
+        fields = read_only_fields
+
+
 class MatchSerializer(serializers.HyperlinkedModelSerializer):
     author = MinimalUserSerializer(read_only=True)
     status_human = serializers.ReadOnlyField(source='get_status_display')
     created = serializers.DateTimeField(source='ts', read_only=True)
-    players = ChampionSerializer(many=True, read_only=True)
+    matchplayers = MatchPlayerSerializer(many=True, read_only=True)
 
     class Meta:
         model = models.Match
         read_only_fields = ('url', 'id', 'author', 'status', 'status_human',
-                            'created', 'tournament', 'players', 'created')
+                            'created', 'tournament', 'matchplayers', 'created')
         fields = read_only_fields
 
 
