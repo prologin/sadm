@@ -11,7 +11,7 @@ ExecStart=/usr/bin/ethtool --offload %I rx off tx off tso off gso off
 # Some switches emit them, we disable their support on our systems.  Some NIC do
 # not implement this feature, so this commmand may fail with "Operation not
 # supported". This is totally fine.
-ExecStart=/usr/bin/ethtool --pause %I rx off tx off
+ExecStart=-/usr/bin/ethtool --pause %I rx off tx off
 
 [Install]
 WantedBy=multi-user.target
