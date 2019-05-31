@@ -147,7 +147,7 @@ async def spawn_server(config, rep_addr, pub_addr, nb_players, sockets_dir,
     # Create the isolator
     limits = {'wall-time': config['timeout'].get('server', 400)}
     allowed_dirs = [
-        '/var', '/tmp', sockets_dir + ':rw',
+        '/var', '/etc', '/tmp', sockets_dir + ':rw',
         os.path.dirname(config['path']['stechec_server']),
         os.path.dirname(config['path']['rules'])
     ]
@@ -217,7 +217,7 @@ async def spawn_client(config,
         'fsize': 256,
     }
     allowed_dirs = [
-        '/var', '/tmp', sockets_dir + ':rw', champion_path,
+        '/var', '/etc', '/tmp', sockets_dir + ':rw', champion_path,
         os.path.dirname(config['path']['stechec_client']),
         os.path.dirname(config['path']['rules'])
     ]
