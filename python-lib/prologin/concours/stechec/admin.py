@@ -80,7 +80,7 @@ class TournamentAddAdminForm(forms.ModelForm):
         initial=False, required=False)
     auto_add_deadline = forms.DateTimeField(
         label="Uniquement les champions soumis avant :",
-        widget=forms.widgets.DateTimeInput(attrs={'type': 'datetime-local'}),
+        widget=forms.widgets.DateTimeInput(),
         initial=now, required=False)
     auto_add_staff = forms.BooleanField(
         label="Inclure également les champions des admins (déconseillé)",
