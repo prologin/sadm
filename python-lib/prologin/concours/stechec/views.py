@@ -308,13 +308,15 @@ class NewMapView(LoginRequiredMixin, CreateView):
 
 
 class AllTournamentsView(ListView):
-    queryset = models.Tournament.objects.filter(visible=True)
+    queryset = models.Tournament.objects.all()
     paginate_by = 100
     template_name = "stechec/tournament-list.html"
     ordering = ['-id']
 
     def get_queryset(self):
         qs = super().get_queryset()
+        if not self.request.user.is_staff:
+            qs = qs.filter(visible=True)
 
         num_champions = (
             models.TournamentPlayer.objects

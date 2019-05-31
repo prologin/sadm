@@ -28,7 +28,7 @@
     </thead>
     <tbody>
         {% for tournament in tournament_list %}
-        <tr>
+        <tr class="{% if not tournament.visible %}danger{% endif %}">
             <td>{{ tournament.name }}</td>
             <td>{{ tournament.my_score|default:"-" }}</td>
             <td>{{ tournament.num_champions }}</td>
