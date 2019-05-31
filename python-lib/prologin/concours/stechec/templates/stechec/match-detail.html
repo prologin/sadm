@@ -73,7 +73,7 @@
     </tr>
     </thead>
     <tbody>
-    {% for player in match.matchplayer_set.all %}
+    {% for player in match.matchplayers.all %}
       <tr>
         <td>{{ player.id }}</td>
         <td><a href="{% url 'matches-all' %}?champion={{ player.champion.id }}">{{ player.champion.id }}</a></td>
@@ -108,7 +108,7 @@
     <div id="replay">
       <div id="replay-board">{# insert graphics here #}</div>
       <div id="replay-legend">
-        {% for player in match.matchplayer_set.all %}
+        {% for player in match.matchplayers.all %}
           <div class="replay-player" id="replay_p{{ player.id }}" data-id="{{ player.id }}"></div>
         {% endfor %}
       </div>
