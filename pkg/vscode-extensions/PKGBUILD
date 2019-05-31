@@ -4,7 +4,7 @@ pkgname=vscode-extensions
 pkgver=1
 pkgrel=1
 pkgdesc="extensions for vscode"
-depends=(vscode-global-plugins)
+depends=()
 makedepends=(code)
 options=()
 noextract=()
@@ -19,7 +19,9 @@ package() {
                          hackwaly.ocaml felixfbecker.php-intellisense hoovercj.haskell-linter \
                          Fudge.auto-using Equinusocio.vsc-material-theme ms-python.python \
                          hackwaly.ocaml-debugger Sophisticode.php-formatter \
-                         ms-vscode.csharp justusadam.language-haskell; do
+                         ms-vscode.csharp justusadam.language-haskell \
+                         ms-vscode.cpptools rust-lang.rust \
+                         tomphilbin.gruvbox-themes ; do
                 code --extensions-dir "$extensions" --install-extension "$extension"
         done
 }
