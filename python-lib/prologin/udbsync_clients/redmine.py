@@ -42,4 +42,5 @@ if __name__ == '__main__':
     prologin.log.setup_logging('udbsync_redmine')
     ENV = os.environ.copy()
     ENV['RAILSENV'] = 'production'
-    prologin.udbsync.client.connect().poll_updates(callback, watch={'password'})
+    prologin.udbsync.client.connect().poll_updates(callback)
+
