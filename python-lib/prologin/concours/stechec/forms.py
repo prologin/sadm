@@ -194,8 +194,14 @@ class MapCreationForm(forms.ModelForm):
 
 
 class TournamentCorrectForm(forms.ModelForm):
-    comment = forms.CharField(required=True, widget=forms.widgets.Textarea(),
-                              label="Commentaire")
+    help_text = """Critères : propreté du code, intérêt algorithmique,
+    complexité de la stratégie, adaptation à l'adversaire, utilisation des
+    tournois intermédiaires...
+    """
+    comment = forms.CharField(required=True,
+                              widget=forms.widgets.Textarea(),
+                              label="Commentaire",
+                              help_text=help_text)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
