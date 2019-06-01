@@ -26,6 +26,7 @@
         <li><span class="navbar-text"><i class="fa fa-user i-align"></i> {{ request.user.username }}</span></li>
         {% if request.user.is_staff %}
           <li><a href="{% url 'admin:index' %}" title="Administration"><i class="fa fa-wrench i-align"></i> Admin</a></li>
+          <li><a href="{% url 'match-stream' %}"><i class="fa fa-caret-right i-align"></i> Match stream</a></li>
         {% endif %}
       {% else %}
         <li><a href="{% url 'login' %}"><i class="fa fa-user i-align"></i> Connexion</a></li>

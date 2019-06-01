@@ -300,6 +300,10 @@ class MatchDumpView(SingleObjectMixin, View):
         return h
 
 
+class MatchStreamView(TemplateView):
+    template_name = 'stechec/match-stream.html'
+
+
 class NewMapView(LoginRequiredMixin, CreateView):
     model = models.Map
     form_class = forms.MapCreationForm

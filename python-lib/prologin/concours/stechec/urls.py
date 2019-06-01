@@ -25,6 +25,8 @@ match_patterns = [
          name='matches-mine-by-champion'),
     path('mine/', views.MyMatchesView.as_view(), name='matches-mine'),
     path('new/', views.NewMatchView.as_view(), name='match-new'),
+
+    path('stream/', views.MatchStreamView.as_view(), name='match-stream'),
 ]
 
 tournament_patterns = [

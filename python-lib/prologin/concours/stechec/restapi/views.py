@@ -90,14 +90,17 @@ class MatchViewSet(mixins.CreateModelMixin,
 
     @action(['get'], detail=False)
     def interesting(self, request):
-        matches = list(self.get_queryset()
-                       .annotate(sum_scores=Sum('matchplayers__score'))
-                       .order_by('-sum_scores'))
-        if len(matches) > 50:
+        matches = (self.get_queryset()
+                   .filter(status='done')
+                   .annotate(sum_scores=Sum('matchplayers__score'))
+                   .order_by('-sum_scores')[:1000])
+        match_count = matches.count()
+        if match_count > 50:
             # Only take the 33% most interesting
-            matches = matches[:len(matches) // 3 + 1]
-        random.shuffle(matches)
-        serializer = self.get_serializer(matches, many=True)
+            match_count = match_count // 3 + 1
+            matches = matches[:match_count]
+        match = random.choice(list(matches))
+        serializer = self.get_serializer(match)
         return Response(serializer.data)
 
 

@@ -1,0 +1,23 @@
+{% extends "stechec/base.html" %}
+{% load humanize static substract %}
+{% load django_bootstrap_breadcrumbs %}
+
+{% block title %}Streaming de matchs{% endblock %}
+{% block titleh1 %}Streaming de matchs{% endblock %}
+
+{% block breadcrumbs %}
+  {{ block.super }}
+  {% breadcrumb_for "matches-all" %}Matchs{% endbreadcrumb_for %}
+  {% breadcrumb_for "match-stream" %}Streaming de matchs{% endbreadcrumb_for %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+{% endblock %}
+
+{% block extra_js %}
+  <script type="text/javascript" src="{% static 'js/uitools.js' %}"></script>
+  {% if settings.STECHEC_REPLAY %}
+    <script type="text/javascript" src="{% static 'js/replay.js' %}" async></script>
+    <script type="text/javascript" src="{% static 'js/stream.js' %}" async></script>
+  {% endif %}
+{% endblock %}
