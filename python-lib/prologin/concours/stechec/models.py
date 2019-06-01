@@ -135,7 +135,7 @@ class Champion(ExportModelOperationsMixin('champion'), models.Model):
                 if not any(entry.name.lower().endswith(ext)
                            for ext in ext_whitelist):
                     continue
-                if any(entry.name.lower().startswith(bf + '.')
+                if any(entry.name.lower().startswith(bf)
                        for bf in file_blacklist):
                     continue
                 with open(entry.path) as f:
