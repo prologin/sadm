@@ -1,0 +1,15 @@
+{% extends "stechec/printable-base.html" %}
+
+{% block title %}Rapport de Jury{% endblock %}
+{% block subtitle %}Rapport de Jury{% endblock %}
+
+{% block content %}
+{% for player in view.jury_players %}
+<h3>{{ player.champion.author.get_full_name }}</h3>
+<ul>
+  <li><strong>Langage :</strong> <strong style="color: {{ player.champion.language.color }}">{{ player.champion.language.name }}</strong></li>
+  <li><strong>Lignes de code :</strong> {{ player.champion.sloc }}</li>
+  <li><strong>Commentaire :</strong> <p>{{ player.correction.comment }}</p></li>
+</ul>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "stechec/printable-base.html" %}
+
+{% block title %}Classement final{% endblock %}
+{% block subtitle %}Classement final{% endblock %}
+
+{% block content %}
+<table><tr>
+    <td>
+      <ol style="font-size: 1.2em;">
+        {% for player in view.jury_players %}
+        <li>＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿</li>
+        {% endfor %}
+        {% for player in view.players %}
+        <li> {{ player.champion.author.get_full_name }}</li>
+        {% endfor %}
+      </ol>
+    </td>
+    <td style="vertical-align: top; padding-left: 5cm;">
+      <div style="width: 7cm;">
+        <h4>Sélectionnés au jury</h4>
+        <ul style="font-size: 1.2em;">
+          {% for player in view.jury_players %}
+          <li>{{ player.champion.author.get_full_name }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </td>
+  </tr>
+</table>
+
+    {% endblock %}

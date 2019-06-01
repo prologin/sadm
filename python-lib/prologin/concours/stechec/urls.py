@@ -37,6 +37,15 @@ tournament_patterns = [
     path('<int:pk>/correct/<int:player>/',
          views.TournamentCorrectView.as_view(),
          name='tournament-correct'),
+    path('<int:pk>/correct/<int:player>/delete',
+         views.DeleteTournamentCorrectView.as_view(),
+         name='delete-tournament-correct'),
+    path('<int:pk>/jury-report',
+         views.TournamentJuryReportView.as_view(),
+         name='tournament-jury-report'),
+    path('<int:pk>/print-ranking',
+         views.TournamentPrintRankingView.as_view(),
+         name='tournament-print-ranking'),
 ]
 
 map_patterns = [

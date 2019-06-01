@@ -1,0 +1,24 @@
+{% extends "stechec/base.html" %}
+{% load static %}
+{% load django_bootstrap_breadcrumbs crispy_forms_tags pygmentize %}
+
+{% block title %}Correction {{ player.champion.author.username }} — {{ tournament.name }}{% endblock %}
+{% block titleh1 %}
+{{ tournament.name }} : correction de {{ player.champion.author.get_full_name }}
+{% endblock %}
+
+{% block breadcrumbs %}
+  {{ block.super }}
+  {% breadcrumb_for "tournaments-all" %}Tournois{% endbreadcrumb_for %}
+  {% breadcrumb_for "tournament-detail" tournament.id %}{{ tournament.name }}{% endbreadcrumb_for %}
+  {% breadcrumb_for "tournament-correction" tournament.id player.id %}Correction de {{ player.champion.author.get_full_name }}{% endbreadcrumb_for %}
+  {% breadcrumb_for "" %}Supprimer{% endbreadcrumb_for %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+<form method="post">{% csrf_token %}
+  <p>Êtes-vous sûrs de vouloir supprimer la correction de {{ player.champion.author.get_full_name }}
+  pour le tournoi {{ player.tournament.name }} ?</p>
+  <input type="submit" class="btn btn-danger" value="Supprimer">
+</form>
+{% endblock %}

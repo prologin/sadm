@@ -197,10 +197,22 @@ class TournamentCorrectForm(forms.ModelForm):
     comment = forms.CharField(required=True, widget=forms.widgets.Textarea(),
                               label="Commentaire")
 
-    helper = BaseFormHelper()
-    helper.append_field('include_jury_report')
-    helper.append_field('comment')
-    helper.append_submit("Envoyer")
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = BaseFormHelper()
+
+        actions = [layout.Submit('submit', 'Envoyer')]
+        if self.instance.id:
+            actions.append(layout.HTML(
+                '<a class="btn btn-danger" href='
+                '{% url "delete-tournament-correct" tournament.id player.id %}'
+                ">Supprimer la correction</a>"),
+            )
+        self.helper.layout = layout.Layout(
+            'include_jury_report',
+            'comment',
+            bootstrap.FormActions(layout.ButtonHolder(*actions))
+        )
 
     class Meta:
         model = models.TournamentPlayerCorrection

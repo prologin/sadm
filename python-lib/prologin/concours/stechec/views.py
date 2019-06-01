@@ -11,7 +11,7 @@ from django.http import (HttpResponseRedirect, HttpResponse,
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.generic import (DetailView, ListView, FormView, TemplateView,
-                                  RedirectView, CreateView)
+                                  RedirectView, CreateView, DeleteView)
 from django.views.generic.base import View
 from django.views.generic.detail import (SingleObjectMixin,
                                          SingleObjectTemplateResponseMixin)
@@ -370,9 +370,8 @@ class AllTournamentsView(ListView):
         return qs
 
 
-class TournamentView(DetailView):
+class TournamentViewMixin:
     queryset = models.Tournament.objects.all()
-    template_name = "stechec/tournament-detail.html"
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -380,14 +379,15 @@ class TournamentView(DetailView):
             qs = qs.filter(visible=True)
         return qs
 
-    def players(self):
+    def player_queryset(self):
         tournament = self.get_object()
+        return (models.TournamentPlayer.objects
+                .filter(tournament=tournament)
+                .select_related('correction')
+                .prefetch_related('champion__author'))
 
-        players = (models.TournamentPlayer.objects
-                   .filter(tournament=tournament)
-                   .select_related('correction')
-                   .prefetch_related('champion__author'))
-
+    def players(self):
+        players = self.player_queryset()
         rank = 1
         previous_score = None
         for i, player in enumerate(players, 1):
@@ -401,6 +401,10 @@ class TournamentView(DetailView):
             player.rank = rank
             player.ex_aequo = ex_aequo
         return players
+
+
+class TournamentView(TournamentViewMixin, DetailView):
+    template_name = "stechec/tournament-detail.html"
 
 
 class TournamentMatchesView(DetailView):
@@ -477,8 +481,8 @@ class TournamentCorrectView(SingleObjectTemplateResponseMixin, ModelFormMixin,
 
     def get_success_url(self):
         return reverse('tournament-correct',
-                       kwargs={'pk': self.object.player.tournament.id,
-                               'player': self.object.player.id})
+                       kwargs={'pk': self.kwargs['pk'],
+                               'player': self.kwargs['player']})
 
     def get_player(self):
         return get_object_or_404(models.TournamentPlayer.objects
@@ -509,6 +513,58 @@ class TournamentCorrectView(SingleObjectTemplateResponseMixin, ModelFormMixin,
         instance.player = self.get_player()
         instance.save()
         return HttpResponseRedirect(self.get_success_url())
+
+
+@method_decorator(staff_member_required, name='dispatch')
+class DeleteTournamentCorrectView(DeleteView):
+    model = models.TournamentPlayerCorrection
+    template_name = 'stechec/tournament-correct-confirm-delete.html'
+    pk_url_kwarg = 'player'
+
+    def get_success_url(self):
+        return reverse('tournament-detail',
+                       kwargs={'pk': self.kwargs['pk']})
+
+    def get_object(self, queryset=None):
+        return (models.TournamentPlayerCorrection.objects
+                .filter(player=self.kwargs[self.pk_url_kwarg])).first()
+
+    def get_player(self):
+        return get_object_or_404(models.TournamentPlayer.objects
+                                 .select_related('champion__author')
+                                 .select_related('tournament'),
+                                 pk=self.kwargs[self.pk_url_kwarg])
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['player'] = self.get_player()
+        context['tournament'] = context['player'].tournament
+        return context
+
+
+class TournamentJuryReportView(TournamentViewMixin, DetailView):
+    template_name = "stechec/tournament-jury-report.html"
+
+    def jury_players(self):
+        qs = super().player_queryset()
+        qs = (qs.filter(correction__include_jury_report=True)
+              .order_by('champion__author__last_name'))
+        return qs
+
+
+class TournamentPrintRankingView(TournamentViewMixin, DetailView):
+    template_name = "stechec/tournament-print-ranking.html"
+
+    def player_queryset(self):
+        qs = super().player_queryset()
+        qs = qs.exclude(correction__include_jury_report=True)
+        return qs
+
+    def jury_players(self):
+        qs = super().player_queryset()
+        qs = (qs.filter(correction__include_jury_report=True)
+              .order_by('champion__author__last_name'))
+        return qs
 
 
 class MasterStatus(TemplateView):

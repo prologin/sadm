@@ -1,0 +1,66 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+/* latin */
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lato Regular'), local('Lato-Regular'), url({% static 'fonts/lato.woff2' %}) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+body {
+  font-family: 'Lato', sans-serif;
+}
+
+#page-wrapper {
+  padding: 1.6cm;
+  width: 21cm;
+  border: 1px solid black;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #section-to-print, #section-to-print * {
+    visibility: visible;
+  }
+
+  #section-to-print {
+    margin: 1.6cm;
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+}
+    </style>
+  <link rel="shortcut icon" href="{% static 'img/favicon.png' %}" type="image/png">
+  <title>{% block title %}SANS TITRE{% endblock %} – Prologin</title>
+  </head>
+  <body>
+    <p>Cette page est imprimable. Vous pouvez utiliser l'imprimante PDF de
+    votre navigateur pour en générer un PDF.</p>
+    <p>Vous pouvez désactiver les en-têtes (avec le titre et l'URL) dans les
+    options d'impression de votre navigateur.</p>
+    <hr />
+    <div id="page-wrapper">
+      <div id="section-to-print">
+        <div style="text-align: center; margin-bottom: 1cm;">
+          <h1><img src="{% static 'img/logo-cube.png' %}"
+            style="vertical-align: middle; margin-right: 0.3cm;"
+            width="50" height="53">
+            Prologin {% now "Y" %}</h1>
+          <h2>{% block subtitle %}{% endblock %}</h2>
+        </div>
+        {% block content %}{% endblock %}
+      </div>
+    </div>
+  </body>
+</html>
