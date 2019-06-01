@@ -21,7 +21,7 @@ package() {
                          hackwaly.ocaml-debugger Sophisticode.php-formatter \
                          ms-vscode.csharp justusadam.language-haskell \
                          ms-vscode.cpptools rust-lang.rust \
-                         tomphilbin.gruvbox-themes ; do
+                         tomphilbin.gruvbox-themes webfreak.debug; do
                 code --extensions-dir "$extensions" --install-extension "$extension"
         done
 }
