@@ -12,6 +12,13 @@
 {% endblock breadcrumbs %}
 
 {% block content %}
+  {% if settings.STECHEC_REPLAY %}
+    <div id="replay"
+         data-match-id="{{ match.id }}"
+         data-match-dump-url="{% url 'match-dump' match.id %}"
+         data-match-info-url="{% url 'v1:match-detail' match.id %}">
+    </div>
+  {% endif %}
 {% endblock %}
 
 {% block extra_js %}
