@@ -4,10 +4,18 @@ Misc services
 ``/sgoinfre``
 -------------
 
-Setup a ``rw`` nfsv3 export on a ``misc`` machine, performance or reliabiliy is
+Setup a ``rw`` nfs export on a ``misc`` machine, performance or reliabiliy is
 not a priority for this service.
 
-The following ``systemd`` service can be installed on the rhfs::
+install `nfs-utils` on `misc`
+
+Add the following line to /etc/exports
+  /sgoinfre *(rw,insecure,squash_all,no_subtree_check,nohide)
+Run the following commands on `misc`:
+  exportfs -arv
+  systemctl enable --now nfs-server
+
+The following ``systemd`` service can be installed on the rhfs (in nfsroot)::
 
   # /etc/systemd/system/sgoinfre.mount
   [Unit]
@@ -16,10 +24,13 @@ The following ``systemd`` service can be installed on the rhfs::
   [Mount]
   What=sgoinfre:/sgoinfre
   Where=/sgoinfre
-  Options=nfsvers=3,nolock,noatime
+  Options=nfsvers=4,nolock,noatime
 
   [Install]
   WantedBy=multi-user.target
+
+Then enable the unit
+  # systemctl enable --now sgoinfre.mount
 
 doc
 ---
