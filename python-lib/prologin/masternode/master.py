@@ -152,10 +152,6 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             player_scores = [{'player_id': r['player'],
                               'player_score': r['score']}
                              for r in result]
-            tournament_scores = [{'match_id': mid,
-                                  'champion_score': r['score'],
-                                  'player_id': r['player']}
-                                 for r in result]
         except KeyError:
             masternode_bad_result.inc()
             return
@@ -163,7 +159,6 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         start = time.monotonic()
         await self.db.execute('set_match_status', match_status)
         await self.db.executemany('set_player_score', player_scores)
-        await self.db.executemany('update_tournament_score', tournament_scores)
         masternode_match_done_db.observe(time.monotonic() - start)
 
         # Remove task from worker

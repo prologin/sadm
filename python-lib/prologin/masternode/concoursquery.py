@@ -85,32 +85,6 @@ REQUESTS = {
           WHERE
             stechec_matchplayer.id = %(player_id)s
     ''',
-
-    'update_tournament_score': '''
-          UPDATE
-            stechec_tournamentplayer
-          SET
-            score = score + %(champion_score)s
-          WHERE
-            stechec_tournamentplayer.tournament_id = (
-              SELECT
-                stechec_match.tournament_id
-              FROM
-                stechec_match
-              WHERE
-                stechec_match.id = %(match_id)s
-            )
-            AND stechec_tournamentplayer.champion_id = (
-              SELECT
-                stechec_champion.id
-              FROM
-                stechec_champion
-              LEFT JOIN stechec_matchplayer
-                ON stechec_champion.id = stechec_matchplayer.champion_id
-              WHERE
-                stechec_matchplayer.id = %(player_id)s
-            )
-    ''',
 }
 
 
