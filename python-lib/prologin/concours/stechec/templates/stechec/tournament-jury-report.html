@@ -1,4 +1,5 @@
 {% extends "stechec/printable-base.html" %}
+{% load markdownify %}
 
 {% block title %}Rapport de Jury{% endblock %}
 {% block subtitle %}Rapport de Jury{% endblock %}
@@ -9,7 +10,7 @@
 <ul>
   <li><strong>Langage :</strong> <strong style="color: {{ player.champion.language.color }}">{{ player.champion.language.name }}</strong></li>
   <li><strong>Lignes de code :</strong> {{ player.champion.sloc }}</li>
-  <li><strong>Commentaire :</strong> <p>{{ player.correction.comment }}</p></li>
+  <li><strong>Commentaire :</strong> <p>{% markdownify player.correction.comment %}</p></li>
 </ul>
 {% endfor %}
 {% endblock %}
