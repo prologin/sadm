@@ -312,6 +312,10 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
             pass
 
     @property
+    def dump_url(self):
+        return reverse('match-dump', kwargs={'pk': self.id})
+
+    @property
     def is_done(self):
         return self.status == 'done'
 

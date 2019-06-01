@@ -43,7 +43,8 @@ class MatchSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = models.Match
         read_only_fields = ('url', 'id', 'author', 'status', 'status_human',
-                            'created', 'tournament', 'matchplayers', 'created')
+                            'created', 'tournament', 'matchplayers', 'created',
+                            'dump_url')
         fields = read_only_fields
 
 
