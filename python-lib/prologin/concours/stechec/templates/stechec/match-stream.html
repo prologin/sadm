@@ -15,8 +15,8 @@
   {% if settings.STECHEC_REPLAY %}
     <div id="replay"
          data-match-id="{{ match.id }}"
-         data-match-dump-url="{% url 'match-dump' match.id %}"
-         data-match-info-url="{% url 'v1:match-detail' match.id %}">
+         data-match-dump-url=""
+         data-match-info-url="">
     </div>
   {% endif %}
 {% endblock %}
