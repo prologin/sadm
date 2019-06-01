@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -e
+
+# Get logged in user name
+SESSION_ID=$(loginctl show-seat seat0 -p ActiveSession --value)
+SESSION_NAME=$(loginctl show-session $SESSION_ID -p Name --value)
+
+# Run in user session
+machinectl shell $SESSION_NAME@ \
+    /usr/bin/systemd-run --user \
+    "$@"
