@@ -141,7 +141,7 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
         run_match_start = time.monotonic()
 
         server_result, server_out, dump, players_info = await (
-            operations.spawn_match(self.config, players, map_contents))
+            operations.spawn_match(self.config, match_id, players, map_contents))
         logging.info('match %s done', match_id)
 
         try:

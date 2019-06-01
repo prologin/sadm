@@ -233,13 +233,14 @@ class FakeMatchTest(unittest.TestCase):
             loop = asyncio.get_event_loop()
 
             # Construct map player_id -> [champion id, tarball]
+            match_id = 4224
             players = {42: [0, ctgz], 1337: [0, ctgz]}
             opts = {'--test_opt': 'TEST_OPT'}
             f_opts = {'--test_fopt': b64encode(b'TEST_FOPT')}
 
             server_result, server_out, dump, players_info = (
                 loop.run_until_complete(operations.spawn_match(
-                    config, players, opts, f_opts)))
+                    config, match_id, players, opts, f_opts)))
 
         self.assertEqual(gzip.decompress(b64decode(dump)), b'DUMP TEST\n')
 

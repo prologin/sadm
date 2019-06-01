@@ -232,9 +232,9 @@ async def spawn_client(config,
     return result.isolate_retcode, get_output(result)
 
 
-async def spawn_match(config, players, map_contents):
+async def spawn_match(config, match_id, players, map_contents):
     # Build the domain sockets
-    socket_dir = tempfile.TemporaryDirectory(prefix='workernode-')
+    socket_dir = tempfile.TemporaryDirectory(prefix=f'workernode-{match_id}-')
     os.chmod(socket_dir.name, 0o777)
     f_reqrep = socket_dir.name + '/' + 'reqrep'
     f_pubsub = socket_dir.name + '/' + 'pubsub'
