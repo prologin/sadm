@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.admin.views.decorators import staff_member_required
 from django.urls import reverse
 from django.db import transaction
 from django.db.models import (Max, Min, F, Q, Value, Count, Case, When,
@@ -8,6 +9,7 @@ from django.db.models import (Max, Min, F, Q, Value, Count, Case, When,
 from django.http import (HttpResponseRedirect, HttpResponse,
                          HttpResponseForbidden, Http404)
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
 from django.views.generic import (DetailView, ListView, FormView, TemplateView,
                                   RedirectView, CreateView)
 from django.views.generic.base import View
@@ -465,6 +467,7 @@ class TournamentMatchesView(DetailView):
         return context
 
 
+@method_decorator(staff_member_required, name='dispatch')
 class TournamentCorrectView(SingleObjectTemplateResponseMixin, ModelFormMixin,
                             ProcessFormView):
     model = models.TournamentPlayerCorrection
