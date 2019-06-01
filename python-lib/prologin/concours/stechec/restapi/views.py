@@ -125,7 +125,7 @@ class TournamentViewSet(viewsets.ReadOnlyModelViewSet):
             champions[champion.id] = {
                 'name': champion.name,
                 'author': champion.author.username,
-                'sloc': champion.loc_count_main,
+                'sloc': champion.sloc,
                 'language': champion.language,
                 'tournament_score': p.score,
                 'sum_match_score': 0,

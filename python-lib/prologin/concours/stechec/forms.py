@@ -193,6 +193,20 @@ class MapCreationForm(forms.ModelForm):
     helper.append_submit("Envoyer la carte")
 
 
+class TournamentCorrectForm(forms.ModelForm):
+    comment = forms.CharField(required=True, widget=forms.widgets.Textarea(),
+                              label="Commentaire")
+
+    helper = BaseFormHelper()
+    helper.append_field('include_jury_report')
+    helper.append_field('comment')
+    helper.append_submit("Envoyer")
+
+    class Meta:
+        model = models.TournamentPlayerCorrection
+        fields = ['comment', 'include_jury_report']
+
+
 class LoginForm(AuthenticationForm):
     helper = BaseFormHelper()
     helper.append_field('username')

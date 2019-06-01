@@ -1,0 +1,53 @@
+{% extends "stechec/base.html" %}
+{% load static %}
+{% load django_bootstrap_breadcrumbs crispy_forms_tags pygmentize %}
+
+{% block title %}Correction {{ player.champion.author.username }} — {{ tournament.name }}{% endblock %}
+{% block titleh1 %}
+{{ tournament.name }} : correction de {{ player.champion.author.get_full_name }}
+{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/pygments-monokai.css' %}" type="text/css">
+{% endblock %}
+
+{% block breadcrumbs %}
+  {{ block.super }}
+  {% breadcrumb_for "tournaments-all" %}Tournois{% endbreadcrumb_for %}
+  {% breadcrumb_for "tournament-detail" tournament.id %}{{ tournament.name }}{% endbreadcrumb_for %}
+  {% breadcrumb_for "tournament-correction" tournament.id player.id %}Correction de {{ player.champion.author.get_full_name }}{% endbreadcrumb_for %}
+{% endblock breadcrumbs %}
+
+{% block content %}
+<h2>Champion</h2>
+
+<ul>
+  <li><strong>Nom :</strong> {{ player.champion.name }}</li>
+  <li><strong>Auteur :</strong> {{ player.champion.author.get_full_name }}</li>
+  <li><strong>Langage :</strong> <strong style="color: {{ player.champion.language.color }}">{{ player.champion.language.name }}</strong></li>
+  <li><strong>Lignes de code :</strong> {{ player.champion.sloc }}</li>
+</ul>
+
+{% crispy form %}
+
+<ul class="nav nav-tabs">
+  {% for filename in player.champion.source_contents.keys %}
+  <li class="{% if forloop.first %}active{% endif %}">
+    <a href="#file{{ forloop.counter }}" data-toggle="tab">
+      {{ filename }}
+    </a>
+  </li>
+  {% endfor %}
+</ul>
+
+<div class="tab-content">
+  {% for filename, file_content in player.champion.source_contents.items %}
+  <div id="file{{ forloop.counter }}" class="tab-pane {% if forloop.first %}active{% endif %}">
+    <div style="overflow-y: scroll; height: 600px;">
+      {% pygmentize file_content player.champion.language.lexer %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% endblock %}

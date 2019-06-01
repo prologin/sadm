@@ -107,3 +107,8 @@ i.champ-status {
   animation-duration: 2s;
   animation-iteration-count: infinite;
 }
+
+
+.codehilite > pre {
+  white-space: pre-wrap;
+}

@@ -1,9 +1,9 @@
 import contextlib
+import itertools
 import os
 import re
 import tarfile
 import tempfile
-import glob
 
 from django.conf import settings
 from django.urls import reverse
@@ -13,7 +13,7 @@ from django.utils.functional import cached_property
 from django_prometheus.models import ExportModelOperationsMixin
 
 import prologin.rpc.client
-from prologin.concours.stechec.languages import LANGUAGES
+from prologin.concours.stechec.languages import LANGUAGES, PYGMENTS_LEXERS
 
 stripper_re = re.compile(r'\033\[.*?m')
 
@@ -117,15 +117,36 @@ class Champion(ExportModelOperationsMixin('champion'), models.Model):
         with self._extract_sources() as tmpd:
             with open(os.path.join(tmpd, '_lang')) as langf:
                 lang_code = langf.read().strip()
-        return {'code': lang_code, **LANGUAGES.get(lang_code, {})}
+        return {'code': lang_code, **LANGUAGES.get(lang_code, {}),
+                'lexer': PYGMENTS_LEXERS.get(lang_code, 'text')}
 
     @cached_property
-    def loc_count_main(self):
-        # TODO: use sloccount?
+    def source_contents(self):
+        '''Returns a dictionary file_name -> content'''
+        ext_whitelist = set(itertools.chain(
+            *(l['exts'] for l in LANGUAGES.values())))
+        file_blacklist = ['interface', 'api', 'constant', 'ffi',
+                          'prologin_stub', 'capi', 'prologin.hh']
+        sources = {}
         with self._extract_sources() as tmpd:
-            for mainf in glob.glob(os.path.join(tmpd, '[pP]rologin.*')):
-                with open(mainf) as f:
-                    return len(list(f.readlines()))
+            for entry in os.scandir(tmpd):
+                if not entry.is_file():
+                    continue
+                if not any(entry.name.lower().endswith(ext)
+                           for ext in ext_whitelist):
+                    continue
+                if any(entry.name.lower().startswith(bf + '.')
+                       for bf in file_blacklist):
+                    continue
+                with open(entry.path) as f:
+                    sources[entry.name] = f.read()
+        return sources
+
+    @cached_property
+    def sloc(self):
+        sources = self.source_contents
+        return sum(len(list(filter(bool, f.split('\n'))))
+                   for f in sources.values())
 
     def get_absolute_url(self):
         return reverse('champion-detail', kwargs={'pk': self.id})
@@ -190,6 +211,21 @@ class TournamentPlayer(ExportModelOperationsMixin('tournament_player'),
         ordering = ["-tournament", "-score"]
         verbose_name = "participant au tournoi"
         verbose_name_plural = "participants au tournoi"
+
+
+class TournamentPlayerCorrection(models.Model):
+    player = models.OneToOneField(TournamentPlayer,
+                                  on_delete=models.CASCADE,
+                                  related_name='correction',
+                                  verbose_name="joueur")
+    comment = models.TextField(verbose_name="commentaire")
+    include_jury_report = models.BooleanField(
+        default=False,
+        verbose_name="inclure dans le rapport de jury")
+
+    class Meta:
+        verbose_name = "correction du joueur"
+        verbose_name_plural = "corrections des joueurs"
 
 
 class TournamentMap(ExportModelOperationsMixin('tournament_map'),

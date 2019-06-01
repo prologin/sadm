@@ -11,7 +11,9 @@ from django.shortcuts import get_object_or_404
 from django.views.generic import (DetailView, ListView, FormView, TemplateView,
                                   RedirectView, CreateView)
 from django.views.generic.base import View
-from django.views.generic.detail import SingleObjectMixin
+from django.views.generic.detail import (SingleObjectMixin,
+                                         SingleObjectTemplateResponseMixin)
+from django.views.generic.edit import ModelFormMixin, ProcessFormView
 
 import collections
 import socket
@@ -381,6 +383,7 @@ class TournamentView(DetailView):
 
         players = (models.TournamentPlayer.objects
                    .filter(tournament=tournament)
+                   .select_related('correction')
                    .prefetch_related('champion__author'))
 
         rank = 1
@@ -460,6 +463,49 @@ class TournamentMatchesView(DetailView):
         else:
             context['matches'] = self.matches()
         return context
+
+
+class TournamentCorrectView(SingleObjectTemplateResponseMixin, ModelFormMixin,
+                            ProcessFormView):
+    model = models.TournamentPlayerCorrection
+    form_class = forms.TournamentCorrectForm
+    template_name = "stechec/tournament-correct.html"
+    pk_url_kwarg = 'player'
+
+    def get_success_url(self):
+        return reverse('tournament-correct',
+                       kwargs={'pk': self.object.player.tournament.id,
+                               'player': self.object.player.id})
+
+    def get_player(self):
+        return get_object_or_404(models.TournamentPlayer.objects
+                                 .select_related('champion__author')
+                                 .select_related('tournament'),
+                                 pk=self.kwargs[self.pk_url_kwarg])
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['player'] = self.get_player()
+        context['tournament'] = context['player'].tournament
+        return context
+
+    def get_object(self, queryset=None):
+        return (models.TournamentPlayerCorrection.objects
+                .filter(player=self.kwargs[self.pk_url_kwarg])).first()
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super().post(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        instance = form.save(commit=False)
+        instance.player = self.get_player()
+        instance.save()
+        return HttpResponseRedirect(self.get_success_url())
 
 
 class MasterStatus(TemplateView):

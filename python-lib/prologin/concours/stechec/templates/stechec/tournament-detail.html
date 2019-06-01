@@ -24,7 +24,7 @@
             <th>Champion</th>
             <th>Langage</th>
             <th>Score</th>
-            <th>Actions</th>
+            <th width="220em">Actions</th>
         </tr>
     </thead>
     <tbody>
@@ -47,6 +47,14 @@
                  class="btn btn-default btn-xs"><i class="fa fa-info"></i>
                  Détails des matchs
               </a>
+              {% if request.user.is_staff %}
+              <a href="{% url 'tournament-correct' pk=tournament.pk player=player.pk %}"
+                 class="btn btn-default btn-xs {% if player.correction %}btn-success{% endif %}">
+                <i class="fa fa-pencil-square-o"></i>
+                Corriger
+              </a>
+              {% endif %}
+
             </td>
         </tr>
         {% empty %}
