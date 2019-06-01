@@ -36,7 +36,7 @@ def run(cmd, **kwargs):
         except IOError:
             continue
         cmdline = cmdline.split('\x00')
-        if '/usr/lib/xorg-server/Xorg' not in cmdline[0]:
+        if '/usr/lib/Xorg' not in cmdline[0]:
             continue
         xauthority = cmdline[cmdline.index('-auth') + 1]
 
