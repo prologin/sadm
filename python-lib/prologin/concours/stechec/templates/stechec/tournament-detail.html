@@ -15,6 +15,7 @@
 
 <h2>Classement</h2>
 
+{% if request.user.is_staff %}
 <div style="text-align: right; margin: 10px">
   <a href="{% url 'tournament-print-ranking' tournament.id %}" target="_blank"
     class="btn btn-default">
@@ -27,6 +28,7 @@
     Imprimer le rapport de jury
   </a>
 </div>
+{% endif %}
 
 <table class="table table-striped">
     <thead>

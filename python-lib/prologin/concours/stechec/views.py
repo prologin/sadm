@@ -542,6 +542,7 @@ class DeleteTournamentCorrectView(DeleteView):
         return context
 
 
+@method_decorator(staff_member_required, name='dispatch')
 class TournamentJuryReportView(TournamentViewMixin, DetailView):
     template_name = "stechec/tournament-jury-report.html"
 
@@ -552,6 +553,7 @@ class TournamentJuryReportView(TournamentViewMixin, DetailView):
         return qs
 
 
+@method_decorator(staff_member_required, name='dispatch')
 class TournamentPrintRankingView(TournamentViewMixin, DetailView):
     template_name = "stechec/tournament-print-ranking.html"
 
