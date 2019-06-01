@@ -816,13 +816,20 @@ def install_rfs_nfs_archlinux():
 
 
 def install_resource_limits():
+    mkdir('/etc/systemd/system/user.slice.d/', 0o755)
     mkdir('/etc/systemd/system/user-.slice.d/', 0o755)
-    copy('etc/systemd/system/user-.slice.d/20-max-memory.con',
-         '/etc/systemd/system/user-.slice.d/20-max-memory.conf',
-         0o644)
-    copy('etc/systemd/system/user-.slice.d/20-no-fork-bomb-plz.conf',
-         '/etc/systemd/system/user-.slice.d/20-no-fork-bomb-plz.conf',
-         0o644)
+    mkdir('/etc/systemd/system/system.slice.d/', 0o755)
+    mkdir('/etc/systemd/system/-.slice.d/', 0o755)
+    for fname in (
+            "user-.slice.d/20-max-memory.conf",
+            "user-.slice.d/20-no-fork-bomb-plz.conf",
+            "user.slice.d/20-cpu-share.conf",
+            "system.slice.d/20-cpu-share.conf",
+            "-.slice.d/20-cpu-accounting.conf",
+    ):
+        copy(f'etc/systemd/system/{fname}',
+             f'/etc/systemd/system/{fname}',
+             0o644)
     copy('etc/sysctl/memory.conf', '/etc/sysctl.d/memory.conf', 0o644)
 
 
