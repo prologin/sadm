@@ -1,0 +1,6 @@
+---
+- hosts: user
+  tasks:
+  - shell: |
+      xrun \
+      /usr/bin/xrandr --output DP1 --gamma 1:.5:.5

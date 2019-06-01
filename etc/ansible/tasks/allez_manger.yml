@@ -1,0 +1,6 @@
+---
+- hosts: user
+  tasks:
+  - shell: |
+      xrun \
+      /usr/bin/zenity --info --text='Allez manger !' --icon-name face-cool
