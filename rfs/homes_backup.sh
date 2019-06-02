@@ -29,11 +29,10 @@ for user_nbd in "$@"; do
     mount_dir="${root_mnt}/${user}"
     umount "${mount_dir}" || :
     echo "backing up $user"
-    fsck.ext4 -r -y "$user_nbd" &> /dev/null
-    if [ $? -ge 4 ]; then
+    fsck.ext4 -r -y "$user_nbd" || {
         echo "> fsck failed for $user. **SKIPPING**"
         exit 1
-    fi
+    }
 
     site_id=$(/var/prologin/venv/bin/python -c \
 	      "print(__import__('prologin.udb.client').udb.client.connect().query(login='$user', group='user')[0]['id'])" || :)
