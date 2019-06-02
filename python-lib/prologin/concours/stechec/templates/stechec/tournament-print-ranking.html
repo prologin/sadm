@@ -4,11 +4,12 @@
 {% block subtitle %}Classement final{% endblock %}
 
 {% block content %}
-<table><tr>
+<table>
+  <tr>
     <td>
       <ol style="font-size: 1.2em;">
         {% for player in view.jury_players %}
-        <li>＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿</li>
+        <li>＿＿＿＿＿＿＿＿＿＿＿＿＿</li>
         {% endfor %}
         {% for player in view.players %}
         <li> {{ player.champion.author.get_full_name }}</li>
@@ -28,4 +29,4 @@
   </tr>
 </table>
 
-    {% endblock %}
+{% endblock %}
