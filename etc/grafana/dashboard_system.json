@@ -1,4 +1,19 @@
 {
+  "__inputs": [],
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "6.2.0"
+    },
+    {
+      "type": "panel",
+      "id": "graph",
+      "name": "Graph",
+      "version": ""
+    }
+  ],
   "annotations": {
     "list": [
       {
@@ -15,7 +30,7 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 1,
-  "id": 1,
+  "id": null,
   "links": [],
   "panels": [
     {
@@ -57,7 +72,7 @@
         {
           "expr": "node_memory_MemAvailable_bytes{instance=~\"pas.*|alt.*\"}",
           "format": "time_series",
-          "intervalFactor": 2,
+          "intervalFactor": 1,
           "legendFormat": "{{instance}}",
           "refId": "A",
           "step": 120
@@ -106,7 +121,7 @@
     },
     {
       "aliasColors": {},
-      "bars": true,
+      "bars": false,
       "cacheTimeout": null,
       "dashLength": 10,
       "dashes": false,
@@ -129,7 +144,7 @@
         "total": false,
         "values": true
       },
-      "lines": false,
+      "lines": true,
       "linewidth": 0,
       "links": [],
       "nullPointMode": "null",
@@ -141,7 +156,7 @@
       "renderer": "flot",
       "seriesOverrides": [],
       "spaceLength": 10,
-      "stack": false,
+      "stack": true,
       "steppedLine": false,
       "targets": [
         {
@@ -1166,5 +1181,5 @@
   "timezone": "browser",
   "title": "System",
   "uid": "2jCagFZWk",
-  "version": 14
+  "version": 16
 }
