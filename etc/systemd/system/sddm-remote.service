@@ -1,0 +1,11 @@
+[Unit]
+Description=WebSocket server that SDDM connects to for remote control
+
+[Service]
+ExecStart=/root/sddm_remote.py
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-users.target
+
