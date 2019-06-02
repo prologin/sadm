@@ -18,3 +18,5 @@ workspace
 *.avi
 *.iso
 vgcore.*
+.wine
+.wow
