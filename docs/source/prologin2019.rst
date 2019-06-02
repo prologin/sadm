@@ -84,3 +84,8 @@ High network usage, freeze and OOM
 
 Packet drop on uplink
 ~~~~~~~~~~~~~~~~~~~~~
+
+Heat
+~~~~
+
+We did not have enough fans and the temperature in the rooms was very high.
