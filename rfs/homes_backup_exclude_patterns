@@ -22,3 +22,5 @@ vgcore.*
 .wow
 *.so
 .vscode
+.Idea*
+.java
