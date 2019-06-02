@@ -30,8 +30,10 @@ for user_nbd in "$@"; do
     umount "${mount_dir}" || :
     echo "backing up $user"
     fsck.ext4 -r -y "$user_nbd" || {
-        echo "> fsck failed for $user. **SKIPPING**"
-        exit 1
+        if [ $? -lt 4 ]; then
+            echo "> fsck failed for $user. **SKIPPING**"
+            exit 1
+        fi
     }
 
     site_id=$(/var/prologin/venv/bin/python -c \
