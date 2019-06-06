@@ -7,7 +7,7 @@ Overview
 We had 2 rooms:
 
 - Paster, 96 machines
-- Masters, 42 machines
+- Masters, 41 machines
 
 Network setup
 -------------
@@ -23,6 +23,11 @@ Roots and organizers were on the last 2 rows.
 
 Masters
 ~~~~~~~
+There were 2 24 ports switches (lent by the bocal).
+There two RHFS (67 & 89).
+The room was separated into two parts, each connected to a switch
+and a RHFS. (67 & 89). The switches were interconnected, and one was connected
+to the bocal network. (to link Pasteur <-> Master).
 
 Wifi for organizers
 ~~~~~~~~~~~~~~~~~~~
