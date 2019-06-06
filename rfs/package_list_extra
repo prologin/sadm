@@ -92,7 +92,6 @@ List of packages for contestants' environment
 * tig
 * xorg-xrandr
 * python-pylint
-* python2-pylint
 * tree
 * xcape
 * dmenu
@@ -107,9 +106,7 @@ List of packages for contestants' environment
 * clang
 * ocaml
 * python
-* ipython
-* python2
-* ipython2
+* jupyter-notebook
 * jdk7-openjdk
 * jre7-openjdk
 * mono
