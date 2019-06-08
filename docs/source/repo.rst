@@ -3,8 +3,8 @@
 Arch Linux repository
 =====================
 
-Prologin has setup an Arch Linux package repository to ease of use of
-custom packages and AUR content.
+Prologin has setup an Arch Linux package repository to ease of use of custom
+packages and AUR content.
 
 Usage
 -----
@@ -16,13 +16,13 @@ Add the following section to the ``/etc/pacman.conf`` file::
 
 Then, trust the repository signing keys::
 
-    # wget https://repo.prologin.org/prologin.pub
-    # pacman-key --add prologin.pub
-    # pacman-key --lsign-key prologin
+    $ wget https://repo.prologin.org/prologin.pub
+    $ pacman-key --add prologin.pub
+    $ pacman-key --lsign-key prologin
 
 Finally, test the repository::
 
-    pacman -Sy
+    $ pacman -Sy
 
 You should see "prologin" in the list of synchronized package databases.
 
@@ -30,11 +30,7 @@ SADM related packages
 ---------------------
 
 Some packages are key parts of the SADM architecture. They should always be the
-lastest revision possible.
-
-- ``stechec2``, ``stechec2-makefiles`` and ``stechec2-sphinxdoc``: built from
-  `prologin/stechec2 <https://bitbucket.org/prologin/stechec2>`_ git repository
-  in the ``pkg/`` folder.
+lastest revision possible. The packages we maintain are in the ``pkg`` folder.
 
 Uploading packages
 ------------------
@@ -57,7 +53,7 @@ Example usage::
 
     $ cd quake3-pak0.pk3
     $ makepkg
-    $ ~/sadm/pkg/upload2repo.sh quake3-pak0.pk3-1-1-x86_64.pkg.tar.xz
+    $ ~/rosa-sadm/pkg/upload2repo.sh quake3-pak0.pk3-1-1-x86_64.pkg.tar.xz
 
 You can then install the package like any other::
 

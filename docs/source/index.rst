@@ -22,7 +22,7 @@ hardware and network, which explains why some things seem very complicated.
    cookbook
    standalone-sites
    containers
-   tests
+   omg
 
 Indices and tables
 ==================

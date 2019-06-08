@@ -7,11 +7,14 @@ Misc services
 Setup a ``rw`` nfs export on a ``misc`` machine, performance or reliabiliy is
 not a priority for this service.
 
-install `nfs-utils` on `misc`
+Install ``nfs-utils`` on `misc`.
 
 Add the following line to /etc/exports::
+
   /sgoinfre *(rw,insecure,squash_all,no_subtree_check,nohide)
+
 Run the following commands on `misc`::
+
   exportfs -arv
   systemctl enable --now nfs-server
 
@@ -29,7 +32,8 @@ The following ``systemd`` service can be installed on the rhfs (in nfsroot)::
   [Install]
   WantedBy=multi-user.target
 
-Then enable the unit ::
+Then enable the unit::
+
   # systemctl enable --now sgoinfre.mount
 
 doc
@@ -63,8 +67,8 @@ We will setup dpaste: https://github.com/bartTC/dpaste::
   systemctl enable paste && systemctl start paste
   systemctl reload nginx
 
-Redmine (a.k.a. "bugs")
------------------------
+Redmine
+-------
 
 First, export some useful variables. Change them if needed::
 

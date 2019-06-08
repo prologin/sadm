@@ -25,8 +25,8 @@ To make a good monitoring system, mix the following ingredients, in that order:
 Monitoring services
 -------------------
 
-Most services come with built-in monitoring and should be monitored as soon
-as prometheus is started.
+Most SADM services come with built-in monitoring and should be monitored as
+soon as prometheus is started.
 
 The following endpoints are availables:
 
@@ -94,16 +94,15 @@ In the kibana web UI, go to the dev tools tab and run::
 It creates an index called logs, as well as proper metadata for time filtering.
 
 Install https://github.com/multun/journal-upload-aggregator on the monitoring
-server, and *please do not* configure nginx as a front-end on ``journal-aggregator``.
-Don't forget
-to add the alias in ``mdb``.
+server, and *please do not* configure nginx as a front-end on
+``journal-aggregator``.  Don't forget to add the alias in ``mdb``.
 
 On the machines that need to be monitored, create ``/etc/systemd/journal-upload.conf``::
 
   [Upload]
   Url=http://journal-aggregator:20200/gateway
 
-If still not fixed, also create ``/etc/systemd/system/systemd-journal-upload.service.d/restart.conf``: ::
+If still not fixed, also create ``/etc/systemd/system/systemd-journal-upload.service.d/restart.conf``::
 
   [Service]
   Restart=on-failure
@@ -113,9 +112,8 @@ Then::
 
   $ systemctl enable --now systemd-journal-upload
 
-As an useful first request:
+As an useful first request::
 
-::
   not SYSTEMD_USER_SLICE:* and (error or (PRIORITY < 5) or (EXIT_STATUS:* and not EXIT_STATUS:0))
 
 This request filters non-user errors.
