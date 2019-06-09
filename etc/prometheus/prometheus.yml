@@ -359,4 +359,4 @@ scrape_configs:
 
 rule_files:
   - alert.rules.yml
-
+  - sadm.rules.yml  # This file is generated
