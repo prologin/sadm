@@ -4,11 +4,15 @@ Monitoring
 Monitoring is the art of knowning when something fails, and getting as much
 information as possible to solve the issue.
 
-We will use a separate machine for monitoring, install it with the same base
-Arch Linux configuration as the other servers.
+We use `prometheus <http://prometheus.io/>`_ as our metrics monitoring backend
+and `grafana <https://grafana.com/>`_ for the dashboards. We use `elasticsearch
+<https://www.elastic.co/products/elasticsearch>`_ to store logs and `kibana
+<https://www.elastic.co/products/kibana>`_ to search through them.
 
-We will use `prometheus <http://prometheus.io/>`_ as our monitoring backend and
-`grafana <https://grafana.com/>`_ for the dashboards.
+We will use a separate machine for monitoring as we want to isolate it from the
+core services, because we don't want the monitoring workload to impact other
+services, and vice versa. The system is installed with the same base Arch Linux
+configuration as the other servers.
 
 Setup
 -----
