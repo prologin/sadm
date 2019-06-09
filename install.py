@@ -979,14 +979,10 @@ def install_workernode():
 
 
 def install_prometheus():
-    install_cfg(
-        'prometheus/prometheus.yml',
-        '/etc/prometheus/',
-        owner='prometheus:prometheus')
-    install_cfg(
-        'prometheus/alert.rules.yml',
-        '/etc/prometheus/',
-        owner='prometheus:prometheus')
+    for fname in ['prometheus.yml', 'alert.rules.yml', 'sadm.rules.yml']:
+        install_cfg(f'prometheus/{fname}',
+                    '/etc/prometheus/',
+                    owner='prometheus:prometheus')
     install_systemd_unit('prometheus')
 
 
