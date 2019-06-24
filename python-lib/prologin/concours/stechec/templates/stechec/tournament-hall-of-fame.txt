@@ -1,0 +1,5 @@
+<<<<<<< WARNING: These should be reordered manually after the Jury
+{% for player in view.jury_players %}{{ player.champion.author.get_full_name|safe }} ({{ player.champion.language.name }}, {{ player.champion.sloc }} lignes)
+{% endfor %}>>>>>>> WARNING
+{% for player in view.players %}{% if not player.correction.include_jury_report %}{% if player.ex_aequo %}[tie] {% endif %}{{ player.champion.author.get_full_name|safe }} ({{ player.champion.language.name }}, {{ player.champion.sloc }} lignes)
+{% endif %}{% endfor %}

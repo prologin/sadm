@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.db import transaction
 from django.db.models import (Max, Min, F, Q, Value, Count, Case, When,
                               CharField, IntegerField, Subquery, OuterRef)
+from django.db.models.functions import Coalesce
 from django.http import (HttpResponseRedirect, HttpResponse,
                          HttpResponseForbidden, Http404)
 from django.shortcuts import get_object_or_404
@@ -376,6 +377,7 @@ class AllTournamentsView(ListView):
 
 class TournamentViewMixin:
     queryset = models.Tournament.objects.all()
+    jury_first = False
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -385,10 +387,23 @@ class TournamentViewMixin:
 
     def player_queryset(self):
         tournament = self.get_object()
-        return (models.TournamentPlayer.objects
-                .filter(tournament=tournament)
-                .select_related('correction')
-                .prefetch_related('champion__author'))
+        qs = (models.TournamentPlayer.objects
+              .filter(tournament=tournament)
+              .select_related('correction')
+              .prefetch_related('champion__author'))
+        if self.jury_first:
+            qs = (qs
+                  .annotate(
+                      jury_status=Coalesce('correction__include_jury_report',
+                                           Value(False)))
+                  .order_by('-jury_status', '-score'))
+        return qs
+
+    def jury_players(self):
+        qs = self.player_queryset()
+        qs = (qs.filter(correction__include_jury_report=True)
+              .order_by('champion__author__last_name'))
+        return qs
 
     def players(self):
         players = self.player_queryset()
@@ -550,27 +565,18 @@ class DeleteTournamentCorrectView(DeleteView):
 class TournamentJuryReportView(TournamentViewMixin, DetailView):
     template_name = "stechec/tournament-jury-report.html"
 
-    def jury_players(self):
-        qs = super().player_queryset()
-        qs = (qs.filter(correction__include_jury_report=True)
-              .order_by('champion__author__last_name'))
-        return qs
-
 
 @method_decorator(staff_member_required, name='dispatch')
 class TournamentPrintRankingView(TournamentViewMixin, DetailView):
+    jury_first = True
     template_name = "stechec/tournament-print-ranking.html"
 
-    def player_queryset(self):
-        qs = super().player_queryset()
-        qs = qs.exclude(correction__include_jury_report=True)
-        return qs
 
-    def jury_players(self):
-        qs = super().player_queryset()
-        qs = (qs.filter(correction__include_jury_report=True)
-              .order_by('champion__author__last_name'))
-        return qs
+@method_decorator(staff_member_required, name='dispatch')
+class TournamentHallOfFameView(TournamentViewMixin, DetailView):
+    jury_first = True
+    template_name = "stechec/tournament-hall-of-fame.txt"
+    content_type = 'text/plain'
 
 
 class MasterStatus(TemplateView):

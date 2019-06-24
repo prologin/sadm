@@ -48,6 +48,9 @@ tournament_patterns = [
     path('<int:pk>/print-ranking',
          views.TournamentPrintRankingView.as_view(),
          name='tournament-print-ranking'),
+    path('<int:pk>/HallOfFame',
+         views.TournamentHallOfFameView.as_view(),
+         name='tournament-hall-of-fame'),
 ]
 
 map_patterns = [

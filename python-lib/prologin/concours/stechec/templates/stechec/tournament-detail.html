@@ -17,6 +17,11 @@
 
 {% if request.user.is_staff %}
 <div style="text-align: right; margin: 10px">
+  <a href="{% url 'tournament-hall-of-fame' tournament.id %}"
+    class="btn btn-default">
+    <i class="fa fa-list-ol"></i>
+    Exporter le classement
+  </a>
   <a href="{% url 'tournament-print-ranking' tournament.id %}" target="_blank"
     class="btn btn-default">
     <i class="fa fa-trophy"></i>

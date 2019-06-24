@@ -7,16 +7,18 @@
 <table>
   <tr>
     <td>
-      <ol style="font-size: 1.2em;">
+      <ul style="font-size: 1.2em;">
         {% for player in view.jury_players %}
-        <li>＿＿＿＿＿＿＿＿＿＿＿＿＿</li>
+        <li>{{ forloop.counter }} — ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿</li>
         {% endfor %}
         {% for player in view.players %}
-        <li> {{ player.champion.author.get_full_name }}</li>
+        {% if not player.correction.include_jury_report %}
+        <li>{{ player.rank }} {% if player.ex_aequo %}(ex-aequo){% endif %} — {{ player.champion.author.get_full_name }}</li>
+        {% endif %}
         {% endfor %}
-      </ol>
+      </ul>
     </td>
-    <td style="vertical-align: top; padding-left: 5cm;">
+    <td style="vertical-align: top; padding-left: 3cm;">
       <div style="width: 7cm;">
         <h4>Sélectionnés au jury</h4>
         <ul style="font-size: 1.2em;">
