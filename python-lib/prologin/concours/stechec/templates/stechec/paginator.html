@@ -1,6 +1,8 @@
+{% load navigation %}
+
 <ul class="pagination">
   <li class="page {% if not page.has_previous %}disabled{% endif %}">
-    <a href="{% if page.has_previous %}?page={{ page.previous_page_number }}{% else %}#{% endif %}">&lt; Prev</a>
+    <a href="{% if page.has_previous %}?{% querystring request page=page.previous_page_number %}{% else %}#{% endif %}">&lt; Prev</a>
   </li>
 
   {% if show_first %}
@@ -9,15 +11,15 @@
   {% endif %}
   {% for linkpage in page_numbers %}
   <li class="{% ifequal linkpage page %}active{% endifequal %}">
-    <a href="{% ifequal linkpage page %}#{% else %}?page={{ linkpage }}{% endifequal %}">{{ linkpage }}</a>
+    <a href="{% ifequal linkpage page %}#{% else %}?{% querystring request page=linkpage %}{% endifequal %}">{{ linkpage }}</a>
   </li>
   {% endfor %}
   {% if show_last %}
     <li class="ellipsis disabled"><a href="#">…</a></li>
-    <li><a href="?page=last">{{ paginator.num_pages }}</a></li>
+    <li><a href="?{% querystring request page='last' %}">{{ paginator.num_pages }}</a></li>
   {% endif %}
 
   <li class="page {% if not page.has_next %}disabled{% endif %}">
-    <a href="{% if page.has_next %}?page={{ page.next_page_number }}{% else %}#{% endif %}">Next &gt;</a>
+    <a href="{% if page.has_next %}?{% querystring request page=page.next_page_number %}{% else %}#{% endif %}">Next &gt;</a>
   </li>
 </ul>
