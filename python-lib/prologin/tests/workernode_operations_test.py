@@ -15,7 +15,6 @@ from base64 import b64decode, b64encode
 
 from prologin.workernode import operations
 
-
 # Helpers to get 'hello world' dummy libs
 
 HELLO_SRC = '''\
@@ -46,8 +45,10 @@ def get_hello_compiled_so():
          tempfile.NamedTemporaryFile('rb', suffix='.so') as compiled_path:
         champion_path.write(HELLO_SRC)
         champion_path.flush()
-        subprocess.run(['gcc', '-shared', '-fPIE', champion_path.name,
-                        '-o', compiled_path.name])
+        subprocess.run([
+            'gcc', '-shared', '-fPIE', champion_path.name, '-o',
+            compiled_path.name
+        ])
         return compiled_path.read()
 
 
@@ -62,6 +63,7 @@ def get_hello_compiled_tgz():
 
 
 # Compilation tests
+
 
 class CompilationTest(unittest.TestCase):
     def test_compile_simple(self):
@@ -80,8 +82,14 @@ list-run-reqs:
 ''')
             makefiles_p.chmod(0o755)
             makefile.chmod(0o644)
-            config = {'path': {'makefiles': makefiles},
-                      'timeout': {'compile': 400}}
+            config = {
+                'path': {
+                    'makefiles': makefiles
+                },
+                'timeout': {
+                    'compile': 400
+                }
+            }
             loop = asyncio.get_event_loop()
             ret, compiled, log = loop.run_until_complete(
                 operations.compile_champion(config, ctgz))
@@ -223,9 +231,11 @@ class FakeMatchTest(unittest.TestCase):
         rules_so = get_hello_compiled_so()
         ctgz = get_hello_compiled_tgz()
 
-        scripts = {'stechec_server': STECHEC_FAKE_SERVER.encode(),
-                   'stechec_client': STECHEC_FAKE_CLIENT.encode(),
-                   'rules': rules_so}
+        scripts = {
+            'stechec_server': STECHEC_FAKE_SERVER.encode(),
+            'stechec_client': STECHEC_FAKE_CLIENT.encode(),
+            'rules': rules_so
+        }
         with SetupScripts(scripts) as scripts_paths:
             config = get_worker_config(**scripts_paths)
             loop = asyncio.get_event_loop()
@@ -241,8 +251,15 @@ class FakeMatchTest(unittest.TestCase):
 
         self.assertEqual(gzip.decompress(b64decode(dump)), b'DUMP TEST\n')
 
-        sr_expected = [{'player': 1, 'score': 42, 'nb_timeout': 0},
-                       {'player': 2, 'score': 1337, 'nb_timeout': 0}]
+        sr_expected = [{
+            'player': 1,
+            'score': 42,
+            'nb_timeout': 0
+        }, {
+            'player': 2,
+            'score': 1337,
+            'nb_timeout': 0
+        }]
         self.assertEqual(server_result, sr_expected)
 
         self.assertIn('map: TEST_MAP', server_out)
@@ -250,7 +267,8 @@ class FakeMatchTest(unittest.TestCase):
 
         players_it = enumerate(sorted(players_info.items()), 1)
         for o_id, (pl_id, (_, retcode, output)) in players_it:
-            self.assertEqual(retcode, 0,
+            self.assertEqual(retcode,
+                             0,
                              msg='\nClient script output:\n' + output)
             self.assertIn('some log on stdout', output)
             self.assertIn('some log on stderr', output)

@@ -28,10 +28,8 @@ import time
 
 from . import operations
 
-from .monitoring import (
-    workernode_slots,
-    workernode_compile_champion_summary,
-    workernode_run_match_summary)
+from .monitoring import (workernode_slots, workernode_compile_champion_summary,
+                         workernode_run_match_summary)
 
 
 def async_work(func=None, slots=0):
@@ -54,8 +52,10 @@ def async_work(func=None, slots=0):
                 self.slots += slots
                 workernode_slots.set(self.slots)
                 await self.update_master()
+
         asyncio.Task(wrapper(self, *args, **kwargs), loop=self.loop)
         return slots
+
     return mktask
 
 
@@ -120,12 +120,16 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
     async def compile_champion(self, user, cid, ctgz):
         compile_champion_start = time.monotonic()
 
-        ret, compiled, log = await operations.compile_champion(self.config,
-                                                               ctgz)
+        ret, compiled, log = await operations.compile_champion(
+            self.config, ctgz)
         try:
             await self.master.compilation_result(
                 self.get_worker_infos(),
-                cid, user, ret, compiled, log,
+                cid,
+                user,
+                ret,
+                compiled,
+                log,
                 max_retries=self.config['master']['max_retries'],
                 retry_delay=self.config['master']['retry_delay'])
         except socket.error:
@@ -151,7 +155,8 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
                 max_retries=self.config['master']['max_retries'],
                 retry_delay=self.config['master']['retry_delay'])
         except socket.error:
-            logging.warning('master down, cannot send match %s result', match_id)
+            logging.warning('master down, cannot send match %s result',
+                            match_id)
 
         workernode_run_match_summary.observe(
             max(time.monotonic() - run_match_start, 0))

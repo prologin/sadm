@@ -185,12 +185,13 @@ async def spawn_client(config,
                        map_contents,
                        order_id=None):
     # Build environment
-    env = {'CHAMPION_PATH': champion_path + '/',
-           'HOME': '/tmp'}
+    env = {'CHAMPION_PATH': champion_path + '/', 'HOME': '/tmp'}
 
     # Build command
+    # yapf: disable
     cmd = [
-        config['path']['stechec_client'], "--name", str(pl_id),
+        config['path']['stechec_client'],
+        "--name", str(pl_id),
         "--rules", config['path']['rules'],
         "--champion", champion_path + '/champion.so',
         "--req_addr", req_addr,
@@ -200,6 +201,7 @@ async def spawn_client(config,
         "--time", "1500",
         "--verbose", "1",
     ]
+    # yapf: enable
     cmd += ["--client_id", str(order_id)] if order_id is not None else []
 
     if map_contents is not None:
@@ -227,8 +229,11 @@ async def spawn_client(config,
         limits.pop('mem')
 
     # Run the isolated client
-    result = await isolate_communicate(
-        cmd, limits, env=env, allowed_dirs=allowed_dirs, merge_outputs=True)
+    result = await isolate_communicate(cmd,
+                                       limits,
+                                       env=env,
+                                       allowed_dirs=allowed_dirs,
+                                       merge_outputs=True)
     return result.isolate_retcode, get_output(result)
 
 
@@ -266,15 +271,14 @@ async def spawn_match(config, match_id, players, map_contents):
         champion_dirs.append(cdir)
         untar(ctgz, cdir.name)
         tasks_players[pl_id] = asyncio.Task(
-            spawn_client(
-                config,
-                s_reqrep,
-                s_pubsub,
-                pl_id,
-                cdir.name,
-                socket_dir.name,
-                map_contents,
-                order_id=oid))
+            spawn_client(config,
+                         s_reqrep,
+                         s_pubsub,
+                         pl_id,
+                         cdir.name,
+                         socket_dir.name,
+                         map_contents,
+                         order_id=oid))
 
     # Wait for the match to complete
     await asyncio.wait([task_server] + list(tasks_players.values()))

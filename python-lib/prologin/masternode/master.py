@@ -70,8 +70,8 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             logging.warning("registered new worker: %s:%s", w.hostname, w.port)
             self.workers[key] = w
         else:
-            logging.warning("drop unreachable worker: %s:%s",
-                            w.hostname, w.port)
+            logging.warning("drop unreachable worker: %s:%s", w.hostname,
+                            w.port)
 
     @prologin.rpc.remote_method
     async def update_worker(self, worker):
@@ -81,8 +81,8 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             w = Worker(hostname, port, slots, max_slots, self.config)
             await self.register_worker(key, w)
         else:
-            logging.debug("updating worker: %s:%s %s/%s",
-                          hostname, port, slots, max_slots)
+            logging.debug("updating worker: %s:%s %s/%s", hostname, port,
+                          slots, max_slots)
             self.workers[key].update(slots, max_slots)
 
     @prologin.rpc.remote_method
@@ -149,9 +149,10 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
 
         try:
             match_status = {'match_id': mid, 'match_status': 'done'}
-            player_scores = [{'player_id': r['player'],
-                              'player_score': r['score']}
-                             for r in result]
+            player_scores = [{
+                'player_id': r['player'],
+                'player_score': r['score']
+            } for r in result]
         except KeyError:
             masternode_bad_result.inc()
             return
@@ -167,7 +168,8 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
     def redispatch_worker(self, worker):
         masternode_task_redispatch.inc(len(worker.tasks))
         if worker.tasks:
-            logging.info("redispatching tasks for %s: %s", worker, worker.tasks)
+            logging.info("redispatching tasks for %s: %s", worker,
+                         worker.tasks)
             self.worker_tasks = worker.tasks + self.worker_tasks
             self.to_dispatch.set()
         del self.workers[(worker.hostname, worker.port)]
@@ -180,8 +182,8 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                 if t.executions < max_tries:
                     self.worker_tasks.append(t)
                     self.to_dispatch.set()
-                    msg = "redispatching (try {}/{})".format(t.executions,
-                                                             max_tries)
+                    msg = "redispatching (try {}/{})".format(
+                        t.executions, max_tries)
                 else:
                     msg = "maximum number of retries exceeded, bailing out"
                 logging.info("task %s of %s timeout: %s", t, worker, msg)
