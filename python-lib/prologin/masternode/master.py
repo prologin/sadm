@@ -114,13 +114,14 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         with open(clog_path(self.config, user, cid), 'w') as f:
             f.write(log)
         logging.info('compilation of champion %s: %s', cid, status)
-        await self.db.execute(
-            'set_champion_status',
-            {'champion_id': cid, 'champion_status': status})
+        await self.db.execute('set_champion_status', {
+            'champion_id': cid,
+            'champion_status': status
+        })
 
     @prologin.rpc.remote_method
     async def match_done(self, worker, mid, result, dumper_stdout,
-                         server_stdout, players_stdout):
+                         replay_content, server_stdout, players_stdout):
         hostname, port, slots, max_slots = worker
         w = self.workers[(hostname, port)]
 
@@ -141,11 +142,14 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         # Write server logs and dumper log
         serverpath = os.path.join(match_path(self.config, mid), 'server.log')
         dumppath = os.path.join(match_path(self.config, mid), 'dump.json.gz')
+        replaypath = os.path.join(match_path(self.config, mid), 'replay.gz')
         with masternode_match_done_file.time(), \
              open(serverpath, 'w') as fserver, \
-             open(dumppath, 'wb') as fdump:
+             open(dumppath, 'wb') as fdump, \
+             open(replaypath, 'wb') as freplay:
             fserver.write(server_stdout)
             fdump.write(b64decode(dumper_stdout))
+            freplay.write(b64decode(replay_content))
 
         try:
             match_status = {'match_id': mid, 'match_status': 'done'}

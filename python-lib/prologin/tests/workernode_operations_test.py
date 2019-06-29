@@ -123,6 +123,8 @@ print('test_map:', open(map).read())
 # Write on all outputs
 dump_path = sys.argv[sys.argv.index('--dump') + 1]
 print('DUMP TEST', file=open(dump_path, 'w'))
+replay_path = sys.argv[sys.argv.index('--replay') + 1]
+print('REPLAY TEST', file=open(replay_path, 'w'))
 print('some log on stderr', file=sys.stderr)
 
 # Test sockets
@@ -245,11 +247,13 @@ class FakeMatchTest(unittest.TestCase):
             players = {42: [0, ctgz], 1337: [0, ctgz]}
             map_contents = 'TEST_MAP'
 
-            server_result, server_out, dump, players_info = (
-                loop.run_until_complete(operations.spawn_match(
-                    config, match_id, players, map_contents)))
+            server_result, server_out, dump, replay, players_info = (
+                loop.run_until_complete(
+                    operations.spawn_match(config, match_id, players,
+                                           map_content)))
 
         self.assertEqual(gzip.decompress(b64decode(dump)), b'DUMP TEST\n')
+        self.assertEqual(gzip.decompress(b64decode(replay)), b'REPLAY TEST\n')
 
         sr_expected = [{
             'player': 1,
