@@ -2,22 +2,26 @@
 
 A minimal but powerful theme suited for the Prologin finals.
 
-This theme features:
+This theme features, in vertical order:
 
+  * An external image at the top, see theme.conf logoImage=
+  * A Message-Of-The-Day under the image (see remote control below).
   * A fairly standard username/password form.
     * The password input features CapsLock & NumLock indicators.
     * Attempting to login while having an empty field focuses the empty field and shakes it.
   * A “flat” locale selection (no annoying dropdown).
   * A “flat” keyboard layout selection (no annoying dropdown).
-  * A remote control through WebSocket; to enable, in theme.conf set websocket= to a valid
-    ws://… address. The theme will try to connect every few seconds and retry on connection lost.
-    Once connected, every received text message will be parsed as JSON. The protocol understands
-    two commands:
-      * {"eval": "1 + 2"} → eval("1 + 2") (Javascript), replies with the result
-      * {"motd": "hello"} → sets ui.motd to "hello", doesn't reply anything
   * An animated/morphing login button.
   * Shutdown and reboot buttons with a confirmation step: two clicks/keypreses are necessary:
     [REBOOT] → [Sure? ] → *reboots*
+
+The UI can be “remote controlled” through a WebSocket. To enable that, in theme.conf set websocket=
+to a valid ws://…/ address. The theme will try to connect every few seconds and retry on connection
+lost. Once connected, every received text message will be parsed as JSON. The “protocol”
+understands two commands:
+
+  * {"eval": "1 + 2"} → eval("1 + 2") (Javascript), replies with the result
+  * {"motd": "hello"} → sets ui.motd to "hello", doesn't reply anything
 
 Known issues:
 

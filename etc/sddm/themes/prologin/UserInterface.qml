@@ -159,7 +159,7 @@ Item {
         // Theme logo.
         Image {
             Layout.fillWidth: true
-            source: "/opt/prologin/sddm-logo.svg"
+            source: config.logoImage
             fillMode: Image.PreserveAspectFit
             // This is the only way to work around QML being an utter piece of crap.
             sourceSize: Qt.size(width, 0)
@@ -168,6 +168,7 @@ Item {
         // Message of the day.
         Text {
             id: textMotd
+            text: config.motd
             Layout.fillWidth: true
             font: largeFont
             color: textColor
