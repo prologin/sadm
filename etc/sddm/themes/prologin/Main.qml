@@ -1,303 +1,104 @@
-/***************************************************************************
-* Copyright (c) 2013 Abdurrahman AVCI <abdurrahmanavci@gmail.com>
-*
-* Permission is hereby granted, free of charge, to any person
-* obtaining a copy of this software and associated documentation
-* files (the "Software"), to deal in the Software without restriction,
-* including without limitation the rights to use, copy, modify, merge,
-* publish, distribute, sublicense, and/or sell copies of the Software,
-* and to permit persons to whom the Software is furnished to do so,
-* subject to the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-* OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-* THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
-* OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-* ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
-* OR OTHER DEALINGS IN THE SOFTWARE.
-*
-***************************************************************************/
+/*
 
-import QtQuick 2.0
+A minimal but powerful theme suited for the Prologin finals.
+
+This theme features:
+
+  * A fairly standard username/password form.
+    * The password input features CapsLock & NumLock indicators.
+    * Attempting to login while having an empty field focuses the empty field and shakes it.
+  * A “flat” locale selection (no annoying dropdown).
+  * A “flat” keyboard layout selection (no annoying dropdown).
+  * A remote control through WebSocket; to enable, in theme.conf set websocket= to a valid
+    ws://… address. The theme will try to connect every few seconds and retry on connection lost.
+    Once connected, every received text message will be parsed as JSON. The protocol understands
+    two commands:
+      * {"eval": "1 + 2"} → eval("1 + 2") (Javascript), replies with the result
+      * {"motd": "hello"} → sets ui.motd to "hello", doesn't reply anything
+  * An animated/morphing login button.
+  * Shutdown and reboot buttons with a confirmation step: two clicks/keypreses are necessary:
+    [REBOOT] → [Sure? ] → *reboots*
+
+Known issues:
+
+  * If the password is incorrect, the animation works fine because sddm stays alive while calling
+    PAM 'auth' stage, during which the login/password is checked.
+    But if the password is correct, the 'auth' stage succeeds and sddm-greeter (UI frontend) exits,
+    effectively freezing the screen until the desktop environment takes over. Unfortunately for
+    Prologin, the long-running pam_exec script is called in the 'session' PAM stage, just after
+    'auth' has succeeded. This means the animation will look like it's stuck while in fact sddm UI
+    just exited normally. If an error is returned during 'session' initialization – which is an
+    okay behavior as far as PAM is concerned – sddm won't be able to recover. An sddm restart is
+    necessary. Computers suck.
+  * The “flat” selectors are difficult to navigate using the keyboard because of lack of a proper
+    'focused' state. That should be an easy fix though, look into MyComboBox.qml.
+
+Files:
+
+  * Main.qml (this file): theme root, contains logic, no UI
+  * UserInterface.qml: UI root, instanciated in Main.qml
+  * MyButton.qml: a highly customized button
+  * MyComboBox.qml: an horizontal list of options; options have a label and optionally an image
+  * MyConfirmButton.qml: an image button with a confirm flow before running the "on click" function
+  * MyImageInput.qml: a text input with an image on the left (for the username & password)
+
+*/
+
+import QtQuick 2.12
 import SddmComponents 2.0
+import QtWebSockets 1.1
 
-Rectangle {
-    id: container
+Item {
+    id: root
 
-    property color textColor: '#fafafa'
-    property color brandColor: '#33449d'
-
-    function inputKeyEvent(event) {
-        if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-            login();
-            event.accepted = true
-        }
-    }
-
-    function login() {
-        sddm.login(name.text, password.text, session.index);
-    }
-
-    LayoutMirroring.enabled: Qt.locale().textDirection === Qt.RightToLeft
-    LayoutMirroring.childrenInherit: true
+    property int selectedSessionIndex: sessionModel.lastIndex
 
     TextConstants { id: textConstants }
 
     Connections {
         target: sddm
-
-        onLoginSucceeded: {
-            errorMessage.color = "steelblue"
-            errorMessage.text = textConstants.loginSucceeded
-        }
-
-        onLoginFailed: {
-            errorMessage.color = "red"
-            errorMessage.text = textConstants.loginFailed
-        }
+        onLoginSucceeded: ui.onLoginSucceeded()
+        onLoginFailed: ui.onLoginFailed()
     }
 
-    Background {
-        anchors.fill: parent
-        source: config.backgroundPattern
-        fillMode: Image.Tile
-        onStatusChanged: {
-            if (status == Image.Error && source !== config.defaultBackground) {
-                source = config.defaultBackground
+    WebSocket {
+        id: sock
+        url: config.websocket
+        active: !!config.websocket
+        onTextMessageReceived: {
+            var data = JSON.parse(message)
+            if (data.eval) {
+                const result = eval(data.eval);
+                sock.sendTextMessage(result);
+            } else if (data.motd) {
+                ui.motd = data.motd;
             }
         }
     }
 
-    Image {
-        anchors.centerIn: parent
-        anchors.horizontalCenterOffset: -width / 2
-        width: parent.width / 3
-        height: parent.height / 3
-        sourceSize.width: width
-        sourceSize.height: height
-        source: config.background
-        fillMode: Image.PreserveAspectFit
-        clip: true
-        focus: false
-        smooth: true
-    }
-
-    Rectangle {
-        anchors.fill: parent
-        color: "transparent"
-        anchors.topMargin: 90
-        anchors.rightMargin: 120
-
-        Clock {
-            id: clock
-            anchors.top: parent.top
-            anchors.right: parent.right
-
-            color: textColor
-            timeFont.family: "Oxygen,Oxygen-Sans,sans-serif"
-        }
-
-        Rectangle {
-            id: rectangle
-            anchors.right: clock.right
-            anchors.left: clock.left
-            anchors.top: clock.bottom
-            anchors.topMargin: 200
-
-            Column {
-                id: mainColumn
-                anchors.centerIn: parent
-                width: parent.width
-                spacing: 12
-
-                Text {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    color: textColor
-                    verticalAlignment: Text.AlignVCenter
-                    height: text.implicitHeight
-                    width: parent.width
-                    text: sddm.hostName
-                    wrapMode: Text.WordWrap
-                    font.pixelSize: 24
-                    elide: Text.ElideRight
-                    horizontalAlignment: Text.AlignHCenter
-                }
-
-                Input {
-                    id: name
-                    input.color: textColor
-                    image.source: 'user.png'
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-
-                    input.focus: true
-
-                    input.text: userModel.lastUser
-
-                    KeyNavigation.backtab: rebootButton
-                    KeyNavigation.tab: password
-                    Keys.onPressed: inputKeyEvent(event)
-                }
-
-                PasswordInput {
-                    id: password
-                    input.color: textColor
-                    image.source: 'lock.png'
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-
-                    KeyNavigation.backtab: name
-                    KeyNavigation.tab: session
-                    Keys.onPressed: inputKeyEvent(event)
-                }
-
-                // separator
-                Item {
-                    height: 30
-                    width: parent.width
-                }
-
-                Row {
-                    spacing: 4
-                    width: parent.width
-                    z: 200
-
-                    Column {
-                        z: 201
-                        width: parent.width
-                        spacing : 4
-                        anchors.bottom: parent.bottom
-
-                        Text {
-                            id: lblSession
-                            width: parent.width
-                            color: textColor
-                            text: textConstants.session
-                            wrapMode: TextEdit.WordWrap
-                            font.bold: true
-                            font.pixelSize: 12
-                        }
-
-                        ComboBox {
-                            id: session
-                            width: parent.width
-                            height: 30
-                            font.pixelSize: 14
-
-                            textColor: textColor
-                            focusColor: brandColor
-                            hoverColor: brandColor
-                            arrowIcon: "angle-down.png"
-
-                            model: sessionModel
-                            index: sessionModel.lastIndex
-
-                            KeyNavigation.backtab: password
-                            KeyNavigation.tab: layoutBox
-                        }
-                    }
-                }
-
-                Row {
-                    spacing: 4
-                    width: parent.width
-                    z: 100
-
-                    Column {
-                        z: 101
-                        width: parent.width
-                        spacing : 4
-                        anchors.bottom: parent.bottom
-
-                        Text {
-                            id: lblLayout
-                            width: parent.width
-                            color: textColor
-                            text: textConstants.layout
-                            wrapMode: TextEdit.WordWrap
-                            font.bold: true
-                            font.pixelSize: 12
-                        }
-
-                        LayoutBoxProlo {
-                            id: layoutBox
-                            width: parent.width
-                            height: 30
-                            font.pixelSize: 14
-
-                            arrowIcon: "angle-down.png"
-
-                            KeyNavigation.backtab: session
-                            KeyNavigation.tab: loginButton
-                        }
-                    }
-                }
-
-                Column {
-                    width: parent.width
-                    Text {
-                        id: errorMessage
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        text: textConstants.prompt
-                        color: textColor
-                        font.pixelSize: 10
-                    }
-                }
-
-                Row {
-                    spacing: 4
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    property int btnWidth: Math.max(loginButton.implicitWidth,
-                                                    shutdownButton.implicitWidth,
-                                                    rebootButton.implicitWidth, 80) + 8
-                    Button {
-                        id: loginButton
-                        text: textConstants.login
-                        width: parent.btnWidth
-                        color: brandColor
-
-                        onClicked: login()
-
-                        KeyNavigation.backtab: layoutBox
-                        KeyNavigation.tab: shutdownButton
-                    }
-
-                    Button {
-                        id: shutdownButton
-                        text: textConstants.shutdown
-                        width: parent.btnWidth
-                        color: brandColor
-
-                        onClicked: sddm.powerOff()
-
-                        KeyNavigation.backtab: loginButton
-                        KeyNavigation.tab: rebootButton
-                    }
-
-                    Button {
-                        id: rebootButton
-                        text: textConstants.reboot
-                        width: parent.btnWidth
-                        color: brandColor
-
-                        onClicked: sddm.reboot()
-
-                        KeyNavigation.backtab: shutdownButton
-                        KeyNavigation.tab: name
-                    }
-                }
+    Timer {
+        id: sockReconnectTimer
+        interval: 2500
+        running: sock.active
+        repeat: true
+        onTriggered: {
+            if (sock.status !== WebSocket.Open) {
+                // Reconnect.
+                sock.active = false
+                sock.active = true
             }
         }
     }
 
-    Component.onCompleted: {
-        if (name.text === "")
-            name.focus = true
-        else
-            password.focus = true
+    UserInterface {
+        id: ui
+        anchors.fill: parent
+        focus: true
+
+        Component.onCompleted: {
+            ui.attemptLogin.connect(function(login, password, session) {
+                sddm.login(login, password, session)
+            })
+        }
     }
 }

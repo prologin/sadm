@@ -1,16 +1,9 @@
 [SddmGreeterTheme]
-Name=Maldives
-Description=Maldives Theme
-Author=Abdurrahman AVCI
-Copyright=(c) 2013, Abdurrahman AVCI
-License=CC-BY-SA
+Name=ProloginFancy
+Author=zopieux
 Type=sddm-theme
 Version=0.1
-Website=https://github.com/sddm/sddm
-Screenshot=maldives.jpg
 MainScript=Main.qml
 ConfigFile=theme.conf
-TranslationsDirectory=translations
-Email=abdurrahmanavci@gmail.com
-Theme-Id=maldives
+Theme-Id=prologin-fancy
 Theme-API=2.0
