@@ -1,9 +1,10 @@
 aiohttp-wsgi==0.8.2
 aiohttp==3.5.4
 aiopg==0.16.0
-django-crispy-forms==1.7.2
-django-prometheus==1.0.15
 django-bootstrap-breadcrumbs==0.9.1
+django-crispy-forms==1.7.2
+django-debug-toolbar==2.2
+django-prometheus==1.0.15
 Django==2.2.10
 djangorestframework==3.9.2
 gunicorn==19.9.0
@@ -14,8 +15,8 @@ prometheus_client==0.6.0
 psycopg2-binary==2.8.2
 py-postgresql==1.2.1
 Pygments==2.3.1
-PyYAML==5.1
 pytest==4.4.1
+PyYAML==5.1
 requests==2.21.0
 tornado==4.5.1
 
