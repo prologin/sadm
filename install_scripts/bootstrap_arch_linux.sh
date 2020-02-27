@@ -63,7 +63,7 @@ systemd-machine-id-setup --root="$root_dir" --print
 # The actual Arch Linux setup starts here
 echo_status "Installing base Arch Linux"
 if test -e /etc/arch-release; then
-  pacstrap -c -d "$root_dir" --needed base
+  pacstrap -c -d "$root_dir" --needed base linux linux-firmware
 else
   (
     cd /tmp
@@ -77,7 +77,7 @@ else
 fi
 
 systemd-nspawn -D "$root_dir" /usr/bin/pacman -Syu --needed --noconfirm \
-  base vim openssh rxvt-unicode-terminfo bind-tools
+  base linux linux-firmware vim openssh rxvt-unicode-terminfo bind-tools
 
 echo_status "Configuring base system"
 echo_status "Setting timezone to $SADM_TIMEZONE"
