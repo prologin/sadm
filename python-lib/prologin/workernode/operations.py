@@ -264,7 +264,7 @@ async def spawn_match(config, match_id, players, map_contents):
     champion_dirs = []
 
     # Sort by MatchPlayer id
-    for oid, (pl_id, (c_id, ctgz)) in enumerate(sorted(players.items()), 1):
+    for oid, (pl_id, (c_id, ctgz)) in enumerate(sorted(players.items())):
         ctgz = b64decode(ctgz)
         cdir = tempfile.TemporaryDirectory()
         champion_dirs.append(cdir)
