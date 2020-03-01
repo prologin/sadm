@@ -1,5 +1,14 @@
 {
-  "__inputs": [],
+  "__inputs": [
+    {
+      "name": "DS_PROMETHEUS",
+      "label": "prometheus",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
+    }
+  ],
   "__requires": [
     {
       "type": "panel",
@@ -11,13 +20,19 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "6.2.0"
+      "version": "6.6.0"
     },
     {
       "type": "panel",
       "id": "graph",
       "name": "Graph",
       "version": ""
+    },
+    {
+      "type": "datasource",
+      "id": "prometheus",
+      "name": "Prometheus",
+      "version": "1.0.0"
     },
     {
       "type": "panel",
@@ -50,13 +65,16 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
+      "datasource": "${DS_PROMETHEUS}",
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 0,
         "y": 0
       },
+      "hiddenSeries": false,
       "id": 9,
       "legend": {
         "avg": false,
@@ -71,7 +89,9 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
-      "options": {},
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 2,
       "points": false,
@@ -83,9 +103,6 @@
       "targets": [
         {
           "expr": "masternode_workers",
-          "format": "time_series",
-          "instant": false,
-          "intervalFactor": 1,
           "refId": "A"
         }
       ],
@@ -135,20 +152,23 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
+      "datasource": "${DS_PROMETHEUS}",
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 8,
         "w": 12,
         "x": 12,
         "y": 0
       },
+      "hiddenSeries": false,
       "id": 11,
       "legend": {
         "avg": false,
         "current": false,
         "max": false,
         "min": false,
-        "show": false,
+        "show": true,
         "total": false,
         "values": false
       },
@@ -156,7 +176,9 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
-      "options": {},
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 2,
       "points": false,
@@ -168,8 +190,6 @@
       "targets": [
         {
           "expr": "node_load1",
-          "format": "time_series",
-          "intervalFactor": 1,
           "refId": "A"
         }
       ],
@@ -223,6 +243,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
+      "datasource": "${DS_PROMETHEUS}",
       "description": "",
       "format": "none",
       "gauge": {
@@ -279,9 +300,6 @@
         {
           "expr": "concours_match_status_count{status=\"new\"}",
           "format": "time_series",
-          "instant": true,
-          "intervalFactor": 1,
-          "legendFormat": "{{status}}",
           "refId": "A"
         }
       ],
@@ -309,6 +327,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
+      "datasource": "${DS_PROMETHEUS}",
       "description": "",
       "format": "none",
       "gauge": {
@@ -364,10 +383,6 @@
       "targets": [
         {
           "expr": "concours_match_status_count{status=\"creating\"}",
-          "format": "time_series",
-          "instant": true,
-          "intervalFactor": 1,
-          "legendFormat": "{{status}}",
           "refId": "A"
         }
       ],
@@ -395,6 +410,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
+      "datasource": "${DS_PROMETHEUS}",
       "description": "",
       "format": "none",
       "gauge": {
@@ -450,10 +466,6 @@
       "targets": [
         {
           "expr": "concours_match_status_count{status=\"pending\"}",
-          "format": "time_series",
-          "instant": true,
-          "intervalFactor": 1,
-          "legendFormat": "{{status}}",
           "refId": "A"
         }
       ],
@@ -481,6 +493,7 @@
         "rgba(237, 129, 40, 0.89)",
         "#d44a3a"
       ],
+      "datasource": "${DS_PROMETHEUS}",
       "description": "",
       "format": "none",
       "gauge": {
@@ -536,10 +549,6 @@
       "targets": [
         {
           "expr": "rate(concours_match_status_count{status=\"done\"}[1m])",
-          "format": "time_series",
-          "instant": false,
-          "intervalFactor": 1,
-          "legendFormat": "{{status}}",
           "refId": "A"
         }
       ],
@@ -560,6 +569,7 @@
     },
     {
       "cacheTimeout": null,
+      "datasource": "${DS_PROMETHEUS}",
       "gridPos": {
         "h": 6,
         "w": 24,
@@ -574,11 +584,29 @@
             "last"
           ],
           "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [],
             "max": 100,
-            "min": 0
+            "min": 0,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "blue",
+                  "index": 0,
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "index": 1,
+                  "value": 80
+                }
+              ]
+            }
           },
-          "mappings": [],
-          "override": {},
+          "overrides": [],
           "thresholds": [
             {
               "color": "blue",
@@ -597,13 +625,11 @@
         "showThresholdLabels": false,
         "showThresholdMarkers": true
       },
-      "pluginVersion": "6.2.0",
+      "pluginVersion": "6.6.0",
       "targets": [
         {
-          "expr": "concours_champion_status_count",
-          "format": "time_series",
-          "intervalFactor": 1,
-          "legendFormat": "{{status}}",
+          "expr": "sum(concours_champion_status_count) by (status)",
+          "legendFormat": "{{ status }}",
           "refId": "A"
         }
       ],
@@ -614,7 +640,7 @@
     }
   ],
   "refresh": "5s",
-  "schemaVersion": 18,
+  "schemaVersion": 22,
   "style": "dark",
   "tags": [],
   "templating": {
@@ -652,5 +678,5 @@
   "timezone": "",
   "title": "Concours",
   "uid": "CDTgySGZz",
-  "version": 12
+  "version": 5
 }
