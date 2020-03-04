@@ -122,9 +122,24 @@ async def compile_champion(config, ctgz):
     return ret, b64compiled, log
 
 
+def isolator_compress(isolator, cmd, path):
+    isolator_path = isolator.path / path
+    try:
+        with isolator_path.open('rb') as fd:
+            return gzip.compress(fd.read())
+    except PermissionError:
+        raise_isolate_error(
+            f"server: {path} does not have the correct permissions.\n", cmd,
+            isolator)
+    except FileNotFoundError:
+        raise_isolate_error(f"server: {path} was not created.\n", cmd,
+                            isolator)
+
+
 async def spawn_server(config, rep_addr, pub_addr, nb_players, sockets_dir,
                        map_contents):
     # Build command
+    # yapf: disable
     cmd = [
         config['path']['stechec_server'],
         "--rules", config['path']['rules'],
@@ -134,8 +149,11 @@ async def spawn_server(config, rep_addr, pub_addr, nb_players, sockets_dir,
         "--time", "3000",
         "--socket_timeout", "45000",
         "--dump", "/box/dump.json",
+        "--replay", "/box/replay",
+        "--stats", "/box/stats.yaml",
         "--verbose", "1",
     ]
+    # yapf: enable
 
     if map_contents is not None:
         f = tempfile.NamedTemporaryFile(mode='w')
@@ -156,24 +174,20 @@ async def spawn_server(config, rep_addr, pub_addr, nb_players, sockets_dir,
         # Run the isolated server
         await isolator.run(cmd, merge_outputs=True)
 
-        # Retrieve the dump and gz-compress it
-        try:
-            dump_path = isolator.path / 'dump.json'
-            with dump_path.open('rb') as dump:
-                gzdump = gzip.compress(dump.read())
-        except PermissionError:
-            raise_isolate_error("server: dump.json does not have the correct "
-                                "permissions.\n", cmd, isolator)
-        except FileNotFoundError:
-            raise_isolate_error("server: dump.json was not created.\n", cmd,
-                                isolator)
+        # Retrieve the dump
+        gzdump = isolator_compress(isolator, cmd, "dump.json")
+        # Retrive the replay
+        gzreplay = isolator_compress(isolator, cmd, "replay")
+        # Retrive the stats
+        gzstats = isolator_compress(isolator, cmd, "stats.yaml")
 
     # Retrieve the output
     output = get_output(isolator)
     if isolator.isolate_retcode != 0:
         raise_isolate_error("server: exited with a non-zero code", cmd,
                             isolator)
-    return output, gzdump
+
+    return output, gzdump, gzreplay, gzstats
 
 
 async def spawn_client(config,
@@ -236,6 +250,7 @@ async def spawn_client(config,
     return result.isolate_retcode, get_output(result)
 
 
+# TODO: refactor return value to a dataclass
 async def spawn_match(config, match_id, players, map_contents):
     # Build the domain sockets
     socket_dir = tempfile.TemporaryDirectory(prefix=f'workernode-{match_id}-')
@@ -283,8 +298,10 @@ async def spawn_match(config, match_id, players, map_contents):
     await asyncio.wait([task_server] + list(tasks_players.values()))
 
     # Get the output of the tasks
-    server_out, dump = task_server.result()
+    server_out, dump, replay, stats = task_server.result()
     dump = b64encode(dump).decode()
+    replay = b64encode(replay).decode()
+    server_stats = b64encode(stats).decode()
     players_info = {
         pl_id: (
             players[pl_id][0],  # champion_id
@@ -303,4 +320,4 @@ async def spawn_match(config, match_id, players, map_contents):
         tmpdir.cleanup()
     socket_dir.cleanup()
 
-    return server_result, server_out, dump, players_info
+    return server_result, server_out, dump, replay, server_stats, players_info
