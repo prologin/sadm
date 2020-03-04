@@ -1,0 +1,15 @@
+# MatchMaker server settings.
+matchmaker:
+  port: 8069 # RPC endpoint
+
+  shared_secret: "%%SECRET:cluster%%" # A shared secret used to avoid malicious
+                                      # impersonating requests.
+
+  author_username: "matchmaker"
+  tournament_name: "live"
+  match_repeat: 5
+  include_staff: false
+  # ISO 8601 deadline (optional)
+  #deadline: "2020-05-24T21:58:05.311020"
+  match_batch_size: 100
+  match_pending_limit: 1000
