@@ -391,6 +391,8 @@ class MatchPlayer(ExportModelOperationsMixin('match_player'), models.Model):
                               verbose_name="match",
                               on_delete=models.CASCADE)
     score = models.IntegerField(default=0, verbose_name="score")
+    has_timeout = models.BooleanField(default=False,
+                                      verbose_name="has timeout")
 
     @property
     def log_path(self):

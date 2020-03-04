@@ -147,11 +147,12 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             fserver.write(server_stdout)
             fdump.write(b64decode(dumper_stdout))
 
+        match_status = {'match_id': mid, 'match_status': 'done'}
         try:
-            match_status = {'match_id': mid, 'match_status': 'done'}
             player_scores = [{
                 'player_id': r['player'],
-                'player_score': r['score']
+                'player_score': r['score'],
+                'player_timeout': r['nb_timeout'] != 0,
             } for r in result]
         except KeyError:
             masternode_bad_result.inc()

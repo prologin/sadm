@@ -81,7 +81,8 @@ REQUESTS = {
           UPDATE
             stechec_matchplayer
           SET
-            score = %(player_score)s
+            score = %(player_score)s,
+            has_timeout = %(player_timeout)s
           WHERE
             stechec_matchplayer.id = %(player_id)s
     ''',
