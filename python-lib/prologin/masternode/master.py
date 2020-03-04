@@ -114,13 +114,15 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         with open(clog_path(self.config, user, cid), 'w') as f:
             f.write(log)
         logging.info('compilation of champion %s: %s', cid, status)
-        await self.db.execute(
-            'set_champion_status',
-            {'champion_id': cid, 'champion_status': status})
+        await self.db.execute('set_champion_status', {
+            'champion_id': cid,
+            'champion_status': status
+        })
 
+    # TODO: move arguments to a dataclass
     @prologin.rpc.remote_method
-    async def match_done(self, worker, mid, result, dumper_stdout,
-                         server_stdout, players_stdout):
+    async def match_done(self, worker, mid, result, dumper_stdout, replay,
+                         server_stats, server_stdout, players_stdout):
         hostname, port, slots, max_slots = worker
         w = self.workers[(hostname, port)]
 
@@ -138,14 +140,22 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                 open(logpath, 'w') as fplayer:
                 fplayer.write(log)
 
-        # Write server logs and dumper log
-        serverpath = os.path.join(match_path(self.config, mid), 'server.log')
-        dumppath = os.path.join(match_path(self.config, mid), 'dump.json.gz')
+        # Store match artifacts
+        server_log_path = os.path.join(match_path(self.config, mid),
+                                       'server.log')
+        dump_path = os.path.join(match_path(self.config, mid), 'dump.json.gz')
+        replay_path = os.path.join(match_path(self.config, mid), 'replay.gz')
+        server_stats_path = os.path.join(match_path(self.config, mid),
+                                         'server_stats.yaml.gz')
         with masternode_match_done_file.time(), \
-             open(serverpath, 'w') as fserver, \
-             open(dumppath, 'wb') as fdump:
+             open(server_log_path, 'w') as fserver, \
+             open(dump_path, 'wb') as fdump, \
+             open(replay_path, 'wb') as freplay, \
+             open(server_stats_path, 'wb') as fserver_stats:
             fserver.write(server_stdout)
             fdump.write(b64decode(dumper_stdout))
+            freplay.write(b64decode(replay))
+            fserver_stats.write(b64decode(server_stats))
 
         match_status = {'match_id': mid, 'match_status': 'done'}
         try:
