@@ -20,6 +20,7 @@ champion_patterns = [
 match_patterns = [
     path('<int:pk>/', views.MatchView.as_view(), name='match-detail'),
     path('<int:pk>/dump/', views.MatchDumpView.as_view(), name='match-dump'),
+    path('<int:pk>/replay/', views.MatchReplayView.as_view(), name='match-replay'),
     path('all/', views.AllMatchesView.as_view(), name='matches-all'),
     path('mine/by-champion/', views.MyChampionMatchesView.as_view(),
          name='matches-mine-by-champion'),
