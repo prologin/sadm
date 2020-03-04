@@ -69,6 +69,7 @@
       <th>ID champion</th>
       <th>Champion</th>
       <th>Score</th>
+      <th>Timeout</th>
       <th>Log</th>
     </tr>
     </thead>
@@ -80,6 +81,7 @@
         <td>{{ player.champion }}</td>
         {% if match.is_done %}
           <td>{{ player.score }}</td>
+          <td>{{ player.has_timeout }}</td>
           <td>
             {% if request.user == player.champion.author or request.user.is_staff %}
               <button data-role="toggler" data-target="#log-{{ player.id }}" class="btn btn-default btn-xs">
@@ -89,7 +91,7 @@
             {% endif %}
           </td>
         {% else %}
-          <td colspan="2"><i class="fa fa-clock-o"></i> <em> Match non terminé</em></td>
+          <td colspan="3"><i class="fa fa-clock-o"></i> <em> Match non terminé</em></td>
         {% endif %}
       </tr>
     {% endfor %}
