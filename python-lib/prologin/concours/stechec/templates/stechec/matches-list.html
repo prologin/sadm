@@ -32,7 +32,7 @@
     <tbody>
     {% for match, map_id, map_name in matches %}
       <tr>
-        <td>{{ match.id }}</td>
+	<td><a href="{{ match.get_absolute_url }}">{{ match.id }}</a></td>
         <td>{{ match.ts|naturalday }} à {{ match.ts|time:"H:i:s" }}</td>
         <td>{% include "stechec/stub_status_match.html" %}</td>
         {% if show_creator %}
