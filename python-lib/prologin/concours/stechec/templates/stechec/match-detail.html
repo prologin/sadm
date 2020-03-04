@@ -47,12 +47,14 @@
     <div class="col-sm-6">
       <div class="panel panel-default">
         <div class="panel-heading">
-          <h3 class="panel-title">Replay</h3>
+          <h3 class="panel-title">Téléchargements</h3>
         </div>
         <div class="panel-body">
           {% if match.is_done %}
             <a href="{% url "match-dump" match.id %}" class="btn btn-default btn-block">
-              <i class="fa fa-download"></i> Télécharger</a>
+              <i class="fa fa-download"></i> Dump</a>
+            <a href="{% url "match-replay" match.id %}" class="btn btn-default btn-block">
+              <i class="fa fa-download"></i> Replay</a>
           {% else %}
             <em>Le match n'est pas encore terminé.</em>
           {% endif %}

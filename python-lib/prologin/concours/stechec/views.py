@@ -301,6 +301,27 @@ class MatchDumpView(SingleObjectMixin, View):
         return h
 
 
+class MatchReplayView(SingleObjectMixin, View):
+    model = models.Match
+    pk_url_kwarg = 'pk'
+
+    def get(self, request, *args, **kwargs):
+        match = self.get_object()
+        if ((settings.STECHEC_FIGHT_ONLY_OWN_CHAMPIONS and
+             not self.request.user.is_staff)) and match.author != request.user:
+            return HttpResponseForbidden()
+
+        replay = match.replay
+        if replay is None:
+            raise Http404()
+
+        h = HttpResponse(replay, content_type="application/stechec-replay")
+        h['Content-Disposition'] = ('attachment; filename=replay-{}'.format(
+            self.kwargs[self.pk_url_kwarg]))
+        h['Content-Encoding'] = 'gzip'
+        return h
+
+
 class MatchStreamView(TemplateView):
     template_name = 'stechec/match-stream.html'
 

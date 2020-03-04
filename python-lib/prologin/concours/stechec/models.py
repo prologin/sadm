@@ -248,6 +248,7 @@ class TournamentMap(ExportModelOperationsMixin('tournament_map'),
 
 class Match(ExportModelOperationsMixin('match'), models.Model):
     DUMP_FILENAME = "dump.json.gz"
+    REPLAY_FILENAME = "replay.gz"
     LOG_FILENAME = "server.log"
     STATUS_CHOICES = (
         ('creating', 'En cours de création'),
@@ -314,6 +315,21 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
     @property
     def dump_url(self):
         return reverse('match-dump', kwargs={'pk': self.id})
+
+    @property
+    def replay_path(self):
+        return self.directory / self.REPLAY_FILENAME
+
+    @property
+    def replay(self):
+        try:
+            return self.replay_path.open('rb').read()
+        except Exception:
+            pass
+
+    @property
+    def replay_url(self):
+        return reverse('match-replay', kwargs={'pk': self.id})
 
     @property
     def is_done(self):
