@@ -326,6 +326,7 @@ class NewMatchView(LoginRequiredMixin, FormView):
                 player.save()
 
             match.status = 'new'
+            match.priority = models.Match.Priority.INTERACTIVE
             match.save()
 
         messages.success(

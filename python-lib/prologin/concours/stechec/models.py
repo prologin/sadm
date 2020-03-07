@@ -1,3 +1,4 @@
+from enum import IntEnum
 import contextlib
 import itertools
 import os
@@ -327,6 +328,19 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
         verbose_name="carte",
     )
 
+    class Priority(IntEnum):
+        NOW = 1000
+        INTERACTIVE = 700
+        DEFAULT = 500
+        TOURNAMENT = 300
+        BEST_EFFORT = 0
+
+    priority = models.IntegerField(
+        "prioriy",
+        default=Priority.DEFAULT,
+        help_text="Match scheduling priority, higher is faster.",
+    )
+
     @property
     def directory(self):
         hi_id, low_id = divmod(self.id, 1000)
@@ -397,7 +411,7 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
         verbose_name_plural = "matches"
 
     @classmethod
-    def launch_bulk(cls, matches):
+    def launch_bulk(cls, matches, priority=Priority.DEFAULT):
         """Launch matches in bulk.
 
         Args:
@@ -429,6 +443,7 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
                     m.tournament = match['tournament']
                 if 'map' in match:
                     m.map = match['map']
+                m.priority = priority
                 match_objs.append(m)
             # Returning created ids requires PostgreSQL
             created_matches = Match.objects.bulk_create(match_objs)

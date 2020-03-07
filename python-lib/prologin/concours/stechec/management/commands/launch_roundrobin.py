@@ -71,4 +71,4 @@ class Command(BaseCommand):
         if confirm.lower() not in ("yes", "y"):
             sys.exit(1)
 
-        Match.launch_bulk(matches)
+        Match.launch_bulk(matches, priority=Match.Priority.TOURNAMENT)
