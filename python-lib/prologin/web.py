@@ -50,15 +50,18 @@ def exceptions_catched(func):
     """Decorator for function handlers: return a HTTP 500 error when an
     exception is raised.
     """
+
     def wrapper():
         try:
             return (200, 'OK') + func()
         except Exception:
             return (
-                500, 'Error',
+                500,
+                'Error',
                 {'Content-Type': 'text/html'},
-                '<h1>Onoes, internal server error</h1>'
+                '<h1>Onoes, internal server error</h1>',
             )
+
     return wrapper
 
 
@@ -99,8 +102,7 @@ class WsgiApp:
     def call_handler(self, environ, start_response, handler):
         status_code, reason, headers, content = handler()
         start_response(
-            '{} {}'.format(status_code, reason),
-            list(headers.items())
+            '{} {}'.format(status_code, reason), list(headers.items())
         )
         return [content.encode('utf-8')]
 
@@ -108,13 +110,10 @@ class WsgiApp:
 class TornadoApp(tornado.web.Application):
     def __init__(self, handlers, app_name):
         # Prepend special handlers, taking care of the Tornado interfacing.
-        handlers = (
-            tuple(
-                (path, self.get_special_handler(handler))
-                for path, handler in HANDLED_URLS.items()
-            )
-            + tuple(handlers)
-        )
+        handlers = tuple(
+            (path, self.get_special_handler(handler))
+            for path, handler in HANDLED_URLS.items()
+        ) + tuple(handlers)
         super(TornadoApp, self).__init__(handlers)
         self.app_name = app_name
 
@@ -126,6 +125,7 @@ class TornadoApp(tornado.web.Application):
         class SpecialHandler(tornado.web.RequestHandler):
             """Wrapper handler for special resources.
             """
+
             def get(self):
                 status_code, reason, headers, content = handler_func()
                 self.set_status(status_code, reason)

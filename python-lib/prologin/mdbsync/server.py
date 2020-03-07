@@ -37,9 +37,7 @@ if 'shared_secret' not in SUB_CFG:
 
 class SyncServer(prologin.synchronisation.Server):
     def __init__(self, pub_secret, sub_secret, port):
-        super().__init__(
-            'mac', pub_secret, sub_secret, port, 'mdbsync'
-        )
+        super().__init__('mac', pub_secret, sub_secret, port, 'mdbsync')
 
     def get_initial_backlog(self):
         return prologin.mdb.client.connect().query()
@@ -52,8 +50,6 @@ if __name__ == '__main__':
     else:
         port = 8000
     server = SyncServer(
-        PUB_CFG['shared_secret'],
-        SUB_CFG['shared_secret'],
-        port
+        PUB_CFG['shared_secret'], SUB_CFG['shared_secret'], port
     )
     server.start()

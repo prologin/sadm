@@ -21,6 +21,7 @@ import re
 import subprocess
 import sys
 
+
 def run(cmd, **kwargs):
     # Get the current display
     for f in os.listdir('/tmp/.X11-unix'):
@@ -45,6 +46,7 @@ def run(cmd, **kwargs):
     env['XAUTHORITY'] = xauthority
     print(cmd, env)
     subprocess.run(cmd, **kwargs, env=env)
+
 
 if __name__ == '__main__':
     run(sys.argv[1:])

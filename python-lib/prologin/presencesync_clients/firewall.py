@@ -52,12 +52,15 @@ def update_firewall():
             allowed_ips.add(machine['ip'])
 
     for ip in allowed_ips:
-        subprocess.call('ipset add tmp-allowed-internet-access %s' % ip,
-                        shell=True)
+        subprocess.call(
+            'ipset add tmp-allowed-internet-access %s' % ip, shell=True
+        )
 
     # Swap sets, supposed atomic operation
-    subprocess.call('ipset swap tmp-allowed-internet-access '
-                    'allowed-internet-access', shell=True)
+    subprocess.call(
+        'ipset swap tmp-allowed-internet-access ' 'allowed-internet-access',
+        shell=True,
+    )
 
 
 async def poll_all():
@@ -74,6 +77,7 @@ async def poll_all():
             dict_to_update.clear()
             dict_to_update.update(values)
             loop.call_soon_threadsafe(update_firewall)
+
         tasks.append(loop.run_in_executor(None, client.poll_updates, cb))
 
     add_task(mdbsync_client, mdb_machines)

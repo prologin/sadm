@@ -61,8 +61,8 @@ if PAM_TYPE == 'open_session' and not os.path.ismount(get_home_dir(login)):
     # Prologin users must use a display manager (not a TTY, nor screen).
     if PAM_SERVICE not in ('gdm', 'kde', 'slim', 'xdm', 'sddm'):
         logging.warning(
-            'User %s is not logging in with a graphical display manager',
-            login)
+            'User %s is not logging in with a graphical display manager', login
+        )
 
     # Request the login to Presenced and PresenceSync.
     failure_reason = prologin.presenced.client.connect().request_login(login)
@@ -75,7 +75,7 @@ if PAM_TYPE == 'open_session' and not os.path.ismount(get_home_dir(login)):
     try:
         hostname = socket.gethostname()
         if hostname.endswith('.prolo'):
-            hostname = hostname[:-len('.prolo')]
+            hostname = hostname[: -len('.prolo')]
         else:
             logging.warning('Hostname does not end with .prolo: %s', hostname)
         host, port = hfs.get_hfs(login, hostname)
@@ -98,16 +98,25 @@ if PAM_TYPE == 'open_session' and not os.path.ismount(get_home_dir(login)):
     # netlink family in a systemd-nspawn container.
     #
     # TODO: experiment with '-block-size' values and compare performance
-    if subprocess.check_call([
-            '/usr/sbin/nbd-client', '-nonetlink', '-name', login, host,
-            str(port), block_device
-    ],
-                             stdout=sys.stderr,
-                             stderr=sys.stderr):
+    if subprocess.check_call(
+        [
+            '/usr/sbin/nbd-client',
+            '-nonetlink',
+            '-name',
+            login,
+            host,
+            str(port),
+            block_device,
+        ],
+        stdout=sys.stderr,
+        stderr=sys.stderr,
+    ):
         fail('Cannot get the home directory block device')
-    if subprocess.check_call(['/bin/mount', block_device, home_dir],
-                             stdout=sys.stderr,
-                             stderr=sys.stderr):
+    if subprocess.check_call(
+        ['/bin/mount', block_device, home_dir],
+        stdout=sys.stderr,
+        stderr=sys.stderr,
+    ):
         fail('Cannot mount the home directory')
 
     sys.exit(0)
@@ -116,9 +125,11 @@ elif PAM_TYPE == 'close_session':
     if is_prologin_user:
         # Make sure the user has nothing else running
         try:
-            subprocess.check_call(['/usr/bin/pkill', '-9', '-u', login],
-                                  stdout=sys.stderr,
-                                  stderr=sys.stderr)
+            subprocess.check_call(
+                ['/usr/bin/pkill', '-9', '-u', login],
+                stdout=sys.stderr,
+                stderr=sys.stderr,
+            )
         except subprocess.CalledProcessError as e:
             if e.returncode != 1:  # "No processes matched" we don't care
                 raise e
@@ -128,7 +139,8 @@ elif PAM_TYPE == 'close_session':
         subprocess.check_call(
             ['/bin/umount', '-R', get_home_dir(login)],
             stdout=sys.stderr,
-            stderr=sys.stderr)
+            stderr=sys.stderr,
+        )
 
         # And finally stop the nbd client
         block_device = get_block_device(login)
@@ -139,14 +151,16 @@ elif PAM_TYPE == 'close_session':
             subprocess.check_call(
                 ['/usr/sbin/nbd-client', '-d', block_device],
                 stdout=sys.stderr,
-                stderr=sys.stderr)
+                stderr=sys.stderr,
+            )
         # here's the workaround : only try without -nonetlink if the above
         # command fails
         except subprocess.CalledProcessError:
             subprocess.check_call(
                 ['/usr/sbin/nbd-client', '-d', '-nonetlink', block_device],
                 stdout=sys.stderr,
-                stderr=sys.stderr)
+                stderr=sys.stderr,
+            )
     sys.exit(0)
 
 else:

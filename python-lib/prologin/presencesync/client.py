@@ -33,7 +33,8 @@ class Client(prologin.synchronisation.Client):
         r = self.send_request('/get_list', self.sub_secret, {}, method='get')
         if r.status_code != 200:
             raise RuntimeError(
-                'Cannot get the list of logged in users: {}'.format(r.text))
+                'Cannot get the list of logged in users: {}'.format(r.text)
+            )
         else:
             return json.loads(r.text)
 
@@ -43,11 +44,11 @@ class Client(prologin.synchronisation.Client):
         otherwise.
         """
         r = self.send_request(
-            '/login', self.pub_secret,
-            {'login': login, 'hostname': hostname}
+            '/login', self.pub_secret, {'login': login, 'hostname': hostname}
         )
-        logging.debug('Request login: PresenceSync status code is %s',
-                      r.status_code)
+        logging.debug(
+            'Request login: PresenceSync status code is %s', r.status_code
+        )
         if r.status_code != 200:
             return r.text or 'No reason given'
         else:
@@ -59,17 +60,15 @@ class Client(prologin.synchronisation.Client):
         """
         # Just ignore the answer.
         self.send_request(
-            '/heartbeat', self.pub_secret,
-            {'login': login, 'hostname': hostname}
+            '/heartbeat',
+            self.pub_secret,
+            {'login': login, 'hostname': hostname},
         )
 
     def remove_expired(self):
         """Remove expired logins."""
         # Just ignore the answer.
-        self.send_request(
-            '/remove_expired', self.pub_secret,
-            {}
-        )
+        self.send_request('/remove_expired', self.pub_secret, {})
 
 
 class AsyncClient(prologin.synchronisation.AsyncClient):
@@ -78,14 +77,20 @@ class AsyncClient(prologin.synchronisation.AsyncClient):
         return await r.json()
 
     async def request_login(self, login, hostname):
-        r = await self.send_request('/login', self.pub_secret,
-                                    {'login': login, 'hostname': hostname})
-        logging.debug("Request login: PresenceSync status code is %s", r.status)
+        r = await self.send_request(
+            '/login', self.pub_secret, {'login': login, 'hostname': hostname}
+        )
+        logging.debug(
+            "Request login: PresenceSync status code is %s", r.status
+        )
         return (await r.text()) or "No reason given"
 
     async def send_heartbeat(self, login, hostname):
-        await self.send_request('/heartbeat', self.pub_secret,
-                                {'login': login, 'hostname': hostname})
+        await self.send_request(
+            '/heartbeat',
+            self.pub_secret,
+            {'login': login, 'hostname': hostname},
+        )
 
     async def remove_expired(self):
         await self.send_request('/remove_expired', self.pub_secret, {})
@@ -98,8 +103,11 @@ def _connect_args(publish):
         pub_secret = None
     url = SUB_CFG['url']
     sub_secret = SUB_CFG['shared_secret']
-    logging.info("Creating PresenceSync connection object: url=%s, publish=%s",
-                 url, pub_secret is not None)
+    logging.info(
+        "Creating PresenceSync connection object: url=%s, publish=%s",
+        url,
+        pub_secret is not None,
+    )
     return url, 'login', pub_secret, sub_secret
 
 

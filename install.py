@@ -40,79 +40,73 @@ import tempfile
 # It's better to have a consistent user<->uid mapping. We keep it here.
 USERS = {
     'mdb': {
-        'uid':
-        20000,
-        'groups': ('mdb', 'mdb_public', 'mdbsync', 'mdbsync_public',
-                   'udbsync_public')
+        'uid': 20000,
+        'groups': (
+            'mdb',
+            'mdb_public',
+            'mdbsync',
+            'mdbsync_public',
+            'udbsync_public',
+        ),
     },
     'mdbsync': {
         'uid': 20010,
-        'groups': ('mdbsync', 'mdbsync_public', 'mdb_public')
+        'groups': ('mdbsync', 'mdbsync_public', 'mdb_public'),
     },
-    'netboot': {
-        'uid': 20020,
-        'groups': ('netboot', 'mdb_public')
-    },
-    'mdbdns': {
-        'uid': 20030,
-        'groups': ('mdbdns', 'mdbsync_public')
-    },
-    'mdbdhcp': {
-        'uid': 20040,
-        'groups': ('mdbdhcp', 'mdbsync_public')
-    },
-    'webservices': {
-        'uid': 20050,
-        'groups': ('webservices', )
-    },
+    'netboot': {'uid': 20020, 'groups': ('netboot', 'mdb_public')},
+    'mdbdns': {'uid': 20030, 'groups': ('mdbdns', 'mdbsync_public')},
+    'mdbdhcp': {'uid': 20040, 'groups': ('mdbdhcp', 'mdbsync_public')},
+    'webservices': {'uid': 20050, 'groups': ('webservices',)},
     'presencesync': {
-        'uid':
-        20060,
-        'groups': ('presencesync', 'presencesync_public', 'mdb_public',
-                   'udb_public')
+        'uid': 20060,
+        'groups': (
+            'presencesync',
+            'presencesync_public',
+            'mdb_public',
+            'udb_public',
+        ),
     },
     'presenced': {
         'uid': 20070,
-        'groups': ('presenced', 'presencesync', 'presencesync_public')
+        'groups': ('presenced', 'presencesync', 'presencesync_public'),
     },
     'udb': {
         'uid': 20080,
-        'groups': ('udb', 'udb_public', 'udbsync', 'udbsync_public')
+        'groups': ('udb', 'udb_public', 'udbsync', 'udbsync_public'),
     },
     'udbsync': {
         'uid': 20090,
-        'groups': ('udbsync', 'udbsync_public', 'udb', 'udb_public')
+        'groups': ('udbsync', 'udbsync_public', 'udb', 'udb_public'),
     },
-    'hfs': {
-        'uid': 20100,
-        'groups': ('hfs', 'hfs_public')
-    },
-    'homepage': {
-        'uid': 20110,
-        'groups': ('homepage', 'udbsync_public')
-    },
-    'redmine': {
-        'uid': 20120,
-        'groups': ('redmine', 'udbsync_public')
-    },
+    'hfs': {'uid': 20100, 'groups': ('hfs', 'hfs_public')},
+    'homepage': {'uid': 20110, 'groups': ('homepage', 'udbsync_public')},
+    'redmine': {'uid': 20120, 'groups': ('redmine', 'udbsync_public')},
     'presencesync_usermap': {
-        'uid':
-        20130,
-        'groups': ('presencesync_usermap', 'presencesync_public',
-                   'udbsync_public', 'mdbsync_public')
+        'uid': 20130,
+        'groups': (
+            'presencesync_usermap',
+            'presencesync_public',
+            'udbsync_public',
+            'mdbsync_public',
+        ),
     },
     'presencesync_sso': {
         'uid': 20131,
-        'groups': ('presencesync_sso', 'presencesync_public', 'mdbsync_public',
-                   'udb_public', 'mdb_public')
+        'groups': (
+            'presencesync_sso',
+            'presencesync_public',
+            'mdbsync_public',
+            'udb_public',
+            'mdb_public',
+        ),
     },
     'concours': {
         'uid': 20150,
-        'groups': ('concours', 'udbsync_public', 'cluster_public')
+        'groups': ('concours', 'udbsync_public', 'cluster_public'),
     },
     'cluster': {
         'uid': 20160,
-        'groups': ('cluster', 'cluster_public', 'isolate')
+        'groups': ('cluster', 'cluster_public', 'isolate'),
     },
     # 20170 is isolate.
     'ansible': {
@@ -220,8 +214,10 @@ def copy(old, new, mode=0o600, owner='root:root'):
 
 
 def copytree(old, new, dir_mode=0o700, file_mode=0o600, owner='root:root'):
-    print('Copying %s -> %s (file mode: %o) (dir mode: %o) (own: %s)' %
-          (old, new, file_mode, dir_mode, owner))
+    print(
+        'Copying %s -> %s (file mode: %o) (dir mode: %o) (own: %s)'
+        % (old, new, file_mode, dir_mode, owner)
+    )
     shutil.copytree(old, new)
     user, group = owner.split(':')
     for root, dirs, files in os.walk(new):
@@ -288,7 +284,8 @@ def install_cfg_profile(name, group, mode=0o640):
         os.path.join('prologin', name + '.yml'),
         '/etc/prologin',
         owner='root:%s' % group,
-        mode=mode)
+        mode=mode,
+    )
 
 
 def install_nginx_service(name, contest=False):
@@ -300,7 +297,8 @@ def install_nginx_service(name, contest=False):
         os.path.join('nginx', 'services', name + '.nginx'),
         where,
         owner='root:root',
-        mode=0o644)
+        mode=0o644,
+    )
 
 
 def install_systemd_unit(name, instance='system', kind='service'):
@@ -308,7 +306,8 @@ def install_systemd_unit(name, instance='system', kind='service'):
         os.path.join('systemd', instance, name + '.' + kind),
         '/etc/systemd/' + instance,
         owner='root:root',
-        mode=0o644)
+        mode=0o644,
+    )
 
 
 def install_service_dir(path, owner, mode):
@@ -343,10 +342,14 @@ def django_migrate(name, user=None):
 
 
 def check_database_exists(database):
-    return subprocess.run(
-        "exit $(echo \"SELECT 1 FROM pg_database WHERE datname='{}'\" | "
-        "su - postgres -c 'psql -t')".format(database),
-        shell=True).returncode != 0
+    return (
+        subprocess.run(
+            "exit $(echo \"SELECT 1 FROM pg_database WHERE datname='{}'\" | "
+            "su - postgres -c 'psql -t')".format(database),
+            shell=True,
+        ).returncode
+        != 0
+    )
 
 
 def execute_sql(name, database=None, verbose=True):
@@ -362,10 +365,11 @@ def execute_sql(name, database=None, verbose=True):
         args.append(database)
 
     with with_secrets(path) as tmp_sql:
-        system("su - postgres -c 'psql {args}' < {path}".format(
-            path=tmp_sql,
-            args=' '.join(args),
-        ))
+        system(
+            "su - postgres -c 'psql {args}' < {path}".format(
+                path=tmp_sql, args=' '.join(args),
+            )
+        )
 
 
 # Component specific installation procedures
@@ -399,14 +403,17 @@ def install_libprologin():
 def install_sadm_secret():
     if not os.path.exists(SECRET_PATH):
 
-        print('We need to set the Prologin SADM master secret.\n'
-              'This secret has to be shared across all the machines.')
+        print(
+            'We need to set the Prologin SADM master secret.\n'
+            'This secret has to be shared across all the machines.'
+        )
         # The master secret can be configured from the environment or from user input
         secret = os.environ.get('PROLOGIN_SADM_MASTER_SECRET', None)
         if secret is None:
             secret = getpass.getpass('Enter ProloginSADM master secret: ')
             secret_check = getpass.getpass(
-                'Enter ProloginSADM master secret again: ')
+                'Enter ProloginSADM master secret again: '
+            )
             if secret != secret_check:
                 raise RuntimeError("Master secrets do not match, aborting.")
 
@@ -419,39 +426,47 @@ def install_sadm_secret():
 def install_postgresql():
     pg_path = '/var/lib/postgres/data'
     if not os.path.exists(os.path.join(pg_path, 'postgresql.conf')):
-        system('su - postgres -c "initdb --locale en_US.UTF-8 -D {}"'
-               .format(pg_path))
+        system(
+            'su - postgres -c "initdb --locale en_US.UTF-8 -D {}"'.format(
+                pg_path
+            )
+        )
     install_cfg(
         'postgres/pg_hba.conf',
         pg_path,
         owner='postgres:postgres',
         mode=0o600,
-        replace=True)
+        replace=True,
+    )
     install_cfg(
         'postgres/postgresql.conf',
         pg_path,
         owner='postgres:postgres',
         mode=0o600,
-        replace=True)
+        replace=True,
+    )
 
 
 def install_nginxcfg():
     install_cfg(
-        'nginx/nginx.conf', '/etc/nginx', owner='root:root', mode=0o644)
+        'nginx/nginx.conf', '/etc/nginx', owner='root:root', mode=0o644
+    )
     if not os.path.exists('/etc/nginx/include'):
         copytree(
             'etc/nginx/include',
             '/etc/nginx/include',
             owner='http:root',
             dir_mode=0o750,
-            file_mode=0o640)
+            file_mode=0o640,
+        )
     if not os.path.exists('/etc/nginx/sso'):
         copytree(
             'etc/nginx/sso',
             '/etc/nginx/sso',
             owner='http:root',
             dir_mode=0o750,
-            file_mode=0o640)
+            file_mode=0o640,
+        )
     mkdir('/etc/nginx/services', mode=0o755, owner='root:root')
     mkdir('/etc/nginx/services_contest', mode=0o755, owner='root:root')
     if not os.path.exists('/etc/nginx/logs'):
@@ -462,15 +477,21 @@ def install_nginxcfg():
 def install_bindcfg():
     install_cfg('named.conf', '/etc', owner='root:named', mode=0o640)
     mkdir('/etc/named', mode=0o770, owner='named:mdbdns')
-    for zone in ('0.in-addr.arpa', '127.in-addr.arpa', '255.in-addr.arpa',
-                 'localhost'):
+    for zone in (
+        '0.in-addr.arpa',
+        '127.in-addr.arpa',
+        '255.in-addr.arpa',
+        'localhost',
+    ):
         install_cfg(
             'named/%s.zone' % zone,
             '/etc/named',
             owner='named:named',
-            mode=0o640)
+            mode=0o640,
+        )
     install_cfg(
-        'named/root.hint', '/etc/named', owner='named:named', mode=0o640)
+        'named/root.hint', '/etc/named', owner='named:named', mode=0o640
+    )
     # named (8) emits a warning if this file is not present
     if not os.path.exists('/etc/rndc.key'):
         # The following command generates it
@@ -486,10 +507,8 @@ def install_dhcpdcfg():
     mkdir('/etc/dhcpd', mode=0o770, owner='dhcp:mdbdhcp')
     # Create an empty file with the right owner
     copy(
-        '/dev/null',
-        '/etc/dhcpd/generated.conf',
-        owner='dhcp:dhcp',
-        mode=0o640)
+        '/dev/null', '/etc/dhcpd/generated.conf', owner='dhcp:dhcp', mode=0o640
+    )
 
 
 def install_sshdcfg():
@@ -498,7 +517,8 @@ def install_sshdcfg():
         '/etc/ssh',
         owner='root:root',
         mode=0o644,
-        replace=True)
+        replace=True,
+    )
 
 
 def install_mdb():
@@ -523,9 +543,9 @@ def install_mdb():
     mkdir('/etc/ansible', mode=0o755, owner='root:root')
     install_cfg('ansible/hosts', '/etc/ansible/', mode=0o700)
     install_cfg(
-        'ansible/ansible.cfg',
-        '/etc/ansible/',
-         owner='ansible:ansible')
+        'ansible/ansible.cfg', '/etc/ansible/', owner='ansible:ansible'
+    )
+
 
 
 def install_mdbsync():
@@ -555,7 +575,8 @@ def install_docs():
     requires('nginxcfg')
 
     install_service_dir(
-        'webservices/docs', mode=0o755, owner='webservices:http')
+        'webservices/docs', mode=0o755, owner='webservices:http'
+    )
     install_nginx_service('docs')
 
 
@@ -563,7 +584,8 @@ def install_paste():
     requires('nginxcfg')
 
     install_service_dir(
-        'webservices/paste', mode=0o755, owner='webservices:http')
+        'webservices/paste', mode=0o755, owner='webservices:http'
+    )
     install_nginx_service('paste')
     install_systemd_unit('paste')
     django_migrate('paste', user='webservices')
@@ -578,18 +600,21 @@ def install_redmine():
         'webservices/redmine/unicorn.ru',
         '/var/prologin/redmine/script/unicorn.ru',
         owner='redmine:redmine',
-        mode=0o640)
+        mode=0o640,
+    )
     copy(
         'webservices/redmine/user_update.rb',
         '/var/prologin/redmine/script/user_update.rb',
         owner='redmine:redmine',
-        mode=0o640)
+        mode=0o640,
+    )
     copytree(
         'webservices/redmine/issues_json_socket_send',
         '/var/prologin/redmine/plugins/issues_json_socket_send',
         owner='redmine:redmine',
         dir_mode=0o750,
-        file_mode=0o640)
+        file_mode=0o640,
+    )
 
     install_nginx_service('redmine', contest=True)
     install_systemd_unit('redmine')
@@ -609,7 +634,8 @@ def install_homepage():
     db_exists = check_database_exists('homepage')
 
     install_service_dir(
-        'django/homepage', owner='homepage:homepage', mode=0o700)
+        'django/homepage', owner='homepage:homepage', mode=0o700
+    )
     install_nginx_service('homepage')
     install_systemd_unit('homepage')
 
@@ -630,7 +656,8 @@ def install_concours():
     db_exists = check_database_exists('concours')
 
     install_service_dir(
-        'django/concours', owner='concours:concours', mode=0o700)
+        'django/concours', owner='concours:concours', mode=0o700
+    )
     install_nginx_service('concours', contest=True)
     install_systemd_unit('concours')
 
@@ -720,12 +747,15 @@ def install_presenced():
     install_service_dir(
         'python-lib/prologin/presenced',
         owner='presenced:presenced',
-        mode=0o700)
+        mode=0o700,
+    )
     install_systemd_unit('presenced')
 
     cfg = '/etc/pam.d/system-login'
-    cfg_line = ('session requisite pam_exec.so'
-                ' /var/prologin/presenced/pam_presenced.py')
+    cfg_line = (
+        'session requisite pam_exec.so'
+        ' /var/prologin/presenced/pam_presenced.py'
+    )
 
     with open(cfg, 'r') as f:
         cfg_contents = f.read().split('\n')
@@ -733,8 +763,9 @@ def install_presenced():
 
     if to_append:
         cfg_contents = '\n'.join(cfg_contents)
-        cfg_new = re.sub(r'(.*pam_systemd.*)', cfg_line + r'\n\1',
-                         cfg_contents)
+        cfg_new = re.sub(
+            r'(.*pam_systemd.*)', cfg_line + r'\n\1', cfg_contents
+        )
         with open(cfg, 'w') as f:
             print(cfg_new, file=f)
 
@@ -746,7 +777,8 @@ def install_presencesync():
     install_service_dir(
         'python-lib/prologin/presencesync',
         owner='presencesync:presencesync',
-        mode=0o700)
+        mode=0o700,
+    )
     install_nginx_service('presencesync')
     install_systemd_unit('presencesync')
 
@@ -759,17 +791,20 @@ def install_presencesync_usermap():
     mkdir(
         '/var/prologin/presencesync_usermap',
         mode=0o750,
-        owner='presencesync_usermap:http')
+        owner='presencesync_usermap:http',
+    )
     copy(
         'python-lib/prologin/presencesync_clients/usermap.svg',
         '/var/prologin/presencesync_usermap/pattern.svg',
         mode=0o640,
-        owner='presencesync_usermap:http')
+        owner='presencesync_usermap:http',
+    )
     copy(
         'webservices/presencesync_usermap/index.html',
         '/var/prologin/presencesync_usermap/index.html',
         mode=0o640,
-        owner='presencesync_usermap:http')
+        owner='presencesync_usermap:http',
+    )
     install_nginx_service('usermap')
     install_systemd_unit('presencesync_usermap')
 
@@ -809,7 +844,8 @@ def install_rfs():
         'exports.d/rfs.exports',
         '/etc/exports.d',
         mode=0o640,
-        owner='root:root')
+        owner='root:root',
+    )
     system('exportfs -arv')
 
 
@@ -819,8 +855,11 @@ def install_rfs_nfs_archlinux():
 
     # TODO(halfr): replace /dev/null with file containing root password
     with cwd('install_scripts'):
-        system('./bootstrap_arch_linux.sh {} {} {}'.format(
-            ROOTFS_STAGING, '""', '/dev/null'))
+        system(
+            './bootstrap_arch_linux.sh {} {} {}'.format(
+                ROOTFS_STAGING, '""', '/dev/null'
+            )
+        )
 
 
 def install_resource_limits():
@@ -829,15 +868,17 @@ def install_resource_limits():
     mkdir('/etc/systemd/system/system.slice.d/', 0o755)
     mkdir('/etc/systemd/system/-.slice.d/', 0o755)
     for fname in (
-            "user-.slice.d/20-max-memory.conf",
-            "user-.slice.d/20-no-fork-bomb-plz.conf",
-            "user.slice.d/20-cpu-share.conf",
-            "system.slice.d/20-cpu-share.conf",
-            "-.slice.d/20-cpu-accounting.conf",
+        "user-.slice.d/20-max-memory.conf",
+        "user-.slice.d/20-no-fork-bomb-plz.conf",
+        "user.slice.d/20-cpu-share.conf",
+        "system.slice.d/20-cpu-share.conf",
+        "-.slice.d/20-cpu-accounting.conf",
     ):
-        copy(f'etc/systemd/system/{fname}',
-             f'/etc/systemd/system/{fname}',
-             0o644)
+        copy(
+            f'etc/systemd/system/{fname}',
+            f'/etc/systemd/system/{fname}',
+            0o644,
+        )
     copy('etc/sysctl/memory.conf', '/etc/sysctl.d/memory.conf', 0o644)
 
 
@@ -859,14 +900,16 @@ def install_rfs_nfs_sadm():
 
     # Spawn a chroot inside the nfs export
     system(
-        '/usr/bin/systemd-nspawn -q -D {} /root/sadm/install_scripts/setup_nfs_export.sh'.
-        format(ROOTFS_STAGING))
+        '/usr/bin/systemd-nspawn -q -D {} /root/sadm/install_scripts/setup_nfs_export.sh'.format(
+            ROOTFS_STAGING
+        )
+    )
 
 
 def install_rfs_nfs_packages_base():
     raw_package_list = open('rfs/package_list_base').read().splitlines()
     package_list = [
-        line[len('* '):] for line in raw_package_list if line.startswith('* ')
+        line[len('* ') :] for line in raw_package_list if line.startswith('* ')
     ]
     packages = ' '.join(package_list)
     _install_rfs_nfs_packages(packages)
@@ -875,7 +918,7 @@ def install_rfs_nfs_packages_base():
 def install_rfs_nfs_packages_extra():
     raw_package_list = open('rfs/package_list_extra').read().splitlines()
     package_list = [
-        line[len('* '):] for line in raw_package_list if line.startswith('* ')
+        line[len('* ') :] for line in raw_package_list if line.startswith('* ')
     ]
     packages = ' '.join(package_list)
     _install_rfs_nfs_packages(packages)
@@ -884,21 +927,23 @@ def install_rfs_nfs_packages_extra():
 def _install_rfs_nfs_packages(packages):
     # Install packages in a chroot
     system(
-        '/usr/bin/systemd-nspawn -q -D {} /usr/bin/pacman -Sy --needed --noconfirm {}'.
-        format(ROOTFS_STAGING, packages))
+        '/usr/bin/systemd-nspawn -q -D {} /usr/bin/pacman -Sy --needed --noconfirm {}'.format(
+            ROOTFS_STAGING, packages
+        )
+    )
 
 
 def install_sddmcfg():
     copy('etc/sddm/sddm.conf', '/etc/sddm.conf', mode=0o644)
     copy(
-        'etc/sddm/scripts/Xsetup',
-        '/usr/share/sddm/scripts/Xsetup',
-        mode=0o755)
+        'etc/sddm/scripts/Xsetup', '/usr/share/sddm/scripts/Xsetup', mode=0o755
+    )
     copytree(
         'etc/sddm/themes/prologin',
         '/usr/share/sddm/themes/prologin',
         dir_mode=0o755,
-        file_mode=0o644)
+        file_mode=0o644,
+    )
 
 
 def install_hfsdb():
@@ -919,7 +964,8 @@ def install_hfs():
             '/export/skeleton',
             dir_mode=0o755,
             file_mode=0o644,
-            owner='root:root')
+            owner='root:root',
+        )
 
 
 def install_systemd_networkd_gw():
@@ -928,7 +974,8 @@ def install_systemd_networkd_gw():
 
 def install_systemd_networkd_rhfs():
     _install_systemd_networkd(
-        ['10-rhfs-a.link', '10-rhfs-b.link', '10-rhfs.network'])
+        ['10-rhfs-a.link', '10-rhfs-b.link', '10-rhfs.network']
+    )
 
 
 def install_systemd_networkd_web():
@@ -940,14 +987,17 @@ def _install_systemd_networkd(configuration_filenames):
         copy(
             'etc/systemd/network/' + networkd_file,
             '/etc/systemd/network/' + networkd_file,
-            mode=0o644)
+            mode=0o644,
+        )
     # Disable default naming configuration
     symlink('/dev/null', '/etc/systemd/network/99-default.link')
     system('systemctl restart systemd-networkd')
 
     # Disable ICMP redirects
-    copy('etc/sysctl/no_icmp_redirect.conf',
-         '/etc/sysctl.d/no_icmp_redirect.conf')
+    copy(
+        'etc/sysctl/no_icmp_redirect.conf',
+        '/etc/sysctl.d/no_icmp_redirect.conf',
+    )
     system('systemctl restart systemd-sysctl')
 
 
@@ -973,11 +1023,13 @@ def install_masternode():
     mkdir(
         '/var/prologin/concours_shared',
         mode=0o770,
-        owner='concours:cluster_public')
+        owner='concours:cluster_public',
+    )
     mkdir(
         '/var/prologin/concours_shared/maps',
         mode=0o770,
-        owner='concours:cluster_public')
+        owner='concours:cluster_public',
+    )
 
 
 def install_workernode():
@@ -988,15 +1040,21 @@ def install_workernode():
 
 def install_prometheus():
     for fname in ['prometheus.yml', 'alert.rules.yml', 'sadm.rules.yml']:
-        install_cfg(f'prometheus/{fname}',
-                    '/etc/prometheus/',
-                    owner='prometheus:prometheus')
+        install_cfg(
+            f'prometheus/{fname}',
+            '/etc/prometheus/',
+            owner='prometheus:prometheus',
+        )
     install_systemd_unit('prometheus')
 
 
 def install_ircd():
     install_cfg(
-        'unrealircd/unrealircd.conf', '/etc/unrealircd', owner='root:root', mode=0o644)
+        'unrealircd/unrealircd.conf',
+        '/etc/unrealircd',
+        owner='root:root',
+        mode=0o644,
+    )
     install_systemd_unit('irc_gatessh')
 
 
@@ -1118,9 +1176,12 @@ if __name__ == '__main__':
         print('error: this script needs to be run as root')
         sys.exit(1)
 
-    if not (hasattr(sys, 'real_prefix')
-            or hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix
-            or 'VIRTUAL_ENV' in os.environ):
+    if not (
+        hasattr(sys, 'real_prefix')
+        or hasattr(sys, 'base_prefix')
+        and sys.base_prefix != sys.prefix
+        or 'VIRTUAL_ENV' in os.environ
+    ):
         print('error: this script needs to be run in a venv')
         sys.exit(1)
 

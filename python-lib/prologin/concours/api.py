@@ -11,17 +11,24 @@ def champion_upload(base, tarball, name, comment):
     try:
         token = s.cookies['csrftoken']
     except KeyError:
-        print("Error: could not retrieve CSRF token (no SSO?)", file=sys.stderr)
+        print(
+            "Error: could not retrieve CSRF token (no SSO?)", file=sys.stderr
+        )
         return 1
-    res = s.post(base + "/champions",
-                 data={'name': name, 'comment': comment, 'csrfmiddlewaretoken': token},
-                 files={'sources': tarball})
+    res = s.post(
+        base + "/champions",
+        data={'name': name, 'comment': comment, 'csrfmiddlewaretoken': token},
+        files={'sources': tarball},
+    )
     if not res.ok:
         print("Error", res.json(), file=sys.stderr)
         return 1
     res = res.json()
-    print("Your champion {} was uploaded to {} ({})".format(
-        res['id'], res['url'], res['status_human'].lower()))
+    print(
+        "Your champion {} was uploaded to {} ({})".format(
+            res['id'], res['url'], res['status_human'].lower()
+        )
+    )
     return 0
 
 

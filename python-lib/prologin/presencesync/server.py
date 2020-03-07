@@ -142,8 +142,7 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
 
         # Prepend updates for logged off users.
         update_msg = [
-            self.item_to_update('delete', login, None)
-            for login in removed
+            self.item_to_update('delete', login, None) for login in removed
         ] + update_msg
 
         if update_msg:
@@ -173,8 +172,9 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
 
         # 1 - The user is already logged on `hostname`
         if self.backlog.get(login, (None, None))[1] == hostname:
-            presencesync_login_failed.labels(user=login,
-                                             reason='already_logged').inc()
+            presencesync_login_failed.labels(
+                user=login, reason='already_logged'
+            ).inc()
 
             logging.debug('%s is already logged on %s', login, hostname)
             return None
@@ -183,45 +183,53 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
         #     `hostname` and the user is allowed to log on `hostname` (a
         #     contestant cannot log on an organizer host.
         if login in self.backlog:
-            presencesync_login_failed.labels(user=login,
-                                             reason='already_logged').inc()
+            presencesync_login_failed.labels(
+                user=login, reason='already_logged'
+            ).inc()
 
             return fail('{} is already logged somewhere else'.format(login))
         elif hostname in self.reverse_backlog:
-            presencesync_login_failed.labels(user=login,
-                                             reason='busy').inc()
+            presencesync_login_failed.labels(user=login, reason='busy').inc()
 
             return fail('{} is busy'.format(hostname))
         else:
-            logging.debug('%s is not logged anywhere and %s is not busy',
-                          login, hostname)
+            logging.debug(
+                '%s is not logged anywhere and %s is not busy', login, hostname
+            )
             match = self.mdb.query(hostname=hostname)
             if len(match) != 1:
                 # Either there is no such hostname: refuse it, either there are
                 # many machine for a single hostname, which should never
                 # happen, or we have a big problem!
-                presencesync_login_failed \
-                    .labels(user=login, reason='machine_not_registered').inc()
+                presencesync_login_failed.labels(
+                    user=login, reason='machine_not_registered'
+                ).inc()
 
                 return fail('{} is not a registered machine'.format(hostname))
             machine = match[0]
 
             match = self.udb.query(login=login)
             if len(match) != 1:
-                presencesync_login_failed \
-                    .labels(user=login, reason='user_not_registered').inc()
+                presencesync_login_failed.labels(
+                    user=login, reason='user_not_registered'
+                ).inc()
 
                 return fail('{} is not a registered user'.format(login))
             user = match[0]
 
             # The login will fail only if a simple user (contestant) tries to
             # log on a machine not for contestants. :-)
-            logging.debug('USER %s is a %s, MACHINE %s is a %s',
-                          login, user['group'], hostname, machine['mtype'])
+            logging.debug(
+                'USER %s is a %s, MACHINE %s is a %s',
+                login,
+                user['group'],
+                hostname,
+                machine['mtype'],
+            )
             if user['group'] == 'user' and machine['mtype'] != 'user':
-                presencesync_login_failed.labels(user=login,
-                                                 reason='user_not_allowed') \
-                    .inc()
+                presencesync_login_failed.labels(
+                    user=login, reason='user_not_allowed'
+                ).inc()
 
                 return fail(
                     '{} is not a kind of user'
@@ -247,10 +255,7 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
         for expired logins first.
         """
         self.remove_and_publish_expired()
-        return {
-            login: info[1]
-            for login, info in self.backlog.items()
-        }
+        return {login: info[1] for login, info in self.backlog.items()}
 
     def request_login(self, login, hostname):
         """Try to register `login` as logged on `hostname`.  Return None if
@@ -263,15 +268,19 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
         # expiration TIMEOUT. This will prevent users from logging until
         # database is regenerated thanks to heartbeats.
         if self.start_ts is None or time.time() < self.start_ts + self.TIMEOUT:
-            logging.debug('Login for %s on %s refused: too early',
-                          login, hostname)
+            logging.debug(
+                'Login for %s on %s refused: too early', login, hostname
+            )
             if self.start_ts is None:
                 logging.debug('Starting date is undefined')
             else:
-                logging.debug('Still have to wait for %s seconds',
-                              int(self.start_ts + self.TIMEOUT - time.time()))
-            presencesync_login_failed.labels(user=login, reason='too_early')\
-                .inc()
+                logging.debug(
+                    'Still have to wait for %s seconds',
+                    int(self.start_ts + self.TIMEOUT - time.time()),
+                )
+            presencesync_login_failed.labels(
+                user=login, reason='too_early'
+            ).inc()
             return 'Too early login: try again later'
 
         failure_reason = self.is_login_allowed(login, hostname)
@@ -294,9 +303,7 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
 class GetListHandler(tornado.web.RequestHandler):
     @prologin.tornadauth.signature_checked('sub_secret', check_msg=True)
     def get(self, msg):
-        self.write(json.dumps(
-            self.application.pubsub_queue.get_list()
-        ))
+        self.write(json.dumps(self.application.pubsub_queue.get_list()))
 
 
 class LoginHandler(tornado.web.RequestHandler):
@@ -340,8 +347,7 @@ class SyncServer(prologin.synchronisation.Server):
     def start(self):
         self.pubsub_queue.start()
         self.removing_expired_thread = threading.Thread(
-            target=self.loop_removing_expired,
-            daemon=True
+            target=self.loop_removing_expired, daemon=True
         )
         self.removing_expired_thread.start()
         super(SyncServer, self).start()
@@ -393,8 +399,6 @@ if __name__ == '__main__':
     monitoring_start()
 
     server = SyncServer(
-        PUB_CFG['shared_secret'],
-        SUB_CFG['shared_secret'],
-        port
+        PUB_CFG['shared_secret'], SUB_CFG['shared_secret'], port
     )
     server.start()

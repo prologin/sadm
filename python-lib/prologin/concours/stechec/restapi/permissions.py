@@ -10,6 +10,7 @@ class IsOwnerOrReadOnly(permissions.IsAuthenticated):
     Object-level permission to only allow staff or owners of an object to edit it.
     Allow read-only access for everybody (authenticated).
     """
+
     field = 'author'
 
     def has_object_permission(self, request, view, obj):
@@ -30,4 +31,8 @@ def IsOwnerUsing(field):  # noqa
     Exmample usage:
         permission_classes = [IsOwnerUsing('owner')]
     """
-    return type('IsOwnerUsing%s' % field.capitalize(), (IsOwnerOrReadOnly,), {'field': field})
+    return type(
+        'IsOwnerUsing%s' % field.capitalize(),
+        (IsOwnerOrReadOnly,),
+        {'field': field},
+    )

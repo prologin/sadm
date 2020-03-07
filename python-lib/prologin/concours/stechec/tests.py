@@ -19,7 +19,8 @@ class LoginMixin:
 
     def login(self, user):
         self.assertTrue(
-            self.client.login(username=user.username, password='pswd'))
+            self.client.login(username=user.username, password='pswd')
+        )
 
 
 class StechecMixin:
@@ -84,17 +85,22 @@ class ChampionTestCase(StechecMixin, LoginMixin, TestCase):
         self.assertContains(r, "un champion")
 
         r = self.client.post(
-            '/champions/new/', {
+            '/champions/new/',
+            {
                 'name': self.champion_name,
                 'tarball': self.dummy_champion_tgz(),
-                'comment': "On est tous ensemble"
-            })
+                'comment': "On est tous ensemble",
+            },
+        )
         self.assertRedirects(r, '/champions/1/')
 
-        self.assertContains(self.client.get('/champions/all/'),
-                            self.champion_name)
-        self.assertContains(self.client.get('/champions/mine/', follow=True),
-                            self.champion_name)
+        self.assertContains(
+            self.client.get('/champions/all/'), self.champion_name
+        )
+        self.assertContains(
+            self.client.get('/champions/mine/', follow=True),
+            self.champion_name,
+        )
 
         r = self.client.get('/champions/1/')
         self.assertContains(r, self.user_joseph.username)
@@ -108,8 +114,9 @@ class ChampionTestCase(StechecMixin, LoginMixin, TestCase):
         r = self.client.post('/champions/1/delete/')
         self.assertRedirects(r, '/champions/mine/')
 
-        self.assertNotContains(self.client.get('/champions/mine/'),
-                               self.champion_name)
+        self.assertNotContains(
+            self.client.get('/champions/mine/'), self.champion_name
+        )
 
     def test_get_champion_sources(self):
         self.test_upload_champion()
@@ -145,10 +152,10 @@ class MapTestCase(StechecMixin, LoginMixin, TestCase):
         r = self.client.get('/maps/new/')
         self.assertContains(r, "une carte")
 
-        r = self.client.post('/maps/new/', {
-            'name': "Such map",
-            'contents': "Much contents, wow"
-        })
+        r = self.client.post(
+            '/maps/new/',
+            {'name': "Such map", 'contents': "Much contents, wow"},
+        )
         self.assertRedirects(r, '/maps/1/')
 
         r = self.client.get('/maps/all/')
@@ -168,22 +175,20 @@ class MatchTestCase(StechecMixin, LoginMixin, TestCase):
         self.login(self.user_joseph)
 
     def test_add_match(self):
-        models.Champion.objects.create(name="bleu",
-                                       author=self.user_joseph,
-                                       status='ready')
-        models.Champion.objects.create(name="rouge",
-                                       author=self.user_jeanne,
-                                       status='ready')
+        models.Champion.objects.create(
+            name="bleu", author=self.user_joseph, status='ready'
+        )
+        models.Champion.objects.create(
+            name="rouge", author=self.user_jeanne, status='ready'
+        )
         models.Map.objects.create(name="Such map", author=self.user_joseph)
 
         r = self.client.get('/matches/new/')
         self.assertContains(r, "Such map")
 
-        r = self.client.post('/matches/new/', {
-            'champion_1': '1',
-            'champion_2': '2',
-            'map': '1'
-        })
+        r = self.client.post(
+            '/matches/new/', {'champion_1': '1', 'champion_2': '2', 'map': '1'}
+        )
         self.assertEqual(models.Match.objects.count(), 1)
         self.assertRedirects(r, '/matches/1/')
 

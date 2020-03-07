@@ -75,7 +75,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'prologin.concours.stechec.context_processors.inject_settings',
             ]
-        }
+        },
     },
 ]
 
@@ -87,21 +87,16 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
-
     # Vendor
     'crispy_forms',
     'django_bootstrap_breadcrumbs',
-
     # Prologin
     'prologin.concours.stechec',
-
     # Built-in or vendor (for template overriding)
     'rest_framework',
     'django.contrib.admin',
-
     # Monitoring
     'django_prometheus',
-
     'debug_toolbar',
 )
 
@@ -131,7 +126,7 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
-    }
+    },
 }
 
 # This is actually the default, explicit is better than implicit
@@ -142,7 +137,9 @@ CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
 # Rest Framework settings
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAuthenticatedOrReadOnly',),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ),
     'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.NamespaceVersioning',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
@@ -152,8 +149,10 @@ REST_FRAMEWORK = {
 
 INTERNAL_IPS = ['*']
 
+
 def show_toolbar(request):
     return True
+
 
 DEBUG_TOOLBAR_CONFIG = {
     'SHOW_TOOLBAR_CALLBACK': 'prologin.concours.settings.show_toolbar'

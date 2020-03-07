@@ -23,7 +23,6 @@ from prologin.mdb.models import Machine
 
 
 class Command(BaseCommand):
-
     def add_arguments(self, parser):
         parser.add_argument('command', nargs='+', help='Command to run')
 
@@ -33,17 +32,19 @@ class Command(BaseCommand):
         parser.add_argument('--rfs', help='RFS used by the machines')
         parser.add_argument('--hfs', help='HFS used by the machines')
         parser.add_argument('--user', help='SSH as this user (default: root)')
-        parser.add_argument('--mtype',
-                        help='Machines type (user/orga/cluster/service)')
-        parser.add_argument('--room',
-                        help='Machines location (pasteur/alt/cluster/other')
+        parser.add_argument(
+            '--mtype', help='Machines type (user/orga/cluster/service)'
+        )
+        parser.add_argument(
+            '--room', help='Machines location (pasteur/alt/cluster/other'
+        )
 
     def handle(self, *args, **options):
         user = options['user'] or 'root'
         kwargs = {}
         for attr in ('hostname', 'ip', 'mac', 'rfs', 'hfs', 'mtype', 'room'):
             if options.get(attr, None) is not None:
-                kwargs[attr+'__iregex'] = options[attr]
+                kwargs[attr + '__iregex'] = options[attr]
         machines = Machine.objects.filter(**kwargs)
 
         print("Warning: running command on %s in 3sec..." % machines)
@@ -51,6 +52,7 @@ class Command(BaseCommand):
 
         ips = ' '.join([machine.ip for machine in machines])
         command = ' '.join(options['command'])
-        p = subprocess.Popen('pssh -l %s -H "%s" %s' % (user, ips, command),
-                             shell=True)
+        p = subprocess.Popen(
+            'pssh -l %s -H "%s" %s' % (user, ips, command), shell=True
+        )
         p.wait()

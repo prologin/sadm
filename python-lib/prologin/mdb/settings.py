@@ -16,6 +16,7 @@
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 from prologin.djangoconf import use_profile_config
+
 cfg = use_profile_config('mdb-server')
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
@@ -115,7 +116,6 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'prologin.mdb',
-
     # Monitoring
     'django_prometheus',
 )
@@ -146,5 +146,5 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
-    }
+    },
 }

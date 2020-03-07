@@ -45,25 +45,43 @@ MAC_REGEX = r'[0-9a-zA-Z]{2}(?::[0-9a-zA-Z]{2}){5}'
 
 
 class Machine(ExportModelOperationsMixin('machine'), models.Model):
-    hostname = models.CharField(max_length=64, unique=True,
-                                verbose_name='Host name',
-                                validators=[RegexValidator(regex=HOSTNAME_REGEX)],
-                                help_text=HOSTNAME_REGEX)
-    aliases = models.CharField(max_length=512, blank=True,
-                               validators=[RegexValidator(regex=ALIASES_REGEX)],
-                               help_text='host0,host1,etc.')
-    ip = models.GenericIPAddressField(unique=True, verbose_name='IP',
-                                      help_text='The IP address is automatically allocated.')
-    mac = models.CharField(max_length=17, unique=True, verbose_name='MAC',
-                           validators=[RegexValidator(regex=MAC_REGEX)],
-                           help_text='aa:bb:cc:dd:ee:ff')
+    hostname = models.CharField(
+        max_length=64,
+        unique=True,
+        verbose_name='Host name',
+        validators=[RegexValidator(regex=HOSTNAME_REGEX)],
+        help_text=HOSTNAME_REGEX,
+    )
+    aliases = models.CharField(
+        max_length=512,
+        blank=True,
+        validators=[RegexValidator(regex=ALIASES_REGEX)],
+        help_text='host0,host1,etc.',
+    )
+    ip = models.GenericIPAddressField(
+        unique=True,
+        verbose_name='IP',
+        help_text='The IP address is automatically allocated.',
+    )
+    mac = models.CharField(
+        max_length=17,
+        unique=True,
+        verbose_name='MAC',
+        validators=[RegexValidator(regex=MAC_REGEX)],
+        help_text='aa:bb:cc:dd:ee:ff',
+    )
     rfs = models.IntegerField(verbose_name='RFS', default=0)
     hfs = models.IntegerField(verbose_name='HFS', default=0)
-    mtype = models.CharField(max_length=20, choices=TYPES, verbose_name='Type',
-                             default='orga')
+    mtype = models.CharField(
+        max_length=20, choices=TYPES, verbose_name='Type', default='orga'
+    )
     room = models.CharField(max_length=20, choices=ROOMS, default='other')
-    is_faulty = models.BooleanField(default=False, verbose_name="Faulty machine")
-    is_faulty_details = models.TextField(blank=True, verbose_name="Details on why the machine is faulty")
+    is_faulty = models.BooleanField(
+        default=False, verbose_name="Faulty machine"
+    )
+    is_faulty_details = models.TextField(
+        blank=True, verbose_name="Details on why the machine is faulty"
+    )
 
     def __str__(self):
         return self.hostname
@@ -106,11 +124,13 @@ class Machine(ExportModelOperationsMixin('machine'), models.Model):
 
 
 class IPPool(ExportModelOperationsMixin('ippool'), models.Model):
-    mtype = models.CharField(max_length=20, choices=TYPES, unique=True,
-                             verbose_name='For type')
+    mtype = models.CharField(
+        max_length=20, choices=TYPES, unique=True, verbose_name='For type'
+    )
     network = models.CharField(max_length=32, unique=True, verbose_name='CIDR')
-    last = models.IntegerField(blank=True, default=0,
-                               verbose_name='Last allocation')
+    last = models.IntegerField(
+        blank=True, default=0, verbose_name='Last allocation'
+    )
 
     def __str__(self):
         return 'Pool for %r: %s' % (self.mtype, self.network)
@@ -123,13 +143,16 @@ class IPPool(ExportModelOperationsMixin('ippool'), models.Model):
 
 class Switch(ExportModelOperationsMixin('switch'), models.Model):
     """Used for automatic registering with LLDP"""
+
     name = models.CharField(max_length=64, verbose_name='Name')
-    chassis = models.CharField(max_length=17, unique=True,
-                               verbose_name='Chassis ID',
-                               validators=[RegexValidator(regex=MAC_REGEX)],
-                               help_text='aa:bb:cc:dd:ee:ff')
-    room = models.CharField(max_length=20, choices=ROOMS,
-                            default='other')
+    chassis = models.CharField(
+        max_length=17,
+        unique=True,
+        verbose_name='Chassis ID',
+        validators=[RegexValidator(regex=MAC_REGEX)],
+        help_text='aa:bb:cc:dd:ee:ff',
+    )
+    room = models.CharField(max_length=20, choices=ROOMS, default='other')
     rfs = models.IntegerField(verbose_name='RFS', default=0)
     hfs = models.IntegerField(verbose_name='HFS', default=0)
 
@@ -158,8 +181,9 @@ class Switch(ExportModelOperationsMixin('switch'), models.Model):
 class VolatileSetting(ExportModelOperationsMixin('volatile'), models.Model):
     key = models.CharField(max_length=64, verbose_name='Key')
     value_bool = models.NullBooleanField(verbose_name='Boolean')
-    value_str = models.CharField(max_length=64, null=True, blank=True,
-                                 verbose_name='String')
+    value_str = models.CharField(
+        max_length=64, null=True, blank=True, verbose_name='String'
+    )
     value_int = models.IntegerField(null=True, blank=True, verbose_name='Int')
 
     def __str__(self):

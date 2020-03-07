@@ -26,14 +26,14 @@ from prologin.homepage import models
 class HomeView(ListView):
     template_name = 'home.html'
     context_object_name = 'links'
-    queryset = (models.Link.objects.filter(
-        Q(contest_only=False)
-        | Q(contest_only=settings.CONTEST_MODE)).order_by(
-            'display_order', 'name'))
+    queryset = models.Link.objects.filter(
+        Q(contest_only=False) | Q(contest_only=settings.CONTEST_MODE)
+    ).order_by('display_order', 'name')
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(object_list=object_list, **kwargs)
-        dt = datetime.datetime.strptime(settings.COUNTDOWN_TO,
-                                        "%Y-%m-%d %H:%M:%S")
+        dt = datetime.datetime.strptime(
+            settings.COUNTDOWN_TO, "%Y-%m-%d %H:%M:%S"
+        )
         context['target_date'] = timezone.make_aware(dt).isoformat()
         return context

@@ -34,9 +34,10 @@ class Worker(object):
         self.tasks = []
         self.keep_alive()
         self.config = config
-        self.rpc = prologin.rpc.client.Client("http://{}:{}/".format(
-            self.hostname, self.port),
-            secret=self.config['master']['shared_secret'].encode())
+        self.rpc = prologin.rpc.client.Client(
+            "http://{}:{}/".format(self.hostname, self.port),
+            secret=self.config['master']['shared_secret'].encode(),
+        )
 
     @property
     def usage(self):
@@ -44,7 +45,7 @@ class Worker(object):
 
     async def reachable(self):
         try:
-            return (await self.rpc.reachable())
+            return await self.rpc.reachable()
         except asyncio.CancelledError:
             raise
         except Exception:
@@ -71,24 +72,33 @@ class Worker(object):
         asyncio.Task(task.execute(master, self))
 
     def get_compilation_task(self, champ_id):
-        f = [isinstance(t, task.CompilationTask) and
-             t.champ_id == champ_id for t in self.tasks]
+        f = [
+            isinstance(t, task.CompilationTask) and t.champ_id == champ_id
+            for t in self.tasks
+        ]
         return f[0] if f else None
 
     def get_match_task(self, mid):
-        f = [isinstance(t, task.MatchTask) and
-             t.mid == mid for t in self.tasks]
+        f = [
+            isinstance(t, task.MatchTask) and t.mid == mid for t in self.tasks
+        ]
         return f[0] if f else None
 
     def remove_compilation_task(self, champ_id):
-        self.tasks = [t for t in self.tasks
-                      if not (isinstance(t, task.CompilationTask) and
-                              t.champ_id == champ_id)]
+        self.tasks = [
+            t
+            for t in self.tasks
+            if not (
+                isinstance(t, task.CompilationTask) and t.champ_id == champ_id
+            )
+        ]
 
     def remove_match_task(self, mid):
-        self.tasks = [t for t in self.tasks
-                      if not (isinstance(t, task.MatchTask) and
-                              t.mid == mid)]
+        self.tasks = [
+            t
+            for t in self.tasks
+            if not (isinstance(t, task.MatchTask) and t.mid == mid)
+        ]
 
     def __repr__(self):
         return '<Worker: {}:{}>'.format(self.hostname, self.port)

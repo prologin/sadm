@@ -13,6 +13,7 @@ def callback(users, updates_metadata):
         l = [k for k in l if k] + ['']
         f.write('\n'.join(l))
 
+
 if __name__ == '__main__':
     prologin.log.setup_logging('udbsync_rootssh')
     c = prologin.udbsync.client.connect()

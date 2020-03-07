@@ -54,7 +54,7 @@ def build_zone(name, records):
         '; Auto-generated zone\n'
     )
 
-    zone = ZONE_HEADER % { 'serial': serial }
+    zone = ZONE_HEADER % {'serial': serial}
     zone += '\n'.join('\t'.join(record) for record in records)
     zone += '\n'
 
@@ -89,15 +89,21 @@ def build_alien_prolo_zone():
     """Alien machines just need to be able to access netboot.
     """
 
-    build_zone('prolo_alien', [('netboot', 'IN', 'A', '192.168.250.254'),
-                               ('ns', 'IN', 'A', '192.168.250.254')])
+    build_zone(
+        'prolo_alien',
+        [
+            ('netboot', 'IN', 'A', '192.168.250.254'),
+            ('ns', 'IN', 'A', '192.168.250.254'),
+        ],
+    )
 
 
 def build_normal_prolo_zone(machines):
     records = []
     for m in machines:
-        names = [m['hostname']] + [s.strip() for s in m['aliases'].split(',')
-                                             if s.strip()]
+        names = [m['hostname']] + [
+            s.strip() for s in m['aliases'].split(',') if s.strip()
+        ]
         for n in names:
             records.append((n, 'IN', 'A', m['ip']))
     build_zone('prolo_normal', records)
@@ -120,6 +126,7 @@ def update_dns_config(machines_map, metadata):
 
     logging.warning("Reloading zones")
     reload_zones()
+
 
 if __name__ == '__main__':
     prologin.log.setup_logging('mdbdns')

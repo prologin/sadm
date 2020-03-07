@@ -8,6 +8,7 @@ class SSOMiddleware(RemoteUserMiddleware):
     pass environment variables, we have to use HTTP headers, hence
     *HTTP*_X_SSO_USER.
     """
+
     header = "HTTP_X_SSO_USER"
 
 
@@ -18,4 +19,5 @@ class SSOUserBackend(RemoteUserBackend):
 
     It is the role of Django udbsync client to populate the local user database.
     """
+
     create_unknown_user = False

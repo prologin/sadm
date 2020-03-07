@@ -13,7 +13,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='matchplayer',
             name='has_timeout',
-            field=models.BooleanField(default=False,
-                                      verbose_name='has timeout'),
+            field=models.BooleanField(
+                default=False, verbose_name='has timeout'
+            ),
         ),
     ]

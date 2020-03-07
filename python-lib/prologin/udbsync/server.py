@@ -51,8 +51,6 @@ if __name__ == '__main__':
     else:
         port = 8000
     server = SyncServer(
-        PUB_CFG['shared_secret'],
-        SUB_CFG['shared_secret'],
-        port
+        PUB_CFG['shared_secret'], SUB_CFG['shared_secret'], port
     )
     server.start()

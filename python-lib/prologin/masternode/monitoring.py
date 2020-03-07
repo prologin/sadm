@@ -18,41 +18,37 @@
 
 from prometheus_client import start_http_server, Summary, Gauge, Counter
 
-masternode_workers = Gauge(
-    'masternode_workers',
-    'Number of available workers')
+masternode_workers = Gauge('masternode_workers', 'Number of available workers')
 
-masternode_tasks = Gauge(
-    'masternode_tasks',
-    'Number of masternode tasks')
+masternode_tasks = Gauge('masternode_tasks', 'Number of masternode tasks')
 
 masternode_task_redispatch = Counter(
-    'masternode_task_redispatch',
-    'Number of redispatched tasks')
+    'masternode_task_redispatch', 'Number of redispatched tasks'
+)
 
 masternode_bad_result = Counter(
-    'masternode_bad_result',
-    'Number of match server logs that are not yaml')
+    'masternode_bad_result', 'Number of match server logs that are not yaml'
+)
 
 masternode_request_compilation_task = Counter(
-    'masternode_request_compilation_task',
-    'Number of compilation requests')
+    'masternode_request_compilation_task', 'Number of compilation requests'
+)
 
 masternode_match_done_file = Summary(
-    'masternode_match_done_file',
-    'Summary of match done files write')
+    'masternode_match_done_file', 'Summary of match done files write'
+)
 
 masternode_client_done_file = Summary(
-    'masternode_client_done_file',
-    'Summary of client done file write')
+    'masternode_client_done_file', 'Summary of client done file write'
+)
 
 masternode_match_done_db = Summary(
-    'masternode_match_done_db',
-    'Summary of match done database access')
+    'masternode_match_done_db', 'Summary of match done database access'
+)
 
 masternode_worker_timeout = Gauge(
-    'masternode_worker_timeout',
-    'Number of workers timeout')
+    'masternode_worker_timeout', 'Number of workers timeout'
+)
 
 
 def monitoring_start():

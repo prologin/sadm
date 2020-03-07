@@ -31,13 +31,21 @@ class WhoisHandler(tornado.web.RequestHandler):
 
         self.set_status(200)
         if not login:
-            logging.warning("service '%s' requested SSO for machine %s that"
-                            " has no login", self.request.remote_ip, ipaddr)
-            self.set_header('X-SSO-Status', f'unknown: machine {ipaddr} has no login')
+            logging.warning(
+                "service '%s' requested SSO for machine %s that"
+                " has no login",
+                self.request.remote_ip,
+                ipaddr,
+            )
+            self.set_header(
+                'X-SSO-Status', f'unknown: machine {ipaddr} has no login'
+            )
             self.finish()
             return
 
-        self.set_header('X-SSO-Status', f'working: machine {ipaddr} has login {login}')
+        self.set_header(
+            'X-SSO-Status', f'working: machine {ipaddr} has login {login}'
+        )
         self.set_header('X-SSO-User', login)
         self.finish()
 
@@ -63,7 +71,9 @@ class PresenceCacheServer(prologin.web.TornadoApp):
         # to reimplement here.
         def presencesync_daemon():
             return prologin.presencesync.client.connect().poll_updates(
-                self.presencesync_callback)
+                self.presencesync_callback
+            )
+
         thread = threading.Thread(target=presencesync_daemon)
         thread.deamon = True  # exit along with main
         self.listen(self.port)
@@ -71,12 +81,16 @@ class PresenceCacheServer(prologin.web.TornadoApp):
         tornado.ioloop.IOLoop.instance().start()
 
     def presencesync_callback(self, login_to_machine, updates_metadata):
-        mdb_machines = prologin.mdb.client.connect().query()  # get all machines
+        mdb_machines = (
+            prologin.mdb.client.connect().query()
+        )  # get all machines
 
         # Translate hostnames to IPs
         ip_to_hostname = {m['ip']: m['hostname'] for m in mdb_machines}
         # Translates logins to hostnames
-        hostname_to_login = {m['hostname']: login for login, m in login_to_machine.items()}
+        hostname_to_login = {
+            m['hostname']: login for login, m in login_to_machine.items()
+        }
 
         # Apply overrides.
         try:
@@ -101,8 +115,12 @@ class PresenceCacheServer(prologin.web.TornadoApp):
 
             length = len(self.ip_to_login)
 
-        logging.info("Received %d logins, %d hostnames. Cache has %d mappings.",
-                     len(login_to_machine), len(mdb_machines), length)
+        logging.info(
+            "Received %d logins, %d hostnames. Cache has %d mappings.",
+            len(login_to_machine),
+            len(mdb_machines),
+            length,
+        )
 
 
 if __name__ == '__main__':

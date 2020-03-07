@@ -39,8 +39,8 @@ def setup_logging(program, verbose=True, local=LOG_STDERR):
     if local:
         loggers.append(logging.StreamHandler())
     for logger in loggers:
-        logger.setFormatter(logging.Formatter(
-            program + ': [%(levelname)s] %(message)s'
-        ))
+        logger.setFormatter(
+            logging.Formatter(program + ': [%(levelname)s] %(message)s')
+        )
         logging.getLogger('').addHandler(logger)
     logging.getLogger('').setLevel(logging.DEBUG if verbose else logging.INFO)

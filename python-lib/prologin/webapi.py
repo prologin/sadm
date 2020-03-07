@@ -56,8 +56,7 @@ class AsyncClient:
         self.timeout = timeout
         self.url = url
         self.client = aiohttp.client.ClientSession(
-            raise_for_status=True,
-            timeout=self.timeout,
+            raise_for_status=True, timeout=self.timeout,
         )
 
     async def __aenter__(self):
@@ -67,8 +66,9 @@ class AsyncClient:
         await self.client.close()
         self.client = None
 
-    async def send_request(self, resource, secret, msg, url=None,
-                           method='post'):
+    async def send_request(
+        self, resource, secret, msg, url=None, method='post'
+    ):
         full_url = urllib.parse.urljoin(url or self.url, resource)
         data = json.dumps(msg)
         args = {

@@ -2,8 +2,11 @@ import collections
 import sys
 from django.core.management.base import BaseCommand
 
-from prologin.concours.stechec.models import (Match, Tournament,
-                                              TournamentPlayer)
+from prologin.concours.stechec.models import (
+    Match,
+    Tournament,
+    TournamentPlayer,
+)
 
 
 class Command(BaseCommand):
@@ -14,8 +17,11 @@ class Command(BaseCommand):
             '--scoring',
             choices=['wins', 'cumulative'],
             default='wins',
-            help=("The scoring mechanism. 'wins' only counts victories. "
-                  "'cumulative' adds the final scores of each match."))
+            help=(
+                "The scoring mechanism. 'wins' only counts victories. "
+                "'cumulative' adds the final scores of each match."
+            ),
+        )
         parser.add_argument('tournament_id', type=int)
 
     def handle(self, *args, **options):
@@ -30,8 +36,11 @@ class Command(BaseCommand):
         total = matches.count()
 
         if done < total:
-            sys.exit("The tournament isn't over yet ({} matchs / {})."
-                     .format(done, total))
+            sys.exit(
+                "The tournament isn't over yet ({} matchs / {}).".format(
+                    done, total
+                )
+            )
 
         matches = tournament.matches.prefetch_related('matchplayers')
 

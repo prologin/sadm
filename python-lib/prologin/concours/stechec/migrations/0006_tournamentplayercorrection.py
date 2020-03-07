@@ -14,10 +14,32 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='TournamentPlayerCorrection',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                (
+                    'id',
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name='ID',
+                    ),
+                ),
                 ('comment', models.TextField(verbose_name='commentaire')),
-                ('include_jury_report', models.BooleanField(default=False, verbose_name='inclure dans le rapport de jury')),
-                ('player', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='correction', to='stechec.TournamentPlayer', verbose_name='joueur')),
+                (
+                    'include_jury_report',
+                    models.BooleanField(
+                        default=False,
+                        verbose_name='inclure dans le rapport de jury',
+                    ),
+                ),
+                (
+                    'player',
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name='correction',
+                        to='stechec.TournamentPlayer',
+                        verbose_name='joueur',
+                    ),
+                ),
             ],
             options={
                 'verbose_name': 'correction du joueur',

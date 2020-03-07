@@ -45,8 +45,10 @@ def use_profile_config(profile, out=None):
         try:
             out = sys._getframe().f_back.f_globals
         except AttributeError:
-            raise RuntimeError("Unable to automagically get the globals "
-                               "dictionary, use the 'out' argument.")
+            raise RuntimeError(
+                "Unable to automagically get the globals "
+                "dictionary, use the 'out' argument."
+            )
 
     _load_config(cfg, out)
     return cfg

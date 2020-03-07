@@ -6,6 +6,7 @@ class IsOwnerFilterBackend(filters.BaseFilterBackend):
     Filter that only allows users to see their own objects if the ?mine
     query param is set.
     """
+
     field = 'author'
     query_param = 'mine'
 
@@ -20,6 +21,8 @@ def IsOwnerUsing(field='author', query_param='mine'):  # noqa
     Exmample usage:
         filter_backends = [IsOwnerUsing('owner', 'my_objects')]
     """
-    return type('IsOwnerUsing%s' % field.capitalize(),
-                (IsOwnerFilterBackend,),
-                {'field': field, 'query_param': query_param})
+    return type(
+        'IsOwnerUsing%s' % field.capitalize(),
+        (IsOwnerFilterBackend,),
+        {'field': field, 'query_param': query_param},
+    )

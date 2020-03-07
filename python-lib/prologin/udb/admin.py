@@ -35,15 +35,30 @@ class UIDPoolAdmin(admin.ModelAdmin):
 
 
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('uid', 'login', 'group', 'firstname', 'lastname',)
+    list_display = (
+        'uid',
+        'login',
+        'group',
+        'firstname',
+        'lastname',
+    )
     list_filter = ('group',)
     list_per_page = 250
     radio_fields = {'group': admin.HORIZONTAL}
-    search_fields = ('uid', 'login', 'group', 'firstname', 'lastname',)
+    search_fields = (
+        'uid',
+        'login',
+        'group',
+        'firstname',
+        'lastname',
+    )
 
     def get_readonly_fields(self, request, obj=None):
         if obj:
-            return ('uid', 'login',)
+            return (
+                'uid',
+                'login',
+            )
         else:
             return ('uid',)
 

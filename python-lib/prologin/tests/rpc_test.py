@@ -70,8 +70,11 @@ class RPCServerInstance:
 async def rpc_server(request, event_loop):
     port = aiohttp.test_utils.unused_port()
     url = 'http://127.0.0.1:{}'.format(port)
-    secret = (request.function.secret if hasattr(request.function, 'secret')
-              else None)
+    secret = (
+        request.function.secret
+        if hasattr(request.function, 'secret')
+        else None
+    )
     server = RPCServerInstance(port=port, secret=secret)
     await server.start()
     yield url
@@ -82,6 +85,7 @@ def with_secret(secret):
     def wrapper(f):
         f.secret = secret
         return f
+
     return wrapper
 
 
