@@ -1,5 +1,5 @@
 aiohttp-wsgi==0.8.2
-aiohttp==3.5.4
+aiohttp==3.6.2
 aiopg==0.16.0
 django-bootstrap-breadcrumbs==0.9.1
 django-crispy-forms==1.7.2
