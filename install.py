@@ -163,7 +163,8 @@ def replace_secrets(string):
         secret = secret_file.read().strip()
 
     def secret_regex_callback(match):
-        return hmac.new(secret.encode(), match.group(1).encode()).hexdigest()
+        return hmac.new(secret.encode(), match.group(1).encode(),
+                        digestmod='sha256').hexdigest()
 
     return re.sub(r'%%SECRET:(\w+)%%', secret_regex_callback, string)
 
