@@ -1,0 +1,12 @@
+files: python-lib/.*
+exclude: python-lib/prologin/udb/migrations/.*
+repos:
+  - repo: https://github.com/psf/black
+    rev: stable
+    hooks:
+      - id: black
+  - repo: https://gitlab.com/pycqa/flake8
+    rev: 3.7.9
+    hooks:
+      - id: flake8
+        args: ["--count", "--select=E9,F63,F7,F82", "--show-source", "--statistics"]
