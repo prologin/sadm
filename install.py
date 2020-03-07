@@ -374,7 +374,7 @@ def install_libprologin():
     requires('base')
 
     with cwd('python-lib'):
-        system('python setup.py --quiet install')
+        system(f'{sys.executable} setup.py --quiet install')
 
     install_cfg_profile('hfs-client', group='hfs_public')
     install_cfg_profile('mdb-client', group='mdb_public')
