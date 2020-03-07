@@ -18,24 +18,25 @@
 
 from setuptools import setup, find_packages
 
-setup(name='ProloginSADM',
-      version='1.0',
-      description='Utility libraries for Prologin Python services',
-      author='Association Prologin',
-      author_email='info@prologin.org',
-      url='https://github.com/prologin/sadm/',
-      packages=find_packages(),
-      scripts=['prologin/rpc/prolorpc',
-               'prologin/xhack.py',
-               ],
-      package_data={
-          'prologin.concours': ['stechec/static/**/*.*',
-                                'stechec/templates/**/*'],
-          'prologin.hfs': ['create_nbd.sh'],
-          'prologin.homepage': ['static/*', 'templates/*'],
-          'prologin.netboot': ['script.ipxe'],
-          'prologin.workernode': ['compile-champion.sh'],
-      },
-      test_suite='nose.collector',
-      zip_safe=False,
-     )
+setup(
+    name='ProloginSADM',
+    version='1.0',
+    description='Utility libraries for Prologin Python services',
+    author='Association Prologin',
+    author_email='info@prologin.org',
+    url='https://github.com/prologin/sadm/',
+    packages=find_packages(),
+    scripts=['prologin/rpc/prolorpc', 'prologin/xhack.py',],
+    package_data={
+        'prologin.concours': [
+            'stechec/static/**/*.*',
+            'stechec/templates/**/*',
+        ],
+        'prologin.hfs': ['create_nbd.sh'],
+        'prologin.homepage': ['static/*', 'templates/*'],
+        'prologin.netboot': ['script.ipxe'],
+        'prologin.workernode': ['compile-champion.sh'],
+    },
+    test_suite='nose.collector',
+    zip_safe=False,
+)

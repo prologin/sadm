@@ -47,30 +47,36 @@ def untar(content, path, compression='gz'):
 
 
 def get_output(isolate_result):
-    return '\n'.join((isolate_result.stdout.decode(errors='replace'),
-                      isolate_result.isolate_stdout.decode(errors='replace')))
+    return '\n'.join(
+        (
+            isolate_result.stdout.decode(errors='replace'),
+            isolate_result.isolate_stdout.decode(errors='replace'),
+        )
+    )
 
 
 def raise_isolate_error(message, cmd, isolator):
-    output = textwrap.indent(isolator.stdout.decode('utf-8', errors='ignore'),
-                             prefix=' ' * 4)
+    output = textwrap.indent(
+        isolator.stdout.decode('utf-8', errors='ignore'), prefix=' ' * 4
+    )
     what = message
     what += "\n"
     what += "\nCommand: " + ' '.join(cmd)
     what += "\nOutput:\n" + output
     if isolator.isolate_stdout:
-        what += ("\nIsolate output:\n" +
-                 isolator.isolate_stdout.decode(errors='replace'))
+        what += "\nIsolate output:\n" + isolator.isolate_stdout.decode(
+            errors='replace'
+        )
     if isolator.isolate_stderr:
-        what += ("\nIsolate error:\n" +
-                 isolator.isolate_stderr.decode(errors='replace'))
+        what += "\nIsolate error:\n" + isolator.isolate_stderr.decode(
+            errors='replace'
+        )
     raise RuntimeError(what)
 
 
-async def isolate_communicate(cmdline,
-                              limits=None,
-                              allowed_dirs=None,
-                              **kwargs):
+async def isolate_communicate(
+    cmdline, limits=None, allowed_dirs=None, **kwargs
+):
     isolator = isolate.Isolator(limits, allowed_dirs=allowed_dirs)
     async with isolator:
         await isolator.run(cmdline, **kwargs)
@@ -88,7 +94,7 @@ async def compile_champion(config, ctgz):
 
     limits = {
         'wall-time': config['timeout'].get('compile', 400),
-        'fsize': 50 * 1024
+        'fsize': 50 * 1024,
     }
     allowed_dirs = ['/tmp:rw', code_dir, '/etc', config['path']['makefiles']]
 
@@ -129,15 +135,19 @@ def isolator_compress(isolator, cmd, path):
             return gzip.compress(fd.read())
     except PermissionError:
         raise_isolate_error(
-            f"server: {path} does not have the correct permissions.\n", cmd,
-            isolator)
+            f"server: {path} does not have the correct permissions.\n",
+            cmd,
+            isolator,
+        )
     except FileNotFoundError:
-        raise_isolate_error(f"server: {path} was not created.\n", cmd,
-                            isolator)
+        raise_isolate_error(
+            f"server: {path} was not created.\n", cmd, isolator
+        )
 
 
-async def spawn_server(config, rep_addr, pub_addr, nb_players, sockets_dir,
-                       map_contents):
+async def spawn_server(
+    config, rep_addr, pub_addr, nb_players, sockets_dir, map_contents
+):
     # Build command
     # yapf: disable
     cmd = [
@@ -165,9 +175,12 @@ async def spawn_server(config, rep_addr, pub_addr, nb_players, sockets_dir,
     # Create the isolator
     limits = {'wall-time': config['timeout'].get('server', 400)}
     allowed_dirs = [
-        '/var', '/etc', '/tmp', sockets_dir + ':rw',
+        '/var',
+        '/etc',
+        '/tmp',
+        sockets_dir + ':rw',
         os.path.dirname(config['path']['stechec_server']),
-        os.path.dirname(config['path']['rules'])
+        os.path.dirname(config['path']['rules']),
     ]
     isolator = isolate.Isolator(limits, allowed_dirs=allowed_dirs)
     async with isolator:
@@ -184,20 +197,23 @@ async def spawn_server(config, rep_addr, pub_addr, nb_players, sockets_dir,
     # Retrieve the output
     output = get_output(isolator)
     if isolator.isolate_retcode != 0:
-        raise_isolate_error("server: exited with a non-zero code", cmd,
-                            isolator)
+        raise_isolate_error(
+            "server: exited with a non-zero code", cmd, isolator
+        )
 
     return output, gzdump, gzreplay, gzstats
 
 
-async def spawn_client(config,
-                       req_addr,
-                       sub_addr,
-                       pl_id,
-                       champion_path,
-                       sockets_dir,
-                       map_contents,
-                       order_id=None):
+async def spawn_client(
+    config,
+    req_addr,
+    sub_addr,
+    pl_id,
+    champion_path,
+    sockets_dir,
+    map_contents,
+    order_id=None,
+):
     # Build environment
     env = {'CHAMPION_PATH': champion_path + '/', 'HOME': '/tmp'}
 
@@ -232,9 +248,13 @@ async def spawn_client(config,
         'fsize': 256,
     }
     allowed_dirs = [
-        '/var', '/etc', '/tmp', sockets_dir + ':rw', champion_path,
+        '/var',
+        '/etc',
+        '/tmp',
+        sockets_dir + ':rw',
+        champion_path,
         os.path.dirname(config['path']['stechec_client']),
-        os.path.dirname(config['path']['rules'])
+        os.path.dirname(config['path']['rules']),
     ]
 
     # Remove memory limit if Java
@@ -242,11 +262,9 @@ async def spawn_client(config,
         limits.pop('mem')
 
     # Run the isolated client
-    result = await isolate_communicate(cmd,
-                                       limits,
-                                       env=env,
-                                       allowed_dirs=allowed_dirs,
-                                       merge_outputs=True)
+    result = await isolate_communicate(
+        cmd, limits, env=env, allowed_dirs=allowed_dirs, merge_outputs=True
+    )
     return result.isolate_retcode, get_output(result)
 
 
@@ -262,8 +280,15 @@ async def spawn_match(config, match_id, players, map_contents):
 
     # Server task
     task_server = asyncio.Task(
-        spawn_server(config, s_reqrep, s_pubsub, len(players), socket_dir.name,
-                     map_contents))
+        spawn_server(
+            config,
+            s_reqrep,
+            s_pubsub,
+            len(players),
+            socket_dir.name,
+            map_contents,
+        )
+    )
     await asyncio.sleep(0.1)  # Let the server start
 
     # Retry every seconds for 5 seconds
@@ -285,14 +310,17 @@ async def spawn_match(config, match_id, players, map_contents):
         champion_dirs.append(cdir)
         untar(ctgz, cdir.name)
         tasks_players[pl_id] = asyncio.Task(
-            spawn_client(config,
-                         s_reqrep,
-                         s_pubsub,
-                         pl_id,
-                         cdir.name,
-                         socket_dir.name,
-                         map_contents,
-                         order_id=oid))
+            spawn_client(
+                config,
+                s_reqrep,
+                s_pubsub,
+                pl_id,
+                cdir.name,
+                socket_dir.name,
+                map_contents,
+                order_id=oid,
+            )
+        )
 
     # Wait for the match to complete
     await asyncio.wait([task_server] + list(tasks_players.values()))
@@ -305,13 +333,14 @@ async def spawn_match(config, match_id, players, map_contents):
     players_info = {
         pl_id: (
             players[pl_id][0],  # champion_id
-            *t.result())  # retcode, output
+            *t.result(),
+        )  # retcode, output
         for pl_id, t in tasks_players.items()
     }
 
     # Extract the match result from the server stdout
     # stechec2 rules can output non-dict data, discard it
-    server_yaml = server_out[server_out.find('---'):]
+    server_yaml = server_out[server_out.find('---') :]
     server_result = yaml.safe_load_all(server_yaml)
     server_result = [r for r in server_result if isinstance(r, dict)]
 

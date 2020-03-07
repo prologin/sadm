@@ -28,9 +28,7 @@ import shutil
 import subprocess
 import sys
 
-User = collections.namedtuple('User',
-    'login password uid gid name home shell'
-)
+User = collections.namedtuple('User', 'login password uid gid name home shell')
 Group = collections.namedtuple('Group', 'name password gid members')
 
 USER_PATTERN = re.compile(
@@ -43,9 +41,7 @@ USER_PATTERN = re.compile(
     ':(?P<shell>[^:]+)$'
 )
 
-SHADOW_PATTERN = re.compile(
-    '(?P<login>[-a-z_0-9]+):(?P<remainder>.*)$'
-)
+SHADOW_PATTERN = re.compile('(?P<login>[-a-z_0-9]+):(?P<remainder>.*)$')
 
 GROUP_PATTERN = re.compile(
     '(?P<name>[-a-z_0-9]+)'
@@ -59,9 +55,9 @@ PROLOGIN_GROUPS = {
     'user': 10000,
     'orga': 10001,
 }
-PASSWD_PERMS    = 0o644
-SHADOW_PERMS    = 0o600
-GROUP_PERMS     = 0o644
+PASSWD_PERMS = 0o644
+SHADOW_PERMS = 0o600
+GROUP_PERMS = 0o644
 
 HOME_DIR = '/home/{}'
 
@@ -70,11 +66,11 @@ class BufferFile:
     """Write to `filepath` using a temporary file as a buffer, so that the
     destination file is changed instantly.
     """
+
     def __init__(self, filepath, perms):
         self.filepath = filepath
         self.temp_path = os.path.join(
-            '/tmp',
-            filepath.replace(os.path.sep, '-')
+            '/tmp', filepath.replace(os.path.sep, '-')
         )
         self.f = open(self.temp_path, 'w')
         os.chmod(self.temp_path, perms)
@@ -85,6 +81,7 @@ class BufferFile:
     def __exit__(self, type, value, traceback):
         self.f.close()
         shutil.move(self.temp_path, self.filepath)
+
 
 def callback(root_path, users, updates_metadata):
     logging.info('New updates: %r', updates_metadata)
@@ -138,13 +135,14 @@ def callback(root_path, users, updates_metadata):
             if m:
                 name = m.group('name')
                 groups[name] = Group(
-                    name, m.group('password'),
+                    name,
+                    m.group('password'),
                     int(m.group('gid')),
                     set(
                         member
                         for member in m.group('members').split(',')
                         if member and member in passwd_users
-                    )
+                    ),
                 )
             else:
                 logging.error('Unparsable /etc/group line: %r', line)
@@ -172,10 +170,13 @@ def callback(root_path, users, updates_metadata):
         }
         user_groups = utype_to_groups[udb_user['group']]
         user = User(
-            udb_user['login'], 'x',
-            udb_user['uid'], PROLOGIN_GROUPS[user_groups[0]],
+            udb_user['login'],
+            'x',
+            udb_user['uid'],
+            PROLOGIN_GROUPS[user_groups[0]],
             udb_user['firstname'] + ' ' + udb_user['lastname'],
-            HOME_DIR.format(udb_user['login']), udb_user['shell'],
+            HOME_DIR.format(udb_user['login']),
+            udb_user['shell'],
         )
         passwd_users[login] = user
 
@@ -187,9 +188,13 @@ def callback(root_path, users, updates_metadata):
         # - number of days the password is valid (tons of days)
         # - number of days before password expiration for warnings (0)
         # - number of days after password expiration for account disabling (0)
-        password = subprocess.check_output(
-            ['openssl', 'passwd', '-1', udb_user['password']]
-        ).decode('ascii').strip()
+        password = (
+            subprocess.check_output(
+                ['openssl', 'passwd', '-1', udb_user['password']]
+            )
+            .decode('ascii')
+            .strip()
+        )
         shadow_passwords[login] = '{}:{}:0:99999:7:0::'.format(
             password, days_since_epoch
         )
@@ -200,13 +205,17 @@ def callback(root_path, users, updates_metadata):
     userless_shadows = set(shadow_passwords) - set(passwd_users)
     shadowless_users = set(passwd_users) - set(shadow_passwords)
     if userless_shadows:
-        logging.error('Some shadow passwords have no passwd users: %s',
-                      ', '.join(userless_shadows))
+        logging.error(
+            'Some shadow passwords have no passwd users: %s',
+            ', '.join(userless_shadows),
+        )
         logging.info('Stopping generation')
         return
     if shadowless_users:
-        logging.error('Some passwd users have no shadow password: %s',
-                      ', '.join(shadowless_users))
+        logging.error(
+            'Some passwd users have no shadow password: %s',
+            ', '.join(shadowless_users),
+        )
         logging.info('Stopping generation')
         return
 
@@ -226,7 +235,7 @@ def callback(root_path, users, updates_metadata):
                 ':{0.uid}:{0.gid}'
                 ':{0.name}'
                 ':{0.home}:{0.shell}'.format(user),
-                file=f
+                file=f,
             )
 
     with BufferFile(os.path.join(root_path, 'etc/shadow'), SHADOW_PERMS) as f:
@@ -242,11 +251,14 @@ def callback(root_path, users, updates_metadata):
         for group in sorted_groups:
             print(
                 '{0.name}:{0.password}:{0.gid}:{1}'.format(
-                    group, ','.join(sorted(
-                        group.members, key=lambda m: passwd_users[m].uid
-                    ))
+                    group,
+                    ','.join(
+                        sorted(
+                            group.members, key=lambda m: passwd_users[m].uid
+                        )
+                    ),
                 ),
-                file=f
+                file=f,
             )
 
 

@@ -32,16 +32,21 @@ class User(ExportModelOperationsMixin('user'), models.Model):
 
     LOGIN_REGEX = r'^([a-z_][a-z0-9_]{0,30})$'
 
-    login = models.CharField(max_length=32, unique=True, db_index=True,
-                             validators=[RegexValidator(regex=LOGIN_REGEX)])
+    login = models.CharField(
+        max_length=32,
+        unique=True,
+        db_index=True,
+        validators=[RegexValidator(regex=LOGIN_REGEX)],
+    )
     firstname = models.CharField(max_length=64, verbose_name='First name')
     lastname = models.CharField(max_length=64, verbose_name='Last name')
     uid = models.IntegerField(unique=True, db_index=True, verbose_name='UID')
     group = models.CharField(max_length=20, choices=TYPES)
     password = models.CharField(max_length=64, help_text='pwgen -cnB 8')
     shell = models.CharField(max_length=64, default='/bin/bash')
-    ssh_key = models.CharField(max_length=4096, null=True, blank=True,
-                               verbose_name='SSH public key')
+    ssh_key = models.CharField(
+        max_length=4096, null=True, blank=True, verbose_name='SSH public key'
+    )
 
     @property
     def realname(self):
@@ -76,15 +81,20 @@ class User(ExportModelOperationsMixin('user'), models.Model):
         self.uid = pool.base + pool.last
 
     class Meta:
-        ordering = ('group', 'login',)
+        ordering = (
+            'group',
+            'login',
+        )
 
 
 class UIDPool(ExportModelOperationsMixin('uidpool'), models.Model):
-    group = models.CharField(max_length=20, choices=User.TYPES, unique=True,
-                             verbose_name='For type')
+    group = models.CharField(
+        max_length=20, choices=User.TYPES, unique=True, verbose_name='For type'
+    )
     base = models.IntegerField(unique=True, verbose_name='Base UID')
-    last = models.IntegerField(blank=True, default=0,
-                               verbose_name='Last allocation')
+    last = models.IntegerField(
+        blank=True, default=0, verbose_name='Last allocation'
+    )
 
     def __str__(self):
         return 'Pool for %r' % self.group

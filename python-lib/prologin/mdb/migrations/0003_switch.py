@@ -16,10 +16,43 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Switch',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                (
+                    'id',
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name='ID',
+                    ),
+                ),
                 ('name', models.CharField(max_length=64, verbose_name='Name')),
-                ('chassis', models.CharField(help_text='aa:bb:cc:dd:ee:ff', max_length=17, unique=True, validators=[django.core.validators.RegexValidator(regex='[0-9a-zA-Z]{2}(?::[0-9a-zA-Z]{2}){5}')], verbose_name='Chassis ID')),
-                ('room', models.CharField(choices=[('pasteur', 'Pasteur'), ('alt', 'Supplementary room'), ('cluster', 'Cluster'), ('other', 'Other/Unknown')], default='other', max_length=20)),
+                (
+                    'chassis',
+                    models.CharField(
+                        help_text='aa:bb:cc:dd:ee:ff',
+                        max_length=17,
+                        unique=True,
+                        validators=[
+                            django.core.validators.RegexValidator(
+                                regex='[0-9a-zA-Z]{2}(?::[0-9a-zA-Z]{2}){5}'
+                            )
+                        ],
+                        verbose_name='Chassis ID',
+                    ),
+                ),
+                (
+                    'room',
+                    models.CharField(
+                        choices=[
+                            ('pasteur', 'Pasteur'),
+                            ('alt', 'Supplementary room'),
+                            ('cluster', 'Cluster'),
+                            ('other', 'Other/Unknown'),
+                        ],
+                        default='other',
+                        max_length=20,
+                    ),
+                ),
                 ('rfs', models.IntegerField(default=0, verbose_name='RFS')),
                 ('hfs', models.IntegerField(default=0, verbose_name='HFS')),
             ],
@@ -32,11 +65,30 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='machine',
             name='aliases',
-            field=models.CharField(blank=True, help_text='host0,host1,etc.', max_length=512, validators=[django.core.validators.RegexValidator(regex='^[a-z0-9-]*(?:\\.[a-z0-9]*)?(?:,[a-z0-9-]*(?:\\.[a-z0-9]*)?)*$')]),
+            field=models.CharField(
+                blank=True,
+                help_text='host0,host1,etc.',
+                max_length=512,
+                validators=[
+                    django.core.validators.RegexValidator(
+                        regex='^[a-z0-9-]*(?:\\.[a-z0-9]*)?(?:,[a-z0-9-]*(?:\\.[a-z0-9]*)?)*$'
+                    )
+                ],
+            ),
         ),
         migrations.AlterField(
             model_name='machine',
             name='hostname',
-            field=models.CharField(help_text='^[a-z0-9-]*(?:\\.[a-z0-9]*)?$', max_length=64, unique=True, validators=[django.core.validators.RegexValidator(regex='^[a-z0-9-]*(?:\\.[a-z0-9]*)?$')], verbose_name='Host name'),
+            field=models.CharField(
+                help_text='^[a-z0-9-]*(?:\\.[a-z0-9]*)?$',
+                max_length=64,
+                unique=True,
+                validators=[
+                    django.core.validators.RegexValidator(
+                        regex='^[a-z0-9-]*(?:\\.[a-z0-9]*)?$'
+                    )
+                ],
+                verbose_name='Host name',
+            ),
         ),
     ]

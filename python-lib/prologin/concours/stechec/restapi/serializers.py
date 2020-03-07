@@ -20,8 +20,14 @@ class ChampionSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = models.Champion
-        read_only_fields = ('url', 'id', 'author', 'status', 'status_human',
-                            'created')
+        read_only_fields = (
+            'url',
+            'id',
+            'author',
+            'status',
+            'status_human',
+            'created',
+        )
         fields = read_only_fields + ('name', 'sources', 'comment')
 
 
@@ -42,9 +48,18 @@ class MatchSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = models.Match
-        read_only_fields = ('url', 'id', 'author', 'status', 'status_human',
-                            'created', 'tournament', 'matchplayers', 'created',
-                            'dump_url')
+        read_only_fields = (
+            'url',
+            'id',
+            'author',
+            'status',
+            'status_human',
+            'created',
+            'tournament',
+            'matchplayers',
+            'created',
+            'dump_url',
+        )
         fields = read_only_fields
 
 
@@ -55,13 +70,15 @@ class CreateMatchSerializer(serializers.HyperlinkedModelSerializer):
         for i in range(1, settings.STECHEC_NPLAYERS + 1):
             f = serializers.PrimaryKeyRelatedField(
                 queryset=models.Champion.objects.select_related('author'),
-                write_only=True)
+                write_only=True,
+            )
             self.fields['champion_%d' % i] = f
 
         if settings.STECHEC_USE_MAPS:
             self.fields['map'] = serializers.PrimaryKeyRelatedField(
                 queryset=models.Map.objects.select_related('author'),
-                write_only=True)
+                write_only=True,
+            )
 
     class Meta:
         model = models.Match
@@ -87,8 +104,14 @@ class TournamentSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = models.Tournament
-        read_only_fields = ('name', 'author', 'players', 'maps', 'matches',
-                            'created')
+        read_only_fields = (
+            'name',
+            'author',
+            'players',
+            'maps',
+            'matches',
+            'created',
+        )
         fields = read_only_fields
 
 
@@ -98,6 +121,12 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = get_user_model()
-        read_only_fields = ('url', 'id', 'username', 'maps', 'matches',
-                            'champions')
+        read_only_fields = (
+            'url',
+            'id',
+            'username',
+            'maps',
+            'matches',
+            'champions',
+        )
         fields = read_only_fields

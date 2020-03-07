@@ -31,14 +31,16 @@ GROUP BY
 '''
 
 #  stechec_matchplayer.score
-#ORDER BY
+# ORDER BY
 #  LEAST(stechec_matchplayer.score)
 
 match_done = set()
 
+
 def write_matches_done():
     with open('matches_done', 'w') as f:
         f.write('\n'.join(str(i) for i in match_done))
+
 
 def read_matches_done():
     match_done.clear()
@@ -50,13 +52,15 @@ def read_matches_done():
     except FileNotFoundError:
         pass
 
+
 def get_matches(opts):
     conn = psycopg2.connect(
-            database=opts.database,
-            user=opts.user,
-            password=opts.password,
-            host=opts.host,
-            port=opts.port)
+        database=opts.database,
+        user=opts.user,
+        password=opts.password,
+        host=opts.host,
+        port=opts.port,
+    )
     cur = conn.cursor()
     cur.execute(q_get_matches)
     l = cur.fetchall()
@@ -67,8 +71,10 @@ def get_matches(opts):
 
 
 def get_replay(opts, match_id):
-    return (requests.get('http://{}/matches/{}/dump/'.format(
-        opts.concours_url, match_id)).text)
+    return requests.get(
+        'http://{}/matches/{}/dump/'.format(opts.concours_url, match_id)
+    ).text
+
 
 def replay_match(opts, match_id, champions_list):
     trad = {str(cid): name for name, cid in champions_list}
@@ -88,8 +94,11 @@ def replay_match(opts, match_id, champions_list):
         p = subprocess.Popen([opts.replay, f.name, '-tv-show'])
         p.wait()
 
+
 if __name__ == '__main__':
-    this_year_replay = '/usr/bin/prologin{}-replay'.format(datetime.date.today().year)
+    this_year_replay = '/usr/bin/prologin{}-replay'.format(
+        datetime.date.today().year
+    )
     parser = argparse.ArgumentParser('Match TV Mode')
     parser.add_argument('--concours-url', default='concours')
     parser.add_argument('--host', default='concours')

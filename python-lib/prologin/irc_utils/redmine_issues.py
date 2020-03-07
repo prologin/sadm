@@ -20,15 +20,24 @@ class RedmineIssuePlugin:
     def __init__(self, bot):
         self.bot = bot
         self.config = bot.config['hook-receiver']
-        self.channel = bot.config['autojoins'][0].split(' ', 1)[0]  # may contain password
+        self.channel = bot.config['autojoins'][0].split(' ', 1)[
+            0
+        ]  # may contain password
         self.lock = Lock()
         self.latest_msg = None
-        logging.info("Starting hoot receiver on %s:%d",
-                     self.config['host'], self.config['port'])
-        asyncio.Task(asyncio.start_server(self.handle_incoming_issue,
-                                          self.config['host'],
-                                          self.config['port'],
-                                          family=socket.AF_INET))
+        logging.info(
+            "Starting hoot receiver on %s:%d",
+            self.config['host'],
+            self.config['port'],
+        )
+        asyncio.Task(
+            asyncio.start_server(
+                self.handle_incoming_issue,
+                self.config['host'],
+                self.config['port'],
+                family=socket.AF_INET,
+            )
+        )
 
     def announce_issue(self, issue):
         # - url
@@ -45,7 +54,9 @@ class RedmineIssuePlugin:
             title = title[:90] + "…"
         msg = "\x02\x03{c}New {tracker:<10}\03\02 by \x0312{author:<13}\x03: “{title}” {url}".format(
             tracker=issue['hattrs']['tracker'],
-            c=5 if issue['attrs']['tracker_id'] == 1 else 3,  # red if bug else green
+            c=5
+            if issue['attrs']['tracker_id'] == 1
+            else 3,  # red if bug else green
             author=issue['author']['username'],
             title=title,
             url="http://redmine{}".format(issue['url']),
@@ -56,7 +67,9 @@ class RedmineIssuePlugin:
         self.bot.privmsg(self.channel, msg)
 
     async def handle_incoming_issue(self, reader, writer):
-        logging.debug("Incoming issue from %r", writer.get_extra_info('peername'))
+        logging.debug(
+            "Incoming issue from %r", writer.get_extra_info('peername')
+        )
         data = await reader.readline()
         try:
             data = json.loads(data.decode())
@@ -97,4 +110,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

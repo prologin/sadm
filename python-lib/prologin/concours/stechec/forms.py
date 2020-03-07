@@ -27,20 +27,26 @@ class BaseFormHelper(FormHelper):
 
     def _grid_class(self, type, offset=False):
         attr = self.label_width if type == 'label' else self.field_width
-        return 'col-{}-{}{} '.format(self.width_size, 'offset-' if offset else '', attr)
+        return 'col-{}-{}{} '.format(
+            self.width_size, 'offset-' if offset else '', attr
+        )
 
     def append_field(self, field):
         self.layout.fields.append(field)
 
     def append_submit(self, label):
-        btn = bootstrap.StrictButton(label, css_class='btn-primary', type="submit")
+        btn = bootstrap.StrictButton(
+            label, css_class='btn-primary', type="submit"
+        )
         if self.is_horizontal:
             self.append_field(
                 layout.Div(
                     layout.Div(
                         btn,
-                        css_class=self._grid_class('label', offset=True) + self._grid_class('field')),
-                    css_class="form-group"
+                        css_class=self._grid_class('label', offset=True)
+                        + self._grid_class('field'),
+                    ),
+                    css_class="form-group",
                 )
             )
         else:
@@ -49,10 +55,16 @@ class BaseFormHelper(FormHelper):
 
 class ChampionUploadForm(forms.Form):
     name = forms.CharField(max_length=25, required=True, label="Nom")
-    tarball = forms.FileField(required=True, label="Sources",
-                              help_text="Archive au format <tt>.tgz</tt>")
-    comment = forms.CharField(widget=forms.widgets.Textarea(attrs={'rows': 3}),
-                              label="Commentaire", required=False)
+    tarball = forms.FileField(
+        required=True,
+        label="Sources",
+        help_text="Archive au format <tt>.tgz</tt>",
+    )
+    comment = forms.CharField(
+        widget=forms.widgets.Textarea(attrs={'rows': 3}),
+        label="Commentaire",
+        required=False,
+    )
 
     def clean_name(self):
         name = self.cleaned_data['name']
@@ -76,9 +88,7 @@ class ChampionField(forms.Field):
         super(ChampionField, self).clean(value)
         try:
             return models.Champion.objects.get(
-                id=int(value.strip()),
-                deleted=False,
-                status='ready'
+                id=int(value.strip()), deleted=False, status='ready'
             )
         except ValueError:
             raise forms.ValidationError("Numéro de champion invalide.")
@@ -91,13 +101,16 @@ class MapSelect(widgets.Select):
         def render_option(map):
             title = map.name
             official = map.official
-            attrs = (map.id in selected_choices) and ' selected="selected"' or ''
+            attrs = (
+                (map.id in selected_choices) and ' selected="selected"' or ''
+            )
             if official:
                 attrs += ' class="award"'
 
             return '<option value="%d"%s>%s</option>' % (
-                map.id, attrs,
-                conditional_escape(title)
+                map.id,
+                attrs,
+                conditional_escape(title),
             )
 
         selected_choices = set(v for v in selected_choices)
@@ -116,33 +129,44 @@ class MatchCreationForm(forms.Form):
         super(MatchCreationForm, self).__init__(*args, **kwargs)
         self.helper = BaseFormHelper()
         self.champions = []
-        champions = (models.Champion.objects
-                           .filter(deleted=False, status='ready')
-                           .select_related('author'))
-        if (settings.STECHEC_FIGHT_ONLY_OWN_CHAMPIONS and not
-            self.request.user.is_staff):
+        champions = models.Champion.objects.filter(
+            deleted=False, status='ready'
+        ).select_related('author')
+        if (
+            settings.STECHEC_FIGHT_ONLY_OWN_CHAMPIONS
+            and not self.request.user.is_staff
+        ):
             champions = champions.filter(author=self.request.user)
         for i in range(1, settings.STECHEC_NPLAYERS + 1):
-            f = forms.ModelChoiceField(label="Champion %d" % i,
-                                       queryset=champions,
-                                       widget=forms.Select(attrs={'class': 'select2'}))
+            f = forms.ModelChoiceField(
+                label="Champion %d" % i,
+                queryset=champions,
+                widget=forms.Select(attrs={'class': 'select2'}),
+            )
             self.fields['champion_%d' % i] = f
             self.helper.append_field('champion_%d' % i)
             self.champions.append(f)
 
         if settings.STECHEC_USE_MAPS:
-            self.fields['map'] = forms.ChoiceField(required=True,
-                                                   widget=MapSelect(attrs={'class': 'mapselect select2'}),
-                                                   label="Carte utilisée")
+            self.fields['map'] = forms.ChoiceField(
+                required=True,
+                widget=MapSelect(attrs={'class': 'mapselect select2'}),
+                label="Carte utilisée",
+            )
 
-            all_maps = models.Map.objects.select_related('author').order_by('author__username', 'name')
+            all_maps = models.Map.objects.select_related('author').order_by(
+                'author__username', 'name'
+            )
             self.fields['map'].choices = [
-                ('Officielles', [(map.id, map) for map in all_maps if map.official])
+                (
+                    'Officielles',
+                    [(map.id, map) for map in all_maps if map.official],
+                )
             ] + [
                 (author, [(map.id, map) for map in maps])
                 for author, maps in groupby(
                     (map for map in all_maps if not map.official),
-                    lambda map: map.author
+                    lambda map: map.author,
                 )
             ]
             self.helper.append_field('map')
@@ -162,20 +186,26 @@ class MapCreationForm(forms.ModelForm):
     contents = forms.CharField(
         required=True,
         widget=forms.widgets.Textarea(attrs={'class': 'monospace'}),
-        label="Contenu")
+        label="Contenu",
+    )
 
     @classmethod
     def clean_validate_contents(cls, data):
         data = '\n'.join(data.splitlines())
         if settings.STECHEC_MAP_VALIDATOR_SCRIPT is not None:
             try:
-                p = subprocess.run(settings.STECHEC_MAP_VALIDATOR_SCRIPT,
-                                   input=data.encode(), stderr=subprocess.PIPE,
-                                   timeout=2)
+                p = subprocess.run(
+                    settings.STECHEC_MAP_VALIDATOR_SCRIPT,
+                    input=data.encode(),
+                    stderr=subprocess.PIPE,
+                    timeout=2,
+                )
             except subprocess.TimeoutExpired:
                 raise forms.ValidationError(
-                        "Command timeout after 2 seconds: {}"
-                        .format(settings.STECHEC_MAP_VALIDATOR_SCRIPT))
+                    "Command timeout after 2 seconds: {}".format(
+                        settings.STECHEC_MAP_VALIDATOR_SCRIPT
+                    )
+                )
             if p.returncode:
                 raise forms.ValidationError(p.stderr.decode())
         return data
@@ -198,10 +228,12 @@ class TournamentCorrectForm(forms.ModelForm):
     complexité de la stratégie, adaptation à l'adversaire, utilisation des
     tournois intermédiaires...
     """
-    comment = forms.CharField(required=True,
-                              widget=forms.widgets.Textarea(),
-                              label="Commentaire",
-                              help_text=help_text)
+    comment = forms.CharField(
+        required=True,
+        widget=forms.widgets.Textarea(),
+        label="Commentaire",
+        help_text=help_text,
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -209,15 +241,17 @@ class TournamentCorrectForm(forms.ModelForm):
 
         actions = [layout.Submit('submit', 'Envoyer')]
         if self.instance.id:
-            actions.append(layout.HTML(
-                '<a class="btn btn-danger" href='
-                '{% url "delete-tournament-correct" tournament.id player.id %}'
-                ">Supprimer la correction</a>"),
+            actions.append(
+                layout.HTML(
+                    '<a class="btn btn-danger" href='
+                    '{% url "delete-tournament-correct" tournament.id player.id %}'
+                    ">Supprimer la correction</a>"
+                ),
             )
         self.helper.layout = layout.Layout(
             'include_jury_report',
             'comment',
-            bootstrap.FormActions(layout.ButtonHolder(*actions))
+            bootstrap.FormActions(layout.ButtonHolder(*actions)),
         )
 
     class Meta:

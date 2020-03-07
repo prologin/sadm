@@ -77,8 +77,9 @@ class SendHeartbeatHandler(tornado.web.RequestHandler):
             )
             self.set_status(200, 'OK, one user logged in')
         else:
-            logging.error('There are too many users logged in: %s',
-                          ', '.join(logins))
+            logging.error(
+                'There are too many users logged in: %s', ', '.join(logins)
+            )
             self.set_status(500, 'Too many users logged in')
 
 
@@ -86,9 +87,7 @@ class LoginHandler(tornado.web.RequestHandler):
     @prologin.tornadauth.signature_checked('secret', check_msg=True)
     def post(self, msg):
         login = json.loads(msg)['login']
-        result = self.application.presencesync.request_login(
-            login, HOSTNAME
-        )
+        result = self.application.presencesync.request_login(login, HOSTNAME)
         if result is not None:
             self.set_status(423, 'Login refused')
             self.write(result)
@@ -98,10 +97,13 @@ class LoginHandler(tornado.web.RequestHandler):
 
 class PresencedServer(prologin.web.TornadoApp):
     def __init__(self, secret, port):
-        super(PresencedServer, self).__init__([
-            (r'/send_heartbeat', SendHeartbeatHandler),
-            (r'/login', LoginHandler),
-        ], 'presenced')
+        super(PresencedServer, self).__init__(
+            [
+                (r'/send_heartbeat', SendHeartbeatHandler),
+                (r'/login', LoginHandler),
+            ],
+            'presenced',
+        )
         self.presencesync = prologin.presencesync.client.connect(publish=True)
         self.secret = secret.encode('ascii')
         self.port = port
@@ -110,8 +112,7 @@ class PresencedServer(prologin.web.TornadoApp):
         """Run the server."""
         self.listen(self.port)
         self.heartbeat_thread = threading.Thread(
-            target=self.heartbeat_loop,
-            daemon=True
+            target=self.heartbeat_loop, daemon=True
         )
         self.heartbeat_thread.start()
         tornado.ioloop.IOLoop.instance().start()

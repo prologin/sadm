@@ -69,6 +69,7 @@ reboot
 
 class BootHandler(tornado.web.RequestHandler):
     """Send the initrd and kernel urls to registered machines."""
+
     def get(self, mac):
         self.content_type = 'text/plain; charset=utf-8'
         # TODO(delroth): This is blocking - not perfect... should be fast
@@ -80,22 +81,30 @@ class BootHandler(tornado.web.RequestHandler):
 
         machine = machine[0]
         if machine['is_faulty']:
-            self.finish(BOOT_FAULTY_SCRIPT.format(machine['is_faulty_details']))
+            self.finish(
+                BOOT_FAULTY_SCRIPT.format(machine['is_faulty_details'])
+            )
             return
 
         rfs_hostname = 'rfs%d' % machine['rfs']
-        rfs = prologin.mdb.client.connect().query(aliases__contains=rfs_hostname)
+        rfs = prologin.mdb.client.connect().query(
+            aliases__contains=rfs_hostname
+        )
         try:
             rfs_ip = rfs[0]['ip']
         except IndexError:
             script = REGISTER_ERROR_SCRIPT % {
-                    'err': 'No such RFS: %s' % rfs_hostname }
+                'err': 'No such RFS: %s' % rfs_hostname
+            }
             self.finish(script)
             return
 
         suffix = ''
-        script = BOOT_SCRIPT % { 'rfs_ip': rfs_ip, 'suffix': suffix,
-                                 'options': CFG['options'] }
+        script = BOOT_SCRIPT % {
+            'rfs_ip': rfs_ip,
+            'suffix': suffix,
+            'options': CFG['options'],
+        }
         self.finish(script)
 
 
@@ -129,14 +138,20 @@ class BootstrapHandler(tornado.web.RequestHandler):
                 'set sw_rfs_{count} {rfs}\n'
                 'set sw_hfs_{count} {hfs}\n'
                 'set sw_room_{count} {room}'
-            ).format(count=i, chassis=s['chassis'], rfs=s['rfs'], hfs=s['hfs'],
-                     room=s['room'])
+            ).format(
+                count=i,
+                chassis=s['chassis'],
+                rfs=s['rfs'],
+                hfs=s['hfs'],
+                room=s['room'],
+            )
             fragments.append(fragment)
 
         with open(creation_script) as script:
             content = script.read()
-            content = content.replace('#%%NETBOOT_REPLACE_SWITCH_INFO%%',
-                                      '\n\n'.join(fragments))
+            content = content.replace(
+                '#%%NETBOOT_REPLACE_SWITCH_INFO%%', '\n\n'.join(fragments)
+            )
             self.finish(content)
 
 
@@ -168,14 +183,21 @@ class RegisterHandler(tornado.web.RequestHandler):
 prologin.log.setup_logging('netboot')
 
 static_path = CFG['static_path']
-application = tornado.wsgi.WSGIApplication([
-    (r'/boot/(.*)/', BootHandler),
-    (r'/bootstrap', BootstrapHandler),
-    (r'/register', RegisterHandler),
-    (r'/static/(.*)', tornado.web.StaticFileHandler, {'path': static_path}),
-])
+application = tornado.wsgi.WSGIApplication(
+    [
+        (r'/boot/(.*)/', BootHandler),
+        (r'/bootstrap', BootstrapHandler),
+        (r'/register', RegisterHandler),
+        (
+            r'/static/(.*)',
+            tornado.web.StaticFileHandler,
+            {'path': static_path},
+        ),
+    ]
+)
 
 if __name__ == '__main__':
     import wsgiref.simple_server
+
     server = wsgiref.simple_server.make_server('', 8000, application)
     server.serve_forever()

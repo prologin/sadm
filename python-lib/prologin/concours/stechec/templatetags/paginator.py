@@ -1,4 +1,5 @@
 from django import template
+
 register = template.Library()
 
 
@@ -15,9 +16,13 @@ def paginator(context, adjacent_pages=2):
     """
     page = context['page_obj']
     pagin = context['paginator']
-    page_numbers = [n for n in range(page.number - adjacent_pages,
-                                     page.number + adjacent_pages + 1)
-                    if 0 < n <= pagin.num_pages]
+    page_numbers = [
+        n
+        for n in range(
+            page.number - adjacent_pages, page.number + adjacent_pages + 1
+        )
+        if 0 < n <= pagin.num_pages
+    ]
     return {
         'request': context['request'],
         'page': page,

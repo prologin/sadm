@@ -19,6 +19,4 @@ class Migration(migrations.Migration):
         ('udb', '0002_initial_data'),
     ]
 
-    operations = [
-        migrations.RunPython(initial_data)
-    ]
+    operations = [migrations.RunPython(initial_data)]

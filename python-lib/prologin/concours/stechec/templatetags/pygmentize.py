@@ -11,5 +11,6 @@ register = template.Library()
 def pygmentize(code, language, **options):
     lexer = pygments.lexers.get_lexer_by_name(language)
     formatter = pygments.formatters.HtmlFormatter(
-        linenos=False, cssclass="codehilite", **options)
+        linenos=False, cssclass="codehilite", **options
+    )
     return mark_safe(pygments.highlight(code, lexer, formatter))

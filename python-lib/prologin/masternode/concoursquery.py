@@ -33,7 +33,6 @@ REQUESTS = {
           WHERE
             stechec_champion.status = %(champion_status)s
     ''',
-
     'set_champion_status': '''
           UPDATE
             stechec_champion
@@ -42,7 +41,6 @@ REQUESTS = {
           WHERE
             stechec_champion.id = %(champion_id)s
     ''',
-
     'get_matches': '''
           SELECT
             stechec_match.id AS match_id,
@@ -65,8 +63,6 @@ REQUESTS = {
           GROUP BY
             stechec_match.id, stechec_map.id
     ''',
-
-
     'set_match_status': '''
           UPDATE
             stechec_match
@@ -76,7 +72,6 @@ REQUESTS = {
             stechec_match.id = %(match_id)s
             AND status <> 'done'
     ''',
-
     'set_player_score': '''
           UPDATE
             stechec_matchplayer
@@ -101,12 +96,13 @@ class ConcoursQuery:
     async def connect(self):
         if self.pool is None:
             self.pool = await aiopg.create_pool(
-                    database=self.database,
-                    user=self.user,
-                    password=self.password,
-                    host=self.host,
-                    port=self.port,
-                    maxsize=64)
+                database=self.database,
+                user=self.user,
+                password=self.password,
+                host=self.host,
+                port=self.port,
+                maxsize=64,
+            )
 
     async def execute(self, name, params):
         if name not in REQUESTS:
@@ -117,7 +113,7 @@ class ConcoursQuery:
             async with conn.cursor() as cursor:
                 await cursor.execute(REQUESTS[name], params)
                 try:
-                    res = (await cursor.fetchall())
+                    res = await cursor.fetchall()
                 except psycopg2.ProgrammingError:  # No results
                     return None
         return res

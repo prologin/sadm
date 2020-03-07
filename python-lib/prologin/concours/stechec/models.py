@@ -23,11 +23,13 @@ def strip_ansi_codes(t):
 
 
 class Map(ExportModelOperationsMixin('map'), models.Model):
-    author = models.ForeignKey(settings.AUTH_USER_MODEL,
-                               related_name='maps',
-                               null=True,
-                               on_delete=models.CASCADE,
-                               verbose_name="auteur")
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name='maps',
+        null=True,
+        on_delete=models.CASCADE,
+        verbose_name="auteur",
+    )
     name = models.CharField("nom", max_length=100)
     official = models.BooleanField("officielle", default=False)
     ts = models.DateTimeField("date", auto_now_add=True)
@@ -37,8 +39,11 @@ class Map(ExportModelOperationsMixin('map'), models.Model):
         return reverse("map-detail", kwargs={"pk": self.id})
 
     def __str__(self):
-        return "%s, de %s%s" % (self.name, self.author.username,
-                                " (officielle)" if self.official else "")
+        return "%s, de %s%s" % (
+            self.name,
+            self.author.username,
+            " (officielle)" if self.official else "",
+        )
 
     class Meta:
         ordering = ["-official", "-ts"]
@@ -57,14 +62,15 @@ class Champion(ExportModelOperationsMixin('champion'), models.Model):
     )
 
     name = models.CharField("nom", max_length=100, unique=True)
-    author = models.ForeignKey(settings.AUTH_USER_MODEL,
-                               related_name='champions',
-                               on_delete=models.CASCADE,
-                               verbose_name="auteur")
-    status = models.CharField("statut",
-                              choices=STATUS_CHOICES,
-                              max_length=100,
-                              default="new")
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name='champions',
+        on_delete=models.CASCADE,
+        verbose_name="auteur",
+    )
+    status = models.CharField(
+        "statut", choices=STATUS_CHOICES, max_length=100, default="new"
+    )
     deleted = models.BooleanField("supprimé", default=False)
     comment = models.TextField("commentaire", blank=True)
     ts = models.DateTimeField("date", auto_now_add=True)
@@ -73,7 +79,8 @@ class Champion(ExportModelOperationsMixin('champion'), models.Model):
     def directory(self):
         if self.id is None:
             raise RuntimeError(
-                "Champion must be saved before accessing its directory")
+                "Champion must be saved before accessing its directory"
+            )
         contest_dir = settings.STECHEC_ROOT / settings.STECHEC_CONTEST
         return contest_dir / "champions" / self.author.username / str(self.id)
 
@@ -117,26 +124,39 @@ class Champion(ExportModelOperationsMixin('champion'), models.Model):
         with self._extract_sources() as tmpd:
             with open(os.path.join(tmpd, '_lang')) as langf:
                 lang_code = langf.read().strip()
-        return {'code': lang_code, **LANGUAGES.get(lang_code, {}),
-                'lexer': PYGMENTS_LEXERS.get(lang_code, 'text')}
+        return {
+            'code': lang_code,
+            **LANGUAGES.get(lang_code, {}),
+            'lexer': PYGMENTS_LEXERS.get(lang_code, 'text'),
+        }
 
     @cached_property
     def source_contents(self):
         '''Returns a dictionary file_name -> content'''
-        ext_whitelist = set(itertools.chain(
-            *(l['exts'] for l in LANGUAGES.values())))
-        file_blacklist = ['interface', 'api', 'constant', 'ffi',
-                          'prologin_stub', 'capi', 'prologin.hh']
+        ext_whitelist = set(
+            itertools.chain(*(l['exts'] for l in LANGUAGES.values()))
+        )
+        file_blacklist = [
+            'interface',
+            'api',
+            'constant',
+            'ffi',
+            'prologin_stub',
+            'capi',
+            'prologin.hh',
+        ]
         sources = {}
         with self._extract_sources() as tmpd:
             for entry in os.scandir(tmpd):
                 if not entry.is_file():
                     continue
-                if not any(entry.name.lower().endswith(ext)
-                           for ext in ext_whitelist):
+                if not any(
+                    entry.name.lower().endswith(ext) for ext in ext_whitelist
+                ):
                     continue
-                if any(entry.name.lower().startswith(bf)
-                       for bf in file_blacklist):
+                if any(
+                    entry.name.lower().startswith(bf) for bf in file_blacklist
+                ):
                     continue
                 with open(entry.path) as f:
                     sources[entry.name] = f.read()
@@ -145,8 +165,9 @@ class Champion(ExportModelOperationsMixin('champion'), models.Model):
     @cached_property
     def sloc(self):
         sources = self.source_contents
-        return sum(len(list(filter(bool, f.split('\n'))))
-                   for f in sources.values())
+        return sum(
+            len(list(filter(bool, f.split('\n')))) for f in sources.values()
+        )
 
     def get_absolute_url(self):
         return reverse('champion-detail', kwargs={'pk': self.id})
@@ -166,18 +187,24 @@ class Champion(ExportModelOperationsMixin('champion'), models.Model):
 class Tournament(ExportModelOperationsMixin('tournament'), models.Model):
     name = models.CharField("nom", max_length=100)
     ts = models.DateTimeField("date", auto_now_add=True)
-    author = models.ForeignKey(settings.AUTH_USER_MODEL,
-                               related_name='tournaments',
-                               on_delete=models.CASCADE,
-                               verbose_name="créé par")
-    players = models.ManyToManyField(Champion,
-                                     verbose_name="participants",
-                                     related_name='tournaments',
-                                     through='TournamentPlayer')
-    maps = models.ManyToManyField(Map,
-                                  verbose_name="maps",
-                                  related_name='tournaments',
-                                  through='TournamentMap')
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name='tournaments',
+        on_delete=models.CASCADE,
+        verbose_name="créé par",
+    )
+    players = models.ManyToManyField(
+        Champion,
+        verbose_name="participants",
+        related_name='tournaments',
+        through='TournamentPlayer',
+    )
+    maps = models.ManyToManyField(
+        Map,
+        verbose_name="maps",
+        related_name='tournaments',
+        through='TournamentMap',
+    )
     visible = models.BooleanField(default=False)
 
     def __str__(self):
@@ -192,16 +219,21 @@ class Tournament(ExportModelOperationsMixin('tournament'), models.Model):
         verbose_name_plural = "tournois"
 
 
-class TournamentPlayer(ExportModelOperationsMixin('tournament_player'),
-                       models.Model):
-    champion = models.ForeignKey(Champion,
-                                 on_delete=models.CASCADE,
-                                 related_name='tournamentplayers',
-                                 verbose_name="champion")
-    tournament = models.ForeignKey(Tournament,
-                                   on_delete=models.CASCADE,
-                                   related_name='tournamentplayers',
-                                   verbose_name="tournoi")
+class TournamentPlayer(
+    ExportModelOperationsMixin('tournament_player'), models.Model
+):
+    champion = models.ForeignKey(
+        Champion,
+        on_delete=models.CASCADE,
+        related_name='tournamentplayers',
+        verbose_name="champion",
+    )
+    tournament = models.ForeignKey(
+        Tournament,
+        on_delete=models.CASCADE,
+        related_name='tournamentplayers',
+        verbose_name="tournoi",
+    )
     score = models.IntegerField("score", default=0)
 
     def __str__(self):
@@ -214,28 +246,31 @@ class TournamentPlayer(ExportModelOperationsMixin('tournament_player'),
 
 
 class TournamentPlayerCorrection(models.Model):
-    player = models.OneToOneField(TournamentPlayer,
-                                  on_delete=models.CASCADE,
-                                  related_name='correction',
-                                  verbose_name="joueur")
+    player = models.OneToOneField(
+        TournamentPlayer,
+        on_delete=models.CASCADE,
+        related_name='correction',
+        verbose_name="joueur",
+    )
     comment = models.TextField(verbose_name="commentaire")
     include_jury_report = models.BooleanField(
-        default=False,
-        verbose_name="inclure dans le rapport de jury")
+        default=False, verbose_name="inclure dans le rapport de jury"
+    )
 
     class Meta:
         verbose_name = "correction du joueur"
         verbose_name_plural = "corrections des joueurs"
 
 
-class TournamentMap(ExportModelOperationsMixin('tournament_map'),
-                    models.Model):
-    map = models.ForeignKey(Map,
-                            on_delete=models.CASCADE,
-                            verbose_name="carte")
-    tournament = models.ForeignKey(Tournament,
-                                   on_delete=models.CASCADE,
-                                   verbose_name="tournoi")
+class TournamentMap(
+    ExportModelOperationsMixin('tournament_map'), models.Model
+):
+    map = models.ForeignKey(
+        Map, on_delete=models.CASCADE, verbose_name="carte"
+    )
+    tournament = models.ForeignKey(
+        Tournament, on_delete=models.CASCADE, verbose_name="tournoi"
+    )
 
     def __str__(self):
         return "%s pour tournoi %s" % (self.map.name, self.tournament.name)
@@ -257,36 +292,49 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
         ('done', 'Terminé'),
     )
 
-    author = models.ForeignKey(settings.AUTH_USER_MODEL,
-                               related_name='matches',
-                               on_delete=models.CASCADE,
-                               verbose_name="lancé par")
-    status = models.CharField("statut",
-                              choices=STATUS_CHOICES,
-                              max_length=100,
-                              default="creating")
-    tournament = models.ForeignKey(Tournament,
-                                   related_name='matches',
-                                   null=True,
-                                   blank=True,
-                                   on_delete=models.CASCADE,
-                                   verbose_name="tournoi")
-    players = models.ManyToManyField(Champion,
-                                     verbose_name="participants",
-                                     related_name='matches',
-                                     through='MatchPlayer')
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name='matches',
+        on_delete=models.CASCADE,
+        verbose_name="lancé par",
+    )
+    status = models.CharField(
+        "statut", choices=STATUS_CHOICES, max_length=100, default="creating"
+    )
+    tournament = models.ForeignKey(
+        Tournament,
+        related_name='matches',
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        verbose_name="tournoi",
+    )
+    players = models.ManyToManyField(
+        Champion,
+        verbose_name="participants",
+        related_name='matches',
+        through='MatchPlayer',
+    )
     ts = models.DateTimeField("date", default=timezone.now)
-    map = models.ForeignKey(Map,
-                            null=True, blank=True,
-                            related_name='matches',
-                            on_delete=models.CASCADE,
-                            verbose_name="carte")
+    map = models.ForeignKey(
+        Map,
+        null=True,
+        blank=True,
+        related_name='matches',
+        on_delete=models.CASCADE,
+        verbose_name="carte",
+    )
 
     @property
     def directory(self):
         hi_id, low_id = divmod(self.id, 1000)
-        return (settings.STECHEC_ROOT / settings.STECHEC_CONTEST / "matches" /
-                "{:03d}".format(hi_id) / "{:03d}".format(low_id))
+        return (
+            settings.STECHEC_ROOT
+            / settings.STECHEC_CONTEST
+            / "matches"
+            / "{:03d}".format(hi_id)
+            / "{:03d}".format(low_id)
+        )
 
     @property
     def log_path(self):
@@ -398,22 +446,28 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
 
 
 class MatchPlayer(ExportModelOperationsMixin('match_player'), models.Model):
-    champion = models.ForeignKey(Champion,
-                                 related_name='matchplayers',
-                                 verbose_name="champion",
-                                 on_delete=models.CASCADE)
-    match = models.ForeignKey(Match,
-                              related_name='matchplayers',
-                              verbose_name="match",
-                              on_delete=models.CASCADE)
+    champion = models.ForeignKey(
+        Champion,
+        related_name='matchplayers',
+        verbose_name="champion",
+        on_delete=models.CASCADE,
+    )
+    match = models.ForeignKey(
+        Match,
+        related_name='matchplayers',
+        verbose_name="match",
+        on_delete=models.CASCADE,
+    )
     score = models.IntegerField(default=0, verbose_name="score")
-    has_timeout = models.BooleanField(default=False,
-                                      verbose_name="has timeout")
+    has_timeout = models.BooleanField(
+        default=False, verbose_name="has timeout"
+    )
 
     @property
     def log_path(self):
-        return (self.match.directory /
-                "log-champ-{}-{}.log".format(self.id, self.champion.id))
+        return self.match.directory / "log-champ-{}-{}.log".format(
+            self.id, self.champion.id
+        )
 
     @property
     def log(self):
@@ -434,6 +488,7 @@ class MatchPlayer(ExportModelOperationsMixin('match_player'), models.Model):
 
 
 def master_status():
-    rpc = prologin.rpc.client.SyncClient(settings.STECHEC_MASTER,
-                                         secret=settings.STECHEC_MASTER_SECRET)
+    rpc = prologin.rpc.client.SyncClient(
+        settings.STECHEC_MASTER, secret=settings.STECHEC_MASTER_SECRET
+    )
     return rpc.status()

@@ -6,14 +6,26 @@ import argparse
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='CLI interface for prolorpc')
-    parser.add_argument('--secret', dest='secret', action='store', default='',
-                        help='shared secret')
-    parser.add_argument('--args', dest='args', action='store', default='',
-                        help="method args: 'arg1=val1&arg2=val2'")
-    parser.add_argument('url', action='store',
-                        help="RPC url (http://127.0.0.1:8086/")
-    parser.add_argument('method', action='store',
-                        help='name of the remote method')
+    parser.add_argument(
+        '--secret',
+        dest='secret',
+        action='store',
+        default='',
+        help='shared secret',
+    )
+    parser.add_argument(
+        '--args',
+        dest='args',
+        action='store',
+        default='',
+        help="method args: 'arg1=val1&arg2=val2'",
+    )
+    parser.add_argument(
+        'url', action='store', help="RPC url (http://127.0.0.1:8086/"
+    )
+    parser.add_argument(
+        'method', action='store', help='name of the remote method'
+    )
     opts = parser.parse_args()
 
     args = {}

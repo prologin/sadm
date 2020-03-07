@@ -21,22 +21,19 @@ from prometheus_client import Summary
 
 
 rpc_call_in = Summary(
-        'rpc_call_in',
-        'Summary of the rpc calls received',
-        ['method'])
+    'rpc_call_in', 'Summary of the rpc calls received', ['method']
+)
 
 
 def _observe_rpc_call_in(f):
     @wraps(f)
     async def _wrapper(self):
         with rpc_call_in.labels(method=self.method_name).time():
-            return (await f(self))
+            return await f(self)
 
     return _wrapper
 
 
-rpc_call_out = Summary(
-        'rpc_call_out',
-        'Summary of the rpc calls sent')
+rpc_call_out = Summary('rpc_call_out', 'Summary of the rpc calls sent')
 
 # Monitoring is started by the application using the rpc library

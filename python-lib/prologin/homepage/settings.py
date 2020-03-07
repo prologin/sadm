@@ -72,7 +72,7 @@ STATICFILES_DIRS = (
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-#    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+    #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
 MIDDLEWARE = (
@@ -121,7 +121,6 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'prologin.homepage',
-
     # Monitoring
     'django_prometheus',
 )
@@ -152,7 +151,7 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
-    }
+    },
 }
 
 CONTEST_MODE = cfg['contest_mode']

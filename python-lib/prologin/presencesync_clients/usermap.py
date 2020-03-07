@@ -40,19 +40,19 @@ TSPAN_TAG = '{http://www.w3.org/2000/svg}tspan'
 STYLES = {
     'connected_user': (
         'font-weight: bold;',
-        'fill: #208020; font-weight: bold;'
+        'fill: #208020; font-weight: bold;',
     ),
     'connected_orga': (
         'font-weight: bold;',
-        'fill: #202080; font-weight: bold;'
+        'fill: #202080; font-weight: bold;',
     ),
     'connected_root': (
         'font-weight: bold;',
-        'fill: #802020; font-weight: bold;'
+        'fill: #802020; font-weight: bold;',
     ),
     'disconnected': (
         'font-weight: bold;',
-        'fill: #b0b0b0; font-style: italic;'
+        'fill: #b0b0b0; font-style: italic;',
     ),
 }
 
@@ -102,8 +102,7 @@ def generate(map_pattern, output):
     readable file and the `logins` -> hostname mapping.
     """
     host_to_login = {
-        entry['hostname']: entry['login']
-        for entry in presence_data.values()
+        entry['hostname']: entry['login'] for entry in presence_data.values()
     }
 
     tree = ET.parse(map_pattern)
@@ -113,9 +112,9 @@ def generate(map_pattern, output):
         rect = g[0]
         text = g[1]
         if (
-            len(text) == 2 and
-            text[0].tag == TSPAN_TAG and
-            text[1].tag == TSPAN_TAG
+            len(text) == 2
+            and text[0].tag == TSPAN_TAG
+            and text[1].tag == TSPAN_TAG
         ):
             machine_name = text[0].text
             login = host_to_login.get(machine_name, None)
@@ -157,9 +156,15 @@ def update_map():
 
 async def ping_machine(hostname):
     proc = await asyncio.create_subprocess_exec(
-            'ping', '-c', '1', '-W', '2', hostname,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL)
+        'ping',
+        '-c',
+        '1',
+        '-W',
+        '2',
+        hostname,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
     return hostname, (await proc.wait() == 0)
 
 
@@ -183,7 +188,8 @@ async def update_ping():
         try:
             new_ping_status = {
                 hostname: status
-                async for hostname, status in distributed_ping()}
+                async for hostname, status in distributed_ping()
+            }
 
             if new_ping_status != ping_status:
                 ping_status.clear()

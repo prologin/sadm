@@ -35,8 +35,11 @@ def _connect_args(publish):
         pub_secret = None
     url = SUB_CFG['url']
     sub_secret = SUB_CFG['shared_secret']
-    logging.info("Creating MDBSync connection object: url=%s, publish=%s",
-                 url, pub_secret is not None)
+    logging.info(
+        "Creating MDBSync connection object: url=%s, publish=%s",
+        url,
+        pub_secret is not None,
+    )
     return url, 'mac', pub_secret, sub_secret
 
 

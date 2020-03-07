@@ -18,16 +18,14 @@
 from prometheus_client import start_http_server, Summary, Gauge
 
 workernode_compile_champion_summary = Summary(
-    'workernode_compile_champion_summary',
-    'Summary of compile champion task')
+    'workernode_compile_champion_summary', 'Summary of compile champion task'
+)
 
 workernode_run_match_summary = Summary(
-    'workernode_run_match_count',
-    'Summary of match task')
+    'workernode_run_match_count', 'Summary of match task'
+)
 
-workernode_slots = Gauge(
-    'workernode_slots',
-    'Number of available slots')
+workernode_slots = Gauge('workernode_slots', 'Number of available slots')
 
 
 def monitoring_start():

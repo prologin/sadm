@@ -28,6 +28,7 @@ def add_warning_to_django_auth_user_model_name():
     this is not the UDB user model, as it's easy to confuse the two.
     """
     from django.contrib.auth import get_user_model
+
     warning = " ⚠ *not* UDB user model ⚠"
     User = get_user_model()
     User._meta.verbose_name += warning
@@ -43,8 +44,9 @@ def default_initial_auth_groups(apps):
     Permission = apps.get_model('auth', 'Permission')
 
     orga = Group.objects.create(name="Organizer")
-    orga.permissions.set(Permission.objects.filter(
-        codename__in=['change_user']))
+    orga.permissions.set(
+        Permission.objects.filter(codename__in=['change_user'])
+    )
 
     root = Group.objects.create(name="root")
     root.permissions.set(Permission.objects.all())

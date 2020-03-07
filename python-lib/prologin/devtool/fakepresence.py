@@ -6,8 +6,9 @@ from prologin.presencesync.client import connect
 if __name__ == '__main__':
     p = argparse.ArgumentParser()
     p.add_argument('login', help="Logged-in username")
-    p.add_argument('hostname',
-                   help="Machine hostname on which the user is logged-in")
+    p.add_argument(
+        'hostname', help="Machine hostname on which the user is logged-in"
+    )
 
     args = p.parse_args()
 

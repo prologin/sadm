@@ -8,15 +8,18 @@ import tornado.web
 import unittest
 import wsgiref.simple_server
 
+
 def test_ping_handler():
     """/__ping handler code returns pong"""
     status_code, reason, headers, text = prologin.web.ping_handler()
     assert text == "pong"
 
+
 def test_threads_handler():
     """/__threads handler code returns threads info"""
     status_code, reason, headers, text = prologin.web.threads_handler()
     assert ' threads found' in text
+
 
 class WebAppTest:
     """Abstract test which black-box tests all known handlers to check if the
@@ -60,6 +63,7 @@ class WebAppTest:
         text = requests.get(self.get_server_url() + '/__threads').text
         self.assertIn(' threads found', text)
 
+
 class WsgiAppTest(unittest.TestCase, WebAppTest):
     @classmethod
     def setUpClass(cls):
@@ -74,9 +78,11 @@ class WsgiAppTest(unittest.TestCase, WebAppTest):
         def application(environ, start_response):
             start_response('200 OK', [])
             return [b'Normal output']
+
         application = prologin.web.WsgiApp(application, 'test-wsgi-app')
-        server = wsgiref.simple_server.make_server('127.0.0.1', 42543,
-                                                   application)
+        server = wsgiref.simple_server.make_server(
+            '127.0.0.1', 42543, application
+        )
         return server.serve_forever
 
     @classmethod
@@ -86,6 +92,7 @@ class WsgiAppTest(unittest.TestCase, WebAppTest):
     @classmethod
     def expected_normal_output(cls):
         return 'Normal output'
+
 
 class TornadoAppTest(unittest.TestCase, WebAppTest):
     @classmethod
@@ -102,9 +109,10 @@ class TornadoAppTest(unittest.TestCase, WebAppTest):
             def get(self):
                 self.set_status(200)
                 self.write(b'Normal output')
-        application = prologin.web.TornadoApp([
-            ('/', TestHandler)
-        ], 'test-tornado-app')
+
+        application = prologin.web.TornadoApp(
+            [('/', TestHandler)], 'test-tornado-app'
+        )
         application.listen(42544)
         return tornado.ioloop.IOLoop.instance().start
 

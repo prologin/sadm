@@ -22,16 +22,19 @@ from urllib.parse import urljoin
 
 class BaseError(Exception):
     """Base class for all exceptions here."""
+
     pass
 
 
 class InternalError(BaseError):
     """Raised when there is a protocol failure somewhere."""
+
     pass
 
 
 class RemoteError(BaseError):
     """Raised when the remote procedure raised an error."""
+
     def __init__(self, type, message):
         self.type = type
         self.message = message
@@ -67,8 +70,9 @@ class Client:
 
         # Generate the timeauth token
         if self.secret:
-            arguments['hmac'] = prologin.timeauth.generate_token(self.secret,
-                                                                 method)
+            arguments['hmac'] = prologin.timeauth.generate_token(
+                self.secret, method
+            )
         try:
             req_data = json.dumps(arguments)
         except (TypeError, ValueError):
@@ -81,7 +85,7 @@ class Client:
         # This would require to have client as a context manager :/
         async with aiohttp.ClientSession() as session:
             async with session.post(url, data=data) as req:
-                return (await self._request_work(req))
+                return await self._request_work(req)
 
     async def _request_work(self, req):
         if req.headers['Content-Type'] == 'application/json':
@@ -108,15 +112,19 @@ class Client:
 
     def __getattr__(self, method):
         """Return a callable to invoke a remote procedure."""
+
         async def proxy(*args, max_retries=0, retry_delay=10, **kwargs):
             for i in range(max_retries + 1):
                 try:
-                    return (await self._call_method(method, args, kwargs))
+                    return await self._call_method(method, args, kwargs)
                 except socket.error:
                     if i < max_retries:
-                        logging.warning('<%s> down, cannot call %s. '
-                                        'Retrying in %ss...', self.base_url,
-                                        method, retry_delay)
+                        logging.warning(
+                            '<%s> down, cannot call %s. ' 'Retrying in %ss...',
+                            self.base_url,
+                            method,
+                            retry_delay,
+                        )
                         await asyncio.sleep(retry_delay)
                     else:
                         raise

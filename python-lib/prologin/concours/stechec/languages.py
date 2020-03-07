@@ -3,8 +3,11 @@
 LANGUAGES = {
     'c': {'name': 'C', 'color': '#555555', 'exts': ['.c', '.h']},
     'cs': {'name': 'C#', 'color': '#178600', 'exts': ['.cs']},
-    'cxx': {'name': 'C++', 'color': '#f34b7d',
-            'exts': ['.cxx', '.hh', '.cc', '.cpp', '.h']},
+    'cxx': {
+        'name': 'C++',
+        'color': '#f34b7d',
+        'exts': ['.cxx', '.hh', '.cc', '.cpp', '.h'],
+    },
     'python': {'name': 'Python', 'color': '#3572a5', 'exts': ['.py']},
     'java': {'name': 'Java', 'color': '#b07219', 'exts': ['.java']},
     'rust': {'name': 'Rust', 'color': '#dea584', 'exts': ['.rs']},

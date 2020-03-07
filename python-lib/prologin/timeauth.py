@@ -32,8 +32,7 @@ def generate_token(secret, message=None):
     """Generate a token given some `secret`."""
     timestamp = str(int(time.time()))
     return '{}:{}'.format(
-        timestamp,
-        get_hmac(secret, str(message) + timestamp),
+        timestamp, get_hmac(secret, str(message) + timestamp),
     )
 
 
@@ -62,14 +61,13 @@ def check_token(token, secret, message=None):
         return False
 
     # Check if the token is valid.
-    return hmac.compare_digest(get_hmac(secret, str(message) + chunks[0]),
-                               chunks[1])
+    return hmac.compare_digest(
+        get_hmac(secret, str(message) + chunks[0]), chunks[1]
+    )
 
 
 def get_hmac(secret, message):
     """Return a HMAC of `message` for some `secret`."""
     return hmac.new(
-        secret,
-        message.encode('ascii'),
-        digestmod=hashlib.sha256
+        secret, message.encode('ascii'), digestmod=hashlib.sha256
     ).hexdigest()

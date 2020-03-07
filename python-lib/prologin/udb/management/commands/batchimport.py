@@ -33,8 +33,9 @@ def make_ascii(s):
 
 
 def generate_password(length):
-    proc = subprocess.Popen(['pwgen', '-cnB', str(length)],
-                            stdout=subprocess.PIPE)
+    proc = subprocess.Popen(
+        ['pwgen', '-cnB', str(length)], stdout=subprocess.PIPE
+    )
     out, err = proc.communicate()
     return out.strip().decode('utf-8')
 
@@ -69,16 +70,22 @@ def create_users(names, options):
 
         logins.add(login)
 
-        insert_method = (User.objects.update_or_create if options['update'] else
-                         User.objects.get_or_create)
+        insert_method = (
+            User.objects.update_or_create
+            if options['update']
+            else User.objects.get_or_create
+        )
         u, created = insert_method(
             login=login,
             defaults={
                 'firstname': firstname.title(),
                 'lastname': lastname.title(),
                 'group': options['type'],
-                'password': (passw if options['passwords'] else
-                             generate_password(options['pwdlen']))
+                'password': (
+                    passw
+                    if options['passwords']
+                    else generate_password(options['pwdlen'])
+                ),
             },
         )
 
@@ -98,20 +105,39 @@ def create_users(names, options):
 
 class Command(BaseCommand):
     def add_arguments(self, parser):
-        parser.add_argument('--file',
-                            help='File with "first name\\tlast name" lines')
-        parser.add_argument('--type', default='user',
-                            help='User type (user/orga/root)')
-        parser.add_argument('--pwdlen', type=int, default=8,
-                            help='Password length')
-        parser.add_argument('--logins', action='store_true', default=False,
-                            help='File contains logins, not real names')
-        parser.add_argument('--passwords', action='store_true', default=False,
-                            help='File contains passwords after a colon')
-        parser.add_argument('--update', action='store_true', default=False,
-                            help='Update already existing database entries')
-        parser.add_argument('--ignore', action='store_true', default=False,
-                            help='Ignore already existing database entries')
+        parser.add_argument(
+            '--file', help='File with "first name\\tlast name" lines'
+        )
+        parser.add_argument(
+            '--type', default='user', help='User type (user/orga/root)'
+        )
+        parser.add_argument(
+            '--pwdlen', type=int, default=8, help='Password length'
+        )
+        parser.add_argument(
+            '--logins',
+            action='store_true',
+            default=False,
+            help='File contains logins, not real names',
+        )
+        parser.add_argument(
+            '--passwords',
+            action='store_true',
+            default=False,
+            help='File contains passwords after a colon',
+        )
+        parser.add_argument(
+            '--update',
+            action='store_true',
+            default=False,
+            help='Update already existing database entries',
+        )
+        parser.add_argument(
+            '--ignore',
+            action='store_true',
+            default=False,
+            help='Ignore already existing database entries',
+        )
 
     def handle(self, *args, **options):
         if options['file'] is None:

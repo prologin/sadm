@@ -104,10 +104,7 @@ def apply_updates(pk, backlog, updates, watch=None):
 
 
 def items_to_updates(items):
-    return [
-        {'type': 'update', 'data': item}
-        for item in items
-    ]
+    return [{'type': 'update', 'data': item} for item in items]
 
 
 class BasePubSubQueue:
@@ -116,6 +113,7 @@ class BasePubSubQueue:
     This is a base abstract class. It define common utilities, let
     subclasses implement required methods and let them add other methods.
     """
+
     def __init__(self):
         self.subscribers = set()
 
@@ -137,12 +135,16 @@ class BasePubSubQueue:
         logging.info('new subscriber arrived, sending the backlog')
         callback(json.dumps(self.get_backlog_message()))
         self.subscribers.add(callback)
-        logging.info('added a new subscriber, count is now %d', len(self.subscribers))
+        logging.info(
+            'added a new subscriber, count is now %d', len(self.subscribers)
+        )
 
     def unregister_subscriber(self, callback):
         """Remove a subscriber from the queue."""
         self.subscribers.remove(callback)
-        logging.info('removed a subscriber, count is now %d', len(self.subscribers))
+        logging.info(
+            'removed a subscriber, count is now %d', len(self.subscribers)
+        )
 
 
 class DefaultPubSubQueue(BasePubSubQueue):
@@ -234,8 +236,11 @@ class Server(prologin.web.TornadoApp):
                 backlog = self.get_initial_backlog()
                 break
             except Exception as e:
-                logging.exception('unable to get the backlog, retrying in 2s: '
-                                  '%s: %s', type(e).__name__, e)
+                logging.exception(
+                    'unable to get the backlog, retrying in 2s: ' '%s: %s',
+                    type(e).__name__,
+                    e,
+                )
                 time.sleep(2)
         return DefaultPubSubQueue(self.pk, backlog)
 
@@ -287,10 +292,12 @@ class Client(prologin.webapi.Client):
             raise ValueError('No subscriber shared secret specified')
 
         while True:
-            params = urllib.parse.urlencode({
-                'data': '{}',
-                'hmac': prologin.timeauth.generate_token(self.sub_secret),
-            })
+            params = urllib.parse.urlencode(
+                {
+                    'data': '{}',
+                    'hmac': prologin.timeauth.generate_token(self.sub_secret),
+                }
+            )
             poll_url = urllib.parse.urljoin(self.url, '/poll?%s' % params)
             try:
                 with urllib.request.urlopen(poll_url) as resp:
@@ -303,15 +310,21 @@ class Client(prologin.webapi.Client):
                             logging.exception('could not decode updates')
                             break
                         updates_metadata = apply_updates(
-                            self.pk, state, updates, watch)
+                            self.pk, state, updates, watch
+                        )
                         try:
                             callback(state, updates_metadata)
                         except Exception:
-                            logging.exception('error in the synchronisation '
-                                              'client callback')
+                            logging.exception(
+                                'error in the synchronisation '
+                                'client callback'
+                            )
             except Exception:
-                logging.exception("connection synchronisation server lost to "
-                                  "url %s; calling exit()!", poll_url)
+                logging.exception(
+                    "connection synchronisation server lost to "
+                    "url %s; calling exit()!",
+                    poll_url,
+                )
                 sys.exit(1)
 
 
@@ -360,7 +373,8 @@ class AsyncClient(prologin.webapi.AsyncClient):
                     payload = line.decode('utf-8')
                     updates = json.loads(payload)
                     updates_metadata = apply_updates(
-                        self.pk, state, updates, watch)
+                        self.pk, state, updates, watch
+                    )
                     yield state, updates_metadata
 
 

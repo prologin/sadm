@@ -7,6 +7,7 @@ import prologin.concours.stechec.urls
 import prologin.concours.stechec.restapi.urls
 
 from prologin.djangoconf import set_admin_title
+
 set_admin_title(admin, "Concours")
 
 urlpatterns = [
@@ -20,6 +21,7 @@ urlpatterns += staticfiles_urlpatterns()
 
 if settings.DEBUG:
     import debug_toolbar
+
     urlpatterns = [
         path('__debug__/', include(debug_toolbar.urls)),
     ] + urlpatterns

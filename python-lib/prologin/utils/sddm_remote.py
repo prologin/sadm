@@ -35,7 +35,6 @@ async def sddm_handler(request):
         clients.discard(ws)
 
 
-
 async def admin_handler(request):
     ws = web.WebSocketResponse()
     ws.request = request
@@ -59,9 +58,7 @@ async def admin_handler(request):
 
 if __name__ == '__main__':
     app = web.Application()
-    app.add_routes([
-        web.get('/', sddm_handler),
-        web.get('/admin', admin_handler),
-    ])
+    app.add_routes(
+        [web.get('/', sddm_handler), web.get('/admin', admin_handler),]
+    )
     web.run_app(app, host='0.0.0.0', port=7766)
-

@@ -11,14 +11,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='match',
-            name='file_options',
-        ),
-        migrations.RemoveField(
-            model_name='match',
-            name='options',
-        ),
+        migrations.RemoveField(model_name='match', name='file_options',),
+        migrations.RemoveField(model_name='match', name='options',),
         migrations.AddField(
             model_name='map',
             name='contents',
@@ -28,6 +22,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='match',
             name='map',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='matches', to='stechec.Map', verbose_name='carte'),
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name='matches',
+                to='stechec.Map',
+                verbose_name='carte',
+            ),
         ),
     ]

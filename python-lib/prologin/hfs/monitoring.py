@@ -22,26 +22,31 @@ from prometheus_client import start_http_server, Summary, Gauge
 hfs_migrate_remote_user = Summary(
     'hfs_migrate_remote_user_summary',
     'Summary of migrated (received) hfs',
-    labelnames=('user', 'hfs'))
+    labelnames=('user', 'hfs'),
+)
 
 hfs_migrate_user = Summary(
     'hfs_migrate_user_summary',
     'Summary of migrated (sent) hfs',
-    labelnames=('user', 'hfs'))
+    labelnames=('user', 'hfs'),
+)
 
 hfs_get_hfs = Summary(
     'hfs_get_hfs_summary',
     'Summary of hfs starts',
-    labelnames=('user', 'user_type', 'hfs'))
+    labelnames=('user', 'user_type', 'hfs'),
+)
 
 hfs_new_user = Summary(
     'hfs_new_user',
     'Summary new nbd creations',
-    labelnames=('user', 'user_type'))
+    labelnames=('user', 'user_type'),
+)
 
 hfs_running_nbd = Gauge(
-    'hfs_running_nbd_gauge',
-    'Number of nbd served by this hfs server')
+    'hfs_running_nbd_gauge', 'Number of nbd served by this hfs server'
+)
+
 
 def monitoring_start(addr):
     start_http_server(9030, addr)

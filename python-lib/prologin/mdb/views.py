@@ -35,8 +35,16 @@ class MDBServer(prologin.rpc.server.BaseRPCApp):
           mtype: machine type, either user/orga/cluster/service
           room: physical room location, either pasteur/alt/cluster/other
         """
-        fields = {'hostname', 'ip', 'aliases', 'mac', 'rfs', 'hfs', 'mtype',
-                  'room'}
+        fields = {
+            'hostname',
+            'ip',
+            'aliases',
+            'mac',
+            'rfs',
+            'hfs',
+            'mtype',
+            'room',
+        }
         check_filter_fields(fields, kwargs)
 
         machines = Machine.objects.filter(**kwargs)

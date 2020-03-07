@@ -67,7 +67,8 @@ from .monitoring import (
     hfs_migrate_user,
     hfs_new_user,
     hfs_running_nbd,
-    monitoring_start)
+    monitoring_start,
+)
 from socketserver import ThreadingMixIn
 
 CFG = prologin.config.load('hfs-server')
@@ -99,7 +100,8 @@ def get_hfs_ip(hfs_id):
     """
     hfs_alias = 'hfs%d' % hfs_id
     potential_hfs = prologin.mdb.client.connect().query(
-            aliases__contains=hfs_alias)
+        aliases__contains=hfs_alias
+    )
 
     # We need to loop over the results to avoid hfs1 matching hfs10.
     for server in potential_hfs:
@@ -162,13 +164,15 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
         fname = self.nbd_filename()
         nbd_path = Path(fname)
 
-        subprocess.check_call(['/usr/bin/tar', '--sparse', '-czf',
-                               '-', nbd_path.name],
-                              stdout=self.wfile.fileno(),
-                              cwd=nbd_path.parent)
+        subprocess.check_call(
+            ['/usr/bin/tar', '--sparse', '-czf', '-', nbd_path.name],
+            stdout=self.wfile.fileno(),
+            cwd=nbd_path.parent,
+        )
 
-        backup_fname = os.path.join(os.path.dirname(fname),
-                                    'backup_' + os.path.basename(fname))
+        backup_fname = os.path.join(
+            os.path.dirname(fname), 'backup_' + os.path.basename(fname)
+        )
         os.rename(fname, backup_fname)
 
         delta = time.monotonic() - migrate_user_start
@@ -188,18 +192,24 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
         self.hfs = int(self.get_argument('hfs'))
 
         # TODO(delroth): potentially blocking, but fast
-        get_user_hfs = db.prepare('SELECT hfs FROM user_location WHERE username = $1')
+        get_user_hfs = db.prepare(
+            'SELECT hfs FROM user_location WHERE username = $1'
+        )
         location = get_user_hfs(self.user)
 
         if location == []:  # first case: home nbd does not exist yet
             self.new_user_handler()
-            add_user_hfs = db.prepare('INSERT INTO user_location(username, hfs) VALUES ($1, $2)')
+            add_user_hfs = db.prepare(
+                'INSERT INTO user_location(username, hfs) VALUES ($1, $2)'
+            )
             add_user_hfs(self.user, self.hfs)
         else:
             location = location[0][0]
             if location != self.hfs:
                 self.remote_user_handler(location)
-                set_user_hfs = db.prepare('UPDATE user_location SET hfs = $2 WHERE username = $1')
+                set_user_hfs = db.prepare(
+                    'UPDATE user_location SET hfs = $2 WHERE username = $1'
+                )
                 set_user_hfs(self.user, self.hfs)
 
         filename = self.nbd_filename()
@@ -212,11 +222,12 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header('content-type', 'application/json')
         self.end_headers()
-        self.wfile.write(json.dumps({ 'port': port }).encode('utf-8'))
+        self.wfile.write(json.dumps({'port': port}).encode('utf-8'))
 
         delta = time.monotonic() - get_hfs_start
-        hfs_get_hfs.labels(user=self.user, user_type=self.user_type,
-                           hfs=self.hfs).observe(delta)
+        hfs_get_hfs.labels(
+            user=self.user, user_type=self.user_type, hfs=self.hfs
+        ).observe(delta)
 
     def nbd_filename(self):
         """Returns the filename for the NBD."""
@@ -264,8 +275,10 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
         try:
             pwd.getpwnam(self.user)
         except KeyError:
-            raise RuntimeError('User {} does not exist on the rhfs. '
-                               'Is udbsync_passwd working?'.format(self.user))
+            raise RuntimeError(
+                'User {} does not exist on the rhfs. '
+                'Is udbsync_passwd working?'.format(self.user)
+            )
 
     def start_nbd_server(self, filename):
         """Starts the NBD server for a given filename. Allocates a random port
@@ -282,16 +295,20 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
             f.write("[%s]\n" % self.user)
             f.write("exportname = %s\n" % filename)
 
-        cmd = ['nbd-server',
-            '-p', '/tmp/nbd.%s.pid' % self.user,
-            '-C', config_file]
+        cmd = [
+            'nbd-server',
+            '-p',
+            '/tmp/nbd.%s.pid' % self.user,
+            '-C',
+            config_file,
+        ]
         proc = subprocess.Popen(cmd)
         if proc.wait() != 0:
             raise RuntimeError('Unable to start the nbd server')
         time.sleep(1)
         with open('/tmp/nbd.%s.pid' % self.user) as fp:
             pid = int(fp.read().strip())
-            RUNNING_NBD[self.user] = { 'pid': pid, 'port': port }
+            RUNNING_NBD[self.user] = {'pid': pid, 'port': port}
             hfs_running_nbd.inc()
         return port
 
@@ -316,8 +333,14 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
             f.truncate(quota)
 
         # Format the file and copy the skeleton
-        cmd = [creation_script, self.nbd_filename(), self.user, group,
-               CFG['skeleton'], self.user_type]
+        cmd = [
+            creation_script,
+            self.nbd_filename(),
+            self.user,
+            group,
+            CFG['skeleton'],
+            self.user_type,
+        ]
 
         self.proc = subprocess.Popen(cmd)
         error_code = self.proc.wait()
@@ -325,8 +348,9 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
             raise RuntimeError('creation script failed!')
 
         delta = time.monotonic() - new_user_start
-        hfs_new_user.labels(user=self.user, user_type=self.user_type) \
-            .observe(delta)
+        hfs_new_user.labels(user=self.user, user_type=self.user_type).observe(
+            delta
+        )
 
     def remote_user_handler(self, peer_id):
         """Transfers the data from a remote HFS to the current HFS."""
@@ -334,21 +358,25 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
 
         self.check_available_space()
 
-        url = ('http', 'hfs%d:%d' % (peer_id, CFG['port']), '/migrate_user',
-               '', '')
+        url = (
+            'http',
+            'hfs%d:%d' % (peer_id, CFG['port']),
+            '/migrate_user',
+            '',
+            '',
+        )
         url = urllib.parse.urlunsplit(url)
 
-        data = { 'user': self.user, 'hfs': peer_id }
+        data = {'user': self.user, 'hfs': peer_id}
         data = urllib.parse.urlencode([('data', json.dumps(data))])
         data = data.encode('utf-8')
 
         nbd_path = Path(self.nbd_filename())
 
-        tar_cmdline = ['/usr/bin/tar', '--sparse', '-xzf',
-                       '-', nbd_path.name]
-        tar = subprocess.Popen(tar_cmdline,
-                               stdin=subprocess.PIPE,
-                               cwd=nbd_path.parent)
+        tar_cmdline = ['/usr/bin/tar', '--sparse', '-xzf', '-', nbd_path.name]
+        tar = subprocess.Popen(
+            tar_cmdline, stdin=subprocess.PIPE, cwd=nbd_path.parent
+        )
         try:
             BLOCK_SIZE = 65536
 
@@ -365,11 +393,14 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
                 raise RuntimeError(f"{' '.join(tar_cmdline)} exited with rc")
 
         delta = time.monotonic() - remote_user_start
-        hfs_migrate_remote_user.labels(user=self.user, hfs=peer_id) \
-            .observe(delta)
+        hfs_migrate_remote_user.labels(user=self.user, hfs=peer_id).observe(
+            delta
+        )
+
 
 class ThHTTPServer(http.server.HTTPServer, ThreadingMixIn):
     pass
+
 
 if __name__ == '__main__':
     if len(sys.argv) != 2 or not sys.argv[1].isdigit():

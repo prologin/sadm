@@ -14,8 +14,8 @@ def initial_data(apps, schema_editor):
     IPPool.objects.create(last=0, mtype="service", network="192.168.1.0/24")
 
     VolatileSetting.objects.create(
-        key="allow_self_registration",
-        value_bool=True)
+        key="allow_self_registration", value_bool=True
+    )
 
 
 class Migration(migrations.Migration):

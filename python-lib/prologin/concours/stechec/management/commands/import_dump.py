@@ -19,8 +19,10 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         user = get_user_model().objects.first()
         if user is None:
-            self.stderr.write("No user found. Create a dummy user (eg. manage.py createsuperuser) "
-                              "before running this command.")
+            self.stderr.write(
+                "No user found. Create a dummy user (eg. manage.py createsuperuser) "
+                "before running this command."
+            )
             sys.exit(1)
 
         match = Match(author=user, status='done')
@@ -36,5 +38,8 @@ class Command(BaseCommand):
 
         self.stdout.write("Match created with ID: {}".format(match.pk))
         self.stdout.write("        Dump saved at: {}".format(path))
-        self.stdout.write("    Match detail page: http://127.0.0.1:8000{}".format(
-            match.get_absolute_url()))
+        self.stdout.write(
+            "    Match detail page: http://127.0.0.1:8000{}".format(
+                match.get_absolute_url()
+            )
+        )

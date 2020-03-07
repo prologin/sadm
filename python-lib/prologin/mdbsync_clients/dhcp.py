@@ -45,6 +45,7 @@ def update_dhcp_config(machines, metadata):
         raise RuntimeError('DHCP config check failed. Aborting.')
     os.system('systemctl restart dhcpd4')
 
+
 if __name__ == '__main__':
     prologin.log.setup_logging('mdbdhcp')
     prologin.mdbsync.client.connect().poll_updates(update_dhcp_config)

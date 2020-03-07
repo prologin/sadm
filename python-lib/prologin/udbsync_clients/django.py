@@ -27,6 +27,7 @@ import sys
 
 def sync_groups(cfg, uobj, data):
     from django.contrib.auth import models as auth_models
+
     groups = []
     for ty in ('user', 'orga', 'root'):
         cfg_key = '%s_group' % ty
@@ -52,13 +53,17 @@ def callback(cfg, users, updates_metadata):
             try:
                 u = UserModel.objects.get(username=login)
             except UserModel.DoesNotExist:
-                u = UserModel.objects.create_user(login,
-                                                  email='%s@devnull' % login,
-                                                  password=users[login]['password'])
+                u = UserModel.objects.create_user(
+                    login,
+                    email='%s@devnull' % login,
+                    password=users[login]['password'],
+                )
             u.first_name = users[login]['firstname']
             u.last_name = users[login]['lastname']
             u.set_password(users[login]['password'])
-            u.is_active = users[login]['group'] in cfg.get('allowed_groups', '')
+            u.is_active = users[login]['group'] in cfg.get(
+                'allowed_groups', ''
+            )
             sync_groups(cfg, u, users[login])
             u.save()
 

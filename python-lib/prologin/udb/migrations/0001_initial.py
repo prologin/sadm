@@ -8,17 +8,44 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
             name='UIDPool',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('group', models.CharField(choices=[('user', 'Contestant'), ('orga', 'Organizer'), ('root', 'root')], max_length=20, unique=True, verbose_name='For type')),
-                ('base', models.IntegerField(unique=True, verbose_name='Base UID')),
-                ('last', models.IntegerField(blank=True, default=0, verbose_name='Last allocation')),
+                (
+                    'id',
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name='ID',
+                    ),
+                ),
+                (
+                    'group',
+                    models.CharField(
+                        choices=[
+                            ('user', 'Contestant'),
+                            ('orga', 'Organizer'),
+                            ('root', 'root'),
+                        ],
+                        max_length=20,
+                        unique=True,
+                        verbose_name='For type',
+                    ),
+                ),
+                (
+                    'base',
+                    models.IntegerField(unique=True, verbose_name='Base UID'),
+                ),
+                (
+                    'last',
+                    models.IntegerField(
+                        blank=True, default=0, verbose_name='Last allocation'
+                    ),
+                ),
             ],
             options={
                 'verbose_name': 'UID Pool',
@@ -29,18 +56,71 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='User',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('login', models.CharField(db_index=True, max_length=32, unique=True, validators=[django.core.validators.RegexValidator(regex='^([a-z_][a-z0-9_]{0,30})$')])),
-                ('firstname', models.CharField(max_length=64, verbose_name='First name')),
-                ('lastname', models.CharField(max_length=64, verbose_name='Last name')),
-                ('uid', models.IntegerField(db_index=True, unique=True, verbose_name='UID')),
-                ('group', models.CharField(choices=[('user', 'Contestant'), ('orga', 'Organizer'), ('root', 'root')], max_length=20)),
-                ('password', models.CharField(help_text='pwgen -cnB 8', max_length=64)),
-                ('shell', models.CharField(default='/bin/bash', max_length=64)),
-                ('ssh_key', models.CharField(blank=True, max_length=4096, null=True, verbose_name='SSH public key')),
+                (
+                    'id',
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name='ID',
+                    ),
+                ),
+                (
+                    'login',
+                    models.CharField(
+                        db_index=True,
+                        max_length=32,
+                        unique=True,
+                        validators=[
+                            django.core.validators.RegexValidator(
+                                regex='^([a-z_][a-z0-9_]{0,30})$'
+                            )
+                        ],
+                    ),
+                ),
+                (
+                    'firstname',
+                    models.CharField(max_length=64, verbose_name='First name'),
+                ),
+                (
+                    'lastname',
+                    models.CharField(max_length=64, verbose_name='Last name'),
+                ),
+                (
+                    'uid',
+                    models.IntegerField(
+                        db_index=True, unique=True, verbose_name='UID'
+                    ),
+                ),
+                (
+                    'group',
+                    models.CharField(
+                        choices=[
+                            ('user', 'Contestant'),
+                            ('orga', 'Organizer'),
+                            ('root', 'root'),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                (
+                    'password',
+                    models.CharField(help_text='pwgen -cnB 8', max_length=64),
+                ),
+                (
+                    'shell',
+                    models.CharField(default='/bin/bash', max_length=64),
+                ),
+                (
+                    'ssh_key',
+                    models.CharField(
+                        blank=True,
+                        max_length=4096,
+                        null=True,
+                        verbose_name='SSH public key',
+                    ),
+                ),
             ],
-            options={
-                'ordering': ('group', 'login'),
-            },
+            options={'ordering': ('group', 'login'),},
         ),
     ]

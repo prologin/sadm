@@ -19,11 +19,21 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='tournamentplayer',
             name='champion',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='tournamentplayers', to='stechec.Champion', verbose_name='champion'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name='tournamentplayers',
+                to='stechec.Champion',
+                verbose_name='champion',
+            ),
         ),
         migrations.AlterField(
             model_name='tournamentplayer',
             name='tournament',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='tournamentplayers', to='stechec.Tournament', verbose_name='tournoi'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name='tournamentplayers',
+                to='stechec.Tournament',
+                verbose_name='tournoi',
+            ),
         ),
     ]

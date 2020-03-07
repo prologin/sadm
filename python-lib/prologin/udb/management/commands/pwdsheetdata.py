@@ -22,8 +22,9 @@ from prologin.udb.models import User
 
 class Command(BaseCommand):
     def add_arguments(self, parser):
-        parser.add_argument('--type', default='user',
-                            help='User type (user/orga/root)')
+        parser.add_argument(
+            '--type', default='user', help='User type (user/orga/root)'
+        )
 
     def handle(self, *args, **options):
         users = User.objects.filter(group=options['type'])
