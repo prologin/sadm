@@ -34,7 +34,10 @@ from .monitoring import (
     masternode_match_done_db,
     masternode_match_done_file,
     masternode_request_compilation_task,
+    masternode_task_dispatch,
     masternode_task_redispatch,
+    masternode_task_resubmit,
+    masternode_task_discard,
     masternode_worker_timeout,
 )
 from .task import MatchTask, CompilationTask
@@ -47,16 +50,18 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         super().__init__(*args, **kwargs)
         self.config = config
         self.workers = {}
-        self.worker_tasks = []
         self.db = ConcoursQuery(config)
 
     def run(self):
-        logging.info('master listening on %s', self.config['master']['port'])
-        self.to_dispatch = asyncio.Event()
+        logging.info("master listening on %s", self.config["master"]["port"])
         self.janitor = asyncio.Task(self.janitor_task())
-        self.dbwatcher = asyncio.Task(self.dbwatcher_task())
-        self.dispatcher = asyncio.Task(self.dispatcher_task())
-        super().run(port=self.config['master']['port'])
+        self.dbwatcher_compilations = asyncio.Task(
+            self.dbwatcher_task("compilation", self.get_requested_compilations)
+        )
+        self.dbwatcher_matches = asyncio.Task(
+            self.dbwatcher_task("matches", self.get_requested_matches)
+        )
+        super().run(port=self.config["master"]["port"])
 
     @prologin.rpc.remote_method
     async def status(self):
@@ -71,7 +76,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             self.workers[key] = w
         else:
             logging.warning(
-                "drop unreachable worker: %s:%s", w.hostname, w.port
+                "dropped unreachable worker: %s:%s", w.hostname, w.port
             )
 
     @prologin.rpc.remote_method
@@ -102,7 +107,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             usage * 100,
         )
         if first and (hostname, port) in self.workers:
-            self.redispatch_worker(self.workers[(hostname, port)])
+            await self.redispatch_worker(self.workers[(hostname, port)])
         await self.update_worker(worker)
 
     @prologin.rpc.remote_method
@@ -112,12 +117,13 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         hostname, port, slots, max_slots = worker
         w = self.workers[(hostname, port)]
 
+        task = w.get_compilation_task(cid)
         # Ignore the tasks we already redispatched
-        if w.get_compilation_task(cid) is None:
+        if task is None:
             return
+        w.remove_compilation_task(task)
 
-        w.remove_compilation_task(cid)
-        status = 'ready' if ret else 'error'
+        status = "ready" if ret else "error"
         if ret:
             with open(
                 champion_compiled_path(self.config, user, cid), 'wb'
@@ -145,11 +151,17 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         players_stdout,
     ):
         hostname, port, slots, max_slots = worker
-        w = self.workers[(hostname, port)]
-
-        # Ignore the tasks we already redispatched
-        if w.get_match_task(mid) is None:
+        try:
+            w = self.workers[(hostname, port)]
+        except KeyError:
+            # Ignore tasks from zombie workers
             return
+
+        task = w.get_match_task(mid)
+        # Ignore the tasks we already redispatched
+        if task is None:
+            return
+        w.remove_match_task(task)
 
         logging.info('match %s ended', mid)
 
@@ -202,33 +214,45 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         await self.db.executemany('set_player_score', player_scores)
         masternode_match_done_db.observe(time.monotonic() - start)
 
-        # Remove task from worker
-        w.remove_match_task(mid)
-
-    def redispatch_worker(self, worker):
+    async def redispatch_worker(self, worker):
         masternode_task_redispatch.inc(len(worker.tasks))
+
         if worker.tasks:
             logging.info(
                 "redispatching tasks for %s: %s", worker, worker.tasks
             )
-            self.worker_tasks = worker.tasks + self.worker_tasks
-            self.to_dispatch.set()
+            for task in worker.tasks.copy():
+                asyncio.create_task(task.redispatch())
+
         del self.workers[(worker.hostname, worker.port)]
 
-    def redispatch_timeout_tasks(self, worker):
-        for i, t in list(enumerate(worker.tasks)):
-            if t.has_timeout():
-                worker.tasks.pop(i)
-                max_tries = self.config['worker']['max_task_tries']
+    async def resubmit_timeout_tasks(self, worker):
+        tasks_to_discard = set()
+        for t in worker.tasks.copy():
+            if t.has_timeout() or t.has_error():
+                max_tries = self.config["worker"]["max_task_tries"]
+                error_msg = f' last error: {t.error}' if t.has_error() else ''
                 if t.executions < max_tries:
-                    self.worker_tasks.append(t)
-                    self.to_dispatch.set()
-                    msg = "redispatching (try {}/{})".format(
-                        t.executions, max_tries
+                    msg = (
+                        "resubmitted (try {}/{})".format(
+                            t.executions, max_tries
+                        )
+                        + error_msg
                     )
+                    masternode_task_resubmit.inc()
+                    asyncio.create_task(t.execute(self, worker))
                 else:
-                    msg = "maximum number of retries exceeded, bailing out"
+                    msg = (
+                        "maximum number of retries exceeded, bailing out"
+                        + error_msg
+                    )
+                    tasks_to_discard.add(t)
                 logging.info("task %s of %s timeout: %s", t, worker, msg)
+
+        masternode_task_discard.inc(len(tasks_to_discard))
+        worker.tasks.discard(tasks_to_discard)
+        for task in tasks_to_discard:
+            asyncio.create_task(task.discard())
 
     async def janitor_task(self):
         while True:
@@ -241,62 +265,64 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                         logging.warning(
                             "timeout detected for worker %s", worker
                         )
-                        self.redispatch_worker(worker)
-                    self.redispatch_timeout_tasks(worker)
+                        await self.redispatch_worker(worker)
+                    await self.resubmit_timeout_tasks(worker)
             except asyncio.CancelledError:
                 raise
             except Exception:
                 logging.exception('Janitor task triggered an exception')
             await asyncio.sleep(1)
 
-    async def check_requested_compilations(self, status='new'):
-        to_set_pending = []
-        res = await self.db.execute(
-            'get_champions', {'champion_status': status}
+    async def get_requested_compilations(self, status="new"):
+        rows = await self.db.execute(
+            "get_champions", {"champion_status": status}
         )
 
-        for r in res:
-            logging.info('requested compilation for %s / %s', r[1], r[0])
-            masternode_request_compilation_task.inc()
-            to_set_pending.append(
-                {'champion_id': r[0], 'champion_status': 'pending'}
-            )
-            t = CompilationTask(self.config, r[1], r[0])
-            self.worker_tasks.append(t)
+        tasks = [
+            CompilationTask(self.config, self.db, username, champion_id)
+            for champion_id, username in rows
+        ]
 
-        if to_set_pending:
-            self.to_dispatch.set()
-        await self.db.executemany('set_champion_status', to_set_pending)
+        return tasks
 
-    async def check_requested_matches(self, status='new'):
-        to_set_pending = []
-        c = await self.db.execute('get_matches', {'match_status': status})
-        for r in c:
-            logging.info('request match id %s launch', r[0])
-            mid = r[0]
-            map_contents = r[1]
-            players = list(zip(r[2], r[3], r[4]))
-            to_set_pending.append({'match_id': mid, 'match_status': 'pending'})
+    async def get_requested_matches(self, status="new"):
+        rows = await self.db.execute("get_matches", {"match_status": status})
+
+        tasks = []
+        for (
+            match_id,
+            map_contents,
+            champion_ids,
+            player_ids,
+            usernames,
+        ) in rows:
+            players = list(zip(champion_ids, player_ids, usernames))
             try:
-                t = MatchTask(self.config, mid, players, map_contents)
-                self.worker_tasks.append(t)
+                t = MatchTask(
+                    self.config, self.db, match_id, players, map_contents
+                )
+                tasks.append(t)
             except asyncio.CancelledError:
                 raise
             except Exception:
-                logging.exception('Unable to create task for match %s', mid)
+                logging.exception(
+                    'Unable to create task for match %s', match_id
+                )
 
-        if to_set_pending:
-            self.to_dispatch.set()
-        await self.db.executemany('set_match_status', to_set_pending)
+        return tasks
 
-    async def dbwatcher_task(self):
+    async def dbwatcher_task(self, name, fetcher):
         while True:
             try:
-                await self.check_requested_compilations('pending')
-                await self.check_requested_matches('pending')
+                # Redispatch pending tasks from previous masternode
+                tasks = await fetcher("pending")
+                if tasks:
+                    await asyncio.wait([task.redispatch() for task in tasks])
+
                 while True:
-                    await self.check_requested_compilations()
-                    await self.check_requested_matches()
+                    tasks = await fetcher()
+                    if tasks:
+                        await self.dispatch_tasks(name, tasks)
                     await asyncio.sleep(1)
             except asyncio.CancelledError:
                 raise
@@ -315,41 +341,25 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         else:
             return available[0]
 
-    async def dispatcher_task(self):
-        while True:
+    async def dispatch_tasks(self, queue_name, tasks):
+        logging.info("%d tasks in %s queue", len(tasks), queue_name)
+
+        coros = []
+        for task in tasks:
+            w = self.find_worker_for(task)
+            if w is None:
+                logging.info("no worker available for task %s", task)
+                # It's okay to break the loop because all the items in the task
+                # queue are expected to have the same requirements, hence if
+                # one task cannot be scheduled then none of the other will.
+                break
+            masternode_task_dispatch.inc()
             try:
-                logging.info(
-                    'Dispatcher task: %d tasks in queue',
-                    len(self.worker_tasks),
-                )
-                await self.to_dispatch.wait()
-
-                # Try to schedule up to 100 tasks. The throttling is in place
-                # to avoid potential overload.
-                for i in range(100):
-                    if not self.worker_tasks:
-                        break
-                    task = self.worker_tasks[0]
-                    w = self.find_worker_for(task)
-                    if w is None:
-                        logging.info("no worker available for task %s", task)
-                        break
-                    else:
-                        w.add_task(self, task)
-                        logging.debug("task %s got to %s", task, w)
-                        self.worker_tasks = self.worker_tasks[1:]
-                if not self.worker_tasks:
-                    self.to_dispatch.clear()
-                else:
-                    await asyncio.sleep(1)  # No worker available, wait 1s
-
-                # Give the hand back to the event loop to avoid being blocking,
-                # but be called as soon as all the functions at the top of the
-                # heap have been executed
-                await asyncio.sleep(0)
-            except asyncio.CancelledError:
-                raise
+                coros.append(w.add_task(self, task))
+                logging.debug("task %s sent to %s", task, w)
             except Exception:
-                logging.exception('Dispatcher task triggered an exception')
-                await asyncio.sleep(3)
-                continue
+                logging.exception('Could not dispatch task %s to %s', task, w)
+
+        # Ensure the tasks are scheduled (=set as pending).
+        if coros:
+            await asyncio.wait(coros)

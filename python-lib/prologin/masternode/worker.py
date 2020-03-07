@@ -31,7 +31,7 @@ class Worker(object):
         self.port = port
         self.slots = slots
         self.max_slots = max_slots
-        self.tasks = []
+        self.tasks = set()
         self.keep_alive()
         self.config = config
         self.rpc = prologin.rpc.client.Client(
@@ -67,38 +67,27 @@ class Worker(object):
 
     def add_task(self, master, task):
         self.slots -= task.slots_taken
-        self.tasks.append(task)
+        self.tasks.add(task)
         task.start_time = None
-        asyncio.Task(task.execute(master, self))
+        return task.execute(master, self)
 
     def get_compilation_task(self, champ_id):
-        f = [
-            isinstance(t, task.CompilationTask) and t.champ_id == champ_id
-            for t in self.tasks
-        ]
-        return f[0] if f else None
+        for t in self.tasks:
+            if isinstance(t, task.CompilationTask) and t.champ_id == champ_id:
+                return t
+        return None
 
     def get_match_task(self, mid):
-        f = [
-            isinstance(t, task.MatchTask) and t.mid == mid for t in self.tasks
-        ]
-        return f[0] if f else None
+        for t in self.tasks:
+            if isinstance(t, task.MatchTask) and t.mid == mid:
+                return t
+        return None
 
-    def remove_compilation_task(self, champ_id):
-        self.tasks = [
-            t
-            for t in self.tasks
-            if not (
-                isinstance(t, task.CompilationTask) and t.champ_id == champ_id
-            )
-        ]
+    def remove_compilation_task(self, task):
+        self.tasks.discard(task)
 
-    def remove_match_task(self, mid):
-        self.tasks = [
-            t
-            for t in self.tasks
-            if not (isinstance(t, task.MatchTask) and t.mid == mid)
-        ]
+    def remove_match_task(self, task):
+        self.tasks.discard(task)
 
     def __repr__(self):
         return '<Worker: {}:{}>'.format(self.hostname, self.port)

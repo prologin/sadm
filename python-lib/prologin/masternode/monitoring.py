@@ -22,8 +22,20 @@ masternode_workers = Gauge('masternode_workers', 'Number of available workers')
 
 masternode_tasks = Gauge('masternode_tasks', 'Number of masternode tasks')
 
+masternode_task_dispatch = Counter(
+    'masternode_task_dispatch', 'Number of dispatched tasks'
+)
+
 masternode_task_redispatch = Counter(
     'masternode_task_redispatch', 'Number of redispatched tasks'
+)
+
+masternode_task_resubmit = Counter(
+    'masternode_task_resubmit', 'Number of resubmitted tasks'
+)
+
+masternode_task_discard = Counter(
+    "masternode_task_discard", "Number of discarded tasks"
 )
 
 masternode_bad_result = Counter(
