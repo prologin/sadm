@@ -114,6 +114,11 @@ USERS = {
         'uid': 20160,
         'groups': ('cluster', 'cluster_public', 'isolate')
     },
+    # 20170 is isolate.
+    'ansible': {
+        'uid': 20180,
+        'groups': ('ansible', 'mdb'),
+    },
 }
 
 # Same with groups. *_public groups are used for services that need to access
@@ -144,6 +149,7 @@ GROUPS = {
     'cluster': 20160,
     'cluster_public': 20161,
     'isolate': 20170,
+    'ansible': 20180,
 }
 
 # Location of the SADM master secret
@@ -520,6 +526,7 @@ def install_mdb():
         'ansible/ansible.cfg',
         '/etc/ansible/',
          owner='ansible:ansible')
+
 
 def install_mdbsync():
     requires('postgresql')
