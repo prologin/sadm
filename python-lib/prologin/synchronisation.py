@@ -369,6 +369,7 @@ class UpdateSenderTask(threading.Thread):
 
     def __init__(self, updater, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.daemon = True
         self.updater = updater
         self.updates_queue = queue.Queue()
         self.start()
