@@ -72,6 +72,18 @@ function stage_setup_concours {
   echo_status "Setup concours"
 
   container_run /opt/prologin/venv/bin/python /root/sadm/install.py concours
+
+  cat > $CONTAINER_ROOT/root/setup_concours.sh <<EOF
+#!/bin/bash
+set -e
+mkdir -p /var/prologin/{concours_static,prologin2042}
+chgrp concours /var/prologin/{concours_static,prologin2042}
+sed -i 's#^  game:.*#  game: prologin2042#' /etc/prologin/concours.yml
+sed -i 's#^  static_path:.*#  static_path: /var/prologin/concours_static#' /etc/prologin/concours.yml
+EOF
+  chmod +x $CONTAINER_ROOT/root/setup_concours.sh
+  container_run /root/setup_concours.sh
+
   container_run /usr/bin/systemctl enable --now concours
   container_run /usr/bin/systemctl enable --now udbsync_django@concours
 

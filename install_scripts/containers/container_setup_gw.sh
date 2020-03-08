@@ -371,15 +371,15 @@ Joseph	Marchand
 EOF
 
   cat >$CONTAINER_ROOT/root/orgas.txt <<EOF
-cana_p
-login_x
+cana_p:orga
+login_x:orga
 EOF
 
   cat >$CONTAINER_ROOT/root/roots.txt <<EOF
-root_gw
-nathalie
-krisboul
-marwan
+root_gw:root
+nathalie:root
+krisboul:root
+marwan:root
 EOF
 
   echo '[-] Start batch import for users'
@@ -388,11 +388,11 @@ EOF
 
   echo '[-] Start batch import for orgas'
   container_run /opt/prologin/venv/bin/python /var/prologin/udb/manage.py \
-    batchimport --update --logins --type=orga --pwdlen=10 --file=/root/orgas.txt
+    batchimport --update --logins --type=orga --passwords --file=/root/orgas.txt
 
   echo '[-] Start batch import for root'
   container_run /opt/prologin/venv/bin/python /var/prologin/udb/manage.py \
-    batchimport --update --logins --type=root --pwdlen=10 --file=/root/roots.txt
+    batchimport --update --logins --type=root --passwords --file=/root/roots.txt
 
   container_snapshot $FUNCNAME
 }
@@ -400,7 +400,8 @@ EOF
 function test_users_in_udb {
   echo '[>] Test users in udb'
 
-  # TODO
+  container_run_verbose /usr/bin/psql -U postgres -d udb \
+    -c "select 'success' from udb_user where login = 'root_gw'" | grep success
 }
 
 function stage_create_root_ssh_key {

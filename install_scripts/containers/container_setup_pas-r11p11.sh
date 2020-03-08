@@ -72,7 +72,7 @@ function stage_setup_rootfs {
   echo_status 'Fake NFS-root using mount -o bind,ro'
 
   mkdir -p $CONTAINER_ROOT
-  umount -q $CONTAINER_ROOT
+  umount -q $CONTAINER_ROOT || true
   mount -o bind,ro /var/lib/machines/$RHFS_CONTAINER_NAME/export/nfsroot_ro \
      $CONTAINER_ROOT
 }
