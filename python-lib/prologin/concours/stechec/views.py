@@ -315,7 +315,11 @@ class NewMatchView(LoginRequiredMixin, FormView):
             return HttpResponseRedirect(reverse('match-new'))
 
         with transaction.atomic():
-            match = models.Match(author=self.request.user, status='creating')
+            match = models.Match(
+                author=self.request.user,
+                status='new',
+                priority=models.Match.Priority.INTERACTIVE,
+            )
             if settings.STECHEC_USE_MAPS:
                 match.map = form.cleaned_data['map']
             match.save()
@@ -324,10 +328,6 @@ class NewMatchView(LoginRequiredMixin, FormView):
                 champ = form.cleaned_data['champion_%d' % i]
                 player = models.MatchPlayer(champion=champ, match=match)
                 player.save()
-
-            match.status = 'new'
-            match.priority = models.Match.Priority.INTERACTIVE
-            match.save()
 
         messages.success(
             self.request, "Le match #{} a été initié.".format(match.id)
