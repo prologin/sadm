@@ -18,12 +18,11 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
-import asyncio
 import os
 import os.path
 import time
 
-from base64 import b64decode, b64encode
+from base64 import b64encode
 
 
 def champion_path(config, user, cid):

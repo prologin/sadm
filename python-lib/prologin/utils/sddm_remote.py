@@ -3,7 +3,7 @@
 import asyncio
 import aiohttp
 import json
-from aiohttp import web, ClientSession
+from aiohttp import web
 
 admins = set()
 clients = set()
@@ -59,6 +59,6 @@ async def admin_handler(request):
 if __name__ == '__main__':
     app = web.Application()
     app.add_routes(
-        [web.get('/', sddm_handler), web.get('/admin', admin_handler),]
+        [web.get('/', sddm_handler), web.get('/admin', admin_handler)]
     )
     web.run_app(app, host='0.0.0.0', port=7766)

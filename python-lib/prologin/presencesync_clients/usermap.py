@@ -16,12 +16,12 @@ Generate a map of physical workstations along with:
  * state: does it reply to pings?
  * user session: is there an open graphical session on it?
 
-One has to manually craft an SVG map that will be parsed and altered with 
+One has to manually craft an SVG map that will be parsed and altered with
 up-to-date data. All <text> objects will be considered workstation. They have to
 respect the following format:
  * the <text> content has to be exactly two lines ie. two <tspan>
- * the first <tspan> must be the exact machine hostname (e.g. "pas-r01p02") 
- * the second <tspan> can be whatever you want; it will be replaced by the 
+ * the first <tspan> must be the exact machine hostname (e.g. "pas-r01p02")
+ * the second <tspan> can be whatever you want; it will be replaced by the
    connected username.
 
 Look at the provided "usermap.svg" input map for a fully working example.
