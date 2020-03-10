@@ -188,7 +188,7 @@ class RemoteCallHandler:
 
     async def _send_result_data(self, data):
         try:
-            return await self._send_json({'type': 'result', 'data': data,})
+            return await self._send_json({'type': 'result', 'data': data})
         except (TypeError, ValueError):
             self._raise_exception(
                 ValueError('The remote method returned something not JSON'),
@@ -207,7 +207,7 @@ class BaseRPCApp(prologin.web.AiohttpApp, metaclass=MethodCollection):
             return await RemoteCallHandler(request)()
 
         super().__init__(
-            [('*', r'/call/{name:[0-9a-zA-Z_]+}', handler),],
+            [('*', r'/call/{name:[0-9a-zA-Z_]+}', handler)],
             app_name,
             client_max_size=1024 * 1024 * 1024 * 1,
             **kwargs,

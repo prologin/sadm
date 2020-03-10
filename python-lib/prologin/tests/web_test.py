@@ -2,7 +2,6 @@ import prologin.web
 
 import multiprocessing
 import requests
-import time
 import tornado.ioloop
 import tornado.web
 import unittest
@@ -24,7 +23,7 @@ def test_threads_handler():
 class WebAppTest:
     """Abstract test which black-box tests all known handlers to check if the
     mapping works and if the output is kind of what we expect.
-    
+
     Inherit from unittest.TestCase and this class, then implement the following
     *class* methods:
         - make_web_server

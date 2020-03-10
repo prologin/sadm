@@ -26,7 +26,7 @@ setup(
     author_email='info@prologin.org',
     url='https://github.com/prologin/sadm/',
     packages=find_packages(),
-    scripts=['prologin/rpc/prolorpc', 'prologin/xhack.py',],
+    scripts=['prologin/rpc/prolorpc', 'prologin/xhack.py'],
     package_data={
         'prologin.concours': [
             'stechec/static/**/*.*',

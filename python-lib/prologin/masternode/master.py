@@ -276,9 +276,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             mid = r[0]
             map_contents = r[1]
             players = list(zip(r[2], r[3], r[4]))
-            to_set_pending.append(
-                {'match_id': mid, 'match_status': 'pending',}
-            )
+            to_set_pending.append({'match_id': mid, 'match_status': 'pending'})
             try:
                 t = MatchTask(self.config, mid, players, map_contents)
                 self.worker_tasks.append(t)

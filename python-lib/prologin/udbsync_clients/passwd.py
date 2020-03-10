@@ -32,22 +32,22 @@ User = collections.namedtuple('User', 'login password uid gid name home shell')
 Group = collections.namedtuple('Group', 'name password gid members')
 
 USER_PATTERN = re.compile(
-    '(?P<login>[-a-z_0-9]+)'
-    ':(?P<password>[^:]*)'
-    ':(?P<uid>\d+)'
-    ':(?P<gid>\d+)'
-    ':(?P<name>.*)'
-    ':(?P<home>[^:]+)'
-    ':(?P<shell>[^:]+)$'
+    r'(?P<login>[-a-z_0-9]+)'
+    r':(?P<password>[^:]*)'
+    r':(?P<uid>\d+)'
+    r':(?P<gid>\d+)'
+    r':(?P<name>.*)'
+    r':(?P<home>[^:]+)'
+    r':(?P<shell>[^:]+)$'
 )
 
 SHADOW_PATTERN = re.compile('(?P<login>[-a-z_0-9]+):(?P<remainder>.*)$')
 
 GROUP_PATTERN = re.compile(
-    '(?P<name>[-a-z_0-9]+)'
-    ':(?P<password>[^:]*)'
-    ':(?P<gid>\d+)'
-    ':(?P<members>[-a-z_0-9,]*)$'
+    r'(?P<name>[-a-z_0-9]+)'
+    r':(?P<password>[^:]*)'
+    r':(?P<gid>\d+)'
+    r':(?P<members>[-a-z_0-9,]*)$'
 )
 
 PROLOGIN_GROUPS = {
