@@ -39,6 +39,8 @@ from .monitoring import (
     masternode_task_resubmit,
     masternode_task_discard,
     masternode_worker_timeout,
+    masternode_zombie_worker,
+    masternode_exception,
 )
 from .task import MatchTask, CompilationTask
 from .task import champion_compiled_path, match_path, clog_path
@@ -155,6 +157,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             w = self.workers[(hostname, port)]
         except KeyError:
             # Ignore tasks from zombie workers
+            masternode_zombie_worker.inc()
             return
 
         task = w.get_match_task(mid)
@@ -270,6 +273,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             except asyncio.CancelledError:
                 raise
             except Exception:
+                masternode_exception.inc()
                 logging.exception('Janitor task triggered an exception')
             await asyncio.sleep(1)
 
@@ -305,6 +309,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             except asyncio.CancelledError:
                 raise
             except Exception:
+                masternode_exception.inc()
                 logging.exception(
                     'Unable to create task for match %s', match_id
                 )
@@ -327,6 +332,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             except asyncio.CancelledError:
                 raise
             except Exception:
+                masternode_exception.inc()
                 logging.exception('DB Watcher task triggered an exception')
                 await asyncio.sleep(5)
                 continue
@@ -358,6 +364,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                 coros.append(w.add_task(self, task))
                 logging.debug("task %s sent to %s", task, w)
             except Exception:
+                masternode_exception.inc()
                 logging.exception('Could not dispatch task %s to %s', task, w)
 
         # Ensure the tasks are scheduled (=set as pending).

@@ -62,6 +62,15 @@ masternode_worker_timeout = Gauge(
     'masternode_worker_timeout', 'Number of workers timeout'
 )
 
+masternode_zombie_worker = Counter(
+    'masternode_zombie_worker', 'Number of tasks received from unknown workers'
+)
+
+masternode_exception = Counter(
+    'masternode_exception',
+    'Number of exceptions encountered by the masternode',
+)
+
 
 def monitoring_start():
     start_http_server(9021)
