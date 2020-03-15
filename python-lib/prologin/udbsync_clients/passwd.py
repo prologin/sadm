@@ -14,19 +14,21 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
+import argparse
 import collections
 import datetime
 import functools
 import logging
 import os
+import re
+import shutil
+import subprocess
+import tempfile
+
 import prologin.config
 import prologin.log
 import prologin.presenced.client
 import prologin.udbsync.client
-import re
-import shutil
-import subprocess
-import sys
 
 User = collections.namedtuple('User', 'login password uid gid name home shell')
 Group = collections.namedtuple('Group', 'name password gid members')
@@ -62,28 +64,28 @@ GROUP_PERMS = 0o644
 HOME_DIR = '/home/{}'
 
 
-class BufferFile:
-    """Write to `filepath` using a temporary file as a buffer, so that the
-    destination file is changed instantly.
+class AtomicFile:
+    """Buffers writes in a temp file, then rename it atomically to `filepath`.
+
+    Allows for an atomic update of `filepath`.
     """
 
     def __init__(self, filepath, perms):
         self.filepath = filepath
-        self.temp_path = os.path.join(
-            '/tmp', filepath.replace(os.path.sep, '-')
+        self.temp_file = tempfile.NamedTemporaryFile(
+            'w', prefix='udbsync-passwd-', delete=False
         )
-        self.f = open(self.temp_path, 'w')
-        os.chmod(self.temp_path, perms)
+        os.chmod(self.temp_file.name, perms)
 
     def __enter__(self):
-        return self.f
+        return self.temp_file
 
-    def __exit__(self, type, value, traceback):
-        self.f.close()
-        shutil.move(self.temp_path, self.filepath)
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.temp_file.close()
+        shutil.move(self.temp_file.name, self.filepath)
 
 
-def callback(root_path, users, updates_metadata):
+def callback(root_path: str, exec_after: str, users, updates_metadata):
     logging.info('New updates: %r', updates_metadata)
 
     passwd_users = {}
@@ -227,8 +229,8 @@ def callback(root_path, users, updates_metadata):
     sorted_groups = list(groups.values())
     sorted_groups.sort(key=lambda g: g.gid)
 
-    # Finally, output updated files.
-    with BufferFile(os.path.join(root_path, 'etc/passwd'), PASSWD_PERMS) as f:
+    # Finally, write updated files.
+    with AtomicFile(os.path.join(root_path, 'etc/passwd'), PASSWD_PERMS) as f:
         for user in sorted_users:
             print(
                 '{0.login}:{0.password}'
@@ -238,16 +240,15 @@ def callback(root_path, users, updates_metadata):
                 file=f,
             )
 
-    with BufferFile(os.path.join(root_path, 'etc/shadow'), SHADOW_PERMS) as f:
+    with AtomicFile(os.path.join(root_path, 'etc/shadow'), SHADOW_PERMS) as f:
         for user in sorted_users:
             try:
                 shadow = shadow_passwords[user.login]
+                print('{}:{}'.format(user.login, shadow), file=f)
             except KeyError:
                 pass
-            else:
-                print('{}:{}'.format(user.login, shadow), file=f)
 
-    with BufferFile(os.path.join(root_path, 'etc/group'), GROUP_PERMS) as f:
+    with AtomicFile(os.path.join(root_path, 'etc/group'), GROUP_PERMS) as f:
         for group in sorted_groups:
             print(
                 '{0.name}:{0.password}:{0.gid}:{1}'.format(
@@ -261,12 +262,21 @@ def callback(root_path, users, updates_metadata):
                 file=f,
             )
 
+    if exec_after is not None:
+        # shell=True so we don't have to shlex.split() the command.
+        # Inherits stdout/stderr so errors goes into system logs.
+        subprocess.run(exec_after, shell=True, check=True)
+
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        root_path = '/'
-    else:
-        root_path = sys.argv[1]
-    prologin.log.setup_logging('udbsync_passwd({})'.format(root_path))
-    callback = functools.partial(callback, root_path)
+    p = argparse.ArgumentParser()
+    p.add_argument('--root', default='/', help="Root path prefix (default: /)")
+    p.add_argument(
+        '--exec-after',
+        required=False,
+        help="Command to execute after a successful update (with shell=True)",
+    )
+    args = p.parse_args()
+    prologin.log.setup_logging('udbsync_passwd({})'.format(args.root))
+    callback = functools.partial(callback, args.root, args.exec_after)
     prologin.udbsync.client.connect().poll_updates(callback)

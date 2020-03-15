@@ -1,11 +1,18 @@
 [Unit]
-Description=/etc/{passwd,shadow,group} synchronization daemon for nfsroot
+Description=/etc/{passwd,shadow,group} synchronization daemon for nfsroot_staging and nfsroot_ro
 After=network-online.target
 
 [Service]
 Type=simple
 User=root
-ExecStart=/opt/prologin/venv/bin/python -m prologin.udbsync_clients.passwd /export/nfsroot_ro
+# Update nfsroot_staging so the latest version is copied when admins use the
+# commit_staging.sh script. But also copy to nfsroot_ro so changes are synced
+# to machines immediately.
+# This could be racy with package installation in nfsroot_staging, but it's
+# rather unlikely.
+ExecStart=/opt/prologin/venv/bin/python -m prologin.udbsync_clients.passwd \
+    --root /export/nfsroot_staging \
+    --exec-after '/usr/bin/cp --preserve=all /export/nfsroot_staging/etc/passwd /export/nfsroot_staging/etc/shadow /export/nfsroot_staging/etc/group /export/nfsroot_ro/etc'
 Restart=always
 RestartSec=2
 

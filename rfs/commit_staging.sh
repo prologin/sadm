@@ -21,7 +21,6 @@ for serv in "$@"; do
     echo "## restarting metadata services on $serv"
     ssh -T root@"$serv" <<EOF
 systemctl restart rootssh-copy
-systemctl restart udbsync_passwd_nfsroot
 EOF
 
 done
