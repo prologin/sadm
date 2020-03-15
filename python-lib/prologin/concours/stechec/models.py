@@ -283,6 +283,14 @@ class TournamentMap(
         verbose_name_plural = "cartes utilisées dans le tournoi"
 
 
+class MatchPriority(IntEnum):
+    NOW = 1000
+    INTERACTIVE = 700
+    DEFAULT = 500
+    TOURNAMENT = 300
+    BEST_EFFORT = 0
+
+
 class Match(ExportModelOperationsMixin('match'), models.Model):
     DUMP_FILENAME = "dump.json.gz"
     REPLAY_FILENAME = "replay.gz"
@@ -328,16 +336,9 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
         verbose_name="carte",
     )
 
-    class Priority(IntEnum):
-        NOW = 1000
-        INTERACTIVE = 700
-        DEFAULT = 500
-        TOURNAMENT = 300
-        BEST_EFFORT = 0
-
     priority = models.IntegerField(
         "prioriy",
-        default=Priority.DEFAULT,
+        default=MatchPriority.DEFAULT,
         help_text="Match scheduling priority, higher is faster.",
     )
 
@@ -411,7 +412,7 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
         verbose_name_plural = "matches"
 
     @classmethod
-    def launch_bulk(cls, matches, priority=Priority.DEFAULT):
+    def launch_bulk(cls, matches, priority=MatchPriority.DEFAULT):
         """Launch matches in bulk.
 
         Args:
