@@ -1,0 +1,50 @@
+- name: install sadm repository
+  git:
+    repo: "git@github.com:prologin/sadm"
+    dest: "{{ sadm_path }}"
+    version: master
+    update: no   # In case there are local changes people are working on
+
+- name: create venv directory
+  file:
+    path: "{{ venv_dir }}"
+    state: directory
+
+- name: install venv and requirements
+  pip:
+    requirements: "{{ sadm_path }}/requirements.txt"
+    virtualenv: "{{ venv_dir }}"
+    virtualenv_command: python3 -m venv
+
+- name: install libprologin
+  pip:
+    name: "{{ sadm_path }}/python-lib"
+    virtualenv: "{{ venv_dir }}"
+    virtualenv_command: python3 -m venv
+
+- name: create prologin configuration directory
+  file:
+    path: '/etc/prologin'
+    state: directory
+    mode: 0755
+
+- name: install client configurations
+  template:
+    src: 'prologin/{{ item.name }}'
+    dest: '/etc/prologin/{{ item.name }}'
+    mode: '{{ item.mode }}'
+  loop:
+    - {name: hfs-client.yml, mode: '640'}
+    - {name: mdb-client.yml, mode: '640'}
+    - {name: mdbsync-pub.yml, mode: '640'}
+    - {name: mdbsync-sub.yml, mode: '640'}
+    - {name: presenced-client.yml, mode: '640'}
+    - {name: presencesync-pub.yml, mode: '640'}
+    - {name: presencesync-sub.yml, mode: '640'}
+    - {name: timeauth.yml, mode: '644'}
+    - {name: udb-client-auth.yml, mode: '640'}
+    - {name: udb-client.yml, mode: '640'}
+    - {name: udbsync-pub.yml, mode: '640'}
+    - {name: udbsync-sub.yml, mode: '640'}
+  loop_control:
+    label: '{{ item.name }}'

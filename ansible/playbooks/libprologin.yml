@@ -1,0 +1,8 @@
+---
+- name: install libprologin
+  hosts:
+    - gw
+    - web
+  remote_user: root
+  roles:
+    - libprologin

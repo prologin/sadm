@@ -1,0 +1,12 @@
+[Unit]
+Description=IRC Reverse ssh tunnel
+After=network-online.target
+
+[Service]
+ExecStart=/usr/bin/ssh -NTC -o ServerAliveInterval=60 -o ExitOnForwardFailure=yes -i /root/.ssh/id_ed25519 dev@prologin.org -R "*:6667:*:6667"
+Type=simple
+RestartSec=3
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

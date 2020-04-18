@@ -1,0 +1,115 @@
+---
+- name: Install Prologin package repository
+  ini_file:
+    path: /etc/pacman.conf
+    section: prologin
+    option: Server
+    value: "https://repo.prologin.org/"
+  register: addprolorepo
+
+- name: Download Prologin repo key
+  get_url:
+    url: https://repo.prologin.org/prologin.pub
+    dest: /tmp/prologin.pub
+  when: addprolorepo.changed
+
+- name: Add Prologin repo key to keyring
+  shell: |
+    pacman-key --add /tmp/prologin.pub
+    pacman-key --lsign-key prologin
+    rm /tmp/prologin.pub
+  when: addprolorepo.changed
+
+- name: Ignore dangerous package upgrades
+  ini_file:
+    path: /etc/pacman.conf
+    section: options
+    option: IgnorePkg
+    value: linux postgresql*
+
+- name: Install base packages
+  pacman:
+    update_cache: yes
+    name:
+      - atop
+      - base-devel
+      - bash-eternal-history
+      - bind-tools
+      - ethtool
+      - git
+      - htop
+      - iftop
+      - iotop
+      - iperf
+      - jq
+      - libxslt
+      - libyaml
+      - mtr
+      - nethogs
+      - postgresql-libs
+      - prometheus-node-exporter
+      - pwgen
+      - python
+      - python-setuptools
+      - python2
+      - rsync
+      - sqlite
+      - strace
+      - tcpdump
+      - tmux
+      - tree
+      - vim
+      - wget
+
+- name: Create prologin groups
+  group:
+    name: '{{ item.key }}'
+    state: present
+    gid: '{{ item.value }}'
+  loop_control:
+    label: '{{ item.key }}'
+  loop: '{{ prologin_groups|dict2items }}'
+
+- name: Create prologin users
+  user:
+    name: '{{ item.key }}'
+    state: present
+    uid: '{{ item.value.uid }}'
+    group: '{{ item.value.groups[0] }}'
+    groups: '{{ item.value.groups[1:] }}'
+    home: '/var/empty'
+    create_home: no
+  loop_control:
+    label: '{{ item.key }}'
+  loop: '{{ prologin_users|dict2items }}'
+
+# https://github.com/systemd/systemd/issues/852#issuecomment-127759667
+- name: Disable obsolete pam_securetty
+  lineinfile:
+    path: /etc/pam.d/login
+    regexp: 'pam_securetty.so'
+    state: absent
+
+- name: Install networkd config
+  template:
+    src: dhcp.network
+    dest: /etc/systemd/network/50-dhcp.network
+  notify: restart networkd
+
+- name: Install resolv.conf
+  template:
+    src: resolv.conf
+    dest: /etc/resolv.conf
+  notify: restart networkd
+
+- name: Install timesyncd config
+  template:
+    src: timesyncd.conf
+    dest: /etc/systemd/timesyncd.conf
+  notify: restart timesyncd
+
+- name: Install sshd config
+  template:
+    src: sshd_config
+    dest: /etc/ssh/sshd_config
+  notify: restart sshd

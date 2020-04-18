@@ -1,0 +1,7 @@
+[Match]
+Name=eth* en* host*
+
+[Network]
+DHCP=yes
+LLDP=yes
+EmitLLDP=customer-bridge

@@ -1,0 +1,53 @@
+---
+- name: Install unrealircd
+  pacman:
+    name: unrealircd
+  notify: restart unrealircd
+
+- name: Create unrealircd override directory
+  file:
+    path: "/etc/systemd/system/unrealircd.service.d"
+    state: directory
+
+- name: Add unrealircd reload handler
+  template:
+    src: unrealircd_reload.conf
+    dest: "/etc/systemd/system/unrealircd.service.d/unrealircd_reload.conf"
+
+- name: Copy unrealircd configuration
+  template:
+    src: unrealircd.conf
+    dest: "/etc/unrealircd/unrealircd.conf"
+  notify: reload unrealircd  # no easy way to /rehash from the CLI apparently
+
+- name: Install gatessh service
+  template:
+    src: irc_gatessh.service
+    dest: "/etc/systemd/system/irc_gatessh.service"
+  notify: restart irc_gatessh
+
+
+# UnrealIRCd >5 cannot run without listening on TLS
+- name: Install python-pyopenssl
+  pacman:
+    name: pyopenssl
+
+- name: Generate an OpenSSL private key.
+  openssl_privatekey:
+    owner: ircd
+    path: /etc/unrealircd/tls/server.key.pem
+
+- name: Generate an OpenSSL CSR.
+  openssl_csr:
+    owner: ircd
+    path: /etc/unrealircd/tls/server.csr
+    privatekey_path: /etc/unrealircd/tls/server.key.pem
+    common_name: "misc.prolo"
+
+- name: Generate a self signed OpenSSL certificate
+  openssl_certificate:
+    owner: ircd
+    path: /etc/unrealircd/tls/server.cert.pem
+    privatekey_path: /etc/unrealircd/tls/server.key.pem
+    csr_path: /etc/unrealircd/tls/server.csr
+    provider: selfsigned

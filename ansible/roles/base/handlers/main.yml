@@ -1,0 +1,23 @@
+- name: Restart sshd
+  listen: restart sshd
+  systemd:
+    name: sshd
+    state: restarted
+    enabled: True
+    daemon_reload: True
+
+- name: Restart timesyncd
+  listen: restart systemd-timesyncd
+  systemd:
+    name: timesyncd
+    state: restarted
+    enabled: True
+    daemon_reload: True
+
+- name: Restart networkd
+  listen: restart systemd-networkd
+  systemd:
+    name: timesyncd
+    state: restarted
+    enabled: True
+    daemon_reload: True

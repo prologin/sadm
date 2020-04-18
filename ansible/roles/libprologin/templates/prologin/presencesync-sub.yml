@@ -1,0 +1,5 @@
+url: http://presencesync/
+shared_secret: "{{ presencesync_secret }}"
+
+# Time before expiration for an association login <-> hostname
+timeout: 30

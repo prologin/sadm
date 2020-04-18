@@ -1,0 +1,8 @@
+---
+- name: install postgresql
+  hosts:
+    - gw
+    - web
+  remote_user: root
+  roles:
+    - postgresql

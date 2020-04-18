@@ -1,0 +1,7 @@
+---
+- name: install ircd
+  hosts:
+    - misc
+  remote_user: root
+  roles:
+    - ircd

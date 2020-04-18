@@ -1,0 +1,137 @@
+---
+prologin_groups:
+  mdb: 20000
+  mdb_public: 20001
+  mdbsync: 20010
+  mdbsync_public: 20011
+  netboot: 20020
+  mdbdns: 20030
+  mdbdhcp: 20040
+  webservices: 20050
+  presencesync: 20060
+  presencesync_public: 20061
+  presenced: 20070
+  udb: 20080
+  udb_public: 20081
+  udbsync: 20090
+  udbsync_public: 20091
+  hfs: 20100
+  hfs_public: 20101
+  homepage: 20110
+  redmine: 20120
+  presencesync_usermap: 20130
+  presencesync_sso: 20131
+  concours: 20150
+  cluster: 20160
+  cluster_public: 20161
+  isolate: 20170
+  ansible: 20180
+
+prologin_users:
+  mdb:
+    uid: 20000
+    groups:
+      - mdb
+      - mdb_public
+      - mdbsync
+      - mdbsync_public
+      - udbsync_public
+  mdbsync:
+    uid: 20010
+    groups:
+      - mdbsync
+      - mdbsync_public
+      - mdb_public
+  netboot:
+    uid: 20020
+    groups:
+      - netboot
+      - mdb_public
+  mdbdns:
+    uid: 20030
+    groups:
+      - mdbdns
+      - mdbsync_public
+  mdbdhcp:
+    uid: 20040
+    groups:
+      - mdbdhcp
+      - mdbsync_public
+  webservices:
+    uid: 20050
+    groups:
+      - webservices
+  presencesync:
+    uid: 20060
+    groups:
+      - presencesync
+      - presencesync_public
+      - mdb_public
+      - udb_public
+  presenced:
+    uid: 20070
+    groups:
+      - presenced
+      - presencesync
+      - presencesync_public
+  udb:
+    uid: 20080
+    groups:
+      - udb
+      - udb_public
+      - udbsync
+      - udbsync_public
+  udbsync:
+    uid: 20090
+    groups:
+      - udbsync
+      - udbsync_public
+      - udb
+      - udb_public
+  hfs:
+    uid: 20100
+    groups:
+      - hfs
+      - hfs_public
+  homepage:
+    uid: 20110
+    groups:
+      - homepage
+      - udbsync_public
+  redmine:
+    uid: 20120
+    groups:
+      - redmine
+      - udbsync_public
+  presencesync_usermap:
+    uid: 20130
+    groups:
+      - presencesync_usermap
+      - presencesync_public
+      - udbsync_public
+      - mdbsync_public
+  presencesync_sso:
+    uid: 20131
+    groups:
+      - presencesync_sso
+      - presencesync_public
+      - mdbsync_public
+      - udb_public
+      - mdb_public
+  concours:
+    uid: 20150
+    groups:
+      - concours
+      - udbsync_public
+      - cluster_public
+  cluster:
+    uid: 20160
+    groups:
+      - cluster
+      - cluster_public
+      - isolate
+  ansible:
+    uid: 20180
+    groups:
+      - ansible
+      - mdb
