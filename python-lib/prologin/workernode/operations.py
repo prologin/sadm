@@ -96,7 +96,7 @@ async def compile_champion(config, ctgz):
         'wall-time': config['timeout'].get('compile', 400),
         'fsize': 50 * 1024,
     }
-    allowed_dirs = ['/tmp:rw', code_dir, '/etc', config['path']['makefiles']]
+    allowed_dirs = ['/tmp:rw', code_dir, '/etc', config['path']['player_env']]
 
     isolator = isolate.Isolator(limits, allowed_dirs=allowed_dirs)
     async with isolator:
@@ -105,7 +105,7 @@ async def compile_champion(config, ctgz):
         with (isolator.path / 'champion.tgz').open('wb') as f:
             f.write(ctgz)
 
-        cmd = [compile_script, config['path']['makefiles'], '/box']
+        cmd = [compile_script, config['path']['player_env'], '/box']
         await isolator.run(cmd)
         ret = isolator.isolate_retcode == 0
 

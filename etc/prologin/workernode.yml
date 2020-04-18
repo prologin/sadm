@@ -18,7 +18,7 @@ path:
     stechec_server: /usr/bin/stechec2-server
     stechec_client: /usr/bin/stechec2-client
     rules: /usr/lib/libCHANGEME.so                    # Stechec's rules library
-    makefiles: /usr/share/stechec2/CHANGEME/makefiles # Directory containing the makefiles
+    player_env: /usr/share/stechec2/CHANGEME/player # Directory containing the player environment
 
 timeout: # timeouts in seconds (double)
     server: 400
