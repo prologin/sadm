@@ -1,0 +1,14 @@
+server {
+    listen 80;
+    server_name mdb;
+
+    access_log logs/mdb.access.log main;
+
+    include sso/handler;
+
+    location / {
+        proxy_pass http://localhost:20000;
+        include include/proxy_params;
+        include sso/protect;
+    }
+}

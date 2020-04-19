@@ -1,6 +1,8 @@
 - name: Install PostgreSQL
   pacman:
-    name: postgresql
+    name:
+      - postgresql
+      - python-psycopg2
   notify: restart postgresql
 
 - name: Initialize database cluster

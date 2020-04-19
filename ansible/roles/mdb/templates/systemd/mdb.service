@@ -1,0 +1,15 @@
+[Unit]
+Description=Machine Database
+After=network-online.target postgresql.service
+
+[Service]
+Type=simple
+User=mdb
+WorkingDirectory=/var/prologin/mdb
+ExecStart=/opt/prologin/venv/bin/gunicorn \
+            -b 127.0.0.1:20000 \
+            --worker-class aiohttp.worker.GunicornWebWorker \
+            prologin.mdb.wsgi:application.app
+
+[Install]
+WantedBy=multi-user.target

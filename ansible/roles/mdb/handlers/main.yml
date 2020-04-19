@@ -1,0 +1,5 @@
+- name: restart mdb
+  systemd:
+    name: mdb
+    state: restarted
+    daemon_reload: True

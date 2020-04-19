@@ -9,3 +9,6 @@
     - {role: nginx, tags: nginx}
     - {role: postgresql, tags: postgresql}
     - {role: libprologin, tags: libprologin}
+    - {role: mdb, tags: mdb}
+    - {role: mdbsync, tags: mdbsync}
+    - {role: mdbdns, tags: mdbdns}

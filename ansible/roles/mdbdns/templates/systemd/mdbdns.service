@@ -1,0 +1,13 @@
+[Unit]
+Description=MDB DNS synchronization daemon
+After=mdbsync.service
+
+[Service]
+Type=simple
+User=mdbdns
+ExecStart=/opt/prologin/venv/bin/python -m prologin.mdbsync_clients.dns
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

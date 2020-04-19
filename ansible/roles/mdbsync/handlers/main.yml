@@ -1,0 +1,5 @@
+- name: restart mdbsync
+  systemd:
+    name: mdbsync
+    state: restarted
+    daemon_reload: True

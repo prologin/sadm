@@ -28,6 +28,12 @@
     state: directory
     mode: 0755
 
+- name: create prologin service directory
+  file:
+    path: '/var/prologin'
+    state: directory
+    mode: 0755
+
 - name: install client configurations
   template:
     src: 'prologin/{{ item.name }}'

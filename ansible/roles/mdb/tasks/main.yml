@@ -1,0 +1,67 @@
+- tags: mdb_only
+  block:
+    - name: Install MDB systemd service
+      template:
+        src: 'systemd/mdb.service'
+        dest: '/etc/systemd/system/mdb.service'
+      notify: restart mdb
+
+    - name: Install MDB nginx service
+      template:
+        src: 'nginx/mdb.nginx'
+        dest: '/etc/nginx/services/mdb.nginx'
+      notify: reload nginx
+
+    - name: Install client configurations
+      template:
+        src: 'prologin/{{ item.name }}'
+        dest: '/etc/prologin/{{ item.name }}'
+        mode: '{{ item.mode }}'
+        group: mdb
+      loop:
+        - {name: mdb-server.yml, mode: '640'}
+        - {name: mdb-udbsync.yml, mode: '640'}
+      loop_control:
+        label: '{{ item.name }}'
+
+    - name: Create Django app directory
+      file:
+        path: /var/prologin/mdb
+        state: directory
+        owner: mdb
+        group: mdb
+        mode: 0700
+
+    - name: Install MDB manage.py
+      template:
+        src: 'django/manage.py'
+        dest: '/var/prologin/mdb/manage.py'
+        owner: mdb
+        group: mdb
+
+    - name: Create the PostgreSQL MDB user
+      postgresql_user:
+        name: mdb
+        password: '{{ mdb_db_password }}'
+        encrypted: yes
+      become: true
+      become_user: postgres
+
+    - name: Create the PostgreSQL MDB database
+      postgresql_db:
+        name: mdb
+        owner: mdb
+      become: true
+      become_user: postgres
+
+    - name: Migrate MDB database
+      django_manage:
+        command: migrate
+        app_path: '/var/prologin/mdb'
+        virtualenv: '/opt/prologin/venv'
+
+    - name: Enable mdb
+      systemd:
+        name: mdb
+        enabled: True
+        state: started

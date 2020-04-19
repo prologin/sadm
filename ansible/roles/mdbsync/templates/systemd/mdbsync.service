@@ -1,0 +1,13 @@
+[Unit]
+Description=MDBSync pubsub
+After=mdb.service
+
+[Service]
+Type=simple
+User=mdbsync
+ExecStart=/opt/prologin/venv/bin/python -m prologin.mdbsync.server 20010
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,5 @@
+- name: restart mdbdns
+  systemd:
+    name: mdbdns
+    state: restarted
+    daemon_reload: True
