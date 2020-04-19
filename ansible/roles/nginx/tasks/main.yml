@@ -1,0 +1,52 @@
+- name: Install nginx
+  pacman:
+    name: nginx
+  notify: restart nginx
+
+- name: Create nginx config directories
+  file:
+    path: "/etc/nginx/{{ item.path }}"
+    state: directory
+  with_filetree: nginx/
+  when: item.state == 'directory'
+  loop_control:
+    label: "{{ item.path }}"
+
+- name: Install nginx config files
+  template:
+    src: '{{ item.src }}'
+    dest: "/etc/nginx/{{ item.path }}"
+  with_filetree: nginx/
+  when: item.state == 'file'
+  loop_control:
+    label: "{{ item.path }}"
+  notify: reload nginx
+
+- name: Create nginx services directories
+  file:
+    path: "/etc/nginx/{{ item }}"
+    state: directory
+  loop:
+    - services
+    - services_contest
+
+- name: Create nginx log directory
+  file:
+    path: "/var/log/nginx"
+    state: directory
+    mode: 0750
+    owner: http
+    group: log
+
+- name: Symlink nginx log directory
+  file:
+    path: "/etc/nginx/logs"
+    state: link
+    src: "/var/log/nginx"
+
+- name: Enable nginx
+  systemd:
+    name: nginx
+    enabled: true
+    state: started
+    daemon_reload: true

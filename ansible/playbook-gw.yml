@@ -1,0 +1,11 @@
+- name: install the gw machine
+  hosts:
+    - gw
+  remote_user: root
+  roles:
+    - {role: base, tags: base}
+    - {role: bind, tags: bind}
+    - {role: dhcpd, tags: dhcpd}
+    - {role: nginx, tags: nginx}
+    - {role: postgresql, tags: postgresql}
+    - {role: libprologin, tags: libprologin}

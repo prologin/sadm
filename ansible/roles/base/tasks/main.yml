@@ -1,4 +1,7 @@
 ---
+
+# Packages
+
 - name: Install Prologin package repository
   ini_file:
     path: /etc/pacman.conf
@@ -61,6 +64,9 @@
       - vim
       - wget
 
+
+# Users
+
 - name: Create prologin groups
   group:
     name: '{{ item.key }}'
@@ -90,6 +96,9 @@
     regexp: 'pam_securetty.so'
     state: absent
 
+
+# Network
+
 - name: Install networkd config
   template:
     src: dhcp.network
@@ -102,14 +111,37 @@
     dest: /etc/resolv.conf
   notify: restart networkd
 
+- name: Enable systemd-networkd
+  systemd:
+    name: systemd-networkd
+    state: started
+    enabled: True
+
+
+# Time
+
 - name: Install timesyncd config
   template:
     src: timesyncd.conf
     dest: /etc/systemd/timesyncd.conf
   notify: restart timesyncd
 
+- name: Enable systemd-timesyncd
+  systemd:
+    name: systemd-timesyncd
+    enabled: True
+
+
+# SSH
+
 - name: Install sshd config
   template:
     src: sshd_config
     dest: /etc/ssh/sshd_config
   notify: restart sshd
+
+- name: Enable sshd
+  systemd:
+    name: sshd
+    state: started
+    enabled: True

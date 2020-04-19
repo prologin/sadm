@@ -1,0 +1,5 @@
+dhcp_ignore_subnets:
+  - subnet: 10.0.0.0
+    netmask: 255.255.255.0
+  - subnet: 169.254.0.0
+    netmask: 255.255.0.0

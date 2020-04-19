@@ -1,0 +1,9 @@
+- name: install the web machine
+  hosts:
+    - web
+  remote_user: root
+  roles:
+    - {role: base, tags: base}
+    - {role: nginx, tags: nginx}
+    - {role: postgresql, tags: postgresql}
+    - {role: libprologin, tags: libprologin}

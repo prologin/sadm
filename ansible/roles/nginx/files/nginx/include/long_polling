@@ -1,0 +1,6 @@
+# Settings required to disable buffering and let nginx pass long-polling
+# requests through.
+
+proxy_buffering off;
+proxy_read_timeout 360000;
+proxy_send_timeout 360000;

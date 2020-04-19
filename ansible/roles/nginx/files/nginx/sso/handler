@@ -1,0 +1,42 @@
+# Include this file in server {} blocks that have SSO-protected contexts.
+
+# You then need to include sso/protect in the server {} itself of any child
+# location {} blocks.
+
+location = /__sso_auth {
+    access_log logs/sso.access.log main;
+    internal;
+
+    # SSO backend (see sso/backend.nginx)
+    proxy_pass http://sso/;
+    set $sso_backend_status "working";
+
+    # Capture dead SSO endpoint
+    # 404 is needed for when the sso nginx service has not been setup yet
+    error_page 404 502 503 504 = @__deadsso;
+    proxy_intercept_errors on;
+
+    # Disable body
+    proxy_pass_request_body off;
+    proxy_set_header Content-Length "";
+
+    # Forward useful request data to backend
+    proxy_set_header X-Real-URI $request_uri;
+    proxy_set_header X-Real-Host $http_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+
+    # Cache control
+    proxy_cache sso;
+    proxy_cache_valid 204 10s;
+    proxy_cache_use_stale error timeout http_502 http_503 http_504;
+    proxy_cache_valid 502 503 504 5s;
+}
+
+location @__deadsso {
+    internal;
+
+    set $sso_backend_status "unavailable (error $upstream_status)";
+    return 204;  # always send a success response
+}

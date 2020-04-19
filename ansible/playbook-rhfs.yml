@@ -1,0 +1,6 @@
+- name: install the rhfs machines
+  hosts: []
+  remote_user: root
+  roles:
+    - {role: base, tags: base}
+    - {role: libprologin, tags: libprologin}

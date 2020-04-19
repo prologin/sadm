@@ -1,0 +1,54 @@
+- name: Install Bind
+  pacman:
+    name: bind
+
+- name: Install named config
+  template:
+    src: 'named.conf'
+    dest: '/etc/named.conf'
+    owner: root
+    group: named
+    mode: 0640
+  notify: reload bind
+
+- name: Create named directory
+  file:
+    path: '/etc/named'
+    state: directory
+    owner: named
+    group: mdbdns
+    mode: 0770
+
+- name: Install named zones
+  template:
+    src: 'named/{{ item }}'
+    dest: '/etc/named/{{ item }}'
+    owner: named
+    group: named
+    mode: 0640
+  loop:
+    - '0.in-addr.arpa.zone'
+    - '127.in-addr.arpa.zone'
+    - '255.in-addr.arpa.zone'
+    - 'localhost.zone'
+    - 'root.hint'
+  notify: reload bind
+
+- name: Generate RNDC key
+  command: rndc-confgen -a
+  args:
+    creates: '/etc/rndc.key'
+  notify: reload bind
+
+- name: Set RNDC key permissions
+  file:
+    path: '/etc/rndc.key'
+    owner: named
+    group: mdbdns
+    mode: 0640
+
+- name: Enable bind
+  systemd:
+    name: named
+    state: started
+    enabled: True

@@ -51,3 +51,16 @@
     privatekey_path: /etc/unrealircd/tls/server.key.pem
     csr_path: /etc/unrealircd/tls/server.csr
     provider: selfsigned
+
+
+- name: Enable unrealircd
+  systemd:
+    name: unrealircd
+    state: started
+    enabled: True
+
+- name: Enable irc_gatessh
+  systemd:
+    name: irc_gatessh
+    state: started
+    enabled: True

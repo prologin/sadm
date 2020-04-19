@@ -1,0 +1,11 @@
+- name: restart dhcpd
+  systemd:
+    name: dhcpd4
+    state: restarted
+    daemon_reload: True
+
+- name: reload dhcpd
+  systemd:
+    name: dhcpd4
+    state: reloaded
+    daemon_reload: True

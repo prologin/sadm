@@ -1048,6 +1048,7 @@ def install_prometheus():
     install_systemd_unit('prometheus')
 
 
+# DONE
 def install_ircd():
     install_cfg(
         'unrealircd/unrealircd.conf',

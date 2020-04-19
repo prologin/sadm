@@ -1,8 +1,0 @@
----
-- name: create prologin users
-  hosts:
-    - gw
-    - web
-  remote_user: root
-  roles:
-    - base
