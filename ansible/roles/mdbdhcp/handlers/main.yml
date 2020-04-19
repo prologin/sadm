@@ -1,0 +1,5 @@
+- name: restart mdbdhcp
+  systemd:
+    name: mdbdhcp
+    state: restarted
+    daemon_reload: True

@@ -1,0 +1,13 @@
+[Unit]
+Description=MDB DHCP synchronization daemon
+After=mdbsync.service
+
+[Service]
+Type=simple
+User=root
+ExecStart=/opt/prologin/venv/bin/python -m prologin.mdbsync_clients.dhcp
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

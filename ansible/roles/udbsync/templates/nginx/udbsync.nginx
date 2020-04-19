@@ -1,0 +1,12 @@
+server {
+    listen 80;
+    server_name udbsync;
+
+    access_log logs/udbsync.access.log main;
+
+    location / {
+        proxy_pass http://localhost:20090;
+        include include/long_polling;
+        include include/proxy_params;
+    }
+}

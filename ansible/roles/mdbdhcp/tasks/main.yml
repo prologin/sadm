@@ -1,0 +1,13 @@
+- tags: mdbdhcp_only
+  block:
+    - name: Install mdbdhcp systemd service
+      template:
+        src: 'systemd/mdbdhcp.service'
+        dest: '/etc/systemd/system/mdbdhcp.service'
+      notify: restart mdbdhcp
+
+    - name: Enable mdbdhcp
+      systemd:
+        name: mdbdhcp
+        enabled: True
+        state: started

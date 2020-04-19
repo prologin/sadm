@@ -1,0 +1,19 @@
+- tags: udbsync_only
+  block:
+    - name: Install udbsync systemd service
+      template:
+        src: 'systemd/udbsync.service'
+        dest: '/etc/systemd/system/udbsync.service'
+      notify: restart udbsync
+
+    - name: Install udbsync nginx service
+      template:
+        src: 'nginx/udbsync.nginx'
+        dest: '/etc/nginx/services/udbsync.nginx'
+      notify: reload nginx
+
+    - name: Enable udbsync
+      systemd:
+        name: udbsync
+        enabled: True
+        state: started

@@ -4,6 +4,7 @@
   remote_user: root
   roles:
     - {role: base, tags: base}
+    - {role: gw_host_bootstrap, tags: gw_host_bootstrap}
     - {role: bind, tags: bind}
     - {role: dhcpd, tags: dhcpd}
     - {role: nginx, tags: nginx}
@@ -12,3 +13,7 @@
     - {role: mdb, tags: mdb}
     - {role: mdbsync, tags: mdbsync}
     - {role: mdbdns, tags: mdbdns}
+    - {role: mdbdhcp, tags: mdbdhcp}
+    - {role: netboot, tags: netboot}
+    - {role: udb, tags: udb}
+    - {role: udbsync, tags: udbsync}

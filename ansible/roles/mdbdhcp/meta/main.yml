@@ -1,3 +1,3 @@
 dependencies:
+  - role: dhcpd
   - role: libprologin
-  - role: nginx
