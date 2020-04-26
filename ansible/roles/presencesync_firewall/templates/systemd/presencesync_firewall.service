@@ -1,0 +1,12 @@
+[Unit]
+Description=Firewall updating daemon
+
+[Service]
+Type=simple
+User=root
+ExecStart=/opt/prologin/venv/bin/python -m prologin.presencesync_clients.firewall
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

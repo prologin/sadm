@@ -1,0 +1,26 @@
+- name: Create the PostgreSQL HFSDB user
+  postgresql_user:
+    name: hfs
+    password: '{{ hfs_db_password }}'
+    encrypted: yes
+  become: true
+  become_user: postgres
+
+- name: Create the PostgreSQL HFSDB database
+  postgresql_db:
+    name: hfs
+    owner: hfs
+  become: true
+  become_user: postgres
+
+- name: Create the HFSDB user_location table
+  postgresql_table:
+    db: hfs
+    owner: hfs
+    name: user_location
+    columns:
+      - id SERIAL
+      - hfs INTEGER
+      - username VARCHAR
+  become: true
+  become_user: postgres

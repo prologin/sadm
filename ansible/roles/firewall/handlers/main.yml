@@ -1,0 +1,5 @@
+- name: restart firewall
+  systemd:
+    name: firewall
+    state: restarted
+    daemon_reload: True

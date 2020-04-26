@@ -1,0 +1,21 @@
+- name: Install firewall dependencies
+  pacman:
+    name: ipset
+
+- name: Install presencesync_firewall systemd service
+  template:
+    src: 'systemd/presencesync_firewall.service'
+    dest: '/etc/systemd/system/presencesync_firewall.service'
+  notify: restart presencesync_firewall
+
+- name: Install presencesync_firewall configuration
+  template:
+    src: 'prologin/presencesync_firewall.yml'
+    dest: '/etc/prologin/'
+  notify: restart presencesync_firewall
+
+- name: Enable presencesync_firewall
+  systemd:
+    name: presencesync_firewall
+    enabled: True
+    state: started
