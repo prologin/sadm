@@ -1,31 +1,29 @@
-- tags: netboot_only
-  block:
-    - name: Install netboot dependencies
-      pacman:
-        name:
-          - tftp-hpa
-          - ipxe-sadm-git
+- name: Install netboot dependencies
+  pacman:
+    name:
+      - tftp-hpa
+      - ipxe-sadm-git
 
-    - name: Install netboot systemd service
-      template:
-        src: 'systemd/netboot.service'
-        dest: '/etc/systemd/system/netboot.service'
-      notify: restart netboot
+- name: Install netboot systemd service
+  template:
+    src: 'systemd/netboot.service'
+    dest: '/etc/systemd/system/netboot.service'
+  notify: restart netboot
 
-    - name: Install netboot nginx service
-      template:
-        src: 'nginx/netboot.nginx'
-        dest: '/etc/nginx/services/netboot.nginx'
-      notify: reload nginx
+- name: Install netboot nginx service
+  template:
+    src: 'nginx/netboot.nginx'
+    dest: '/etc/nginx/services/netboot.nginx'
+  notify: reload nginx
 
-    - name: Enable netboot
-      systemd:
-        name: netboot
-        enabled: True
-        state: started
+- name: Enable netboot
+  systemd:
+    name: netboot
+    enabled: True
+    state: started
 
-    - name: Enable tftpd
-      systemd:
-        name: tftpd.socket
-        enabled: True
-        state: started
+- name: Enable tftpd
+  systemd:
+    name: tftpd.socket
+    enabled: True
+    state: started

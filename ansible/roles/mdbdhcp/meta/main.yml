@@ -1,3 +1,0 @@
-dependencies:
-  - role: dhcpd
-  - role: libprologin

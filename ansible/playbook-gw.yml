@@ -9,6 +9,7 @@
     - {role: dhcpd, tags: dhcpd}
     - {role: nginx, tags: nginx}
     - {role: postgresql, tags: postgresql}
+    - {role: firewall, tags: firewall}
     - {role: libprologin, tags: libprologin}
     - {role: mdb, tags: mdb}
     - {role: mdbsync, tags: mdbsync}
@@ -24,3 +25,5 @@
     - {role: udbsync_rootssh, tags: udbsync_rootssh}
     - {role: presencesync, tags: presencesync}
     - {role: presencesync_sso, tags: presencesync_sso}
+    - {role: presencesync_firewall, tags: presencesync_firewall}
+    - {role: hfsdb, tags: hfsdb}

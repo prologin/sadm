@@ -1,4 +1,0 @@
-dependencies:
-  - role: postgresql
-  - role: libprologin
-  - role: nginx

@@ -1,13 +1,11 @@
-- tags: mdbdns_only
-  block:
-    - name: Install mdbdns systemd service
-      template:
-        src: 'systemd/mdbdns.service'
-        dest: '/etc/systemd/system/mdbdns.service'
-      notify: restart mdbdns
+- name: Install mdbdns systemd service
+  template:
+    src: 'systemd/mdbdns.service'
+    dest: '/etc/systemd/system/mdbdns.service'
+  notify: restart mdbdns
 
-    - name: Enable mdbdns
-      systemd:
-        name: mdbdns
-        enabled: True
-        state: started
+- name: Enable mdbdns
+  systemd:
+    name: mdbdns
+    enabled: True
+    state: started

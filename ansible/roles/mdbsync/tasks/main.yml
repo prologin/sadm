@@ -1,19 +1,17 @@
-- tags: mdbsync_only
-  block:
-    - name: Install mdbsync systemd service
-      template:
-        src: 'systemd/mdbsync.service'
-        dest: '/etc/systemd/system/mdbsync.service'
-      notify: restart mdbsync
+- name: Install mdbsync systemd service
+  template:
+    src: 'systemd/mdbsync.service'
+    dest: '/etc/systemd/system/mdbsync.service'
+  notify: restart mdbsync
 
-    - name: Install mdbsync nginx service
-      template:
-        src: 'nginx/mdbsync.nginx'
-        dest: '/etc/nginx/services/mdbsync.nginx'
-      notify: reload nginx
+- name: Install mdbsync nginx service
+  template:
+    src: 'nginx/mdbsync.nginx'
+    dest: '/etc/nginx/services/mdbsync.nginx'
+  notify: reload nginx
 
-    - name: Enable mdbsync
-      systemd:
-        name: mdbsync
-        enabled: True
-        state: started
+- name: Enable mdbsync
+  systemd:
+    name: mdbsync
+    enabled: True
+    state: started
