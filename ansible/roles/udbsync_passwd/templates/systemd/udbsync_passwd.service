@@ -1,0 +1,13 @@
+[Unit]
+Description=/etc/{passwd,shadow,group} synchronization daemon
+After=network-online.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/opt/prologin/venv/bin/python -m prologin.udbsync_clients.passwd
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

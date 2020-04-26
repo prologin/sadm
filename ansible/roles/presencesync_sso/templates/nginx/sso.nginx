@@ -1,0 +1,10 @@
+server {
+    listen 80;
+    server_name sso;
+
+    access_log logs/sso.access.log main;
+
+    location / {
+        proxy_pass http://localhost:20131;
+    }
+}

@@ -1,0 +1,13 @@
+[Unit]
+Description=PresenceSync pubsub
+After=mdb.service
+
+[Service]
+Type=simple
+User=presencesync
+ExecStart=/opt/prologin/venv/bin/python -m prologin.presencesync.server 20060
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

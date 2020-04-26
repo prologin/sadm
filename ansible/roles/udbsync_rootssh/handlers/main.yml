@@ -1,0 +1,5 @@
+- name: restart udbsync_rootssh
+  systemd:
+    name: udbsync_rootssh
+    state: restarted
+    daemon_reload: True

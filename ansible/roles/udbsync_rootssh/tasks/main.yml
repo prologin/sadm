@@ -1,0 +1,13 @@
+- tags: udbsync_rootssh_only
+  block:
+    - name: Install udbsync_rootssh systemd service
+      template:
+        src: 'systemd/udbsync_rootssh.service'
+        dest: '/etc/systemd/system/udbsync_rootssh.service'
+      notify: restart udbsync_rootssh
+
+    - name: Enable udbsync_rootssh
+      systemd:
+        name: udbsync_rootssh
+        enabled: True
+        state: started

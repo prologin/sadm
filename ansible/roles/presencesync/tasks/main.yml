@@ -1,0 +1,19 @@
+- tags: presencesync_only
+  block:
+    - name: Install presencesync systemd service
+      template:
+        src: 'systemd/presencesync.service'
+        dest: '/etc/systemd/system/presencesync.service'
+      notify: restart presencesync
+
+    - name: Install presencesync nginx service
+      template:
+        src: 'nginx/presencesync.nginx'
+        dest: '/etc/nginx/services/presencesync.nginx'
+      notify: reload nginx
+
+    - name: Enable presencesync
+      systemd:
+        name: presencesync
+        enabled: True
+        state: started

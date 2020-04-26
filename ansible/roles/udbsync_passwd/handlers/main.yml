@@ -1,0 +1,5 @@
+- name: restart udbsync_passwd
+  systemd:
+    name: udbsync_passwd
+    state: restarted
+    daemon_reload: True

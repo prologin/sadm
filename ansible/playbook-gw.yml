@@ -17,3 +17,10 @@
     - {role: netboot, tags: netboot}
     - {role: udb, tags: udb}
     - {role: udbsync, tags: udbsync}
+    - role: udbsync_django
+      tags: udbsync_django
+      vars:
+        udbsync_django_sites: [udb, mdb]
+    - {role: udbsync_rootssh, tags: udbsync_rootssh}
+    - {role: presencesync, tags: presencesync}
+    - {role: presencesync_sso, tags: presencesync_sso}

@@ -6,6 +6,7 @@
   template:
     src: 'named.conf'
     dest: '/etc/named.conf'
+    lstrip_blocks: yes
     owner: root
     group: named
     mode: 0640

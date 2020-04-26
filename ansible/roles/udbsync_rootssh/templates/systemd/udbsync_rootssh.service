@@ -1,0 +1,13 @@
+[Unit]
+Description=.ssh/authorized_keys synchronization daemon
+After=network-online.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/opt/prologin/venv/bin/python -m prologin.udbsync_clients.rootssh
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

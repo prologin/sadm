@@ -1,0 +1,26 @@
+- tags: presencesync_sso_only
+  block:
+    - name: Install presencesync_sso systemd service
+      template:
+        src: 'systemd/presencesync_sso.service'
+        dest: '/etc/systemd/system/presencesync_sso.service'
+      notify: restart presencesync_sso
+
+    - name: Install sso nginx service
+      template:
+        src: 'nginx/sso.nginx'
+        dest: '/etc/nginx/services/sso.nginx'
+      notify: reload nginx
+
+    - name: Install presencesync_sso configurations
+      template:
+        src: 'prologin/presencesync-sso.yml'
+        dest: '/etc/prologin/'
+        group: presencesync_sso
+      notify: restart presencesync_sso
+
+    - name: Enable presencesync_sso
+      systemd:
+        name: presencesync_sso
+        enabled: True
+        state: started

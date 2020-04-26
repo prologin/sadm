@@ -1,0 +1,5 @@
+- name: restart udbsync_django
+  systemd:
+    name: 'udbsync_django@*'
+    state: restarted
+    daemon_reload: True
