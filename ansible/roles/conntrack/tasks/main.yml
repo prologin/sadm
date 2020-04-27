@@ -1,0 +1,15 @@
+- name: Install conntrack-tools
+  pacman:
+    name: conntrack-tools
+
+- name: Install conntrack systemd service
+  template:
+    src: 'systemd/conntrack.service'
+    dest: '/etc/systemd/system/conntrack.service'
+  notify: restart conntrack
+
+- name: Enable conntrack
+  systemd:
+    name: conntrack
+    enabled: True
+    state: started

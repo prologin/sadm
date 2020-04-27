@@ -10,6 +10,7 @@
     - {role: nginx, tags: nginx}
     - {role: postgresql, tags: postgresql}
     - {role: firewall, tags: firewall}
+    - {role: conntrack, tags: conntrack}
     - {role: libprologin, tags: libprologin}
     - {role: mdb, tags: mdb}
     - {role: mdbsync, tags: mdbsync}
