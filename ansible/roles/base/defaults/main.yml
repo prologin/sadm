@@ -100,8 +100,11 @@ prologin_users:
       - udbsync_public
   redmine:
     uid: 20120
+    create_home: true
+    home: /home/redmine
     groups:
       - redmine
+      - http
       - udbsync_public
   presencesync_usermap:
     uid: 20130

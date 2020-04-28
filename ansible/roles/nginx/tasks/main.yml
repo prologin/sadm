@@ -16,6 +16,7 @@
   template:
     src: '{{ item.src }}'
     dest: "/etc/nginx/{{ item.path }}"
+    lstrip_blocks: true
   with_filetree: nginx/
   when: item.state == 'file'
   loop_control:

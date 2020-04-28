@@ -1,0 +1,26 @@
+- name: Install Masternode systemd service
+  template:
+    src: 'systemd/masternode.service'
+    dest: '/etc/systemd/system/masternode.service'
+  notify: restart masternode
+
+- name: Install masternode configuration
+  template:
+    src: 'prologin/masternode.yml'
+    dest: '/etc/prologin/'
+    group: concours
+
+- name: Create concours shared directories
+  file:
+    path: '{{ item }}'
+    state: directory
+    mode: 0770
+  loop:
+    - '/var/prologin/concours_shared'
+    - '/var/prologin/concours_shared/maps'
+
+- name: Enable Masternode
+  systemd:
+    name: masternode
+    enabled: True
+    state: started

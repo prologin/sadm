@@ -1,0 +1,5 @@
+- name: restart concours
+  systemd:
+    name: concours
+    state: restarted
+    daemon_reload: True

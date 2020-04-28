@@ -1,0 +1,66 @@
+- name: Clone redmine repository
+  git:
+    repo: "https://github.com/redmine/redmine.git"
+    dest: /var/prologin/redmine
+    version: 4.1-stable
+
+    # Currently broken
+    # - name: Clone SSO plugin
+    #   git:
+    #     repo: "https://github.com/prologin/redmine-sso-auth.git"
+    #     dest: /var/prologin/redmine/plugins/redmine_sso_auth
+
+- name: Install redmine database configuration
+  template:
+    src: 'redmine/database.yml'
+    dest: '/var/prologin/redmine/config'
+
+- name: Install ruby gems
+  gem:
+    name: '{{ item }}'
+    include_doc: false
+  loop:
+    - unicorn
+
+- name: Install bundle dependencies
+  bundler:
+    executable: /opt/ruby2.6/bin/bundle-2.6
+    gem_path: /home/redmine/.gem
+    chdir: /var/prologin/redmine
+    state: present
+    exclude_groups: [development, test, rmagick]
+
+- name: Generate secret token
+  shell: /opt/ruby2.6/bin/bundle-2.6 exec rake generate_secret_token
+  args:
+    chdir: /var/prologin/redmine
+    creates: /var/prologin/redmine/config/initializers/secret_token.rb
+
+- name: Migrate database
+  shell: /opt/ruby2.6/bin/bundle-2.6 exec rake db:migrate
+  args:
+    chdir: /var/prologin/redmine
+  register: rake_db_migrate
+  changed_when: rake_db_migrate.stdout != ""
+
+- name: Load default data
+  shell: /opt/ruby2.6/bin/bundle-2.6 exec rake redmine:load_default_data
+  args:
+    chdir: /var/prologin/redmine
+  register: rake_db_load_default
+  changed_when: '"already loaded" not in rake_db_load_default.stdout'
+
+- name: Create runtime directories
+  file:
+    path: '/var/prologin/redmine/{{ item }}'
+    state: directory
+    owner: redmine
+    group: http
+    mode: 755
+  loop:
+    - files
+    - log
+    - tmp
+    - tmp/pdf
+    - public
+    - public/plugin_assets

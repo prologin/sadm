@@ -1,0 +1,39 @@
+- name: Install Redmine dependencies
+  pacman:
+    name:
+      - libmagick6
+      - libxml2
+      - libxslt
+      - ruby2.6
+        # - ruby-bundler
+
+- name: Create redmine service directory
+  file:
+    path: /var/prologin/redmine
+    state: directory
+    owner: redmine
+    group: redmine
+    mode: 0750
+
+- name: Create the PostgreSQL Redmine user
+  postgresql_user:
+    name: redmine
+    password: '{{ redmine_db_password }}'
+    encrypted: yes
+  become: true
+  become_user: postgres
+
+- name: Create the PostgreSQL Redmine database
+  postgresql_db:
+    name: redmine
+    owner: redmine
+  become: true
+  become_user: postgres
+
+- import_tasks: redmine.yml
+  become: true
+  become_user: redmine
+  become_method: sudo
+  environment:
+    RAILS_ENV: 'production'
+    REDMINE_LANG: fr

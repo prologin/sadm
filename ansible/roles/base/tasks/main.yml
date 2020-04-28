@@ -83,8 +83,8 @@
     uid: '{{ item.value.uid }}'
     group: '{{ item.value.groups[0] }}'
     groups: '{{ item.value.groups[1:] }}'
-    home: '/var/empty'
-    create_home: no
+    home: "{{ item.value.home|default('/var/empty') }}"
+    create_home: "{{ item.value.create_home|default(False) }}"
   loop_control:
     label: '{{ item.key }}'
   loop: '{{ prologin_users|dict2items }}'

@@ -1,0 +1,65 @@
+- name: Install Homepage systemd service
+  template:
+    src: 'systemd/homepage.service'
+    dest: '/etc/systemd/system/homepage.service'
+  notify: restart homepage
+
+- name: Install Homepage nginx service
+  template:
+    src: 'nginx/homepage.nginx'
+    dest: '/etc/nginx/services/homepage.nginx'
+  notify: reload nginx
+
+- name: Install client configurations
+  template:
+    src: 'prologin/{{ item.name }}'
+    dest: '/etc/prologin/{{ item.name }}'
+    mode: '{{ item.mode }}'
+    group: homepage
+  loop:
+    - {name: homepage.yml, mode: '640'}
+    - {name: homepage-udbsync.yml, mode: '640'}
+  loop_control:
+    label: '{{ item.name }}'
+
+- name: Create Django app directory
+  file:
+    path: /var/prologin/homepage
+    state: directory
+    owner: homepage
+    group: homepage
+    mode: 0700
+
+- name: Install Homepage manage.py
+  template:
+    src: 'django/manage.py'
+    dest: '/var/prologin/homepage/manage.py'
+    owner: homepage
+    group: homepage
+
+- name: Create the PostgreSQL Homepage user
+  postgresql_user:
+    name: homepage
+    password: '{{ homepage_db_password }}'
+    encrypted: yes
+  become: true
+  become_user: postgres
+
+- name: Create the PostgreSQL Homepage database
+  postgresql_db:
+    name: homepage
+    owner: homepage
+  become: true
+  become_user: postgres
+
+- name: Migrate Homepage database
+  django_manage:
+    command: migrate
+    app_path: '/var/prologin/homepage'
+    virtualenv: '/opt/prologin/venv'
+
+- name: Enable Homepage
+  systemd:
+    name: homepage
+    enabled: True
+    state: started

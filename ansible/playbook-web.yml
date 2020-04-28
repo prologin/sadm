@@ -7,3 +7,12 @@
     - {role: nginx, tags: nginx}
     - {role: postgresql, tags: postgresql}
     - {role: libprologin, tags: libprologin}
+    - {role: udbsync_rootssh, tags: udbsync_rootssh}
+    - {role: homepage, tags: homepage}
+    - {role: concours, tags: concours}
+    - {role: masternode, tags: masternode}
+    - role: udbsync_django
+      tags: udbsync_django
+      vars:
+        udbsync_django_sites: [concours, homepage]
+    # - {role: redmine, tags: redmine}

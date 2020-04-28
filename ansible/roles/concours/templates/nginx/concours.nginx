@@ -1,0 +1,14 @@
+server {
+    listen 80;
+    server_name concours;
+
+    access_log logs/concours.access.log main;
+
+    include sso/handler;
+
+    location / {
+        include sso/protect;
+        proxy_pass http://localhost:20150;
+        include include/proxy_params;
+    }
+}

@@ -1,0 +1,65 @@
+- name: Install Concours systemd service
+  template:
+    src: 'systemd/concours.service'
+    dest: '/etc/systemd/system/concours.service'
+  notify: restart concours
+
+- name: Install Concours nginx service
+  template:
+    src: 'nginx/concours.nginx'
+    dest: '/etc/nginx/services_contest/concours.nginx'
+  notify: reload nginx
+
+- name: Install client configurations
+  template:
+    src: 'prologin/{{ item.name }}'
+    dest: '/etc/prologin/{{ item.name }}'
+    mode: '{{ item.mode }}'
+    group: concours
+  loop:
+    - {name: concours.yml, mode: '640'}
+    - {name: concours-udbsync.yml, mode: '640'}
+  loop_control:
+    label: '{{ item.name }}'
+
+- name: Create Django app directory
+  file:
+    path: /var/prologin/concours
+    state: directory
+    owner: concours
+    group: concours
+    mode: 0700
+
+- name: Install Concours manage.py
+  template:
+    src: 'django/manage.py'
+    dest: '/var/prologin/concours/manage.py'
+    owner: concours
+    group: concours
+
+- name: Create the PostgreSQL Concours user
+  postgresql_user:
+    name: concours
+    password: '{{ concours_db_password }}'
+    encrypted: yes
+  become: true
+  become_user: postgres
+
+- name: Create the PostgreSQL Concours database
+  postgresql_db:
+    name: '{{ concours_db_name }}'
+    owner: concours
+  become: true
+  become_user: postgres
+
+- name: Migrate Concours database
+  django_manage:
+    command: migrate
+    app_path: '/var/prologin/concours'
+    virtualenv: '/opt/prologin/venv'
+
+- name: Enable Concours
+  systemd:
+    name: concours
+    enabled: True
+    state: started
