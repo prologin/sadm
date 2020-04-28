@@ -36,6 +36,7 @@
     dest: '/var/prologin/udb/manage.py'
     owner: udb
     group: udb
+    mode: 0750
 
 - name: Create the PostgreSQL UDB user
   postgresql_user:

@@ -6,4 +6,6 @@
   loop:
     - mdb
     - mdbsync
+    - udb
+    - udbsync
     - sso

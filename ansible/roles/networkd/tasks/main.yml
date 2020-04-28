@@ -1,0 +1,37 @@
+- name: Disable default naming configuration
+  file:
+    src: '/dev/null'
+    dest: '/etc/systemd/network/99-default.link'
+    state: link
+  notify: restart networkd
+
+- name: Disable ICMP redirects
+  template:
+    src: 'sysctl/no_icmp_redirect.conf'
+    dest: '/etc/sysctl.d/no_icmp_redirect.conf'
+  notify: restart sysctl
+
+- name: Setup dual NIC routing configuration with rp_filter
+  template:
+    src: 'sysctl/rp_filter.conf'
+    dest: '/etc/sysctl.d/rp_filter.conf'
+  notify: restart sysctl
+  when: dual_nic
+
+- name: Install networkd config
+  template:
+    src: 'network/{{ item }}'
+    dest: '/etc/systemd/network'
+    lstrip_blocks: yes
+  loop: "{{ network_config }}"
+  notify: restart networkd
+
+# Force restart networkd here because network configuration is required for the
+# other services to run properly.
+- meta: flush_handlers
+
+- name: Enable systemd-networkd
+  systemd:
+    name: systemd-networkd
+    state: started
+    enabled: True

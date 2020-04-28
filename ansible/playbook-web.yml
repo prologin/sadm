@@ -2,6 +2,12 @@
   hosts:
     - web
   remote_user: root
+
+  vars:
+    udbsync_django_sites:
+      - concours
+      - homepage
+
   roles:
     - {role: base, tags: base}
     - {role: nginx, tags: nginx}

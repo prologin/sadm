@@ -16,6 +16,13 @@
     dest: '/etc/nginx/services/netboot.nginx'
   notify: reload nginx
 
+- name: Install netboot configuration
+  template:
+    src: 'prologin/netboot.yml'
+    dest: '/etc/prologin/'
+    mode: 0640
+    group: netboot
+
 - name: Enable netboot
   systemd:
     name: netboot

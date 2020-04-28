@@ -1,0 +1,8 @@
+[Match]
+Name=prologin host0
+
+[Network]
+DHCP=yes
+
+# Gather LLDP packets
+LLDP=yes

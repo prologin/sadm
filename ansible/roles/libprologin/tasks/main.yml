@@ -1,6 +1,6 @@
 - name: install sadm repository
   git:
-    repo: "git@github.com:prologin/sadm"
+    repo: "https://github.com/prologin/sadm"
     dest: "{{ sadm_path }}"
     version: master
     update: no   # In case there are local changes people are working on
@@ -14,7 +14,7 @@
   pip:
     requirements: "{{ sadm_path }}/requirements.txt"
     virtualenv: "{{ venv_dir }}"
-    virtualenv_command: python3 -m venv
+    virtualenv_command: /usr/bin/python3 -m venv
 
 - name: install libprologin
   pip:
@@ -39,18 +39,19 @@
     src: 'prologin/{{ item.name }}'
     dest: '/etc/prologin/{{ item.name }}'
     mode: '{{ item.mode }}'
+    group: '{{ item.group }}'
   loop:
-    - {name: hfs-client.yml, mode: '640'}
-    - {name: mdb-client.yml, mode: '640'}
-    - {name: mdbsync-pub.yml, mode: '640'}
-    - {name: mdbsync-sub.yml, mode: '640'}
-    - {name: presenced-client.yml, mode: '640'}
-    - {name: presencesync-pub.yml, mode: '640'}
-    - {name: presencesync-sub.yml, mode: '640'}
-    - {name: timeauth.yml, mode: '644'}
-    - {name: udb-client-auth.yml, mode: '640'}
-    - {name: udb-client.yml, mode: '640'}
-    - {name: udbsync-pub.yml, mode: '640'}
-    - {name: udbsync-sub.yml, mode: '640'}
+    - {name: hfs-client.yml, group: hfs_public, mode: '640'}
+    - {name: mdb-client.yml, group: mdb_public, mode: '640'}
+    - {name: mdbsync-pub.yml, group: mdbsync, mode: '640'}
+    - {name: mdbsync-sub.yml, group: mdbsync_public, mode: '640'}
+    - {name: presenced-client.yml, group: presenced, mode: '640'}
+    - {name: presencesync-pub.yml, group: presencesync, mode: '640'}
+    - {name: presencesync-sub.yml, group: presencesync_public, mode: '640'}
+    - {name: timeauth.yml, group: root, mode: '644'}
+    - {name: udb-client-auth.yml, group: udb, mode: '640'}
+    - {name: udb-client.yml, group: udb_public, mode: '640'}
+    - {name: udbsync-pub.yml, group: udbsync, mode: '640'}
+    - {name: udbsync-sub.yml, group: udbsync_public, mode: '640'}
   loop_control:
     label: '{{ item.name }}'

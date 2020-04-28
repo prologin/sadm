@@ -2,7 +2,17 @@
   hosts:
     - gw
   remote_user: root
+
+  vars:
+    udbsync_django_sites:
+      - udb
+      - mdb
+    network_config:
+      - 10-gw.link
+      - 10-gw.network
+
   roles:
+    - {role: networkd, tags: networkd}
     - {role: base, tags: base}
     - {role: gw_host_bootstrap, tags: gw_host_bootstrap}
     - {role: bind, tags: bind}
@@ -20,10 +30,7 @@
     - {role: udb, tags: udb}
     - {role: udbsync, tags: udbsync}
     - {role: udbsync_rootssh, tags: udbsync_rootssh}
-    - role: udbsync_django
-      tags: udbsync_django
-      vars:
-        udbsync_django_sites: [udb, mdb]
+    - {role: udbsync_django, tags: udbsync_django}
     - {role: presencesync, tags: presencesync}
     - {role: presencesync_sso, tags: presencesync_sso}
     - {role: presencesync_firewall, tags: presencesync_firewall}

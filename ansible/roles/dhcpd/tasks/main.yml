@@ -1,7 +1,7 @@
 - name: Install ISC dhcp
   pacman:
     name: dhcp
-  notify: restart dhcp
+  notify: restart dhcpd
 
 - name: Install dhcpd config
   template:
@@ -23,9 +23,10 @@
   notify: restart dhcpd
 
 - name: Create empty dhcp generated file
-  file:
-    path: '/etc/dhcpd/generated.conf'
-    state: file
+  copy:
+    content: ''
+    dest: '/etc/dhcpd/generated.conf'
+    force: no
     owner: dhcp
     group: dhcp
     mode: 0640

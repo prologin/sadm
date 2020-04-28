@@ -35,6 +35,15 @@
     - 'root.hint'
   notify: reload bind
 
+- name: Create named log file
+  copy:
+    content: ""
+    dest: '/var/log/named.log'
+    force: no
+    owner: named
+    group: root
+    mode: 0640
+
 - name: Generate RNDC key
   command: rndc-confgen -a
   args:

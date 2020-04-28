@@ -36,6 +36,7 @@
     dest: '/var/prologin/mdb/manage.py'
     owner: mdb
     group: mdb
+    mode: 0750
 
 - name: Create the PostgreSQL MDB user
   postgresql_user:
