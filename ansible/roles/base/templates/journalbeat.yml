@@ -1,0 +1,12 @@
+journalbeat.inputs:
+ - paths: []
+   seek: cursor
+
+setup.template.settings:
+  index.number_of_shards: 1
+
+setup.kibana:
+  host: "monitoring:5601"
+
+output.elasticsearch:
+  hosts: ["monitoring:9200"]

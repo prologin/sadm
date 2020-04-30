@@ -10,6 +10,7 @@
         mac: '{{ mac }}'
         aliases:
           - grafana
+          - kibana
         mtype: service
         room: pasteur
       delegate_to: gw
@@ -42,3 +43,7 @@
     - import_role:
         name: grafana
       tags: grafana
+
+    - import_role:
+        name: elk
+      tags: elk

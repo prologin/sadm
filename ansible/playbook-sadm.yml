@@ -1,4 +1,5 @@
 - import_playbook: playbook-gw.yml
 - import_playbook: playbook-web.yml
+- import_playbook: playbook-monitoring.yml
 - import_playbook: playbook-rhfs.yml
 - import_playbook: playbook-misc.yml

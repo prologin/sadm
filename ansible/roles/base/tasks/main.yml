@@ -44,6 +44,7 @@
       - iftop
       - iotop
       - iperf
+      - journalbeat
       - jq
       - libxslt
       - libyaml
@@ -149,6 +150,13 @@
 
 # Monitoring
 
+- name: Add prometheus-node-exporter args
+  template:
+    src: prometheus-node-exporter
+    dest: /etc/conf.d/prometheus-node-exporter
+  notify: restart prometheus-node-exporter
+  tags: prometheus-node-exporter
+
 - name: Enable prometheus-node-exporter
   systemd:
     name: prometheus-node-exporter
@@ -156,9 +164,16 @@
     enabled: True
   tags: prometheus-node-exporter
 
-- name: Add prometheus-node-exporter args
+- name: Add journalbeat config
   template:
-    src: prometheus-node-exporter
-    dest: /etc/conf.d/prometheus-node-exporter
-  notify: restart prometheus-node-exporter
-  tags: prometheus-node-exporter
+    src: journalbeat.yml
+    dest: /etc/journalbeat/journalbeat.yml
+  notify: restart journalbeat
+  tags: journalbeat
+
+- name: Enable journalbeat
+  systemd:
+    name: journalbeat
+    state: started
+    enabled: True
+  tags: journalbeat
