@@ -11,27 +11,103 @@
       - 10-gw.link
       - 10-gw.network
 
-  roles:
-    - {role: networkd, tags: networkd}
-    - {role: base, tags: base}
-    - {role: gw_host_bootstrap, tags: gw_host_bootstrap}
-    - {role: bind, tags: bind}
-    - {role: dhcpd, tags: dhcpd}
-    - {role: nginx, tags: nginx}
-    - {role: postgresql, tags: postgresql}
-    - {role: firewall, tags: firewall}
-    - {role: conntrack, tags: conntrack}
-    - {role: libprologin, tags: libprologin}
-    - {role: mdb, tags: mdb}
-    - {role: mdbsync, tags: mdbsync}
-    - {role: mdbdns, tags: mdbdns}
-    - {role: mdbdhcp, tags: mdbdhcp}
-    - {role: netboot, tags: netboot}
-    - {role: udb, tags: udb}
-    - {role: udbsync, tags: udbsync}
-    - {role: udbsync_rootssh, tags: udbsync_rootssh}
-    - {role: udbsync_django, tags: udbsync_django}
-    - {role: presencesync, tags: presencesync}
-    - {role: presencesync_sso, tags: presencesync_sso}
-    - {role: presencesync_firewall, tags: presencesync_firewall}
-    - {role: hfsdb, tags: hfsdb}
+  tasks:
+    - import_role:
+        name: networkd
+      tags: networkd
+
+    - import_role:
+        name: base
+      tags: base
+
+    - name: Use gw hosts file to bootstrap name resolving
+      lineinfile:
+        path: /etc/hosts
+        regexp: '\<{{ item }}\>'
+        line: '127.0.0.1 {{ item }}'
+      loop:
+        - mdb
+        - mdbsync
+        - udb
+        - udbsync
+        - sso
+
+    - import_role:
+        name: bind
+      tags: bind
+
+    - import_role:
+        name: dhcpd
+      tags: dhcpd
+
+    - import_role:
+        name: nginx
+      tags: nginx
+
+    - import_role:
+        name: postgresql
+      tags: postgresql
+
+    - import_role:
+        name: firewall
+      tags: firewall
+
+    - import_role:
+        name: conntrack
+      tags: conntrack
+
+    - import_role:
+        name: libprologin
+      tags: libprologin
+
+    - import_role:
+        name: mdb
+      tags: mdb
+
+    - import_role:
+        name: mdbsync
+      tags: mdbsync
+
+    - import_role:
+        name: mdbdns
+      tags: mdbdns
+
+    - import_role:
+        name: mdbdhcp
+      tags: mdbdhcp
+
+    - import_role:
+        name: netboot
+      tags: netboot
+
+    - import_role:
+        name: udb
+      tags: udb
+
+    - import_role:
+        name: udbsync
+      tags: udbsync
+
+    - import_role:
+        name: udbsync_rootssh
+      tags: udbsync_rootssh
+
+    - import_role:
+        name: udbsync_django
+      tags: udbsync_django
+
+    - import_role:
+        name: presencesync
+      tags: presencesync
+
+    - import_role:
+        name: presencesync_sso
+      tags: presencesync_sso
+
+    - import_role:
+        name: presencesync_firewall
+      tags: presencesync_firewall
+
+    - import_role:
+        name: hfsdb
+      tags: hfsdb
