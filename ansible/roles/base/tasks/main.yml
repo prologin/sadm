@@ -149,8 +149,16 @@
 
 # Monitoring
 
-- name: Enable prometheus node exporter
+- name: Enable prometheus-node-exporter
   systemd:
     name: prometheus-node-exporter
     state: started
     enabled: True
+  tags: prometheus-node-exporter
+
+- name: Add prometheus-node-exporter args
+  template:
+    src: prometheus-node-exporter
+    dest: /etc/conf.d/prometheus-node-exporter
+  notify: restart prometheus-node-exporter
+  tags: prometheus-node-exporter

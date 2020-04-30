@@ -15,3 +15,9 @@
     name: systemd-networkd
     state: restarted
     daemon_reload: True
+
+- name: restart prometheus-node-exporter
+  systemd:
+    name: prometheus-node-exporter
+    state: restarted
+    daemon_reload: True
