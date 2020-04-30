@@ -28,9 +28,8 @@
       loop:
         - mdb
         - mdbsync
-        - udb
-        - udbsync
         - sso
+      tags: gw_bootstrap_hosts
 
     - import_role:
         name: bind
@@ -75,6 +74,25 @@
     - import_role:
         name: mdbdhcp
       tags: mdbdhcp
+
+    - name: Register GW machine in MDB
+      mdb:
+        hostname: gw
+        aliases:
+          - mdb
+          - mdbsync
+          - ns
+          - netboot
+          - udb
+          - udbsync
+          - presencesync
+          - ntp
+          - sso
+        ip: 192.168.1.254
+        mac: '{{ mac }}'
+        mtype: service
+        room: pasteur
+      tags: mdb_register
 
     - import_role:
         name: netboot
