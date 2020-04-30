@@ -85,8 +85,9 @@ RETURN = '''
 '''
 
 import json  # noqa: E402
-from urllib.request import urlopen  # noqa: E402
+import shlex  # noqa: E402
 from ansible.module_utils.basic import AnsibleModule  # noqa: E402
+from urllib.request import urlopen  # noqa: E402
 
 
 def mdb_get_machine(machine_host):
@@ -200,20 +201,14 @@ def run_module():
     if module.check_mode:
         module.exit_json(**result)
 
+    command = list(shlex.split(module.params['manage_command']))
     if new_machine['state'] == 'present':
-        command = '{} addmachine --update {}'.format(
-            module.params['manage_command'],
-            ' '.join(
-                '--{} {}'.format(k, v)
-                for k, v in new_machine.items()
-                if k != 'state'
-            ),
-        )
+        command += ['addmachine', '--update']
+        for k, v in new_machine.items():
+            if k != 'state':
+                command += ['--{}'.format(k), str(v)]
     elif new_machine['state'] == 'absent':
-        command = '{} delmachine {}'.format(
-            module.params['manage_command'],
-            machine_host,
-        )
+        command += ['delmachine', machine_host]
 
     if result['changed']:
         rc, out, err = module.run_command(command)
