@@ -10,3 +10,15 @@ setup.kibana:
 
 output.elasticsearch:
   hosts: ["monitoring:9200"]
+
+# Without this setting, journalbeat sends its own logs to ES
+# DO NOT CHANGE TO info/debug.
+# https://github.com/elastic/beats/issues/11179
+logging.level: warning
+
+processors:
+  - add_host_metadata: ~
+  - drop_event:
+      when:
+        equals:
+          systemd.unit: "journalbeat.service"
