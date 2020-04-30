@@ -12,6 +12,26 @@
       - 10-web.network
 
   tasks:
+    - name: Register Web machine in MDB
+      mdb:
+        hostname: web
+        aliases:
+          - db
+          - concours
+          - wiki
+          - bugs
+          - redmine
+          - docs
+          - home
+          - paste
+          - map
+          - masternode
+        mac: '{{ mac }}'
+        mtype: service
+        room: pasteur
+      delegate_to: gw
+      tags: mdb_register
+
     - import_role:
         name: networkd
       tags: networkd
@@ -52,8 +72,6 @@
         name: udbsync_django
       tags: udbsync_django
 
-    - import_role:
-        name: redmine
-      tags: redmine
-
-    # - {role: redmine, tags: redmine}
+    # - import_role:
+    #     name: redmine
+    #   tags: redmine
