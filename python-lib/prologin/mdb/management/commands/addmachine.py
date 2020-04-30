@@ -61,13 +61,13 @@ class Command(BaseCommand):
 
         if updating:
             for attr in update_fields:
-                if attr in options:
+                if options.get(attr):
                     setattr(m, attr, options[attr])
         else:
             for attr in create_fields:
                 setattr(m, attr, self.get_opt(options, attr))
 
-            if 'ip' not in options:
+            if not options.get('ip'):
                 m.allocate_ip()
             else:
                 m.ip = options['ip']
