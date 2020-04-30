@@ -1,0 +1,32 @@
+- name: Install DevDocs
+  pacman:
+    name:
+      # https://aur.archlinux.org/packages/devdocs-git/
+      - devdocs-git
+
+- name: Install DevDocs nginx service
+  template:
+    src: 'nginx/devdocs.nginx'
+    dest: '/etc/nginx/services/devdocs.nginx'
+  notify: reload nginx
+
+- name: Enable DevDocs
+  systemd:
+    name: devdocs
+    enabled: True
+    state: started
+
+- name: Fetch language documentations
+  command:
+    cmd: "devdocs-cli docs:download {{ item }}"
+  loop:
+    - c
+    - cpp
+    - openjdk
+    - haskell
+    - php
+    - python
+    - rust
+    # Missing languages:
+    # - csharp
+    # - ocaml  # https://trello.com/c/zMP72zl2/410-ocaml
