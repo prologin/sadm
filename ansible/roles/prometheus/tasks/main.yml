@@ -1,0 +1,27 @@
+- name: Install prometheus
+  pacman:
+    name: prometheus
+
+- name: Install prometheus systemd service
+  template:
+    src: 'systemd/prometheus.service'
+    dest: '/etc/systemd/system/'
+  notify: restart prometheus
+
+- name: Install iptables firewall configuration
+  template:
+    src: 'prometheus/{{ item }}'
+    dest: '/etc/prometheus/'
+    owner: prometheus
+    group: prometheus
+  loop:
+    - prometheus.yml
+    - alert.rules.yml
+    - sadm.rules.yml
+  notify: restart prometheus
+
+- name: Enable prometheus
+  systemd:
+    name: prometheus
+    enabled: True
+    state: started

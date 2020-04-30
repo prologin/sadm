@@ -1,0 +1,44 @@
+- name: install the monitoring machine
+  hosts:
+    - monitoring
+  remote_user: root
+
+  tasks:
+    - name: Register Monitoring machine in MDB
+      mdb:
+        hostname: monitoring
+        mac: '{{ mac }}'
+        aliases:
+          - grafana
+        mtype: service
+        room: pasteur
+      delegate_to: gw
+      tags: mdb_register
+
+    - import_role:
+        name: networkd
+      tags: networkd
+
+    - import_role:
+        name: base
+      tags: base
+
+    - import_role:
+        name: nginx
+      tags: nginx
+
+    - import_role:
+        name: libprologin
+      tags: libprologin
+
+    - import_role:
+        name: udbsync_rootssh
+      tags: udbsync_rootssh
+
+    - import_role:
+        name: prometheus
+      tags: prometheus
+
+    - import_role:
+        name: grafana
+      tags: grafana

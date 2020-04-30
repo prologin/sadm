@@ -1,0 +1,362 @@
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+
+scrape_configs:
+  # This is prometheus monitoring itself
+  - job_name: prometheus
+    static_configs:
+      - targets:
+        - localhost:9090
+
+  - job_name: journal-aggregator
+    metrics_path: /health
+    static_configs:
+      - targets:
+        - journal-aggregator:20200
+
+  # Various OS-level metrics
+  - job_name: node-services
+    static_configs:
+      - targets:
+        - gw:9100
+        - misc:9100
+        - monitoring:9100
+        - rhfs01:9100
+        - rhfs23:9100
+        - rhfs45:9100
+        - rhfs67:9100
+        - rhfs89:9100
+        - web:9100
+
+  - job_name: node-users
+    static_configs:
+      - targets:
+        - alt-r01p01:9100
+        - alt-r01p02:9100
+        - alt-r01p03:9100
+        - alt-r02p01:9100
+        - alt-r02p02:9100
+        - alt-r02p03:9100
+        - alt-r03p01:9100
+        - alt-r03p02:9100
+        - alt-r04p01:9100
+        - alt-r04p02:9100
+        - alt-r04p03:9100
+        - alt-r05p01:9100
+        - alt-r05p02:9100
+        - alt-r06p01:9100
+        - alt-r06p02:9100
+        - alt-r06p03:9100
+        - alt-r07p01:9100
+        - alt-r07p02:9100
+        - alt-r07p03:9100
+        - alt-r08p01:9100
+        - alt-r08p02:9100
+        - alt-r08p03:9100
+        - alt-r09p01:9100
+        - alt-r09p02:9100
+        - alt-r10p01:9100
+        - alt-r10p02:9100
+        - alt-r10p03:9100
+        - alt-r11p01:9100
+        - alt-r11p02:9100
+        - alt-r11p03:9100
+        - alt-r12p01:9100
+        - alt-r12p02:9100
+        - alt-r12p03:9100
+        - alt-r12p04:9100
+        - alt-r13p01:9100
+        - alt-r13p02:9100
+        - alt-r13p03:9100
+        - alt-r13p04:9100
+        - alt-r13p05:9100
+        - alt-r13p06:9100
+        - pas-r01p01:9100
+        - pas-r01p02:9100
+        - pas-r01p03:9100
+        - pas-r01p04:9100
+        - pas-r02p01:9100
+        - pas-r02p02:9100
+        - pas-r02p03:9100
+        - pas-r02p04:9100
+        - pas-r02p05:9100
+        - pas-r03p01:9100
+        - pas-r03p02:9100
+        - pas-r03p03:9100
+        - pas-r03p04:9100
+        - pas-r03p05:9100
+        - pas-r04p01:9100
+        - pas-r04p02:9100
+        - pas-r04p03:9100
+        - pas-r04p04:9100
+        - pas-r04p05:9100
+        - pas-r05p01:9100
+        - pas-r05p02:9100
+        - pas-r05p03:9100
+        - pas-r05p04:9100
+        - pas-r05p05:9100
+        - pas-r0604:9100
+        - pas-r06p01:9100
+        - pas-r06p02:9100
+        - pas-r06p03:9100
+        - pas-r06p05:9100
+        - pas-r07p01:9100
+        - pas-r07p02:9100
+        - pas-r07p03:9100
+        - pas-r07p04:9100
+        - pas-r07p05:9100
+        - pas-r07p06:9100
+        - pas-r07p07:9100
+        - pas-r07p08:9100
+        - pas-r07p09:9100
+        - pas-r07p10:9100
+        - pas-r07p11:9100
+        - pas-r07p12:9100
+        - pas-r07p13:9100
+        - pas-r08p01:9100
+        - pas-r08p02:9100
+        - pas-r08p03:9100
+        - pas-r08p04:9100
+        - pas-r08p05:9100
+        - pas-r08p06:9100
+        - pas-r08p07:9100
+        - pas-r08p08:9100
+        - pas-r08p09:9100
+        - pas-r08p10:9100
+        - pas-r08p11:9100
+        - pas-r08p12:9100
+        - pas-r08p13:9100
+        - pas-r09p01:9100
+        - pas-r09p02:9100
+        - pas-r09p03:9100
+        - pas-r09p04:9100
+        - pas-r09p05:9100
+        - pas-r09p06:9100
+        - pas-r09p07:9100
+        - pas-r09p08:9100
+        - pas-r09p09:9100
+        - pas-r09p10:9100
+        - pas-r09p11:9100
+        - pas-r09p12:9100
+        - pas-r09p13:9100
+        - pas-r10p01:9100
+        - pas-r10p02:9100
+        - pas-r10p03:9100
+        - pas-r10p04:9100
+        - pas-r10p05:9100
+        - pas-r10p06:9100
+        - pas-r10p07:9100
+        - pas-r10p08:9100
+        - pas-r10p09:9100
+        - pas-r10p10:9100
+        - pas-r10p11:9100
+        - pas-r10p12:9100
+        - pas-r10p13:9100
+        - pas-r11p03:9100
+        - pas-r11p06:9100
+        - pas-r13p08:9100
+        - pas-r13p13:9100
+
+  - job_name: hfs
+    static_configs:
+      - targets:
+        - hfs0:9030
+        - hfs1:9030
+        - hfs2:9030
+        - hfs3:9030
+        - hfs4:9030
+        - hfs5:9030
+        - hfs6:9030
+        - hfs7:9030
+        - hfs8:9030
+
+  - job_name: masternode
+    scrape_interval: 1s
+    static_configs:
+      - targets:
+        - masternode:9021
+
+  - job_name: presencesync
+    static_configs:
+      - targets:
+        - presencesync:9040
+
+  - job_name: concours
+    static_configs:
+      - targets:
+        - concours
+
+  - job_name: radio
+    static_configs:
+      - targets:
+        - misc:9090
+
+  - job_name: blackbox
+    scrape_interval: 1s
+    metrics_path: /probe
+    params:
+      module: [icmp_ping_gw]
+    static_configs:
+      - targets:
+        - misc
+        - monitoring
+        - rhfs01
+        - rhfs23
+        - rhfs45
+        - rhfs67
+        - rhfs89
+        - web
+        - google.fr
+        - www.googleapis.com
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: gw:9115
+
+  - job_name: ping_gw_contestants
+    scrape_interval: 1s
+    metrics_path: /probe
+    params:
+      module: [icmp_ping_gw]
+    static_configs:
+      - targets:
+        - alt-r01p01
+        - alt-r01p02
+        - alt-r01p03
+        - alt-r02p01
+        - alt-r02p02
+        - alt-r02p03
+        - alt-r03p01
+        - alt-r03p02
+        - alt-r04p01
+        - alt-r04p02
+        - alt-r04p03
+        - alt-r05p01
+        - alt-r05p02
+        - alt-r06p01
+        - alt-r06p02
+        - alt-r06p03
+        - alt-r07p01
+        - alt-r07p02
+        - alt-r07p03
+        - alt-r08p01
+        - alt-r08p02
+        - alt-r08p03
+        - alt-r09p01
+        - alt-r09p02
+        - alt-r10p01
+        - alt-r10p02
+        - alt-r10p03
+        - alt-r11p01
+        - alt-r11p02
+        - alt-r11p03
+        - alt-r12p01
+        - alt-r12p02
+        - alt-r12p03
+        - alt-r12p04
+        - alt-r13p01
+        - alt-r13p02
+        - alt-r13p03
+        - alt-r13p04
+        - alt-r13p05
+        - alt-r13p06
+        - pas-r01p01
+        - pas-r01p02
+        - pas-r01p03
+        - pas-r01p04
+        - pas-r02p01
+        - pas-r02p02
+        - pas-r02p03
+        - pas-r02p04
+        - pas-r02p05
+        - pas-r03p01
+        - pas-r03p02
+        - pas-r03p03
+        - pas-r03p04
+        - pas-r03p05
+        - pas-r04p01
+        - pas-r04p02
+        - pas-r04p03
+        - pas-r04p04
+        - pas-r04p05
+        - pas-r05p01
+        - pas-r05p02
+        - pas-r05p03
+        - pas-r05p04
+        - pas-r05p05
+        - pas-r0604
+        - pas-r06p01
+        - pas-r06p02
+        - pas-r06p03
+        - pas-r06p05
+        - pas-r07p01
+        - pas-r07p02
+        - pas-r07p03
+        - pas-r07p04
+        - pas-r07p05
+        - pas-r07p06
+        - pas-r07p07
+        - pas-r07p08
+        - pas-r07p09
+        - pas-r07p10
+        - pas-r07p11
+        - pas-r07p12
+        - pas-r07p13
+        - pas-r08p01
+        - pas-r08p02
+        - pas-r08p03
+        - pas-r08p04
+        - pas-r08p05
+        - pas-r08p06
+        - pas-r08p07
+        - pas-r08p08
+        - pas-r08p09
+        - pas-r08p10
+        - pas-r08p11
+        - pas-r08p12
+        - pas-r08p13
+        - pas-r09p01
+        - pas-r09p02
+        - pas-r09p03
+        - pas-r09p04
+        - pas-r09p05
+        - pas-r09p06
+        - pas-r09p07
+        - pas-r09p08
+        - pas-r09p09
+        - pas-r09p10
+        - pas-r09p11
+        - pas-r09p12
+        - pas-r09p13
+        - pas-r10p01
+        - pas-r10p02
+        - pas-r10p03
+        - pas-r10p04
+        - pas-r10p05
+        - pas-r10p06
+        - pas-r10p07
+        - pas-r10p08
+        - pas-r10p09
+        - pas-r10p10
+        - pas-r10p11
+        - pas-r10p12
+        - pas-r10p13
+        - pas-r11p03
+        - pas-r11p06
+        - pas-r13p08
+        - pas-r13p13
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: gw:9115
+
+rule_files:
+  - alert.rules.yml
+  - sadm.rules.yml  # This file is generated
