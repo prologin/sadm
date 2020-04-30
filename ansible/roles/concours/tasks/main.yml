@@ -21,6 +21,7 @@
     - {name: concours-udbsync.yml, mode: '640'}
   loop_control:
     label: '{{ item.name }}'
+  notify: restart concours
 
 - name: Create Django app directory
   file:
@@ -36,12 +37,14 @@
     dest: '/var/prologin/concours/manage.py'
     owner: concours
     group: concours
+    mode: 0750
 
 - name: Create the PostgreSQL Concours user
   postgresql_user:
     name: concours
     password: '{{ concours_db_password }}'
     encrypted: yes
+  no_log: true
   become: true
   become_user: postgres
 

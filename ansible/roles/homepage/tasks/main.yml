@@ -21,6 +21,7 @@
     - {name: homepage-udbsync.yml, mode: '640'}
   loop_control:
     label: '{{ item.name }}'
+  notify: restart homepage
 
 - name: Create Django app directory
   file:
@@ -36,12 +37,14 @@
     dest: '/var/prologin/homepage/manage.py'
     owner: homepage
     group: homepage
+    mode: 0750
 
 - name: Create the PostgreSQL Homepage user
   postgresql_user:
     name: homepage
     password: '{{ homepage_db_password }}'
     encrypted: yes
+  no_log: true
   become: true
   become_user: postgres
 

@@ -43,6 +43,7 @@
     name: udb
     password: '{{ udb_db_password }}'
     encrypted: yes
+  no_log: true
   become: true
   become_user: postgres
 
