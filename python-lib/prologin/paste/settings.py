@@ -20,6 +20,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'staticinline.apps.StaticInlineAppConfig',
     'dpaste',
+    'prologin.paste.dpaste_admin',
     'django_prometheus',
 )
 
