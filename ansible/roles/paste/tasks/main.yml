@@ -1,0 +1,68 @@
+- name: Install Paste systemd service
+  template:
+    src: 'systemd/paste.service'
+    dest: '/etc/systemd/system/paste.service'
+  notify: restart paste
+
+- name: Install Paste nginx service
+  template:
+    src: 'nginx/paste.nginx'
+    dest: '/etc/nginx/services/paste.nginx'
+  notify: reload nginx
+
+- name: Install client configurations
+  template:
+    src: 'prologin/{{ item.name }}'
+    dest: '/etc/prologin/{{ item.name }}'
+    mode: '{{ item.mode }}'
+    group: paste
+  loop:
+    - {name: paste.yml, mode: '640'}
+    - {name: paste-udbsync.yml, mode: '640'}
+  loop_control:
+    label: '{{ item.name }}'
+  notify: restart paste
+
+- name: Create Django app directory
+  file:
+    path: /var/prologin/paste
+    state: directory
+    owner: paste
+    group: paste
+    mode: 0700
+
+- name: Install Paste manage.py
+  template:
+    src: 'django/manage.py'
+    dest: '/var/prologin/paste/manage.py'
+    owner: paste
+    group: paste
+    mode: 0750
+
+- name: Create the PostgreSQL Paste user
+  postgresql_user:
+    name: paste
+    password: '{{ paste_db_password }}'
+    encrypted: yes
+  no_log: true
+  become: true
+  become_user: postgres
+
+- name: Create the PostgreSQL Paste database
+  postgresql_db:
+    name: paste
+    owner: paste
+  become: true
+  become_user: postgres
+
+- name: Migrate Paste database
+  django_manage:
+    command: migrate
+    app_path: '/var/prologin/paste'
+    virtualenv: '/opt/prologin/venv'
+
+- name: Enable Paste
+  systemd:
+    name: paste
+    enabled: True
+    state: started

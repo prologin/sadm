@@ -7,6 +7,7 @@
     udbsync_django_sites:
       - concours
       - homepage
+      - paste
     network_config:
       - 10-web.link
       - 10-web.network
@@ -21,6 +22,7 @@
           - wiki
           - bugs
           - redmine
+          - devdocs
           - docs
           - home
           - paste
@@ -69,8 +71,16 @@
       tags: masternode
 
     - import_role:
+        name: paste
+      tags: paste
+
+    - import_role:
         name: udbsync_django
       tags: udbsync_django
+
+    - import_role:
+        name: devdocs
+      tags: devdocs
 
     # - import_role:
     #     name: redmine

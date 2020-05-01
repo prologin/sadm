@@ -2,6 +2,7 @@ aiohttp-wsgi==0.8.2
 aiohttp==3.6.2
 aiopg==0.16.0
 django-bootstrap-breadcrumbs==0.9.1
+dpaste==3.5
 django-crispy-forms==1.7.2
 django-debug-toolbar==2.2
 django-prometheus==1.0.15

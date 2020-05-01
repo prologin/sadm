@@ -26,6 +26,7 @@ prologin_groups:
   cluster_public: 20161
   isolate: 20170
   ansible: 20180
+  paste: 20190
 
 prologin_users:
   mdb:
@@ -138,3 +139,8 @@ prologin_users:
     groups:
       - ansible
       - mdb
+  paste:
+    uid: 20190
+    groups:
+      - paste
+      - udbsync_public
