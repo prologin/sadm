@@ -1,5 +1,5 @@
 [Unit]
-Description=Paste
+Description=Wiki
 After=network-online.target
 
 [Service]
