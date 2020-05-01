@@ -7,7 +7,7 @@ server {
     include sso/handler;
 
     location / {
-        proxy_pass http://localhost:20050;
+        proxy_pass http://localhost:20190;
         include include/proxy_params;
         include sso/protect;
     }
