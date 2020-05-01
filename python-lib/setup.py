@@ -35,6 +35,8 @@ setup(
         'prologin.hfs': ['create_nbd.sh'],
         'prologin.homepage': ['static/*', 'templates/*'],
         'prologin.netboot': ['script.ipxe'],
+        'prologin.paste': ['static/*'],
+        'prologin.wiki': ['wiki_prologin/templates/**/*'],
         'prologin.workernode': ['compile-champion.sh'],
     },
     test_suite='nose.collector',

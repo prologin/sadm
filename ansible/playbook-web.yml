@@ -8,6 +8,7 @@
       - concours
       - homepage
       - paste
+      - wiki
     network_config:
       - 10-web.link
       - 10-web.network
@@ -73,6 +74,10 @@
     - import_role:
         name: paste
       tags: paste
+
+    - import_role:
+        name: wiki
+      tags: wiki
 
     - import_role:
         name: udbsync_django

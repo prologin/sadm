@@ -20,6 +20,7 @@ pytest==4.4.1
 PyYAML==5.1
 requests==2.21.0
 tornado==4.5.1
+wiki==0.5
 
 # From prologin
 -e git://github.com/prologin/camisole.git#egg=camisole

@@ -27,6 +27,7 @@ prologin_groups:
   isolate: 20170
   ansible: 20180
   paste: 20190
+  wiki: 20200
 
 prologin_users:
   mdb:
@@ -143,4 +144,9 @@ prologin_users:
     uid: 20190
     groups:
       - paste
+      - udbsync_public
+  wiki:
+    uid: 20200
+    groups:
+      - wiki
       - udbsync_public

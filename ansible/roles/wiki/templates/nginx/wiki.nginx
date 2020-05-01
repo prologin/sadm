@@ -1,0 +1,14 @@
+server {
+    listen 80;
+    server_name wiki;
+
+    access_log logs/wiki.access.log main;
+
+    include sso/handler;
+
+    location / {
+        proxy_pass http://localhost:20200;
+        include include/proxy_params;
+        include sso/protect;
+    }
+}
