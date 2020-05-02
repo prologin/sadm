@@ -1,6 +1,5 @@
 [Match]
-MACAddress=52:54:00:92:76:ba
+MACAddress={{ rhfs_network[0].mac }}
 
 [Link]
-# Replace A by the rhfs number
-Name=rhfsA
+Name=rhfs{{ rhfs_network[0].id }}

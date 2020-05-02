@@ -1,21 +1,37 @@
 - name: install the rhfs machines
-  hosts: rhfs
+  hosts:
+    - rhfs
   remote_user: root
-  roles:
+  tasks:
     - name: Register RHFS machine in MDB
       mdb:
-        hostname: '{{ inventory_hostname }}'
-        aliases: '{{ rhfs_aliases }}'
-        mac: '{{ mac }}'
+        hostname: 'rhfs{{ item.id }}'
+        aliases: '{{ item.aliases|default([]) +
+                  ["rfs" + (item.id|string), "hfs" + (item.id|string)] }}'
+        mac: '{{ item.mac }}'
         mtype: service
         room: pasteur
+      loop: '{{ rhfs_network }}'
       delegate_to: gw
       tags: mdb_register
 
     - import_role:
         name: networkd
+      vars:
+        network_config:
+          - 10-rhfs-a.link
+          - 10-rhfs-b.link
+          - 10-rhfs.network
       tags: networkd
 
     - import_role:
         name: base
       tags: base
+
+    - import_role:
+        name: libprologin
+      tags: libprologin
+
+    - import_role:
+        name: udbsync_rootssh
+      tags: udbsync_rootssh

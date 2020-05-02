@@ -18,6 +18,13 @@
   notify: restart sysctl
   when: dual_nic
 
+# TODO: enable automatically? How do we get the interface name depending on
+# the host?
+- name: Install NIC configuration (You will need to enable it manually)
+  template:
+    src: 'systemd/nic-configuration@.service'
+    dest: '/etc/systemd/system'
+
 - name: Install networkd config
   template:
     src: 'network/{{ item }}'

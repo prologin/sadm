@@ -3,16 +3,6 @@
     - web
   remote_user: root
 
-  vars:
-    udbsync_django_sites:
-      - concours
-      - homepage
-      - paste
-      - wiki
-    network_config:
-      - 10-web.link
-      - 10-web.network
-
   tasks:
     - name: Register Web machine in MDB
       mdb:
@@ -37,6 +27,10 @@
 
     - import_role:
         name: networkd
+      vars:
+        network_config:
+          - 10-web.link
+          - 10-web.network
       tags: networkd
 
     - import_role:
@@ -81,6 +75,12 @@
 
     - import_role:
         name: udbsync_django
+      vars:
+        udbsync_django_sites:
+          - concours
+          - homepage
+          - paste
+          - wiki
       tags: udbsync_django
 
     - import_role:
