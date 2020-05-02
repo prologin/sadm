@@ -1,6 +1,21 @@
 - name: install the rhfs machines
-  hosts: []
+  hosts: rhfs
   remote_user: root
   roles:
-    - {role: base, tags: base}
-    - {role: libprologin, tags: libprologin}
+    - name: Register RHFS machine in MDB
+      mdb:
+        hostname: '{{ inventory_hostname }}'
+        aliases: '{{ rhfs_aliases }}'
+        mac: '{{ mac }}'
+        mtype: service
+        room: pasteur
+      delegate_to: gw
+      tags: mdb_register
+
+    - import_role:
+        name: networkd
+      tags: networkd
+
+    - import_role:
+        name: base
+      tags: base

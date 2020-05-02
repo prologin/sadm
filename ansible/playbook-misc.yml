@@ -2,6 +2,26 @@
   hosts:
     - misc
   remote_user: root
-  roles:
-    - {role: base, tags: base}
-    - {role: ircd, tags: ircd}
+  tasks:
+    - name: Register Misc machine in MDB
+      mdb:
+        hostname: misc
+        aliases:
+          - irc
+        mac: '{{ mac }}'
+        mtype: service
+        room: pasteur
+      delegate_to: gw
+      tags: mdb_register
+
+    - import_role:
+        name: networkd
+      tags: networkd
+
+    - import_role:
+        name: base
+      tags: base
+
+    - import_role:
+        name: ircd
+      tags: ircd
