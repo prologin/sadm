@@ -1,0 +1,1 @@
+/export/nfsroot_ro 192.168.0.0/24(ro,no_root_squash,subtree_check,async)

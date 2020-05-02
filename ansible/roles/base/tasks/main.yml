@@ -1,5 +1,23 @@
 ---
 
+# Base config
+
+- name: Set timezone
+  file:
+    path: '/etc/localtime'
+    src: '/usr/share/zoneinfo/{{ sadm_timezone }}'
+    state: link
+
+- name: Install locale.conf
+  copy:
+    content: 'LANG={{ sadm_locale }}'
+    dest: '/etc/locale.conf'
+
+- name: Generate locale
+  locale_gen:
+    name: '{{ sadm_locale }}'
+
+
 # Packages
 
 - name: Install Prologin package repository

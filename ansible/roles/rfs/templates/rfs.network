@@ -1,0 +1,11 @@
+[Match]
+Name=ve-*
+# Driver=veth  # https://github.com/systemd/systemd/issues/15678
+
+[Network]
+Address=0.0.0.0/28
+LinkLocalAddressing=yes
+DHCPServer=yes
+IPMasquerade=yes
+LLDP=yes
+EmitLLDP=customer-bridge

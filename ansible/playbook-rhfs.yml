@@ -35,3 +35,28 @@
     - import_role:
         name: udbsync_rootssh
       tags: udbsync_rootssh
+
+    - import_role:
+        name: rfs
+      tags: rfs
+
+    - import_role:
+        name: udbsync_rfs
+      tags: udbsync_rfs
+
+    - name: Install RFS export content
+      when: rhfs_master
+      delegate_to: rfs_staging
+      tags: rfs_export
+      block:
+        - import_role:
+            name: base
+          tags: rfs_export_base
+
+        - import_role:
+            name: rfs_export_setup
+          tags: rfs_export_setup
+
+        - import_role:
+            name: rfs_packages
+          tags: rfs_export_packages

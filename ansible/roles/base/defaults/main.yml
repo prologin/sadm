@@ -1,4 +1,7 @@
 ---
+sadm_timezone: 'Europe/Paris'
+sadm_locale: 'en_US.UTF-8'
+
 prologin_groups:
   mdb: 20000
   mdb_public: 20001

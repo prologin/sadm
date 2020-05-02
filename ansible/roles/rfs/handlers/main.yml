@@ -1,0 +1,8 @@
+- name: reexport nfs
+  command: exportfs -arv
+
+- name: restart systemd-nspawn@rfs
+  systemd:
+    name: systemd-nspawn@rfs
+    state: restarted
+    daemon_reload: true

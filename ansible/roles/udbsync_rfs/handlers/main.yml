@@ -1,0 +1,11 @@
+- name: restart rootssh.path
+  systemd:
+    name: rootssh.path
+    state: restarted
+    daemon_reload: True
+
+- name: restart udbsync_passwd_nfsroot
+  systemd:
+    name: udbsync_passwd_nfsroot
+    state: restarted
+    daemon_reload: True

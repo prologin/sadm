@@ -1,0 +1,40 @@
+- name: Pacstrap the RFS system
+  command:
+    cmd: 'pacstrap -c -d "{{ rfs_staging }}" --needed
+          base linux linux-firmware vim openssh rxvt-unicode-terminfo
+          bind-tools'
+  args:
+    creates: '{{ rfs_staging }}/etc/arch-release'
+  notify: restart systemd-nspawn@rfs
+
+- name: Enable ssh and systemd-resolved
+  command: 'systemctl --root "{{ rfs_staging }}" enable
+            systemd-networkd systemd-resolved sshd'
+  notify: restart systemd-nspawn@rfs
+
+- name: Add rfs to /var/lib/machines
+  file:
+    path: '/var/lib/machines/rfs'
+    src: '{{ rfs_staging }}'
+    state: link
+  notify: restart systemd-nspawn@rfs
+
+- name: Add rfs container nspawn config
+  template:
+    src: 'rfs.nspawn'
+    dest: '/etc/systemd/nspawn/'
+  notify: restart systemd-nspawn@rfs
+
+- name: Add rfs container network config
+  template:
+    src: 'rfs.network'
+    dest: '/etc/systemd/network/'
+  notify:
+    - restart networkd
+    - restart systemd-nspawn@rfs
+
+- name: Start RFS
+  systemd:
+    name: systemd-nspawn@rfs
+    state: started
+    enabled: true

@@ -1,0 +1,209 @@
+- name: Install RFS base packages
+  tags: rfs_package_base
+  pacman:
+    name:
+      # Graphical
+      - xorg
+      - xorg-drivers
+      - sddm
+
+      # Shells
+      - bash
+
+      # Terminal emulators
+      - xterm
+
+      # Editors & IDE
+      - vim
+
+      # Window manager
+      - i3-wm
+
+      # Graphical tools
+      - zenity
+      - zathura
+      - sxiv
+
+      # Browsers
+      - chromium
+
+      # Tools
+      - cgdb
+      - gdb
+      - git
+      - htop
+      - netcat
+      - tmux
+      - tree
+      - valgrind
+      - xrun
+
+      # Compilers & interpreters
+      - make
+      - gcc
+      - python
+
+      # IRC clients
+      - weechat
+
+      # Games
+      - stone-soup
+
+      # Other additional dependencies
+      - i3lock
+      - i3status
+
+      # Stechec2 additional dependencies
+      - zeromq
+      - gtest
+      - ruby
+      - python-yaml
+      - gflags
+
+      # Stechec2 language dependencies
+      - php
+      - php-embed
+      - ocaml
+      - mono
+
+- name: Install RFS extra packages
+  when: rfs_install_extra_packages
+  tags: rfs_package_extra
+  pacman:
+    name:
+      # Shells
+      - bash
+      - fish
+      - zsh
+
+      # Terminal emulators
+      - rxvt-unicode
+      - xterm
+      - gnome-terminal
+
+      # Editors & IDE
+      - nano
+      - neovim
+      - emacs
+      - qtcreator
+      - gedit
+      - codeblocks
+      - eclipse-java
+      - intellij-idea-community-edition
+      - kate
+      - geany
+      - mg
+      - netbeans
+      - atom
+      - code
+      - pycharm-community-edition
+        # (conflicts with vim)- gvim
+        # (aur)- monodevelop-stable
+        # (aur)- sublime-text
+        # (aur)- codelite
+
+      # Additional config
+      - emacs-tuareg-mode-git
+      - emacs-haskell-mode
+      - grml-zsh-config
+        # (aur) - merlin
+
+
+      # Graphical environments
+      - awesome
+      - gnome
+      - xfce4
+      - bspwm
+        # (aur)- dwm
+
+      # Browsers
+      - firefox
+      - chromium
+
+      # Tools
+      - most
+      - htop
+      - git
+      - mercurial
+      - subversion
+      - evince
+      - zathura
+      - screen
+      - tmux
+      - eog
+      - feh
+      - vlc
+      - moreutils
+      - netcat
+      - rlwrap
+      - valgrind
+      - gdb
+      - cgdb
+      - ddd
+      - gnuplot
+      - tig
+      - xorg-xrandr
+      - python-pylint
+      - tree
+      - xcape
+      - dmenu
+      - synergy
+      - sxhkd
+
+      # Compilers & interpreters
+      - make
+      - gcc
+      - clang
+      - ocaml
+      - python
+      - jupyter-notebook
+      - jdk7-openjdk
+      - jre7-openjdk
+      - mono
+      - php
+      - ghc
+      - rust
+      - rust-docs
+
+      # IRC clients
+      - irssi
+      - weechat
+      - hexchat
+
+      # Games
+      - tetrinet
+      - teeworlds
+      - extremetuxracer
+      - armagetronad
+      - 0ad
+      - openttd
+      - openttd-opengfx
+      - openttd-opensfx
+      - stone-soup
+      - wesnoth
+        # (aur)- urbanterror
+
+      # Other additional dependencies
+      - tcl
+      - tk
+      - gsfonts
+
+      # Stechec2 additional dependencies
+      - zeromq
+      - gtest
+      - ruby
+      - python-yaml
+      - gflags
+      - python-pygame
+
+      # Stechec2 language dependencies
+      - php
+      - php-embed
+      - ocaml
+      - mono
+
+      # Language libraries
+      - boost
+      - python-numpy
+      - python-scikit-learn
+        # (AUR)- python-theano

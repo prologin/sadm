@@ -1,0 +1,32 @@
+- name: Install udbsync_passwd systemd service
+  template:
+    src: 'systemd/udbsync_passwd_nfsroot.service'
+    dest: '/etc/systemd/system/'
+  notify: restart udbsync_passwd_nfsroot
+
+- name: Install rootssh-copy systemd service
+  template:
+    src: 'systemd/{{ item }}'
+    dest: '/etc/systemd/system/'
+  loop:
+    - rootssh-copy.service
+    - rootssh.path
+  notify: restart rootssh.path
+
+- name: Enable udbsync_passwd_nfsroot
+  systemd:
+    name: udbsync_passwd_nfsroot
+    enabled: True
+    state: started
+
+- name: Enable rootssh.path
+  systemd:
+    name: rootssh.path
+    enabled: True
+    state: started
+
+- name: Run rootssh-copy
+  systemd:
+    name: rootssh-copy
+    state: started
+    daemon_reload: true

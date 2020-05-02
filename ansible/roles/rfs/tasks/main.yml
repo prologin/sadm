@@ -1,0 +1,33 @@
+- name: Install RFS requirements
+  pacman:
+    name:
+      - arch-install-scripts
+      - nfs-utils
+
+- name: Create the export directories
+  file:
+    path: '{{ item }}'
+    state: directory
+    mode: 0755
+  loop:
+    - '/export'
+    - '{{ rfs_staging }}'
+    - '{{ rfs_ro }}'
+
+- name: Configure the NFS server
+  template:
+    src: rfs.exports
+    dest: '/etc/exports.d'
+    mode: 0640
+    owner: root
+    group: root
+  notify: reexport nfs
+
+- name: Enable the NFS server
+  systemd:
+    name: nfs-server.service
+    state: started
+    enabled: True
+
+- import_tasks: rfs-system.yml
+  when: rhfs_master

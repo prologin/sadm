@@ -1,0 +1,3 @@
+rhfs_master: false
+rfs_ro: '/export/nfsroot_ro'
+rfs_staging: '/export/nfsroot_staging'
