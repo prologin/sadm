@@ -23,5 +23,13 @@
       tags: base
 
     - import_role:
+        name: libprologin
+      tags: libprologin
+
+    - import_role:
+        name: udbsync_rootssh
+      tags: udbsync_rootssh
+
+    - import_role:
         name: ircd
       tags: ircd
