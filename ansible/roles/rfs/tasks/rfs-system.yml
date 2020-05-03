@@ -38,3 +38,8 @@
     name: systemd-nspawn@rfs
     state: started
     enabled: true
+
+- name: Enable machines target
+  systemd:
+    name: machines.target
+    enabled: true
