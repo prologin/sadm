@@ -1,0 +1,33 @@
+# Informations to connect to the master server.
+master:
+    host: masternode
+    port: 8067
+    heartbeat_secs: 5             # Must be < to the master timeout.
+    max_retries: 15               # Max retries when the master is down
+    retry_delay: 10               # Delay between each retry
+    shared_secret: "{{ masternode_secret }}"
+
+# Configuration of this worker.
+worker:
+  # Port used for RPC communication.
+  port: 8068
+  # Number of parallel tasks that can be # executed on this worker.
+  available_slots: "{{ workernode_slots }}"
+
+# Paths of some needed tools
+path:
+    stechec_server: /usr/bin/stechec2-server
+    stechec_client: /usr/bin/stechec2-client
+    # Stechec's rules library
+    rules: '/usr/lib/lib{{ concours_game }}.so'
+    # Directory containing the player environment
+    player_env: '/usr/share/stechec2/{{ concours_game }}/player'
+
+timeout: # timeouts in seconds (double)
+    server: 400
+    client: 400
+
+isolate:
+    time_limit_secs: 350
+    mem_limit_MiB: 500
+    processes: 100

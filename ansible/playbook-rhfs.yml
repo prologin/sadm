@@ -11,7 +11,7 @@
         mac: '{{ item.mac }}'
         mtype: service
         room: pasteur
-      loop: '{{ rhfs_network }}'
+      loop: '{{ rhfs_setup }}'
       delegate_to: gw
       tags: mdb_register
 
@@ -43,3 +43,11 @@
     - import_role:
         name: udbsync_rfs
       tags: udbsync_rfs
+
+    - import_role:
+        name: hfs
+      tags: hfs
+
+    - import_role:
+        name: hfs_skeleton
+      tags: hfs_skeleton

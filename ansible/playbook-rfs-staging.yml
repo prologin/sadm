@@ -26,3 +26,7 @@
     - import_role:
         name: presenced
       tags: presenced
+
+    - import_role:
+        name: workernode
+      tags: workernode

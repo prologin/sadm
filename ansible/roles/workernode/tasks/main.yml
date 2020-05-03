@@ -1,0 +1,22 @@
+- name: Install stechec2 and Workernode dependencies
+  pacman:
+    name:
+      - prologin/isolate-git
+      - prologin/stechec2
+      - 'prologin/{{ concours_game }}'
+
+- name: Install Workernode systemd service
+  template:
+    src: 'systemd/workernode.service'
+    dest: '/etc/systemd/system/'
+
+- name: Install Workernode configuration
+  template:
+    src: 'prologin/workernode.yml'
+    dest: '/etc/prologin/'
+    group: cluster
+
+- name: Enable Workernode
+  systemd:
+    name: workernode
+    enabled: True

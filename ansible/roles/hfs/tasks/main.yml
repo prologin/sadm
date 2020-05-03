@@ -1,0 +1,21 @@
+- name: Install hfs dependencies
+  pacman:
+    name:
+      - nbd
+
+- name: Install hfs systemd service
+  template:
+    src: 'systemd/hfs@.service'
+    dest: '/etc/systemd/system/'
+
+- name: Install hfs configuration
+  template:
+    src: 'prologin/hfs-server.yml'
+    dest: '/etc/prologin/'
+    group: hfs
+
+- name: Enable hfs
+  systemd:
+    name: 'hfs@{{ item.id }}'
+    enabled: True
+  loop: '{{ rhfs_setup }}'

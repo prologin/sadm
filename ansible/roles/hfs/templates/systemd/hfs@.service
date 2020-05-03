@@ -1,0 +1,11 @@
+[Unit]
+Description=HFS daemon for HFS id %i
+After=network-online.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/opt/prologin/venv/bin/python -m prologin.hfs.server %i
+
+[Install]
+WantedBy=multi-user.target

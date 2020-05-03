@@ -1,5 +1,5 @@
 [Match]
-MACAddress={{ rhfs_network[1].mac }}
+MACAddress={{ rhfs_setup[1].mac }}
 
 [Link]
-Name=rhfs{{ rhfs_network[1].id }}
+Name=rhfs{{ rhfs_setup[1].id }}

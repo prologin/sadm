@@ -1,0 +1,25 @@
+- name: Create skeleton directory
+  file:
+    path: /export/skeleton
+    state: directory
+    mode: 0755
+
+- name: Create skeleton directories
+  file:
+    path: "/export/skeleton/{{ item.path }}"
+    state: directory
+    mode: 0755
+  with_filetree: skeleton/
+  when: item.state == 'directory'
+  loop_control:
+    label: "{{ item.path }}"
+
+- name: Install skeleton dotfiles
+  copy:
+    src: '{{ item.src }}'
+    dest: "/export/skeleton/{{ item.path }}"
+    mode: 0644
+  with_filetree: skeleton/
+  when: item.state == 'file'
+  loop_control:
+    label: "{{ item.path }}"
