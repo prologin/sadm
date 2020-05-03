@@ -64,7 +64,6 @@ can run this command::
     cat >/etc/systemd/network/00-ignore-all.network <<EOF
     [Match]
     Name=!vz*
-    Driver=bridge
 
     [Link]
     Unmanaged=yes
@@ -87,9 +86,9 @@ Requirements:
 - For convenience, ``/var/lib/machines`` should be a btrfs volume. The scripts
   will run without that but you will not have the ability to restore
   intermediate snapshots of the install. Note that if you don't want to use a
-  btrfs volume you will need to modify
-  ``install_scripts/containers/container_setup_config.sh`` to replace
-  ``USE_BTRFS=true`` with ``USE_BTRFS=false``.
+  btrfs volume you can use::
+
+    echo 'USE_BTRFS=false' > install_scripts/containers/container_setup.conf
 
 To start, run the host setup script, you are strongly advised to check its
 content beforehand, as it does some substantial changes to your system setup::
