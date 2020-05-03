@@ -23,6 +23,9 @@
     enabled: True
     state: started
 
+# Flush all the handlers here to add the datasources
+- meta: flush_handlers
+
 - name: Add Grafana datasource
   grafana_datasource:
     grafana_url: http://grafana
