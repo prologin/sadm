@@ -16,6 +16,7 @@
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
+import time
 import string
 import subprocess
 import unicodedata
@@ -88,6 +89,7 @@ def create_users(names, options):
                 ),
             },
         )
+        u.save()  # Trigger the post_save signal handler
 
         user_desc = f'{u.realname} (login: {u.login})'
         if created:
@@ -101,6 +103,9 @@ def create_users(names, options):
                 f'User {user_desc} already in database. '
                 'Use --update to update it, or --ignore.'
             )
+
+    # Sleep to let time for the sync message
+    time.sleep(1)
 
 
 class Command(BaseCommand):

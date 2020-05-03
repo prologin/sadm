@@ -35,6 +35,12 @@ class Command(BaseCommand):
             '--room', help='Machine location (pasteur/alt/cluster/other)'
         )
 
+        parser.add_argument(
+            '--update',
+            action='store_true',
+            help='If specified, also update already existing machines.',
+        )
+
     def get_opt(self, options, name):
         if name not in options:
             raise CommandError('please specify --%s' % name)
@@ -42,20 +48,30 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         m = Machine()
-        for attr in (
-            'hostname',
-            'aliases',
-            'mac',
-            'rfs',
-            'hfs',
-            'mtype',
-            'room',
-        ):
-            setattr(m, attr, self.get_opt(options, attr))
-        if 'ip' not in options:
-            m.allocate_ip()
+        updating = False
+        if options['update']:
+            try:
+                m = Machine.objects.get(hostname=options['hostname'])
+                updating = True
+            except Machine.DoesNotExist:
+                pass
+
+        update_fields = ('aliases', 'rfs', 'hfs', 'mtype', 'room')
+        create_fields = update_fields + ('hostname', 'mac')
+
+        if updating:
+            for attr in update_fields:
+                if options.get(attr):
+                    setattr(m, attr, options[attr])
         else:
-            m.ip = options['ip']
+            for attr in create_fields:
+                setattr(m, attr, self.get_opt(options, attr))
+
+            if not options.get('ip'):
+                m.allocate_ip()
+            else:
+                m.ip = options['ip']
+
         m.full_clean()
         m.save()
 

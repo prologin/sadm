@@ -23,13 +23,16 @@ if [ "$#" -ne 2 ]; then
     exit 1
 fi
 
-makefile_dir=$1
+player_env_dir=$1
 champion_dir=$2
 
 compil_dir=`mktemp -d /tmp/stechec_compil_XXXXXX`
 champion_tarball=$champion_dir/champion.tgz
 compil_log=$champion_dir/compilation.log
 lang_file=_lang
+
+# Signal the makefiles to use wildcards to find the champion sources
+export STECHEC_SERVER=1
 
 (
     # We should not preempt the contestant tasks
@@ -50,12 +53,11 @@ lang_file=_lang
         exit 1
     fi
 
-    makefile=Makefile-"$(cat ${lang_file})"
+    lang="$( cat ${lang_file} )"
+    makefile_path="$lang/Makefile-$lang"
 
-    lang=${makefile##Makefile-}
     echo "Compiling the champion (detected language: $lang)."
-    make -f "$makefile_dir/$makefile" MFPATH="$makefile_dir" all 2>&1 \
-        | sed 's/^.*$/    &/'
+    make -f "$player_env_dir/$makefile_path" all 2>&1 | sed 's/^.*$/    &/'
     res=${PIPESTATUS[0]}
     echo
 
@@ -73,12 +75,12 @@ lang_file=_lang
     ls -gGlah champion.so 2>&1 | sed 's/^.*$/    &/'
     echo
 
-    reqs=$(make -f "$makefile_dir/$makefile" MFPATH="$makefile_dir" \
-               list-run-reqs)
     echo "Copying the champion files."
     mkdir "$champion_dir/champion-compiled"
-    for f in $reqs; do
-        cp -v "$f" "$champion_dir/champion-compiled/$f"
+    for f in *; do
+        if [ "$f" != "champion-compiled" ]; then
+            cp -v "$f" "$champion_dir/champion-compiled/$f"
+        fi
     done 2>&1 | sed 's/^.*$/    &/'
     echo "Making tarball."
     tar czvf "$champion_dir"/champion-compiled.tar.gz \
