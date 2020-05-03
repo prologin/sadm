@@ -6,7 +6,7 @@
 ANSIBLE_METADATA = {
     'metadata_version': '1.1',
     'status': ['preview'],
-    'supported_by': 'community'
+    'supported_by': 'community',
 }
 
 DOCUMENTATION = '''
@@ -81,9 +81,6 @@ EXAMPLES = '''
     state: absent
 '''
 
-RETURN = '''
-'''
-
 import json  # noqa: E402
 import shlex  # noqa: E402
 from ansible.module_utils.basic import AnsibleModule  # noqa: E402
@@ -96,8 +93,7 @@ def mdb_get_machine(machine_host):
         mdb_res = f.read().decode()
         mdb_status = json.loads(mdb_res)['data']
         machine = next(
-            (m for m in mdb_status if m['hostname'] == machine_host),
-            None
+            (m for m in mdb_status if m['hostname'] == machine_host), None
         )
         if machine:
             machine = {**machine, 'state': 'present'}
@@ -112,14 +108,15 @@ def run_module():
             type='str',
             choices=('present', 'absent'),
             required=False,
-            default='present'
+            default='present',
         ),
         manage_command=dict(
             type='str',
             required=False,
-            default='/opt/prologin/venv/bin/python /var/prologin/mdb/manage.py'
+            default=(
+                '/opt/prologin/venv/bin/python /var/prologin/mdb/manage.py'
+            ),
         ),
-
         # Machine attributes
         hostname=dict(type='str', required=True),
         aliases=dict(type='list', elements='str', required=False),
@@ -128,21 +125,14 @@ def run_module():
         rfs=dict(type='int', required=False),
         hfs=dict(type='int', required=False),
         mtype=dict(
-            type='str',
-            choices=('user', 'orga', 'service'),
-            required=False,
+            type='str', choices=('user', 'orga', 'service'), required=False,
         ),
         room=dict(
-            type='str',
-            choices=('pasteur', 'alt', 'other'),
-            required=False,
+            type='str', choices=('pasteur', 'alt', 'other'), required=False,
         ),
     )
 
-    module = AnsibleModule(
-        argument_spec=module_args,
-        supports_check_mode=True
-    )
+    module = AnsibleModule(argument_spec=module_args, supports_check_mode=True)
 
     update_fields = ('aliases', 'rfs', 'hfs', 'mtype', 'room')
     create_fields = ('ip', 'mac', 'hostname')
@@ -164,8 +154,9 @@ def run_module():
             if f in new_machine and old_machine[f] != new_machine[f]:
                 msg = (
                     "Field {} does not match for machine {} and cannot be "
-                    "updated (old={}, new={})."
-                    .format(f, machine_host, old_machine[f], new_machine[f])
+                    "updated (old={}, new={}).".format(
+                        f, machine_host, old_machine[f], new_machine[f]
+                    )
                 )
                 module.fail_json(msg=msg)
     else:
@@ -179,16 +170,12 @@ def run_module():
 
             # MAC needs to be present
             if not new_machine.get('mac'):
-                msg = (
-                    "Field mac not present, cannot create machine {}."
-                    .format(machine_host)
+                msg = "Field mac not present, cannot create machine {}.".format(
+                    machine_host
                 )
                 module.fail_json(msg=msg)
 
-    result = dict(
-        changed=False,
-        diff=dict(before={}, after={})
-    )
+    result = dict(changed=False, diff=dict(before={}, after={}))
 
     # Diff
     result['diff']['before'] = {
@@ -215,9 +202,9 @@ def run_module():
         if rc != 0:
             msg = ''
             if out:
-                msg += "stdout: %s" % (out, )
+                msg += "stdout: %s" % (out,)
             if err:
-                msg += "\n:stderr: %s" % (err, )
+                msg += "\n:stderr: %s" % (err,)
             module.fail_json(cmd=command, msg=msg, **result)
 
     module.exit_json(**result)
