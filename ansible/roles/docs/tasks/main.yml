@@ -1,0 +1,22 @@
+- name: Install docs nginx service
+  template:
+    src: 'nginx/docs.nginx'
+    dest: '/etc/nginx/services/'
+  notify: reload nginx
+
+- name: Create docs service directory
+  file:
+    path: /var/prologin/docs
+    state: directory
+    owner: webservices
+    group: http
+    mode: 0755
+
+- name: Copy placeholder index.html
+  copy:
+    force: no
+    src: 'index.html'
+    dest: /var/prologin/docs/
+    owner: webservices
+    group: http
+    mode: 0640

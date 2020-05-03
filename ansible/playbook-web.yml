@@ -88,6 +88,10 @@
       tags: devdocs
 
     - import_role:
+        name: docs
+      tags: docs
+
+    - import_role:
         name: usermap
       tags: usermap
 

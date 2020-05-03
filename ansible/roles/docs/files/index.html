@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Upload stechec documentation here</title>
+</head>
+<body>
+<p>Upload the documentation of the game rules and stechec here.</p>
+
+<pre>
+cd prologin20XX/docs
+make html
+rsync --info=progress2 -r _build/html/* root@web:/var/prologin/docs
+</pre>
+
+</body>
+</html>
