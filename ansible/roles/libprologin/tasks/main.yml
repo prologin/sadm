@@ -2,7 +2,7 @@
   git:
     repo: "https://github.com/prologin/sadm"
     dest: "{{ sadm_path }}"
-    version: master
+    version: ansible
     update: no   # In case there are local changes people are working on
 
 - name: create venv directory
