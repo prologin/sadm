@@ -1,0 +1,39 @@
+- name: Install initrd dependencies
+  pacman:
+    name:
+      - mkinitcpio-nfs-utils
+      - nbd
+
+- name: Load nbd driver at startup
+  copy:
+    content: nbd
+    dest: /etc/modules-load.d/nbd.conf
+
+- name: Install prologin initcpio module
+  copy:
+    src: 'initcpio/{{ item }}'
+    dest: '/lib/initcpio/{{ item }}'
+  loop:
+    - 'hooks/prologin'
+    - 'install/prologin'
+  notify: run mkinitcpio
+
+- name: Add hooks to mkinitcpio.conf
+  lineinfile:
+    path: '/etc/mkinitcpio.conf'
+    regexp: '^HOOKS'
+    line: 'HOOKS=(base udev autodetect modconf net block filesystems keyboard
+           fsck prologin)'
+  notify: run mkinitcpio
+
+- name: Add modules to mkinitcpio.conf
+  lineinfile:
+    path: '/etc/mkinitcpio.conf'
+    regexp: '^MODULES'
+    line: 'MODULES=(nfsv3 overlay)'
+  notify: run mkinitcpio
+
+- name: Run mkinitcpio for the first time
+  command:
+    cmd: mkinitcpio -p linux
+    creates: /boot/initramfs-linux.img

@@ -1,0 +1,28 @@
+- name: install the user root filesystem
+  hosts:
+    - rfs_staging
+  remote_user: root
+  tasks:
+    - import_role:
+        name: base
+      tags: base
+
+    - import_role:
+        name: rfs_initrd
+      tags: rfs_initrd
+
+    - import_role:
+        name: rfs_resource_limits
+      tags: rfs_resource_limits
+
+    - import_role:
+        name: rfs_packages
+      tags: rfs_packages
+
+    - import_role:
+        name: libprologin
+      tags: libprologin
+
+    - import_role:
+        name: presenced
+      tags: presenced

@@ -10,7 +10,7 @@
 
 - name: Install locale.conf
   copy:
-    content: 'LANG={{ sadm_locale }}'
+    content: "LANG={{ sadm_locale }}\n"
     dest: '/etc/locale.conf'
 
 - name: Generate locale

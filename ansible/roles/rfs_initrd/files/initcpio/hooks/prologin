@@ -1,0 +1,20 @@
+#!/bin/sh
+
+cow_mount() {
+    cow_path="$1"
+    lower="/new_root/$cow_path"
+    upper="/new_root/tmp/overlay/$cow_path/upper"
+    work="/new_root/tmp/overlay/$cow_path/work"
+    mount -t tmpfs tmpfs /new_root/tmp
+    mkdir -p "$upper" "$work"
+    mount -n -t overlay overlay "$lower" \
+          -o "lowerdir=$lower,upperdir=$upper,workdir=$work"
+}
+
+run_latehook() {
+    cow_mount "/home"
+    cow_mount "/var"
+
+    mkdir -p /new_root/var/lib/isolate
+    mount -t tmpfs tmpfs /new_root/var/lib/isolate
+}

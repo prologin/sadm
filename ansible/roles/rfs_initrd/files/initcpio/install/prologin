@@ -1,0 +1,15 @@
+#!/bin/sh
+
+build() {
+    add_binary find
+    add_runscript
+}
+
+help() {
+    cat <<HELPEOF
+This provides the support for a live Archlinux mounted through a read only
+root.
+HELPEOF
+}
+
+# vim: set ft=sh ts=4 sw=4 et:

@@ -1,0 +1,49 @@
+- name: Install presenced requirements
+  pacman:
+    name:
+      - prologin/pamtester
+      - nbd
+
+- name: Configure systemd-logind
+  lineinfile:
+    regexp: '^#?{{ item.key }}'
+    line: '{{ item.key }}={{ item.value }}'
+    path: /etc/systemd/logind.conf
+  loop: '{{ logind_config|dict2items }}'
+  vars:
+    logind_config:
+      KillUserProcesses: 'yes'
+      KillExcludeUsers: 'root'
+
+- name: Install presenced systemd service
+  template:
+    src: 'systemd/presenced.service'
+    dest: '/etc/systemd/system/'
+
+- name: Create presenced service directory
+  file:
+    path: /var/prologin/presenced
+    state: directory
+    owner: presenced
+    group: presenced
+    mode: 0700
+
+- name: Install pam_presenced.py
+  copy:
+    remote_src: true
+    src: '/root/sadm/python-lib/prologin/presenced/pam_presenced.py'
+    dest: '/var/prologin/presenced'
+    mode: 0755
+
+- name: Add pam_presenced to pam.d/system-login
+  lineinfile:
+    path: '/etc/pam.d/system-login'
+    insertbefore: 'pam_systemd.so'
+    regexp: 'pam_presenced.py'
+    line: 'session    requisite  pam_exec.so
+           /var/prologin/presenced/pam_presenced.py'
+
+- name: Enable presenced
+  systemd:
+    name: presenced
+    enabled: true
