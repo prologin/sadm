@@ -36,6 +36,9 @@
     ds_url: http://127.0.0.1:9090
     is_default: true
     state: present
+  # Grafana can take some seconds to become available.
+  retries: 10
+  delay: 2
 
 - name: Create Grafana dashboard directory
   file:
