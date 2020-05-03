@@ -71,6 +71,9 @@
         name: mdbdhcp
       tags: mdbdhcp
 
+    # Flush all the handlers here to register GW in MDB
+    - meta: flush_handlers
+
     - name: Register GW machine in MDB
       mdb:
         hostname: gw
