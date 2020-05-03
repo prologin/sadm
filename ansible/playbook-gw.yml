@@ -92,6 +92,11 @@
         mtype: service
         room: pasteur
       tags: mdb_register
+      notify: restart mdbsync
+
+    # FIXME: mdbsync needs to be restarted here, otherwise mdbdns does not get
+    # refreshed. \_(o_O)_/
+    - meta: flush_handlers
 
     - import_role:
         name: netboot
