@@ -12,6 +12,7 @@ machine="my$1"
 machine_hostname="$1"
 
 rsync --partial --info=progress2 -ha arch_linux_base/ "$machine"
+rm "$machine"/etc/machine-id
 mkdir -p "$machine"/root/.ssh
 cat $HOME/.ssh/id_*.pub | tee "$machine"/root/.ssh/authorized_keys "$machine"/root/.ssh/authorized_keys2
 chown -R root:root "$machine"/root/.ssh
