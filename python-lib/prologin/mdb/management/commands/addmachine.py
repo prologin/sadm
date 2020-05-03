@@ -38,7 +38,7 @@ class Command(BaseCommand):
         parser.add_argument(
             '--update',
             action='store_true',
-            help='If specified, also update already existing machines.'
+            help='If specified, also update already existing machines.',
         )
 
     def get_opt(self, options, name):
