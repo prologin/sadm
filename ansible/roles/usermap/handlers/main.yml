@@ -1,0 +1,5 @@
+- name: restart presencesync_usermap
+  systemd:
+    name: presencesync_usermap
+    state: restarted
+    daemon_reload: true

@@ -1,0 +1,42 @@
+- name: Install presencesync_usermap systemd service
+  template:
+    src: 'systemd/presencesync_usermap.service'
+    dest: '/etc/systemd/system/'
+  notify: restart presencesync_usermap
+
+- name: Install usermap nginx service
+  template:
+    src: 'nginx/usermap.nginx'
+    dest: '/etc/nginx/services/'
+  notify: reload nginx
+
+- name: Install usermap configuration
+  template:
+    src: 'prologin/presencesync_usermap.yml'
+    dest: '/etc/prologin/'
+    group: presencesync_usermap
+
+- name: Create usermap service directory
+  file:
+    path: /var/prologin/presencesync_usermap
+    state: directory
+    owner: presencesync_usermap
+    group: http
+    mode: 0750
+
+- name: Copy usermap pattern and index.html
+  copy:
+    src: '{{ item }}'
+    dest: /var/prologin/presencesync_usermap/
+    owner: presencesync_usermap
+    group: http
+    mode: 0640
+  loop:
+    - usermap/index.html
+    - usermap/pattern.svg
+
+- name: Enable presencesync_usermap
+  systemd:
+    name: presencesync_usermap
+    enabled: true
+    state: started

@@ -87,6 +87,10 @@
         name: devdocs
       tags: devdocs
 
+    - import_role:
+        name: usermap
+      tags: usermap
+
     # - import_role:
     #     name: redmine
     #   tags: redmine
