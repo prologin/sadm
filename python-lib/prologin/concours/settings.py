@@ -6,7 +6,7 @@ from prologin.djangoconf import use_profile_config
 
 cfg = use_profile_config('concours')
 
-if 'static_path' in cfg['website']:
+if cfg['website'].get('static_path'):
     # Overwrite local static files with static_path assets
     STATICFILES_DIRS += [cfg['website']['static_path']]
 
