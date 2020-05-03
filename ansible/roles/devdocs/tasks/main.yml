@@ -10,6 +10,19 @@
     dest: '/etc/nginx/services/devdocs.nginx'
   notify: reload nginx
 
+# Required for ruby tilde expansion, otherwise it crashes.
+- name: Create service override directory
+  file:
+    path: '/etc/systemd/system/devdocs.service.d/'
+    state: directory
+
+- name: Add systemd override for HOME=
+  copy:
+    content: |
+      [Service]
+      Environment=HOME=/opt/devdocs-git
+    dest: '/etc/systemd/system/devdocs.service.d/override.conf'
+
 - name: Enable DevDocs
   systemd:
     name: devdocs
