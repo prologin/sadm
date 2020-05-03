@@ -37,7 +37,7 @@
     is_default: true
     state: present
   # Grafana can take some seconds to become available.
-  retries: 10
+  retries: 5
   delay: 2
 
 - name: Create Grafana dashboard directory

@@ -33,6 +33,9 @@
     url: https://repo.prologin.org/prologin.pub
     dest: /tmp/prologin.pub
   when: addprolorepo.changed
+  # Network might not be ready yet.
+  retries: 5
+  delay: 2
 
 - name: Add Prologin repo key to keyring
   shell: |
