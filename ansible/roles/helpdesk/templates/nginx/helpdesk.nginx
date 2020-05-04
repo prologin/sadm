@@ -1,0 +1,14 @@
+server {
+    listen 80;
+    server_name helpdesk bugs;
+
+    access_log logs/helpdesk.access.log main;
+
+    include sso/handler;
+
+    location / {
+        proxy_pass http://localhost:20210;
+        include include/proxy_params;
+        include sso/protect;
+    }
+}

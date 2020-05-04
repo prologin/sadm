@@ -2,12 +2,14 @@ aiohttp-wsgi==0.8.2
 aiohttp==3.6.2
 aiopg==0.16.0
 django-bootstrap-breadcrumbs==0.9.1
-dpaste==3.5
+django-bootstrap-form
 django-crispy-forms==1.7.2
 django-debug-toolbar==2.2
+django-helpdesk==0.2.21
 django-prometheus==1.0.15
 Django==2.2.10
 djangorestframework==3.9.2
+dpaste==3.5
 gunicorn==19.9.0
 irc3==1.1.2
 markdown2==2.3.8

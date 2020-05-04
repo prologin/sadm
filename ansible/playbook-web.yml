@@ -11,8 +11,8 @@
           - db
           - concours
           - wiki
+          - helpdesk
           - bugs
-          - redmine
           - devdocs
           - docs
           - home
@@ -81,6 +81,7 @@
           - homepage
           - paste
           - wiki
+          - helpdesk
       tags: udbsync_django
 
     - import_role:
@@ -95,6 +96,6 @@
         name: usermap
       tags: usermap
 
-    # - import_role:
-    #     name: redmine
-    #   tags: redmine
+    - import_role:
+        name: helpdesk
+      tags: helpdesk

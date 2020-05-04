@@ -1,0 +1,12 @@
+[Unit]
+Description=Helpdesk (bug tickets)
+After=network-online.target
+
+[Service]
+Type=simple
+User=helpdesk
+WorkingDirectory=/var/prologin/helpdesk
+ExecStart=/opt/prologin/venv/bin/gunicorn -b 127.0.0.1:20210 prologin.helpdesk.wsgi
+
+[Install]
+WantedBy=multi-user.target

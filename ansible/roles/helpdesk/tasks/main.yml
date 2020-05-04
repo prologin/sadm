@@ -1,0 +1,78 @@
+- name: Install Helpdesk systemd service
+  template:
+    src: 'systemd/helpdesk.service'
+    dest: '/etc/systemd/system/'
+  notify: restart helpdesk
+
+- name: Install Helpdesk nginx service
+  template:
+    src: 'nginx/helpdesk.nginx'
+    dest: '/etc/nginx/services/helpdesk.nginx'
+  notify: reload nginx
+
+- name: Install helpdesk client configurations
+  template:
+    src: 'prologin/{{ item.name }}'
+    dest: '/etc/prologin/{{ item.name }}'
+    mode: '{{ item.mode }}'
+    group: helpdesk
+  loop:
+    - {name: helpdesk.yml, mode: '640'}
+    - {name: helpdesk-udbsync.yml, mode: '640'}
+  loop_control:
+    label: '{{ item.name }}'
+  notify: restart helpdesk
+
+- name: Create Helpdesk Django app directory
+  file:
+    path: /var/prologin/helpdesk
+    state: directory
+    owner: helpdesk
+    group: helpdesk
+    mode: 0700
+
+- name: Install Helpdesk manage.py
+  template:
+    src: 'django/manage.py'
+    dest: '/var/prologin/helpdesk/manage.py'
+    owner: helpdesk
+    group: helpdesk
+    mode: 0750
+
+- name: Create the PostgreSQL Helpdesk user
+  postgresql_user:
+    name: helpdesk
+    password: '{{ helpdesk_db_password }}'
+    encrypted: yes
+  no_log: true
+  become: true
+  become_user: postgres
+
+- name: Create the PostgreSQL Helpdesk database
+  postgresql_db:
+    name: helpdesk
+    owner: helpdesk
+  become: true
+  become_user: postgres
+
+- name: Migrate Helpdesk database
+  django_manage:
+    command: migrate
+    app_path: '/var/prologin/helpdesk'
+    virtualenv: '/opt/prologin/venv'
+
+- name: Create Helpdesk default public bug queue
+  django_manage:
+    command: >
+      shell -c "from helpdesk.models import Queue;
+      print(Queue.objects.get_or_create(
+        title='Bugs et suggestions finale Prologin',
+        slug='bugs-suggestions'))"
+    app_path: '/var/prologin/helpdesk'
+    virtualenv: '/opt/prologin/venv'
+
+- name: Enable Helpdesk systemd service
+  systemd:
+    name: helpdesk
+    enabled: Truestarted
+    state:

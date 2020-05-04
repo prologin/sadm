@@ -31,6 +31,7 @@ prologin_groups:
   ansible: 20180
   paste: 20190
   wiki: 20200
+  helpdesk: 20210
 
 prologin_users:
   mdb:
@@ -152,4 +153,9 @@ prologin_users:
     uid: 20200
     groups:
       - wiki
+      - udbsync_public
+  helpdesk:
+    uid: 20210
+    groups:
+      - helpdesk
       - udbsync_public
