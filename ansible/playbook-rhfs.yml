@@ -29,6 +29,10 @@
       tags: base
 
     - import_role:
+        name: nginx
+      tags: nginx
+
+    - import_role:
         name: libprologin
       tags: libprologin
 

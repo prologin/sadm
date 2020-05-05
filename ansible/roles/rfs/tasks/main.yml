@@ -29,5 +29,11 @@
     state: started
     enabled: True
 
+- name: Install the nginx http boot service
+  template:
+    src: 'nginx/http_boot.nginx'
+    dest: '/etc/nginx/services/'
+  notify: reload nginx
+
 - import_tasks: rfs-system.yml
   when: rhfs_master
