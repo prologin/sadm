@@ -1,0 +1,11 @@
+server {
+    listen 80;
+    server_name ~^rh?fs\d+$;
+
+    access_log logs/rhfs_boot.access.log main;
+
+    location /boot {
+        autoindex on;
+        root {{ rfs_ro }};
+    }
+}

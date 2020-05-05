@@ -41,8 +41,8 @@ reboot
 
 BOOT_SCRIPT = """#!ipxe
 echo Booting the kernel on %(rfs_ip)s:/nfsroot_ro
-initrd http://netboot/static/initrd%(suffix)s
-boot http://netboot/static/kernel%(suffix)s nfsroot=%(rfs_ip)s:/export/nfsroot_ro,ro %(options)s
+initrd http://%(rfs_hostname)s/boot/%(initrd)s
+boot http://%(rfs_hostname)s/boot/%(kernel)s nfsroot=%(rfs_ip)s:/export/nfsroot_ro,ro %(options)s
 """
 
 REGISTER_ERROR_SCRIPT = """#!ipxe
@@ -99,10 +99,17 @@ class BootHandler(tornado.web.RequestHandler):
             self.finish(script)
             return
 
-        suffix = ''
+        kernel = 'vmlinuz-linux'
+        if CFG.get('fallback'):
+            initrd = 'initramfs-linux-fallback.img'
+        else:
+            initrd = 'initramfs-linux.img'
+
         script = BOOT_SCRIPT % {
+            'initrd': initrd,
+            'kernel': kernel,
             'rfs_ip': rfs_ip,
-            'suffix': suffix,
+            'rfs_hostname': rfs_hostname,
             'options': CFG['options'],
         }
         self.finish(script)
@@ -182,17 +189,11 @@ class RegisterHandler(tornado.web.RequestHandler):
 
 prologin.log.setup_logging('netboot')
 
-static_path = CFG['static_path']
 application = tornado.wsgi.WSGIApplication(
     [
         (r'/boot/(.*)/', BootHandler),
         (r'/bootstrap', BootstrapHandler),
         (r'/register', RegisterHandler),
-        (
-            r'/static/(.*)',
-            tornado.web.StaticFileHandler,
-            {'path': static_path},
-        ),
     ]
 )
 
