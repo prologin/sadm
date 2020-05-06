@@ -12,7 +12,7 @@ worker:
   # Port used for RPC communication.
   port: 8068
   # Number of parallel tasks that can be # executed on this worker.
-  available_slots: "{{ workernode_slots }}"
+  available_slots: {{ workernode_slots|to_json }}
 
 # Paths of some needed tools
 path:
