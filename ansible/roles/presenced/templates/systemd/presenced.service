@@ -5,7 +5,6 @@ After=network-online.target
 [Service]
 Type=simple
 User=presenced
-WorkingDirectory=/var/prologin/presenced
 ExecStart=/opt/prologin/venv/bin/python -m prologin.presenced.server 20070
 
 [Install]
