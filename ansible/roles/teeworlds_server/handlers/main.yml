@@ -1,0 +1,5 @@
+- name: restart teeworlds-server
+  systemd:
+    name: teeworlds-server
+    daemon_reload: True
+    state: restarted

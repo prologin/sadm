@@ -38,3 +38,7 @@
     - import_role:
         name: sgoinfre
       tags: sgoinfre
+
+    - import_role:
+        name: teeworlds_server
+      tags: teeworlds_server

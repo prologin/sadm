@@ -1,0 +1,21 @@
+- name: Install teeworlds
+  pacman:
+    name: teeworlds
+
+- name: Install teeworlds systemd service
+  template:
+    src: 'systemd/teeworlds-server.service'
+    dest: '/etc/systemd/system/'
+  notify: restart teeworlds-server
+
+- name: Install teeworlds configuration
+  template:
+    src: 'teeworlds_srv.cfg'
+    dest: '/etc'
+  notify: restart teeworlds-server
+
+- name: Enable teeworlds-server
+  systemd:
+    name: teeworlds-server
+    enabled: True
+    state: started
