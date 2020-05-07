@@ -41,6 +41,10 @@
       tags: udbsync_rootssh
 
     - import_role:
+        name: udbsync_passwd
+      tags: udbsync_passwd
+
+    - import_role:
         name: rfs
       tags: rfs
 

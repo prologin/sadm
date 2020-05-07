@@ -7,15 +7,18 @@
   template:
     src: 'systemd/hfs@.service'
     dest: '/etc/systemd/system/'
+  notify: restart hfs
 
 - name: Install hfs configuration
   template:
     src: 'prologin/hfs-server.yml'
     dest: '/etc/prologin/'
     group: hfs
+  notify: restart hfs
 
 - name: Enable hfs
   systemd:
     name: 'hfs@{{ item.id }}'
+    state: started
     enabled: True
   loop: '{{ rhfs_setup }}'
