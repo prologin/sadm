@@ -30,3 +30,7 @@
     - import_role:
         name: workernode
       tags: workernode
+
+    - import_role:
+        name: sgoinfre_mount
+      tags: sgoinfre_mount

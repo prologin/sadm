@@ -1,0 +1,5 @@
+- name: restart sgoinfre mount
+  systemd:
+    name: sgoinfre.mount
+    state: restarted
+    daemon_reload: true

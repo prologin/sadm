@@ -1,0 +1,16 @@
+- name: Install sgoinfre requirements
+  pacman:
+    name:
+      - nfs-utils
+
+- name: Install the sgoinfre mount file
+  template:
+    src: systemd/sgoinfre.mount
+    dest: /etc/systemd/system
+  notify: restart sgoinfre mount
+
+- name: Enable the sgoinfre mount
+  systemd:
+    name: sgoinfre.mount
+    state: started
+    enabled: true

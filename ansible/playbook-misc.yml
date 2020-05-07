@@ -8,6 +8,7 @@
         hostname: misc
         aliases:
           - irc
+          - sgoinfre
         mac: '{{ mac }}'
         mtype: service
         room: pasteur
@@ -33,3 +34,7 @@
     - import_role:
         name: ircd
       tags: ircd
+
+    - import_role:
+        name: sgoinfre
+      tags: sgoinfre
