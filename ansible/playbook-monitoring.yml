@@ -11,6 +11,7 @@
         aliases:
           - grafana
           - kibana
+          - prometheus
         mtype: service
         room: pasteur
       delegate_to: gw

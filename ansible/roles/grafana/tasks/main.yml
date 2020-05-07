@@ -33,7 +33,7 @@
     grafana_password: "{{ grafana_admin_password }}"
     name: Prometheus
     ds_type: prometheus
-    ds_url: http://127.0.0.1:9090
+    ds_url: http://prometheus
     is_default: true
     state: present
   # Grafana can take some seconds to become available.

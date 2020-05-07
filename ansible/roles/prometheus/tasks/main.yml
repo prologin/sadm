@@ -8,6 +8,12 @@
     dest: '/etc/systemd/system/'
   notify: restart prometheus
 
+- name: Install Prometheus nginx service
+  template:
+    src: 'nginx/prometheus.nginx'
+    dest: '/etc/nginx/services'
+  notify: reload nginx
+
 - name: Install iptables firewall configuration
   template:
     src: 'prometheus/{{ item }}'
