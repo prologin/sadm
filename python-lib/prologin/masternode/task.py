@@ -93,7 +93,7 @@ class Task(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    async def discard(self):
+    async def fail(self):
         raise NotImplementedError
 
     def has_timeout(self):
@@ -138,10 +138,10 @@ class CompilationTask(Task):
             {"champion_status": "new", "champion_id": self.champ_id},
         )
 
-    async def discard(self):
+    async def fail(self):
         await self.db.execute(
             "set_champion_status",
-            {"champion_status": "discarded", "champion_id": self.champ_id},
+            {"champion_status": "failed", "champion_id": self.champ_id},
         )
 
     def __repr__(self):
@@ -186,7 +186,7 @@ class MatchTask(Task):
             self.error = f'Could not dispatch match: {e}'
             return
 
-        # Set the match as pending *after* the RPC call has succeded.
+        # Set the match as pending *after* the RPC call has succeeded.
         await self.db.execute(
             "set_match_status",
             {"match_status": "pending", "match_id": self.mid},
@@ -198,8 +198,7 @@ class MatchTask(Task):
             "set_match_status", {"match_status": "new", "match_id": self.mid}
         )
 
-    async def discard(self):
+    async def fail(self):
         await self.db.execute(
-            "set_match_status",
-            {"match_status": "discarded", "match_id": self.mid},
+            "set_match_status", {"match_status": "fail", "match_id": self.mid},
         )

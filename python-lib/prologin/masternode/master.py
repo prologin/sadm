@@ -37,7 +37,7 @@ from .monitoring import (
     masternode_task_dispatch,
     masternode_task_redispatch,
     masternode_task_resubmit,
-    masternode_task_discard,
+    masternode_task_fail,
     masternode_worker_timeout,
     masternode_zombie_worker,
     masternode_exception,
@@ -230,7 +230,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         del self.workers[(worker.hostname, worker.port)]
 
     async def resubmit_timeout_tasks(self, worker):
-        tasks_to_discard = set()
+        tasks_to_fail = set()
         for t in worker.tasks.copy():
             if t.has_timeout() or t.has_error():
                 max_tries = self.config["worker"]["max_task_tries"]
@@ -246,16 +246,16 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                     asyncio.create_task(t.execute(self, worker))
                 else:
                     msg = (
-                        "maximum number of retries exceeded, bailing out"
+                        "maximum number of retries exceeded, failing task"
                         + error_msg
                     )
-                    tasks_to_discard.add(t)
+                    tasks_to_fail.add(t)
                 logging.info("task %s of %s timeout: %s", t, worker, msg)
 
-        masternode_task_discard.inc(len(tasks_to_discard))
-        worker.tasks.discard(tasks_to_discard)
-        for task in tasks_to_discard:
-            asyncio.create_task(task.discard())
+        masternode_task_fail.inc(len(tasks_to_fail))
+        for task in tasks_to_fail:
+            worker.tasks.discard(task)
+            asyncio.create_task(task.fail())
 
     async def janitor_task(self):
         while True:
@@ -357,7 +357,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                 logging.info("no worker available for task %s", task)
                 # It's okay to break the loop because all the items in the task
                 # queue are expected to have the same requirements, hence if
-                # one task cannot be scheduled then none of the other will.
+                # one task cannot be scheduled then none of the others will.
                 break
             masternode_task_dispatch.inc()
             try:

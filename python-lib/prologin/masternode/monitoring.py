@@ -34,8 +34,8 @@ masternode_task_resubmit = Counter(
     'masternode_task_resubmit', 'Number of resubmitted tasks'
 )
 
-masternode_task_discard = Counter(
-    "masternode_task_discard", "Number of discarded tasks"
+masternode_task_fail = Counter(
+    "masternode_task_fail", "Number of failed tasks"
 )
 
 masternode_bad_result = Counter(
