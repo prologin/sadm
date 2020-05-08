@@ -12,6 +12,27 @@
             systemd-networkd systemd-resolved sshd'
   notify: restart systemd-nspawn@rfs
 
+# SSH configuration is already installed in the "base" role but we also have to
+# do some of it here first, to bootstrap the first connection to RFS that will
+# install the "base" role.
+- name: Ensure that sshd looks for authorized_keys2
+  lineinfile:
+    path: '{{ rfs_staging }}/etc/ssh/sshd_config'
+    regex: '^#?AuthorizedKeysFile'
+    line: 'AuthorizedKeysFile .ssh/authorized_keys .ssh/authorized_keys2'
+
+- name: Lookup whether authorized_keys2 is present in the host
+  stat:
+    path: '/root/.ssh/authorized_keys2'
+  register: authorized_keys2
+
+- name: Copy authorized_keys2
+  when: authorized_keys2.stat.exists
+  copy:
+    remote_src: true
+    src: '/root/.ssh/authorized_keys2'
+    dest: '{{ rfs_staging }}/root/.ssh/'
+
 - name: Add rfs to /var/lib/machines
   file:
     path: '/var/lib/machines/rfs'
