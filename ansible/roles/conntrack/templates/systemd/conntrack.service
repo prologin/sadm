@@ -3,7 +3,7 @@ Description=Conntrack logging of new connections, in case of complaint
 After=network-online.target
 
 [Service]
-ExecStart=/usr/bin/conntrack -E -e NEW
+ExecStart=/usr/bin/conntrack -E -e NEW -j
 Restart=always
 
 [Install]
