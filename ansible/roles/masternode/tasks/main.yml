@@ -10,15 +10,6 @@
     dest: '/etc/prologin/'
     group: concours
 
-- name: Create concours shared directories
-  file:
-    path: '{{ item }}'
-    state: directory
-    mode: 0770
-  loop:
-    - '/var/prologin/concours_shared'
-    - '/var/prologin/concours_shared/maps'
-
 - name: Enable Masternode
   systemd:
     name: masternode

@@ -39,6 +39,14 @@
     group: concours
     mode: 0750
 
+- name: Create concours_shared directory
+  file:
+    path: '/var/prologin/concours_shared'
+    state: directory
+    owner: concours
+    group: concours
+    mode: 0770
+
 - name: Create the PostgreSQL Concours user
   postgresql_user:
     name: concours
