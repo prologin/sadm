@@ -11,8 +11,7 @@
     mode: 0755
   loop:
     - '/export'
-    - '{{ rfs_staging }}'
-    - '{{ rfs_ro }}'
+    - '{{ rfs_path }}'
 
 - name: Configure the NFS server
   template:
@@ -36,4 +35,3 @@
   notify: reload nginx
 
 - import_tasks: rfs-system.yml
-  when: rhfs_master

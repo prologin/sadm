@@ -40,9 +40,9 @@ reboot
 """
 
 BOOT_SCRIPT = """#!ipxe
-echo Booting the kernel on %(rfs_ip)s:/nfsroot_ro
+echo Booting the kernel on %(rfs_ip)s:/nfsroot
 initrd http://%(rfs_hostname)s/boot/%(initrd)s
-boot http://%(rfs_hostname)s/boot/%(kernel)s nfsroot=%(rfs_ip)s:/export/nfsroot_ro,ro %(options)s
+boot http://%(rfs_hostname)s/boot/%(kernel)s nfsroot=%(rfs_ip)s:/export/nfsroot,ro %(options)s
 """
 
 REGISTER_ERROR_SCRIPT = """#!ipxe

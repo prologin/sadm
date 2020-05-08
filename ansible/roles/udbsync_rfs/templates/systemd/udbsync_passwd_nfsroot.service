@@ -5,8 +5,8 @@ After=network-online.target
 [Service]
 Type=simple
 User=root
-ExecStartPre=/bin/mkdir -p /export/nfsroot_ro/etc
-ExecStart=/opt/prologin/venv/bin/python -m prologin.udbsync_clients.passwd /export/nfsroot_ro
+ExecStartPre=/bin/mkdir -p /export/nfsroot/etc
+ExecStart=/opt/prologin/venv/bin/python -m prologin.udbsync_clients.passwd /export/nfsroot
 Restart=always
 RestartSec=2
 

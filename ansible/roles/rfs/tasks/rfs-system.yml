@@ -1,14 +1,21 @@
 - name: Pacstrap the RFS system
   command:
-    cmd: 'pacstrap -c -d "{{ rfs_staging }}" --needed
+    cmd: 'pacstrap -c -d "{{ rfs_path }}" --needed
           base linux linux-firmware vim openssh rxvt-unicode-terminfo
           bind-tools'
-  args:
-    creates: '{{ rfs_staging }}/etc/arch-release'
+    creates: '{{ rfs_path }}/etc/arch-release'
   notify: restart systemd-nspawn@rfs
+  register: pacstrap
+
+# Pacstrap by default generates a machine-id identical to its host
+- name: Remove pacstrap machine-id
+  when: pacstrap.changed
+  file:
+    path: '{{ rfs_path }}/etc/machine-id'
+    state: absent
 
 - name: Enable ssh and systemd-resolved
-  command: 'systemctl --root "{{ rfs_staging }}" enable
+  command: 'systemctl --root "{{ rfs_path }}" enable
             systemd-networkd systemd-resolved sshd'
   notify: restart systemd-nspawn@rfs
 
@@ -17,7 +24,7 @@
 # install the "base" role.
 - name: Ensure that sshd looks for authorized_keys2
   lineinfile:
-    path: '{{ rfs_staging }}/etc/ssh/sshd_config'
+    path: '{{ rfs_path }}/etc/ssh/sshd_config'
     regex: '^#?AuthorizedKeysFile'
     line: 'AuthorizedKeysFile .ssh/authorized_keys .ssh/authorized_keys2'
 
@@ -26,17 +33,24 @@
     path: '/root/.ssh/authorized_keys2'
   register: authorized_keys2
 
+- name: Create nfsroot /root/.ssh
+  when: authorized_keys2.stat.exists
+  file:
+    path: '{{ rfs_path }}/root/.ssh/'
+    state: directory
+    mode: 0700
+
 - name: Copy authorized_keys2
   when: authorized_keys2.stat.exists
   copy:
     remote_src: true
     src: '/root/.ssh/authorized_keys2'
-    dest: '{{ rfs_staging }}/root/.ssh/'
+    dest: '{{ rfs_path }}/root/.ssh/'
 
 - name: Add rfs to /var/lib/machines
   file:
     path: '/var/lib/machines/rfs'
-    src: '{{ rfs_staging }}'
+    src: '{{ rfs_path }}'
     state: link
   notify: restart systemd-nspawn@rfs
 

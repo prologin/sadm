@@ -6,6 +6,6 @@ server {
 
     location /boot {
         autoindex on;
-        root {{ rfs_ro }};
+        root {{ rfs_path }};
     }
 }

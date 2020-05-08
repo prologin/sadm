@@ -1,6 +1,6 @@
 - name: install the user root filesystem
   hosts:
-    - rfs_staging
+    - rfs_container
   remote_user: root
   tasks:
     - import_role:
