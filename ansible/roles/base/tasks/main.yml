@@ -131,7 +131,7 @@
   template:
     src: resolv.conf
     dest: /etc/resolv.conf
-  notify: restart systemd-networkd
+  notify: restart networkd
 
 - name: Enable systemd-networkd
   systemd:
