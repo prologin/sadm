@@ -1,5 +1,12 @@
 # Kernel options
-options: root=/dev/nfs ip=${ip}:${next-server}:${gateway}:${netmask}:${hostname}.prolo:eth0:none nosplash rootdelay=0
+# We mask systemd-networkd-wait-online because it hangs when all interfaces are
+# unmanaged (because they are inherited from the PXE boot).
+options: >
+  root=/dev/nfs
+  ip=${ip}:${next-server}:${gateway}:${netmask}:${hostname}.prolo:eth0:none
+  nosplash
+  rootdelay=0
+  systemd.mask=systemd-networkd-wait-online.service
 
 # Whether to use the fallback initrd. The fallback initrd does not use the
 # "autodetect" module, which means the usually unneeded kernel drivers are not
