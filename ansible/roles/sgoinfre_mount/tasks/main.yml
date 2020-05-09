@@ -12,5 +12,5 @@
 - name: Enable the sgoinfre mount
   systemd:
     name: sgoinfre.mount
-    state: started
     enabled: true
+  notify: restart sgoinfre mount
