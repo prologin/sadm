@@ -4,7 +4,7 @@ After=network-online.target
 [Mount]
 What=sgoinfre:/export/sgoinfre
 Where=/sgoinfre
-Options=nfsvers=4,nolock,noatime
+Options=nofail,nfsvers=4,nolock,noatime
 
 [Install]
 WantedBy=multi-user.target
