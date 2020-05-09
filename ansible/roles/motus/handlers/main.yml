@@ -1,0 +1,5 @@
+- name: restart eggdrop-motus
+  systemd:
+    name: eggdrop-motus
+    state: restarted
+    daemon_reload: True
