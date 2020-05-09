@@ -20,4 +20,4 @@ HOWTO:
 
 4. Run ansible
 
-ansible-playbook playbook-sadm.yml
+ansible-playbook playbook-all-sadm.yml
