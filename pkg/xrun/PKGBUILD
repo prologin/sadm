@@ -1,13 +1,13 @@
 # Maintainer: Rémi Audebert <rflah0@gmail.com>
 pkgname=xrun
-pkgver=1
+pkgver=2
 pkgrel=1
 pkgdesc="Run a command in the X context of the logged in user"
 arch=('any')
 license=('WTFPL')
 depends=('bash')
 source=("$pkgname")
-sha256sums=('e2ebaa20f352c6288eeae991ed90c5b7833d599c5879e414b39cfebaeb1829bf')
+sha256sums=('6ff7602f25ecc0b7273804faa591fb4091280f6db1285d754eb976da5035911f')
 
 package() {
 	install $srcdir/$pkgname -D --target-directory $pkgdir/usr/bin/
