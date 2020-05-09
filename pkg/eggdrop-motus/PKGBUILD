@@ -1,0 +1,19 @@
+# Maintainer: Antoine Pietri <antoine.pietri@prologin.org>
+
+pkgname=eggdrop-motus
+pkgver=3.357
+pkgrel=1
+pkgdesc="Eggdrop Motus bot par MenzAgitat"
+arch=('x86_64')
+url="https://scripts.eggdrop.fr/details-Motus-s2.html"
+license=('unknown')
+source=("motus.zip::https://scripts.eggdrop.fr/download.php?sid=2")
+md5sums=('06913d429f11b51e31102e690ed356e6')
+
+_out_path=/var/lib/eggdrop-motus/scripts/
+
+package() {
+    mkdir -p ${pkgdir}/${_out_path}
+    cp $srcdir/motus.tcl $pkgdir/${_out_path}
+    cp -R $srcdir/motus $pkgdir/${_out_path}
+}

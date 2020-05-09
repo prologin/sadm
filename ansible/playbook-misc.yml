@@ -42,3 +42,7 @@
     - import_role:
         name: teeworlds_server
       tags: teeworlds_server
+
+    - import_role:
+        name: motus
+      tags: motus

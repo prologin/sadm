@@ -1,0 +1,31 @@
+- name: Install eggdrop and eggdrop-motus
+  pacman:
+    name:
+      - prologin/eggdrop
+      - prologin/eggdrop-motus
+  notify: restart eggdrop-motus
+
+- name: Install motus eggdrop config
+  template:
+    src: eggdrop-motus.conf
+    dest: '/etc/'
+  notify: restart eggdrop-motus
+
+- name: Set motus channel name
+  lineinfile:
+    path: '/var/lib/eggdrop-motus/scripts/motus/config/base.cfg'
+    regexp: '^variable motus_chan'
+    line: '{% raw %}variable motus_chan {#motus}{% endraw %}'
+  notify: restart eggdrop-motus
+
+- name: Copy motus systemd service
+  template:
+    src: systemd/eggdrop-motus.service
+    dest: '/etc/systemd/system'
+  notify: restart eggdrop-motus
+
+- name: Enable motus service
+  systemd:
+    name: eggdrop-motus
+    state: started
+    enabled: true

@@ -1,0 +1,15 @@
+[Unit]
+Description=Eggdrop motus bot
+After=network-online.target
+
+[Service]
+ExecStart=/usr/bin/eggdrop -m -n /etc/eggdrop-motus.conf
+WorkingDirectory=/var/lib/eggdrop-motus
+StateDirectory=eggdrop-motus
+DynamicUser=yes
+Type=simple
+RestartSec=3
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
