@@ -63,7 +63,8 @@ REQUESTS = {
           GROUP BY
             stechec_match.id, stechec_map.id
           ORDER BY
-            stechec_match.priority DESC
+            stechec_match.priority DESC,
+            stechec_match.id ASC
     ''',
     'set_match_status': '''
           UPDATE

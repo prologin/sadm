@@ -7,7 +7,7 @@ import prologin.concours.stechec.models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('stechec', '0008_add_status_discarded'),
+        ('stechec', '0008_add_status_failed'),
     ]
 
     operations = [
@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
             field=models.IntegerField(
                 default=prologin.concours.stechec.models.MatchPriority(500),
                 help_text='Match scheduling priority, higher is faster.',
-                verbose_name='prioriy',
+                verbose_name='priority',
             ),
         ),
     ]

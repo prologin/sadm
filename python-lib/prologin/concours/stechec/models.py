@@ -335,9 +335,8 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
         on_delete=models.CASCADE,
         verbose_name="carte",
     )
-
     priority = models.IntegerField(
-        "prioriy",
+        "priority",
         default=MatchPriority.DEFAULT,
         help_text="Match scheduling priority, higher is faster.",
     )
