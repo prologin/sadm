@@ -160,7 +160,7 @@ async def spawn_server(
         "--socket_timeout", "45000",
         "--dump", "/box/dump.json",
         "--replay", "/box/replay",
-        "--stats", "/box/stats.yaml",
+        # "--stats", "/box/stats.yaml",
         "--verbose", "1",
     ]
     # yapf: enable
@@ -191,8 +191,9 @@ async def spawn_server(
         gzdump = isolator_compress(isolator, cmd, "dump.json")
         # Retrive the replay
         gzreplay = isolator_compress(isolator, cmd, "replay")
-        # Retrive the stats
-        gzstats = isolator_compress(isolator, cmd, "stats.yaml")
+        # # Retrive the stats
+        # gzstats = isolator_compress(isolator, cmd, "stats.yaml")
+        gzstats = b''
 
     # Retrieve the output
     output = get_output(isolator)
