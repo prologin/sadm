@@ -7,3 +7,4 @@ VirtualEthernet=yes
 
 [Files]
 PrivateUsersChown=false
+BindReadOnly=/root/sadm

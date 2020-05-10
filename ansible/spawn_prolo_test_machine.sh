@@ -2,6 +2,10 @@
 
 set -e
 
+script_path=$( readlink -f "$0" )
+script_dir=$( dirname "$script_path" )
+sadm_path=$( readlink -f "$script_dir"/..)
+
 cd /var/lib/machines
 
 if [ "$#" -lt 1 ]; then
@@ -28,6 +32,7 @@ Zone=prolo
 [Files]
 # Allows cp-ing from container to container
 PrivateUsersChown=false
+BindReadOnly=${sadm_path}:/root/sadm
 NSPAWN
 
 machinectl start "$machine"
