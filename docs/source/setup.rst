@@ -93,11 +93,11 @@ Let's start with the hardware setup. You can skip this section if you are
 doing a containerized install or if you already have a file system ready.
 
 For ``gw`` and other critical systems such as ``web``, we setup a `RAID1
-(mirroring)<https://en.wikipedia.org/wiki/Standard_RAID_levels#RAID_1>`__ over
+(mirroring) <https://en.wikipedia.org/wiki/Standard_RAID_levels#RAID_1>`__ over
 two discs. Because the RAID will be the size of the smallest disc, they have to
 be of the same capacity. We use regular 500GBytes SATA, which is usually more
-than enough. It is a good idea to choose two different disks (brand, age, batch)
-to reduce the chance to have them failing at the same time.
+than enough. It is a good idea to choose two different disks (brand, age,
+batch) to reduce the chance to have them failing at the same time.
 
 On top of the RAID1, our standard setup uses `LVM
 <https://wiki.archlinux.org/index.php/LVM>`_ to create and manage the system
