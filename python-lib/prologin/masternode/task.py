@@ -200,5 +200,6 @@ class MatchTask(Task):
 
     async def fail(self):
         await self.db.execute(
-            "set_match_status", {"match_status": "fail", "match_id": self.mid},
+            "set_match_status",
+            {"match_status": "failed", "match_id": self.mid},
         )
