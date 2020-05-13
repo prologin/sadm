@@ -72,7 +72,9 @@ if __name__ == '__main__':
     logging.getLogger('aiohttp.web').setLevel(logging.WARNING)
 
     # Monitoring
-    masternode_tasks.set_function(lambda: len(s.worker_tasks))
+    masternode_tasks.set_function(
+        lambda: sum(len(w.tasks) for w in s.workers.values())
+    )
     masternode_workers.set_function(lambda: len(s.workers))
     monitoring_start()
 

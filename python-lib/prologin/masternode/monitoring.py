@@ -22,8 +22,20 @@ masternode_workers = Gauge('masternode_workers', 'Number of available workers')
 
 masternode_tasks = Gauge('masternode_tasks', 'Number of masternode tasks')
 
+masternode_task_dispatch = Counter(
+    'masternode_task_dispatch', 'Number of dispatched tasks'
+)
+
 masternode_task_redispatch = Counter(
     'masternode_task_redispatch', 'Number of redispatched tasks'
+)
+
+masternode_task_resubmit = Counter(
+    'masternode_task_resubmit', 'Number of resubmitted tasks'
+)
+
+masternode_task_fail = Counter(
+    "masternode_task_fail", "Number of failed tasks"
 )
 
 masternode_bad_result = Counter(
@@ -48,6 +60,15 @@ masternode_match_done_db = Summary(
 
 masternode_worker_timeout = Gauge(
     'masternode_worker_timeout', 'Number of workers timeout'
+)
+
+masternode_zombie_worker = Counter(
+    'masternode_zombie_worker', 'Number of tasks received from unknown workers'
+)
+
+masternode_exception = Counter(
+    'masternode_exception',
+    'Number of exceptions encountered by the masternode',
 )
 
 

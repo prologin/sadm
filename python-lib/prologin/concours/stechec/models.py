@@ -59,6 +59,7 @@ class Champion(ExportModelOperationsMixin('champion'), models.Model):
         ('pending', 'En cours de compilation'),
         ('ready', 'Compilé et prêt'),
         ('error', 'Erreur de compilation'),
+        ('failed', 'Compilation abandonnée'),
     )
 
     name = models.CharField("nom", max_length=100, unique=True)
@@ -290,6 +291,7 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
         ('new', 'En attente de lancement'),
         ('pending', 'En cours de calcul'),
         ('done', 'Terminé'),
+        ('failed', 'Échec'),
     )
 
     author = models.ForeignKey(
