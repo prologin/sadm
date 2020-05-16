@@ -1,0 +1,9 @@
+- name: Install wallpaper setup requirements
+  pacman:
+    name: feh
+
+- name: Copy default wallpaper
+  copy:
+    src: 'prologin-wallpaper-1920x1080.png'
+    dest: '/var/prologin/wallpaper.png'
+    mode: 0644

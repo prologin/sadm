@@ -28,6 +28,10 @@
       tags: presenced
 
     - import_role:
+        name: wallpaper
+      tags: wallpaper
+
+    - import_role:
         name: workernode
       tags: workernode
 
