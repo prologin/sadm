@@ -1,3 +1,7 @@
+import pytest
+
+pytestmark = pytest.mark.skip("will be replaced with modern AiohttpApp tests")
+
 import prologin.web
 
 import multiprocessing

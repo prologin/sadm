@@ -1,9 +1,16 @@
+import pytest
+import os
+
+pytestmark = pytest.mark.skipif(
+    not os.path.exists("/usr/bin/pacman"),
+    reason="Not running on Arch Linux, which is required for camisole",
+)
+
 import asyncio
 import collections
 import ctypes
 import gzip
 import io
-import os
 import pathlib
 import subprocess
 import tarfile
