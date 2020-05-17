@@ -1,128 +1,71 @@
-import pytest
+import sys
+import threading
 
-pytestmark = pytest.mark.skip("will be replaced with modern AiohttpApp tests")
+import pytest
+import aiohttp.web
 
 import prologin.web
 
-import multiprocessing
-import requests
-import tornado.ioloop
-import tornado.web
-import unittest
-import wsgiref.simple_server
+
+async def index_handler(request):
+    return aiohttp.web.Response(text="hello world")
 
 
-def test_ping_handler():
-    """/__ping handler code returns pong"""
-    status_code, reason, headers, text = prologin.web.ping_handler()
-    assert text == "pong"
+async def post_handler(request):
+    return aiohttp.web.Response(text="this is post")
 
 
-def test_threads_handler():
-    """/__threads handler code returns threads info"""
-    status_code, reason, headers, text = prologin.web.threads_handler()
-    assert ' threads found' in text
+@pytest.fixture
+def minimal_app(aiohttp_client):
+    return prologin.web.AiohttpApp(
+        [('get', '/', index_handler), ('post', '/post', post_handler)]
+    ).app
 
 
-class WebAppTest:
-    """Abstract test which black-box tests all known handlers to check if the
-    mapping works and if the output is kind of what we expect.
-
-    Inherit from unittest.TestCase and this class, then implement the following
-    *class* methods:
-        - make_web_server
-            Returns a function which, when run, runs forever listening for
-            requests (server.serve_forever usually).
-        - get_server_url
-            Returns the base URL of the server without trailing /. Usually,
-            something like http://localhost:12345
-        - expected_normal_output
-            Returns a string that should be in the normal application output -
-            to test if requests are forwarded properly.
-
-    Also define setUpClass and tearDownClass like this:
-        @classmethod
-        def setUpClass(cls):
-            WebAppTest.setup_web_server(cls)
-
-        @classmethod
-        def tearDownClass(self):
-            WebAppTest.tear_down_web_server(cls)
-    """
-
-    def setup_web_server(cls):
-        server = cls.make_web_server()
-        cls.process = multiprocessing.Process(target=server)
-        cls.process.start()
-
-    def tear_down_web_server(cls):
-        cls.process.terminate()
-
-    def testPingHandler(self):
-        text = requests.get(self.get_server_url() + '/__ping').text
-        self.assertEqual(text, "pong")
-
-    def testThreadsHandler(self):
-        text = requests.get(self.get_server_url() + '/__threads').text
-        self.assertIn(' threads found', text)
+@pytest.fixture
+async def client(aiohttp_client, minimal_app):
+    return await aiohttp_client(minimal_app)
 
 
-class WsgiAppTest(unittest.TestCase, WebAppTest):
-    @classmethod
-    def setUpClass(cls):
-        WebAppTest.setup_web_server(cls)
-
-    @classmethod
-    def tearDownClass(cls):
-        WebAppTest.tear_down_web_server(cls)
-
-    @classmethod
-    def make_web_server(cls):
-        def application(environ, start_response):
-            start_response('200 OK', [])
-            return [b'Normal output']
-
-        application = prologin.web.WsgiApp(application, 'test-wsgi-app')
-        server = wsgiref.simple_server.make_server(
-            '127.0.0.1', 42543, application
-        )
-        return server.serve_forever
-
-    @classmethod
-    def get_server_url(cls):
-        return 'http://localhost:42543'
-
-    @classmethod
-    def expected_normal_output(cls):
-        return 'Normal output'
+async def test_404(client):
+    assert (await client.get("/nope")).status == 404
 
 
-class TornadoAppTest(unittest.TestCase, WebAppTest):
-    @classmethod
-    def setUpClass(cls):
-        WebAppTest.setup_web_server(cls)
+async def test_index(client):
+    assert await (await client.get("/")).text() == "hello world"
 
-    @classmethod
-    def tearDownClass(cls):
-        WebAppTest.tear_down_web_server(cls)
 
-    @classmethod
-    def make_web_server(cls):
-        class TestHandler(tornado.web.RequestHandler):
-            def get(self):
-                self.set_status(200)
-                self.write(b'Normal output')
+async def test_post(client):
+    page = await client.get("/post")
+    assert page.status == 405
+    assert page.headers['Allow'] == 'POST'
 
-        application = prologin.web.TornadoApp(
-            [('/', TestHandler)], 'test-tornado-app'
-        )
-        application.listen(42544)
-        return tornado.ioloop.IOLoop.instance().start
+    assert await (await client.post("/post")).text() == "this is post"
 
-    @classmethod
-    def get_server_url(cls):
-        return 'http://localhost:42544'
 
-    @classmethod
-    def expect_normal_output(cls):
-        return 'Normal output'
+async def test_debug_handler_info(client):
+    page = await (await client.get("/__info")).text()
+    assert f"Python {sys.version}" in page
+    assert "bin/python" in page
+    assert "AiohttpApp in module prologin.web" in page
+    assert "1 active threads" in page
+
+    thread_id = threading.current_thread().ident
+    assert f"0x{thread_id:x}" in page
+
+
+async def test_debug_handler_state_empty(client):
+    page = await (await client.get("/__state")).text()
+    assert "{}" in page
+
+
+async def test_debug_handler_state(aiohttp_client):
+    app = prologin.web.AiohttpApp([])
+    app.foo = {"hello": "world"}
+    app.exposed_attributes = {"foo", "app"}
+
+    client = await aiohttp_client(app.app)
+
+    page = await (await client.get("/__state")).text()
+    assert "foo" in page and "hello" in page and "world" in page
+    assert "app" in page and f"0x{id(app.app):x}" in page
