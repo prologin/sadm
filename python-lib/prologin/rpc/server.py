@@ -11,13 +11,14 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
-import aiohttp.web
 import functools
 import inspect
 import json
 import logging
 import sys
 import traceback
+
+import aiohttp.web
 
 import prologin.timeauth
 import prologin.web
@@ -59,7 +60,7 @@ def remote_method(func=None, *, auth_required=True):
 
 def is_remote_method(obj):
     """Return if a random object is a remote method."""
-    return callable(obj) and getattr(obj, 'remote_method', False)
+    return callable(obj) and getattr(obj, "remote_method", False)
 
 
 class MethodCollection(type):
@@ -75,9 +76,12 @@ class MethodCollection(type):
         remote_methods = {}
         for name, obj in dct.items():
             if is_remote_method(obj):
-                if not inspect.iscoroutinefunction(obj):
+                if not (
+                    inspect.iscoroutinefunction(obj)
+                    or inspect.isasyncgenfunction(obj)
+                ):
                     raise RuntimeError(
-                        "Remote method {} is not a coroutine".format(obj)
+                        f"Remote method {obj} is not a coroutine."
                     )
                 remote_methods[name] = obj
         cls.REMOTE_METHODS = remote_methods
@@ -87,66 +91,12 @@ class RemoteCallHandler:
     def __init__(self, request):
         self.request = request
         self.secret = self.request.app.secret
-        self.method_name = request.match_info['name']
+        self.method_name = request.match_info["name"]
 
     @property
     def rpc_object(self):
         """RPC object: contains method that can be called remotely."""
         return self.request.app.rpc_object
-
-    @monitoring._observe_rpc_call_in
-    async def __call__(self):
-        data = {'args': [], 'kwargs': {}}
-        if self.request.method == 'POST':
-            try:
-                data.update(await self.request.json())
-            except json.decoder.JSONDecodeError as exn:
-                self._raise_exception(exn)
-
-        self._log_call(data)
-
-        method = await self._get_method()
-        if method.auth_required:
-            await self._check_secret(data)
-
-        result = await self._call_method(method, data)
-
-        return await self._send_result_data(result)
-
-    def _log_call(self, data):
-        peername = self.request.transport.get_extra_info('peername')
-
-        def farg(a):
-            if isinstance(a, str) and len(a) > 10:
-                a = a[:10] + '…'
-            return repr(a)
-
-        logging.debug(
-            'RPC <%s> %s(%s%s)',
-            peername,
-            self.method_name,
-            ', '.join(farg(a) for a in data['args']),
-            ', '.join(
-                farg(a) + '=' + farg(b) for (a, b) in data['kwargs'].items()
-            ),
-        )
-
-    async def _check_secret(self, data):
-        if self.secret is not None:
-            if 'hmac' not in data or not data['hmac']:
-                self._raise_exception(
-                    MissingToken(self.method_name),
-                    http_error=aiohttp.web.HTTPBadRequest,
-                )
-            token = data['hmac']
-            r = prologin.timeauth.check_token(
-                token, self.secret, self.method_name
-            )
-            if not r:
-                self._raise_exception(
-                    BadToken(self.method_name),
-                    http_error=aiohttp.web.HTTPForbidden,
-                )
 
     async def _get_method(self):
         try:
@@ -157,58 +107,134 @@ class RemoteCallHandler:
                 http_error=aiohttp.web.HTTPNotFound,
             )
 
-    async def _call_method(self, method, data):
-        args = data['args']
-        kwargs = data['kwargs']
+    def _log_call(self, data):
+        peername = self.request.transport.get_extra_info("peername")
+        elide = 10
 
+        def farg(a):
+            if isinstance(a, str) and len(a) > elide:
+                a = f"{a[:elide]}…"
+            return repr(a)
+
+        logging.debug(
+            "RPC <%s> %s(%s%s)",
+            peername,
+            self.method_name,
+            ", ".join(farg(a) for a in data["args"]),
+            ", ".join(
+                f"{farg(k)}={farg(v)}" for k, v in data["kwargs"].items()
+            ),
+        )
+
+    async def _check_secret(self, data):
+        if self.secret is not None:
+            if "hmac" not in data or not data["hmac"]:
+                self._raise_exception(
+                    MissingToken(self.method_name),
+                    http_error=aiohttp.web.HTTPBadRequest,
+                )
+            token = data["hmac"]
+            r = prologin.timeauth.check_token(
+                token, self.secret, self.method_name
+            )
+            if not r:
+                self._raise_exception(
+                    BadToken(self.method_name),
+                    http_error=aiohttp.web.HTTPForbidden,
+                )
+
+    @monitoring._observe_rpc_call_in
+    async def __call__(self):
+        data = {"args": [], "kwargs": {}}
+        if self.request.method == "POST":
+            try:
+                r = await self.request.json()
+                data.update(r)
+            except json.decoder.JSONDecodeError as exn:
+                self._raise_exception(exn)
+
+        self._log_call(data)
+
+        method = await self._get_method()
+        if method.auth_required:
+            await self._check_secret(data)
+
+        coroutine = method(self.rpc_object, *data["args"], **data["kwargs"])
+        if inspect.isasyncgenfunction(method):
+            return await self._call_generator_method(coroutine)
+
+        return await self._call_method(coroutine)
+
+    async def _call_method(self, coroutine):
         try:
-            return await method(self.rpc_object, *args, **kwargs)
+            result = await coroutine
+            body = self._json_encode(self._format_result(result))
+            return aiohttp.web.Response(
+                body=body, content_type="application/json",
+            )
         except Exception as exn:
-            logging.exception('Remote method %s raised:', self.method_name)
+            logging.exception("Remote method %s raised:", self.method_name)
             tb = sys.exc_info()[2]
             self._raise_exception(exn, tb)
 
-    async def _send_json(self, data):
-        return aiohttp.web.Response(
-            body=json.dumps(data).encode() + b'\n',
-            content_type='application/json',
+    async def _call_generator_method(self, generator):
+        response = aiohttp.web.StreamResponse(
+            headers={"Content-Type": "application/json; generator"}
         )
+        await response.prepare(self.request)
+        try:
+            async for result in generator:
+                await response.write(
+                    self._json_encode(self._format_result(result))
+                )
+        except Exception as exn:
+            logging.exception(
+                "Remote generator method %s raised:", self.method_name
+            )
+            # We cannot raise a proper HTTP error since we already sent
+            # headers.
+            tb = sys.exc_info()[2]
+            await response.write(
+                self._json_encode(self._format_exception(exn, tb))
+            )
+        await response.write_eof()
+
+    def _format_exception(self, exn, tb=None):
+        return {
+            "type": "exception",
+            "exn_type": type(exn).__name__,
+            "exn_message": str(exn),
+            "exn_traceback": traceback.format_tb(tb),
+        }
 
     def _raise_exception(
         self, exn, tb=None, http_error=aiohttp.web.HTTPInternalServerError
     ):
-        data = {
-            'type': 'exception',
-            'exn_type': type(exn).__name__,
-            'exn_message': str(exn),
-            'exn_traceback': traceback.format_tb(tb),
-        }
-        body = json.dumps(data).encode() + b'\n'
-        raise http_error(body=body, content_type='application/json')
+        body = self._json_encode(self._format_exception(exn, tb))
+        raise http_error(body=body, content_type="application/json")
 
-    async def _send_result_data(self, data):
-        try:
-            return await self._send_json({'type': 'result', 'data': data})
-        except (TypeError, ValueError):
-            self._raise_exception(
-                ValueError('The remote method returned something not JSON'),
-            )
+    def _format_result(self, result):
+        return {"type": "result", "data": result}
+
+    def _json_encode(self, data):
+        return json.dumps(data).encode() + b"\n"
 
 
 class BaseRPCApp(prologin.web.AiohttpApp, metaclass=MethodCollection):
     """RPC base application: let clients call remotely subclasses methods.
 
     Just subclass me, add some remote methods using the `remote_method`
-    decorator and instanciate me!
+    decorator and instantiate me!
     """
 
-    def __init__(self, app_name, secret=None, **kwargs):
+    def __init__(self, secret=None, **kwargs):
         async def handler(request):
+            print(request.url)
+            print(request.headers)
             return await RemoteCallHandler(request)()
 
         super().__init__(
-            [('*', r'/call/{name:[0-9a-zA-Z_]+}', handler)],
-            app_name,
+            [("*", r"/call/{name:[0-9a-zA-Z_]+}", handler)],
             client_max_size=1024 * 1024 * 1024 * 1,
             **kwargs,
         )
