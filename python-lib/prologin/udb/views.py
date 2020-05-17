@@ -25,9 +25,9 @@ CFG = prologin.config.load('udb-client-auth')
 
 
 class UDBServer(prologin.rpc.server.BaseRPCApp):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         secret = CFG['shared_secret'].encode()
-        super().__init__(*args, secret=secret, **kwargs)
+        super().__init__(secret=secret, **kwargs)
 
     def get_users(self, **kwargs):
         fields = {'login', 'uid', 'group', 'shell', 'ssh_key', 'id'}

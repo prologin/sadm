@@ -52,7 +52,7 @@ if __name__ == '__main__':
 
     config = prologin.config.load('workernode')
 
-    s = WorkerNode(app_name='workernode', config=config)
+    s = WorkerNode(config=config)
 
     monitoring_start()
 

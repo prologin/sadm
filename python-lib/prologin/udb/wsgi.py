@@ -16,5 +16,5 @@ wsgi_app = get_wsgi_application()
 
 from prologin.udb.views import UDBServer
 
-application = UDBServer('udb')
+application = UDBServer()
 application.add_wsgi_app(wsgi_app)

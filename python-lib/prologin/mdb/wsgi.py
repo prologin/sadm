@@ -17,5 +17,5 @@ wsgi_app = get_wsgi_application()
 
 from prologin.mdb.views import MDBServer
 
-application = MDBServer('mdb')
+application = MDBServer()
 application.add_wsgi_app(wsgi_app)
