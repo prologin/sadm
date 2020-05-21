@@ -36,14 +36,7 @@ import tornado.ioloop
 import tornado.web
 
 
-CLT_CFG = prologin.config.load('presenced-client')
-
 HOSTNAME = '.'.join(socket.gethostname().split('.')[:-1])  # Remove .prolo
-
-if 'shared_secret' not in CLT_CFG:
-    raise RuntimeError(
-        'Missing shared_secret in the presenced-client YAML config'
-    )
 
 
 def get_logged_prologin_users():
@@ -141,10 +134,16 @@ class PresencedServer(prologin.web.TornadoApp):
 
 
 if __name__ == '__main__':
+    clt_cfg = prologin.config.load('presenced-client')
+    if 'shared_secret' not in clt_cfg:
+        raise RuntimeError(
+            'Missing shared_secret in the presenced-client YAML config'
+        )
+
     prologin.log.setup_logging('presenced')
     if len(sys.argv) > 1:
         port = int(sys.argv[1])
     else:
         port = 8000
-    server = PresencedServer(CLT_CFG['shared_secret'], port)
+    server = PresencedServer(clt_cfg['shared_secret'], port)
     server.start()

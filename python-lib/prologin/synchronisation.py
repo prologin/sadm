@@ -38,10 +38,13 @@ import urllib.request
 
 
 def apply_updates(pk, backlog, updates, watch=None):
-    """Update `backlog` with `updates` using `pk` as primary key for records.
+    """
+    Update `backlog` with `updates` using `pk` as primary key for records.
 
     Return metadata about what have been updated using an encoding like:
+
         {'obj1': 'updated', 'obj3': 'deleted', 'obj6': 'created'}
+
     The previous example means: the entity whose primary key is 'obj1' have
     been updated, 'obj6' have been created, ... Note that deletion and creation
     of entities *always* result in returned metadata, whatever `watch`
@@ -52,19 +55,23 @@ def apply_updates(pk, backlog, updates, watch=None):
     `watch`.
 
     For instance:
-    >>> apply_updates('k', {1: {'k': 1, 'v': 2}},
-                      [{'type': 'update', 'data': {'k': 1, 'v': 3}}])
-    {1: 'updated'}
-    >>> apply_updates('k', {
-                          1: {'k': 1, 'v': 2, 'w': 1},
-                          2: {'k': 2, 'v': 3, 'w': 4}
-                      },
-                      [
-                          {'type': 'update', 'data': {'k': 1, 'v': 5, 'w': 6}}
-                          {'type': 'update', 'data': {'k': 1, 'v': 7, 'w': 4}}
-                      ],
-                      watch={'w'})
-    {1: 'updated'}
+
+        >>> apply_updates('k', {1: {'k': 1, 'v': 2}},
+                        [{'type': 'update', 'data': {'k': 1, 'v': 3}}])
+        {1: 'updated'}
+        >>> apply_updates(
+                'k',
+                {
+                    1: {'k': 1, 'v': 2, 'w': 1},
+                    2: {'k': 2, 'v': 3, 'w': 4}
+                },
+                [
+                    {'type': 'update', 'data': {'k': 1, 'v': 5, 'w': 6}}
+                    {'type': 'update', 'data': {'k': 1, 'v': 7, 'w': 4}}
+                ],
+                watch={'w'}
+            )
+        {1: 'updated'}
     """
     updates_metadata = {}
 
@@ -273,7 +280,8 @@ class Client(prologin.webapi.Client):
             raise RuntimeError("Unable to post an update")
 
     def poll_updates(self, callback, watch=None):
-        """Call `callback` for each set of updates.
+        """
+        Call `callback` for each set of updates.
 
         `callback` is called with an iterable that contain an up-to-date
         mapping of records (primary_key -> record), and with a mapping: primary
@@ -349,6 +357,7 @@ class AsyncClient(prologin.webapi.AsyncClient):
         """
         Starts polling for updates. Asynchronously yields tuples (state, meta)
         where:
+
           * state is a (primary_key -> record) mapping
           * meta is a (primary key changed -> kind of update) mapping, for all
             records than has undergone a change.

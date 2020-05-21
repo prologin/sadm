@@ -26,14 +26,15 @@ class MDBServer(prologin.rpc.server.BaseRPCApp):
     async def query(self, **kwargs):
         """Query the MDB using the Django query syntax. The possible fields
         are:
-          hostname: the machine name and any of its aliases
-          ip: the machine IP address
-          aliases: the machine aliases
-          mac: the machine MAC address
-          rfs: nearest root file server
-          hfs: nearest home file server
-          mtype: machine type, either user/orga/cluster/service
-          room: physical room location, either pasteur/alt/cluster/other
+
+          - `hostname`: the machine name and any of its aliases
+          - `ip`: the machine IP address
+          - `aliases`: the machine aliases
+          - `mac`: the machine MAC address
+          - `rfs`: nearest root file server
+          - `hfs`: nearest home file server
+          - `mtype`: machine type, either user/orga/cluster/service
+          - `room`: physical room location, either pasteur/alt/cluster/other
         """
         fields = {
             'hostname',
@@ -56,11 +57,11 @@ class MDBServer(prologin.rpc.server.BaseRPCApp):
         """Query the MDB for switches using the Django query syntax. The
         possible fields are:
 
-          name: the name of the switch
-          chassis: the chassis ID
-          rfs: associated root file server
-          hfs: associated home file server
-          room: physical room location, either pasteur/alt/cluster/other
+          - `name`: the name of the switch
+          - `chassis`: the chassis ID
+          - `rfs`: associated root file server
+          - `hfs`: associated home file server
+          - `room`: physical room location, either pasteur/alt/cluster/other
         """
         fields = {'name', 'chassis', 'rfs', 'hfs', 'room'}
         check_filter_fields(fields, kwargs)
