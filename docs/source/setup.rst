@@ -106,7 +106,7 @@ partition. For bootloading the system we use the good old BIOS and ``syslinux``.
 All this setup is automated by our bootstrap scripts, but to run them you will
 need a bootstrap Linux distribution. The easiest solution is to boot on the
 Arch Linux's install medium
-<https://wiki.archlinux.org/index.php/beginners'_guide#Boot_the_installation_medium>`_.
+`<https://wiki.archlinux.org/index.php/Installation_guide#Boot_the_live_environment>`_.
 
 Once the bootstrap system is started, you can start the install using::
 
