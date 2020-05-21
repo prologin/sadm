@@ -1,0 +1,24 @@
+- name: Install lightdm-prologin-greeter and dependencies
+  pacman:
+    name:
+      - lightdm
+      # Default greeter, as a fallback.
+      - lightdm-gtk-greeter
+      # Our themeable, networked-home-friendly greeter.
+      - prologin/lightdm-prologin-greeter
+  notify: restart lightdm
+
+- name: Configure LightDM
+  template:
+    src: 'lightdm.conf'
+    dest: '/etc/lightdm/'
+
+- name: Configure lightdm-prologin-greeter
+  template:
+    src: 'lightdm-prologin-greeter.conf'
+    dest: '/etc/lightdm/'
+
+- name: Enable LightDM systemd service
+  systemd:
+    name: lightdm
+    enabled: yes

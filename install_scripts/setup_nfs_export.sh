@@ -18,7 +18,7 @@ echo '[+] Install packages for diskless boot'
 pacman -Sy --needed --noconfirm mkinitcpio-nfs-utils nbd
 
 echo '[+] Install packages we will configure'
-pacman -Sy --needed --noconfirm sddm
+pacman -Sy --needed --noconfirm lightdm
 
 echo '[+] Add initrd hooks and modules'
 sed -e 's:^HOOKS.*:HOOKS="base udev autodetect modconf net block filesystems keyboard fsck prologin":g' \
@@ -48,13 +48,12 @@ source /opt/prologin/venv/bin/activate
 python install.py libprologin
 python install.py presenced
 python install.py workernode
-python install.py sddmcfg
 python install.py resource_limits
 python install.py nic_configuration
 systemctl enable nic-configuration@eth0
 
 echo '[+] Enable systemd services'
-systemctl enable presenced sddm workernode
+systemctl enable presenced lightdm workernode
 
 echo '[+] Disable systemd-networkd, use static IP from NFS boot'
 systemctl disable systemd-networkd

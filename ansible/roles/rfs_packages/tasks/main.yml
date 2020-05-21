@@ -5,7 +5,6 @@
       # Graphical
       - xorg
       - xorg-drivers
-      - sddm
 
       # Shells
       - bash

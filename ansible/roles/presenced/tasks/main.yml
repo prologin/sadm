@@ -1,8 +1,7 @@
-- name: Install presenced requirements
+- name: Install nbd
   pacman:
-    name:
-      - prologin/pamtester
-      - nbd
+    # HFS relies on nbd-client and nbd-server on contestant machines.
+    name: nbd
 
 - name: Configure systemd-logind
   lineinfile:
@@ -15,35 +14,35 @@
       KillUserProcesses: 'yes'
       KillExcludeUsers: 'root'
 
-- name: Install presenced systemd service
-  template:
-    src: 'systemd/presenced.service'
-    dest: '/etc/systemd/system/'
-
-- name: Create presenced service directory
-  file:
-    path: /var/prologin/presenced
-    state: directory
-    owner: presenced
-    group: presenced
-    mode: 0700
-
-- name: Install pam_presenced.py
+- name: Install pam_prologin.py
   copy:
     remote_src: true
-    src: '/root/sadm/python-lib/prologin/presenced/pam_presenced.py'
-    dest: '/var/prologin/presenced'
+    src: '/root/sadm/python-lib/prologin/presenced/pam_prologin.py'
+    dest: '/var/prologin/presenced/'
     mode: 0755
 
-- name: Add pam_presenced to pam.d/system-login
+- name: Add pam_prologin to pam.d/system-login 'account'
+  lineinfile:
+    path: '/etc/pam.d/system-login'
+    insertafter: 'account    required   pam_nologin.so'
+    regexp: 'account    requisite  pam_exec.so'
+    line: 'account    requisite  pam_exec.so
+           stdout /var/prologin/presenced/pam_prologin.py'
+
+- name: Add pam_prologin to pam.d/system-login 'session'
   lineinfile:
     path: '/etc/pam.d/system-login'
     insertbefore: 'pam_systemd.so'
-    regexp: 'pam_presenced.py'
+    regexp: 'session    requisite  pam_exec.so'
     line: 'session    requisite  pam_exec.so
-           /var/prologin/presenced/pam_presenced.py'
+           stdout /var/prologin/presenced/pam_prologin.py'
 
-- name: Enable presenced
+- name: Install presenced-heartbeat systemd service
+  template:
+    src: 'systemd/presenced-heartbeat.service'
+    dest: '/etc/systemd/system/'
+
+- name: Enable presenced-heartbeat systemd service
   systemd:
-    name: presenced
+    name: presenced-heartbeat
     enabled: true
