@@ -64,6 +64,11 @@ html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
 
 
+# -- Options for LaTeX output
+
+latex_engine = 'xelatex'
+
+
 # -- apidoc & autodoc options
 
 apidoc_module_dir = os.path.join(PYTHON_LIB_PATH, 'prologin')
