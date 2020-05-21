@@ -42,126 +42,132 @@ def fail(reason):
     sys.exit(1)
 
 
-PAM_TYPE = os.environ['PAM_TYPE']
-PAM_SERVICE = os.environ['PAM_SERVICE']
-login = os.environ['PAM_USER']
+if __name__ == '__main__':
+    PAM_TYPE = os.environ['PAM_TYPE']
+    PAM_SERVICE = os.environ['PAM_SERVICE']
+    login = os.environ['PAM_USER']
 
-try:
-    is_prologin_user = prologin.presenced.client.is_prologin_user(login)
-except KeyError:
-    # The login/password was accepted by pam_unix.so, but user does not exist:
-    # should not happen, but forbid anyway.  TODO: notify sysadmins...
-    fail('No such user')
-
-if PAM_TYPE == 'open_session' and not os.path.ismount(get_home_dir(login)):
-    # Not-prologin users are not resticted at all.
-    if not is_prologin_user:
-        sys.exit(0)
-
-    # Prologin users must use a display manager (not a TTY, nor screen).
-    if PAM_SERVICE not in ('gdm', 'kde', 'slim', 'xdm', 'sddm'):
-        logging.warning(
-            'User %s is not logging in with a graphical display manager', login
-        )
-
-    # Request the login to Presenced and PresenceSync.
-    failure_reason = prologin.presenced.client.connect().request_login(login)
-    if failure_reason is not None:
-        # Login is forbidden by presenced.
-        fail('Login forbidden: {}'.format(failure_reason))
-
-    # Request HOME directory migration and wait for it.
-    hfs = prologin.hfs.client.connect()
     try:
-        hostname = socket.gethostname()
-        if hostname.endswith('.prolo'):
-            hostname = hostname[: -len('.prolo')]
-        else:
-            logging.warning('Hostname does not end with .prolo: %s', hostname)
-        host, port = hfs.get_hfs(login, hostname)
-    except RuntimeError as e:
-        fail(str(e))
+        is_prologin_user = prologin.presenced.client.is_prologin_user(login)
+    except KeyError:
+        # The login/password was accepted by pam_unix.so, but user does not exist:
+        # should not happen, but forbid anyway.  TODO: notify sysadmins...
+        fail('No such user')
 
-    block_device = get_block_device(login)
-    home_dir = get_home_dir(login)
+    if PAM_TYPE == 'open_session' and not os.path.ismount(get_home_dir(login)):
+        # Not-prologin users are not resticted at all.
+        if not is_prologin_user:
+            sys.exit(0)
 
-    # Create the HOME mount point if needed.
-    if not os.path.exists(home_dir):
-        # There is no need to fix permissions: this is only a mount point.
-        os.mkdir(home_dir)
-
-    # Get a block device for the HOME mount point and mount it.
-    #
-    # Containers used for testing do not have the netlink nbd family available
-    # (see genl-ctrl-list(8)), therefore fallback to using ioctl with the
-    # -nonetlink option. Exercise for the reader: figure how to enable the ndb
-    # netlink family in a systemd-nspawn container.
-    #
-    # TODO: experiment with '-block-size' values and compare performance
-    if subprocess.check_call(
-        [
-            '/usr/sbin/nbd-client',
-            '-nonetlink',
-            '-name',
-            login,
-            host,
-            str(port),
-            block_device,
-        ],
-        stdout=sys.stderr,
-        stderr=sys.stderr,
-    ):
-        fail('Cannot get the home directory block device')
-    if subprocess.check_call(
-        ['/bin/mount', block_device, home_dir],
-        stdout=sys.stderr,
-        stderr=sys.stderr,
-    ):
-        fail('Cannot mount the home directory')
-
-    sys.exit(0)
-
-elif PAM_TYPE == 'close_session':
-    if is_prologin_user:
-        # Make sure the user has nothing else running
-        try:
-            subprocess.check_call(
-                ['/usr/bin/pkill', '-9', '-u', login],
-                stdout=sys.stderr,
-                stderr=sys.stderr,
+        # Prologin users must use a display manager (not a TTY, nor screen).
+        if PAM_SERVICE not in ('gdm', 'kde', 'slim', 'xdm', 'sddm'):
+            logging.warning(
+                'User %s is not logging in with a graphical display manager',
+                login,
             )
-        except subprocess.CalledProcessError as e:
-            if e.returncode != 1:  # "No processes matched" we don't care
-                raise e
 
-        # Unmount /home/user
-        time.sleep(2)
-        subprocess.check_call(
-            ['/bin/umount', '-R', get_home_dir(login)],
+        # Request the login to Presenced and PresenceSync.
+        failure_reason = prologin.presenced.client.connect().request_login(
+            login
+        )
+        if failure_reason is not None:
+            # Login is forbidden by presenced.
+            fail('Login forbidden: {}'.format(failure_reason))
+
+        # Request HOME directory migration and wait for it.
+        hfs = prologin.hfs.client.connect()
+        try:
+            hostname = socket.gethostname()
+            if hostname.endswith('.prolo'):
+                hostname = hostname[: -len('.prolo')]
+            else:
+                logging.warning(
+                    'Hostname does not end with .prolo: %s', hostname
+                )
+            host, port = hfs.get_hfs(login, hostname)
+        except RuntimeError as e:
+            fail(str(e))
+
+        block_device = get_block_device(login)
+        home_dir = get_home_dir(login)
+
+        # Create the HOME mount point if needed.
+        if not os.path.exists(home_dir):
+            # There is no need to fix permissions: this is only a mount point.
+            os.mkdir(home_dir)
+
+        # Get a block device for the HOME mount point and mount it.
+        #
+        # Containers used for testing do not have the netlink nbd family available
+        # (see genl-ctrl-list(8)), therefore fallback to using ioctl with the
+        # -nonetlink option. Exercise for the reader: figure how to enable the ndb
+        # netlink family in a systemd-nspawn container.
+        #
+        # TODO: experiment with '-block-size' values and compare performance
+        if subprocess.check_call(
+            [
+                '/usr/sbin/nbd-client',
+                '-nonetlink',
+                '-name',
+                login,
+                host,
+                str(port),
+                block_device,
+            ],
             stdout=sys.stderr,
             stderr=sys.stderr,
-        )
+        ):
+            fail('Cannot get the home directory block device')
+        if subprocess.check_call(
+            ['/bin/mount', block_device, home_dir],
+            stdout=sys.stderr,
+            stderr=sys.stderr,
+        ):
+            fail('Cannot mount the home directory')
 
-        # And finally stop the nbd client
-        block_device = get_block_device(login)
+        sys.exit(0)
 
-        # due to a bug somewhere between nbd-client and the kernel, detaching
-        # with -nonetlink fails with: Invalid nbd device target /dev/nbd0
-        try:
+    elif PAM_TYPE == 'close_session':
+        if is_prologin_user:
+            # Make sure the user has nothing else running
+            try:
+                subprocess.check_call(
+                    ['/usr/bin/pkill', '-9', '-u', login],
+                    stdout=sys.stderr,
+                    stderr=sys.stderr,
+                )
+            except subprocess.CalledProcessError as e:
+                if e.returncode != 1:  # "No processes matched" we don't care
+                    raise e
+
+            # Unmount /home/user
+            time.sleep(2)
             subprocess.check_call(
-                ['/usr/sbin/nbd-client', '-d', block_device],
+                ['/bin/umount', '-R', get_home_dir(login)],
                 stdout=sys.stderr,
                 stderr=sys.stderr,
             )
-        # here's the workaround : only try without -nonetlink if the above
-        # command fails
-        except subprocess.CalledProcessError:
-            subprocess.check_call(
-                ['/usr/sbin/nbd-client', '-d', '-nonetlink', block_device],
-                stdout=sys.stderr,
-                stderr=sys.stderr,
-            )
-    sys.exit(0)
 
-else:
-    sys.exit(0)
+            # And finally stop the nbd client
+            block_device = get_block_device(login)
+
+            # due to a bug somewhere between nbd-client and the kernel, detaching
+            # with -nonetlink fails with: Invalid nbd device target /dev/nbd0
+            try:
+                subprocess.check_call(
+                    ['/usr/sbin/nbd-client', '-d', block_device],
+                    stdout=sys.stderr,
+                    stderr=sys.stderr,
+                )
+            # here's the workaround : only try without -nonetlink if the above
+            # command fails
+            except subprocess.CalledProcessError:
+                subprocess.check_call(
+                    ['/usr/sbin/nbd-client', '-d', '-nonetlink', block_device],
+                    stdout=sys.stderr,
+                    stderr=sys.stderr,
+                )
+        sys.exit(0)
+
+    else:
+        sys.exit(0)

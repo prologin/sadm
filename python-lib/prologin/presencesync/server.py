@@ -42,16 +42,6 @@ from .monitoring import (
 PUB_CFG = prologin.config.load('presencesync-pub')
 SUB_CFG = prologin.config.load('presencesync-sub')
 
-if 'shared_secret' not in PUB_CFG:
-    raise RuntimeError(
-        'Missing shared_secret in the presencesync-pub YAML config'
-    )
-
-if 'shared_secret' not in SUB_CFG:
-    raise RuntimeError(
-        'Missing shared_secret in the presencesync-sub YAML config'
-    )
-
 
 class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
     """Maintain a backlog of logged in users per machine. Take care of
@@ -391,6 +381,17 @@ class SyncServer(prologin.synchronisation.Server):
 
 if __name__ == '__main__':
     prologin.log.setup_logging('presencesync')
+
+    if 'shared_secret' not in PUB_CFG:
+        raise RuntimeError(
+            'Missing shared_secret in the presencesync-pub YAML config'
+        )
+
+    if 'shared_secret' not in SUB_CFG:
+        raise RuntimeError(
+            'Missing shared_secret in the presencesync-sub YAML config'
+        )
+
     if len(sys.argv) > 1:
         port = int(sys.argv[1])
     else:

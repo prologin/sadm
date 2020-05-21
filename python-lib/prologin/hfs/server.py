@@ -74,9 +74,6 @@ from socketserver import ThreadingMixIn
 CFG = prologin.config.load('hfs-server')
 CLT_CFG = prologin.config.load('hfs-client')
 
-if 'shared_secret' not in CLT_CFG:
-    raise RuntimeError('Missing shared_secret in the hfs-client YAML config')
-
 # { 'user1': { 'pid': 4242, 'port': 1234 }, ... }
 RUNNING_NBD = {}
 
@@ -406,6 +403,11 @@ if __name__ == '__main__':
     if len(sys.argv) != 2 or not sys.argv[1].isdigit():
         print('usage: %s <hfs-number>' % sys.argv[0])
         sys.exit(1)
+
+    if 'shared_secret' not in CLT_CFG:
+        raise RuntimeError(
+            'Missing shared_secret in the hfs-client YAML config'
+        )
 
     hfs_id = int(sys.argv[1])
     prologin.log.setup_logging('hfs-%d' % hfs_id)

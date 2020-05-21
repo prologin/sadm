@@ -1,1 +1,5 @@
-# none needed, except sphinx of course
+-r ../requirements.txt
+
+sphinx>3.0.0
+sphinx-rtd-theme
+sphinxcontrib.apidoc

@@ -8,3 +8,4 @@ __pycache__
 venv/
 python-lib/dist
 python-lib/build
+docs/source/api
