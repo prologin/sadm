@@ -24,7 +24,7 @@ font -misc-fixed-medium-r-normal--13-120-75-75-C-70-iso10646-1
 floating_modifier $mod
 
 # start a terminal
-bindsym $mod+Return exec i3-sensible-terminal
+bindsym $mod+Return exec --no-startup-id i3-sensible-terminal
 
 # kill focused window
 bindsym $mod+Shift+q kill
@@ -150,5 +150,4 @@ bar {
 }
 
 # apply wallpaper
-exec feh --no-fehbg --bg-fill /var/prologin/wallpaper.png
-
+exec --no-startup-id feh --no-fehbg --bg-fill /var/prologin/wallpaper.png
