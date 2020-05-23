@@ -20,29 +20,27 @@
 
 # Packages
 
+- name: Download Prologin repo key
+  get_url:
+    url: https://repo.prologin.org/prologin.pub
+    dest: /etc/pacman.d/prologin.pub
+  # Network might not be ready yet.
+  retries: 10
+  delay: 2
+  register: downloadprolokey
+
+- name: Add Prologin repo key to keyring
+  shell: |
+    pacman-key --add /etc/pacman.d/prologin.pub
+    pacman-key --lsign-key prologin
+  when: downloadprolokey.changed
+
 - name: Install Prologin package repository
   ini_file:
     path: /etc/pacman.conf
     section: prologin
     option: Server
     value: "https://repo.prologin.org/"
-  register: addprolorepo
-
-- name: Download Prologin repo key
-  get_url:
-    url: https://repo.prologin.org/prologin.pub
-    dest: /tmp/prologin.pub
-  when: addprolorepo.changed
-  # Network might not be ready yet.
-  retries: 5
-  delay: 2
-
-- name: Add Prologin repo key to keyring
-  shell: |
-    pacman-key --add /tmp/prologin.pub
-    pacman-key --lsign-key prologin
-    rm /tmp/prologin.pub
-  when: addprolorepo.changed
 
 - name: Ignore dangerous package upgrades
   ini_file:
