@@ -10,29 +10,27 @@ sending a proper logout signal.
 import logging
 import subprocess
 import time
+from typing import Set
 
-import prologin.log
 import prologin.config
+import prologin.log
 import prologin.presencesync.client
 from prologin.presenced import current_hostname, is_prologin_user
 
 
-def get_logged_prologin_users():
-    """Returns the list of logged user that are handled by Prologin."""
-    result = set()
-    # FIXME: we used to use who(1) but sddm does not use utmp to log
-    # session opening, hence the hack with ps
-    users = set(subprocess.check_output(['ps', '-axho', '%U']).split(b'\n'))
-    for line in users:
-        if not line.strip():
-            continue
-        login = line.decode('ascii')
-        try:
-            if is_prologin_user(login):
-                result.add(login)
-        except KeyError:
-            pass
-    return result
+def get_logged_on_prologin_users() -> Set[str]:
+    """Returns the set of logged-on users that are handled by Prologin."""
+    who = subprocess.check_output(['who', '-q'], encoding='utf-8')
+    # Output of `$ who -q` looks like:
+    #   zopieux
+    #   # users=1
+    return set(
+        username
+        for line in who.splitlines(keepends=False)
+        if (username := line.strip())
+        and not username.startswith('#')
+        and is_prologin_user(username)
+    )
 
 
 def heartbeat_sender(interval_seconds: float):
@@ -45,7 +43,7 @@ def heartbeat_sender(interval_seconds: float):
     presencesync_client = prologin.presencesync.client.connect(publish=True)
 
     def send_heartbeat():
-        usernames = get_logged_prologin_users()
+        usernames = get_logged_on_prologin_users()
         logging.debug("Heartbeat: logged-in users: %s", usernames)
         if len(usernames) == 0:
             pass
