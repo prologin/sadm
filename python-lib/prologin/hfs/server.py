@@ -120,6 +120,10 @@ class ArgumentMissing(Exception):
 
 
 class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
+    # Override default bulky HTML, use a simple error string instead
+    error_message_format = "%(code)d - %(message)s - %(explain)s"
+    error_message_type = 'text/plain'
+
     def get_argument(self, name):
         """Returns the value of the GET argument called <name>. If it does not
         exist, send an error page."""
@@ -143,7 +147,7 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
         except ArgumentMissing as e:
             self.send_error(400, message=str(e))
         except Exception as e:
-            self.send_error(501, message=str(e))
+            self.send_error(500, message=str(e))
             logging.exception('Something wrong happened')
 
     def migrate_user(self):
@@ -156,7 +160,7 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
 
         fname = self.nbd_filename()
         if not os.path.exists(fname):
-            raise RuntimeError("NBD file to server for %s missing" % self.user)
+            raise RuntimeError("NBD file for user '%s' missing" % self.user)
         nbd_path = Path(fname)
 
         self.send_response(200)
@@ -213,7 +217,7 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
 
         filename = self.nbd_filename()
         if not os.path.exists(filename):
-            raise RuntimeError("NBD file to server for %s missing" % self.user)
+            raise RuntimeError("NBD file for user '%s' missing" % self.user)
 
         self.kill_user_nbd()
 
@@ -387,9 +391,10 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
                     tar.stdin.write(block)
         finally:
             tar.stdin.close()
+            tar_ret = tar.wait()
 
-            if tar.wait() != 0:
-                raise RuntimeError(f"{' '.join(tar_cmdline)} exited with rc")
+        if tar_ret != 0:
+            raise RuntimeError(f"{' '.join(tar_cmdline)} exited with rc")
 
         delta = time.monotonic() - remote_user_start
         hfs_migrate_remote_user.labels(user=self.user, hfs=peer_id).observe(
