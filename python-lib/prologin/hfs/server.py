@@ -154,12 +154,14 @@ class HFSRequestHandler(http.server.BaseHTTPRequestHandler):
         self.hfs = int(self.get_argument('hfs'))
         self.kill_user_nbd()
 
+        fname = self.nbd_filename()
+        if not os.path.exists(fname):
+            raise RuntimeError("NBD file to server for %s missing" % self.user)
+        nbd_path = Path(fname)
+
         self.send_response(200)
         self.end_headers()
         self.wfile.flush()
-
-        fname = self.nbd_filename()
-        nbd_path = Path(fname)
 
         subprocess.check_call(
             ['/usr/bin/tar', '--sparse', '-czf', '-', nbd_path.name],
