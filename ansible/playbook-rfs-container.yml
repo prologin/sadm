@@ -36,5 +36,9 @@
       tags: workernode
 
     - import_role:
+        name: greeter
+      tags: greeter
+
+    - import_role:
         name: sgoinfre_mount
       tags: sgoinfre_mount

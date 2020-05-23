@@ -5,7 +5,7 @@ Basic list of packages for contestants' environment
 
 * xorg
 * xorg-drivers
-* sddm
+* lightdm
 
 # Shells
 

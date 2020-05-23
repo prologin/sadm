@@ -21,7 +21,7 @@ import logging
 import os
 import prologin.config
 import prologin.log
-import prologin.presenced.client
+import prologin.presenced
 import prologin.udbsync.client
 import re
 import shutil
@@ -105,7 +105,7 @@ def callback(root_path, users, updates_metadata):
                     m.group('home'),
                     m.group('shell'),
                 )
-                if not prologin.presenced.client.is_prologin_uid(user.uid):
+                if not prologin.presenced.is_prologin_uid(user.uid):
                     passwd_users[user.login] = user
             else:
                 logging.error('Unparsable /etc/passwd line: %r', line)

@@ -34,7 +34,8 @@ TemporaryFileSystem=/var/log
 TemporaryFileSystem=/var/tmp
 TemporaryFileSystem=/var/spool/mail
 TemporaryFileSystem=/var/lib/isolate
-TemporaryFileSystem=/var/lib/sddm
+TemporaryFileSystem=/var/lib/lightdm
+TemporaryFileSystem=/var/lib/lightdm-data
 EOF
 
   echo '[-] Configure container for nbd usage'

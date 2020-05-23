@@ -45,7 +45,6 @@
     - {name: mdb-client.yml, group: mdb_public, mode: '640'}
     - {name: mdbsync-pub.yml, group: mdbsync, mode: '640'}
     - {name: mdbsync-sub.yml, group: mdbsync_public, mode: '640'}
-    - {name: presenced-client.yml, group: presenced, mode: '640'}
     - {name: presencesync-pub.yml, group: presencesync, mode: '640'}
     - {name: presencesync-sub.yml, group: presencesync_public, mode: '640'}
     - {name: timeauth.yml, group: root, mode: '644'}
