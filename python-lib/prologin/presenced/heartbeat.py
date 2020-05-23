@@ -12,6 +12,7 @@ import subprocess
 import time
 
 import prologin.log
+import prologin.config
 import prologin.presencesync.client
 from prologin.presenced import current_hostname, is_prologin_user
 
@@ -34,12 +35,13 @@ def get_logged_prologin_users():
     return result
 
 
-def heartbeat_sender():
-    """Sends heartbeats to PresenceSync."""
+def heartbeat_sender(interval_seconds: float):
+    """Sends heartbeats to PresenceSync at a regular interval.
 
+    :param interval_seconds: delay between two heartbeats. Of course, this
+           should be less (with a comfy margin) than the presencesync timeout.
+    """
     hostname = current_hostname()
-    heartbeat_delay = prologin.presencesync.client.SUB_CFG['timeout'] / 2
-
     presencesync_client = prologin.presencesync.client.connect(publish=True)
 
     def send_heartbeat():
@@ -57,7 +59,7 @@ def heartbeat_sender():
     while True:
         try:
             send_heartbeat()
-            time.sleep(heartbeat_delay)
+            time.sleep(interval_seconds)
         except Exception:
             logging.exception("Error sending heartbeat to PresenceSYnc.")
             time.sleep(2)
@@ -65,5 +67,5 @@ def heartbeat_sender():
 
 if __name__ == "__main__":
     prologin.log.setup_logging('presenced')
-    logging.basicConfig(level=logging.INFO)
-    heartbeat_sender()
+    cfg = prologin.config.load('presencesync-sub')
+    heartbeat_sender(interval_seconds=cfg['timeout'] / 2)

@@ -37,9 +37,6 @@ import prologin.log
 import prologin.presencesync.client
 from prologin.presenced import is_prologin_user, current_hostname
 
-# We use stderr for communication with PAM. Don't write on it.
-prologin.log.setup_logging('pam_prologin', local=False)
-
 
 class LoginError(Exception):
     pass
@@ -213,6 +210,9 @@ def handle_close_session(username: str):
 
 
 def main():
+    # We use stderr for communication with PAM. Don't write on it.
+    prologin.log.setup_logging('pam_prologin', local=False)
+
     pam_type = os.environ['PAM_TYPE']
     pam_service = os.environ['PAM_SERVICE']
     pam_user = os.environ['PAM_USER']
