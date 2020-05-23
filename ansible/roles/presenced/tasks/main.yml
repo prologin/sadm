@@ -14,6 +14,12 @@
       KillUserProcesses: 'yes'
       KillExcludeUsers: 'root'
 
+- name: Create presenced service directory
+  file:
+    path: /var/prologin/presenced
+    state: directory
+    mode: 0755
+
 - name: Install pam_prologin.py
   copy:
     remote_src: true
