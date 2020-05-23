@@ -1,25 +1,29 @@
-name: Test prologin library
+name: Test ProloginSADM on Archlinux
 
 on: [push]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [3.8]
+    container:
+      image: archlinux
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v1
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install dependencies
+      - name: Install system dependencies
         run: |
-          python -m pip install --upgrade pip
+          pacman -Sy --noconfirm sudo base-devel git python python-pip python-wheel postgresql-libs
+          useradd -d /build -m build
+          echo "build ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+          cd /build
+          sudo -u build -- git clone https://aur.archlinux.org/isolate-git.git
+          cd isolate-git
+          sudo -u build -- makepkg -si --noconfirm
+
+      - name: Install ProloginSADM dependencies
+        run: |
+          python -m pip install --upgrade pip wheel
           python -m pip install -r requirements.txt -r requirements-dev.txt
 
       - name: Install ProloginSADM
