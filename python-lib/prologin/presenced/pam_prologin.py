@@ -1,4 +1,5 @@
 #! /opt/prologin/venv/bin/python
+# SPDX-License-Identifier: GPL-3.0-or-later
 """PAM script to handle ``account``, ``open_session``, ``close_session`` hooks.
 
 Intended integration inside ``/etc/pam.d/system-login``::

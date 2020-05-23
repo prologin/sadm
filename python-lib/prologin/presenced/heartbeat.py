@@ -1,4 +1,5 @@
 #!/opt/prologin/venv/bin/python
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 """Sends periodic aliveness heartbeats to PresenceSync.
 
