@@ -21,10 +21,9 @@ import logging
 import prologin.config
 import prologin.rpc.client
 
-CFG = prologin.config.load('mdb-client')
-
 
 def connect():
-    url = CFG['url']
+    cfg = prologin.config.load('mdb-client')
+    url = cfg['url']
     logging.info('Creating MDB connection object: url=%s', url)
-    return prologin.rpc.client.SyncClient(CFG['url'])
+    return prologin.rpc.client.SyncClient(url)

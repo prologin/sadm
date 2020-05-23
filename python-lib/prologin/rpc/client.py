@@ -12,12 +12,15 @@
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 import asyncio
-import aiohttp
+import contextlib
 import json
-import prologin.timeauth
-import socket
 import logging
+import socket
 from urllib.parse import urljoin
+
+import aiohttp
+
+import prologin.timeauth
 
 
 class BaseError(Exception):
@@ -44,74 +47,100 @@ class RemoteError(BaseError):
 class Client:
     """RPC client: connect to a server and perform remote calls."""
 
-    def __init__(self, base_url, secret=None):
-        self.base_url = base_url
-        self.secret = secret
+    def __init__(self, base_url, secret=None, http_client=None):
+        self._base_url = base_url
+        self._secret = secret
+        # For testing & context(), we have to use an existing client.
+        self._http_client = http_client
 
-    def _handle_exception(self, data):
-        """Handle an exception from a remote call."""
-        raise RemoteError(data['exn_type'], data['exn_message'])
+    @contextlib.asynccontextmanager
+    async def _client(self):
+        if self._http_client is not None:
+            # The lifecycle of existing clients are handled externally. It's
+            # important not to close (__aexit__) them ourselves.
+            yield self._http_client
+            return
+
+        # FIXME(seirl): use a global session and async with?
+        # This would require to have client as a context manager :/
+        async with aiohttp.client.ClientSession() as client:
+            yield client
+
+    def _call_params(self, method, args, kwargs):
+        arguments = {"args": args, "kwargs": kwargs}
+        if self._secret:
+            arguments["hmac"] = prologin.timeauth.generate_token(
+                self._secret, method
+            )
+        url = urljoin(self._base_url, f"call/{method}")
+        return url, arguments
 
     async def _call_method(self, method, args, kwargs):
-        """Call the remote `method` passing `args` and `kwargs` to it.
+        """Calls the remote `method` passing `args` and `kwargs` to it.
 
         `args` must be a JSON-serializable list of positional arguments while
         `kwargs` must be a JSON-serializable dictionary of keyword arguments.
 
-        Depending on what happens in the remote method, return a result, or
-        raise a RemoteError. Raise an InternalError for anything else.
+        Depending on the nature and behavior of the remote method, either:
+            * returns a result;
+            * returns a async context that gives an async generator of results;
+            * raises a RemoteError.
+
+        Raises an InternalError for any error that isn't caused by the remote.
         """
+        url, data = self._call_params(method, args, kwargs)
 
-        # Serialize arguments and send the request...
-        arguments = {
-            'args': args,
-            'kwargs': kwargs,
-        }
-
-        # Generate the timeauth token
-        if self.secret:
-            arguments['hmac'] = prologin.timeauth.generate_token(
-                self.secret, method
-            )
+        stack = contextlib.AsyncExitStack()
+        client = await stack.enter_async_context(self._client())
         try:
-            req_data = json.dumps(arguments)
+            resp = await stack.enter_async_context(client.post(url, json=data))
         except (TypeError, ValueError):
-            raise ValueError('non serializable argument types')
+            await stack.aclose()
+            raise ValueError(
+                f"JSON cannot encode argument types: {args:r}, {kwargs:r}"
+            )
 
-        url = urljoin(self.base_url, 'call/{}'.format(method))
-        data = '{}\n'.format(req_data).encode('ascii')
+        content_type = resp.headers["Content-Type"]
 
-        # FIXME(seirl): use a global session and async with?
-        # This would require to have client as a context manager :/
-        async with aiohttp.ClientSession() as session:
-            async with session.post(url, data=data) as req:
-                return await self._request_work(req)
-
-    async def _request_work(self, req):
-        if req.headers['Content-Type'] == 'application/json':
-            # The remote call returned: we can have a result or an exception.
-            result = await req.json()
-
-            if result['type'] == 'result':
-                # There is nothing more to do than returning the actual
-                # result.
-                return result['data']
-
-            elif result['type'] == 'exception':
-                # Just raise a RemoteError with interesting data.
-                self._handle_exception(result)
-
-            else:
-                # There should not be any other possibility.
-                raise InternalError(
-                    'Invalid result type: {}'.format(result['type'])
-                )
+        if content_type == "application/json; generator":
+            return self._generator_context(stack, resp)
+        elif content_type == "application/json":
+            try:
+                result = await resp.json()
+                return self._parse_response(result)
+            finally:
+                await stack.aclose()
         else:
-            # Something went wrong before reaching the remote procedure...
-            raise InternalError(req.text)
+            await stack.aclose()
+            raise InternalError(f"Unknown Content-Type: '{content_type}'.")
+
+    def _parse_response(self, result):
+        result_type = result["type"]
+        if result_type == "result":
+            # There is nothing more to do than returning the actual result.
+            return result["data"]
+        elif result_type == "exception":
+            # Just raise a RemoteError with interesting data.
+            self._handle_exception(result)
+        else:
+            # There should not be any other possibility.
+            raise InternalError(f"Invalid result type: {result_type}")
+
+    def _handle_exception(self, data):
+        """Handle an exception from a remote call."""
+        raise RemoteError(data["exn_type"], data["exn_message"])
+
+    @contextlib.asynccontextmanager
+    async def _generator_context(self, stack, resp):
+        async def generator():
+            async for line in resp.content:
+                yield self._parse_response(json.loads(line))
+
+        yield generator()
+        await stack.aclose()
 
     def __getattr__(self, method):
-        """Return a callable to invoke a remote procedure."""
+        """Returns a callable to invoke a remote procedure."""
 
         async def proxy(*args, max_retries=0, retry_delay=10, **kwargs):
             for i in range(max_retries + 1):
@@ -120,8 +149,8 @@ class Client:
                 except socket.error:
                     if i < max_retries:
                         logging.warning(
-                            '<%s> down, cannot call %s. ' 'Retrying in %ss...',
-                            self.base_url,
+                            "<%s> down, cannot call %s. Retrying in %ss...",
+                            self._base_url,
                             method,
                             retry_delay,
                         )
@@ -134,17 +163,13 @@ class Client:
 
 class SyncClient(Client):
     def __getattr__(self, method):
-        coro = super().__getattr__(method)
+        func = super().__getattr__(method)
+        loop = asyncio.new_event_loop()
 
         def proxy(*args, **kwargs):
-            loop = asyncio.new_event_loop()
-            res = loop.run_until_complete(coro(*args, **kwargs))
-            loop.close()
-            return res
+            try:
+                return loop.run_until_complete(func(*args, **kwargs))
+            finally:
+                loop.close()
 
         return proxy
-
-
-class MetaClient:
-    def __init__(self, client):
-        self.client = client

@@ -58,7 +58,6 @@ if __name__ == '__main__':
     # RPC Service
     s = MasterNode(
         config=config,
-        app_name='masternode',
         secret=config['master']['shared_secret'].encode('utf-8'),
     )
 

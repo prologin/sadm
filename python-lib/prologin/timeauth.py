@@ -28,17 +28,16 @@ import prologin.config
 TOKEN_TIMEOUT = 120
 
 
-def generate_token(secret, message=None):
-    """Generate a token given some `secret`."""
+def generate_token(secret: bytes, message=None):
+    """Generates a token given some `secret`."""
     timestamp = str(int(time.time()))
     return '{}:{}'.format(
-        timestamp, get_hmac(secret, str(message) + timestamp),
+        timestamp, _get_hmac(secret, str(message) + timestamp),
     )
 
 
-def check_token(token, secret, message=None):
-    """Return if `token` is valid according to `secret` and current time."""
-
+def check_token(token: str, secret: bytes, message=None):
+    """Returns if `token` is valid according to `secret` and current time."""
     config = prologin.config.load('timeauth')
 
     if not config['enabled']:
@@ -48,26 +47,23 @@ def check_token(token, secret, message=None):
         return False
 
     # Reject badly formatted tokens.
-    chunks = token.split(':')
-    if len(chunks) != 2:
-        return False
     try:
-        timestamp = int(chunks[0])
+        timestamp, user_digest = token.split(':')
+        int_timestamp = int(timestamp)
     except ValueError:
         return False
 
     # Reject outdated tokens.
-    if time.time() - timestamp > TOKEN_TIMEOUT:
+    if time.time() - int_timestamp > TOKEN_TIMEOUT:
         return False
 
-    # Check if the token is valid.
-    return hmac.compare_digest(
-        get_hmac(secret, str(message) + chunks[0]), chunks[1]
-    )
+    # Check if the digest is valid.
+    expected_digest = _get_hmac(secret, str(message) + timestamp)
+    return hmac.compare_digest(expected_digest, user_digest)
 
 
-def get_hmac(secret, message):
-    """Return a HMAC of `message` for some `secret`."""
+def _get_hmac(secret: bytes, message: str):
+    """Returns the HMAC digest of `message` keyed by `secret`."""
     return hmac.new(
         secret, message.encode('ascii'), digestmod=hashlib.sha256
     ).hexdigest()

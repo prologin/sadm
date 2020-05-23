@@ -15,19 +15,15 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
-import prologin.config
 import prologin.rpc.server
 import prologin.udb.receivers  # To connect our receivers
 from prologin.udb.models import User
 from prologin.utils.django import check_filter_fields
 
-CFG = prologin.config.load('udb-client-auth')
-
 
 class UDBServer(prologin.rpc.server.BaseRPCApp):
-    def __init__(self, *args, **kwargs):
-        secret = CFG['shared_secret'].encode()
-        super().__init__(*args, secret=secret, **kwargs)
+    def __init__(self, secret, **kwargs):
+        super().__init__(secret=secret, **kwargs)
 
     def get_users(self, **kwargs):
         fields = {'login', 'uid', 'group', 'shell', 'ssh_key', 'id'}
