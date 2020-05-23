@@ -16,6 +16,7 @@ HOWTO:
 ./spawn_prolo_test_machine.sh monitoring
 ./spawn_prolo_test_machine.sh web
 ./spawn_prolo_test_machine.sh rhfs01
+./spawn_prolo_test_machine.sh rhfs23
 ./spawn_prolo_test_machine.sh misc
 
 4. Run ansible

@@ -3,6 +3,6 @@
 
 - name: restart systemd-nspawn@rfs
   systemd:
-    name: systemd-nspawn@rfs
+    name: 'systemd-nspawn@{{ rfs_container }}'
     state: restarted
     daemon_reload: true

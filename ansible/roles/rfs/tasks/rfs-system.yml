@@ -49,15 +49,20 @@
 
 - name: Add rfs to /var/lib/machines
   file:
-    path: '/var/lib/machines/rfs'
+    path: '/var/lib/machines/{{ rfs_container }}'
     src: '{{ rfs_path }}'
     state: link
   notify: restart systemd-nspawn@rfs
 
+- name: Create systemd nspawn directory
+  file:
+    path: '/etc/systemd/nspawn'
+    state: directory
+
 - name: Add rfs container nspawn config
   template:
     src: 'rfs.nspawn'
-    dest: '/etc/systemd/nspawn/'
+    dest: '/etc/systemd/nspawn/{{ rfs_container }}.nspawn'
   notify: restart systemd-nspawn@rfs
 
 - name: Add rfs container network config
@@ -70,7 +75,7 @@
 
 - name: Start RFS
   systemd:
-    name: systemd-nspawn@rfs
+    name: 'systemd-nspawn@{{ rfs_container }}'
     state: started
     enabled: true
 
