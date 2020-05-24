@@ -1,3 +1,4 @@
+from enum import IntEnum
 import contextlib
 import itertools
 import os
@@ -293,6 +294,14 @@ class TournamentMap(
         verbose_name_plural = "cartes utilisées dans le tournoi"
 
 
+class MatchPriority(IntEnum):
+    NOW = 1000
+    INTERACTIVE = 700
+    DEFAULT = 500
+    TOURNAMENT = 300
+    BEST_EFFORT = 0
+
+
 class Match(ExportModelOperationsMixin('match'), models.Model):
     DUMP_FILENAME = "dump.json.gz"
     REPLAY_FILENAME = "replay.gz"
@@ -336,6 +345,11 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
         related_name='matches',
         on_delete=models.CASCADE,
         verbose_name="carte",
+    )
+    priority = models.IntegerField(
+        "priority",
+        default=MatchPriority.DEFAULT,
+        help_text="Match scheduling priority, higher is faster.",
     )
 
     @property
@@ -408,7 +422,7 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
         verbose_name_plural = "matches"
 
     @classmethod
-    def launch_bulk(cls, matches):
+    def launch_bulk(cls, matches, priority=MatchPriority.DEFAULT):
         """Launch matches in bulk.
 
         Args:
@@ -440,6 +454,7 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
                     m.tournament = match['tournament']
                 if 'map' in match:
                     m.map = match['map']
+                m.priority = priority
                 match_objs.append(m)
             created_matches = bulk_create_return_ids(Match, match_objs)
 
