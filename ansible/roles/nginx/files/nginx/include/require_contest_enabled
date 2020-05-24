@@ -1,0 +1,4 @@
+{% if not contest_enabled %}
+auth_basic "Authentication required";
+auth_basic_user_file htpasswd_orga;
+{% endif %}

@@ -1,6 +1,8 @@
-- name: Install nginx
+- name: Install nginx and dependencies
   pacman:
-    name: nginx
+    name:
+      - nginx
+      - python-passlib
   notify: restart nginx
 
 - name: Create nginx config directories
@@ -22,14 +24,12 @@
   loop_control:
     label: "{{ item.path }}"
   notify: reload nginx
+  tags: contest_mode
 
-- name: Create nginx services directories
+- name: Create nginx service directory
   file:
-    path: "/etc/nginx/{{ item }}"
+    path: "/etc/nginx/services"
     state: directory
-  loop:
-    - services
-    - services_contest
 
 - name: Create nginx log directory
   file:
@@ -44,6 +44,15 @@
     path: "/etc/nginx/logs"
     state: link
     src: "/var/log/nginx"
+
+- name: Add nginx orga htpasswd file
+  htpasswd:
+    path: /etc/nginx/htpasswd_orga
+    name: prologin
+    password: '{{ nginx_orga_htpasswd }}'
+    owner: root
+    group: http
+    mode: 0640
 
 - name: Enable nginx
   systemd:

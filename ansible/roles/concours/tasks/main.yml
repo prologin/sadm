@@ -7,7 +7,7 @@
 - name: Install Concours nginx service
   template:
     src: 'nginx/concours.nginx'
-    dest: '/etc/nginx/services_contest/concours.nginx'
+    dest: '/etc/nginx/services/concours.nginx'
   notify: reload nginx
 
 - name: Install client configurations
