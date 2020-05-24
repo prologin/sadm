@@ -7,7 +7,7 @@ import tempfile
 
 from django.conf import settings
 from django.urls import reverse
-from django.db import models, transaction
+from django.db import connection, models, transaction
 from django.utils import timezone
 from django.utils.functional import cached_property
 from django_prometheus.models import ExportModelOperationsMixin
@@ -20,6 +20,17 @@ stripper_re = re.compile(r'\033\[.*?m')
 
 def strip_ansi_codes(t):
     return stripper_re.sub('', t)
+
+
+def bulk_create_return_ids(model, objs):
+    """Wrapper for Model.objects.bulk_create() always returning created ids."""
+    # Returning created ids requires PostgreSQL
+    if connection.vendor == 'sqlite':
+        for m in objs:
+            m.save()
+        return objs
+    else:
+        return model.objects.bulk_create(objs)
 
 
 class Map(ExportModelOperationsMixin('map'), models.Model):
@@ -430,15 +441,14 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
                 if 'map' in match:
                     m.map = match['map']
                 match_objs.append(m)
-            # Returning created ids requires PostgreSQL
-            created_matches = Match.objects.bulk_create(match_objs)
+            created_matches = bulk_create_return_ids(Match, match_objs)
 
             # Bulk create all MatchPlayer objects
             player_objs = []
             for i, m in enumerate(created_matches):
                 for c in matches[i]['champions']:
                     player_objs.append(MatchPlayer(champion=c, match=m))
-            MatchPlayer.objects.bulk_create(player_objs)
+            bulk_create_return_ids(MatchPlayer, player_objs)
 
             # Update all matches to set them as 'new' (i.e schedule them)
             new_matches_id = [m.id for m in created_matches]
