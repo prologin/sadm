@@ -318,7 +318,7 @@ class NewMatchView(LoginRequiredMixin, FormView):
             match = models.Match(
                 author=self.request.user,
                 status='new',
-                priority=models.Match.Priority.INTERACTIVE,
+                priority=models.MatchPriority.INTERACTIVE,
             )
             if settings.STECHEC_USE_MAPS:
                 match.map = form.cleaned_data['map']
