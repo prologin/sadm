@@ -9,19 +9,25 @@
 
 - name: Create the PostgreSQL HFSDB database
   postgresql_db:
-    name: hfs
+    name: '{{ item }}'
     owner: hfs
+  loop:
+    - hfs
+    - hfscontest
   become: true
   become_user: postgres
 
 - name: Create the HFSDB user_location table
   postgresql_table:
-    db: hfs
+    db: '{{ item }}'
     owner: hfs
     name: user_location
     columns:
       - id SERIAL
       - hfs INTEGER
       - username VARCHAR
+  loop:
+    - hfs
+    - hfscontest
   become: true
   become_user: postgres

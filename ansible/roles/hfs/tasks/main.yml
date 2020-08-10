@@ -15,6 +15,16 @@
     dest: '/etc/prologin/'
     group: hfs
   notify: restart hfs
+  tags: contest_mode
+
+- name: Create hfs directories
+  file:
+    path: '{{ item }}'
+    state: directory
+  loop:
+    - /export
+    - /export/hfs
+    - /export/hfscontest
 
 - name: Enable hfs
   systemd:

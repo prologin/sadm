@@ -3,7 +3,12 @@
     name:
       - prologin/isolate-git
       - prologin/stechec2
-      - 'prologin/{{ concours_game }}'
+
+- name: Install the game of the year if contest mode is started
+  pacman:
+    name: 'prologin/{{ concours_game }}'
+    state: "{{ 'present' if contest_started else 'absent' }}"
+  tags: contest_mode
 
 - name: Install Workernode systemd service
   template:

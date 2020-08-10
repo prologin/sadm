@@ -23,3 +23,23 @@
   when: item.state == 'file'
   loop_control:
     label: "{{ item.path }}"
+
+- name: Install the game of the year if contest has started
+  pacman:
+    name: 'prologin/{{ concours_game }}'
+    state: "{{ 'present' if contest_started else 'absent' }}"
+  tags: contest_mode
+
+- name: Ensure player environment is absent when contest has not started
+  file:
+    path: '/export/skeleton/player'
+    state: absent
+  when: 'not contest_enabled'
+  tags: contest_mode
+
+- name: Install player environment in skeleton if contest has started
+  command:
+    cmd: 'stechec2-generator player --symlink {{ concours_game }} /export/skeleton/player'
+    creates: '/export/skeleton/player'
+  when: 'contest_enabled'
+  tags: contest_mode

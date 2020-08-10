@@ -16,14 +16,14 @@
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 # Database connection string.
-db: "pq://hfs:{{ hfs_db_password }}@gw/hfs"
+db: "pq://hfs:{{ hfs_db_password }}@gw/{{ 'hfscontest' if contest_enabled else 'hfs' }}"
 
 # The directory where the NBD files will be placed. They will be stored in a
 # subdirectory named "hfsN" with N being the HFS id.
-export_base: /export
+export_base: "/export/{{ 'hfscontest' if contest_enabled else 'hfs' }}"
 
 # Directory containing the skeleton for new users.
-skeleton: /export/skeleton
+skeleton: "/export/skeleton"
 
 # Port range that will be used for NBD servers.
 start_port_range: 40000
