@@ -13,6 +13,7 @@
     src: 'prologin/presencesync_firewall.yml'
     dest: '/etc/prologin/'
   notify: restart presencesync_firewall
+  tags: contest_mode
 
 - name: Enable presencesync_firewall
   systemd:

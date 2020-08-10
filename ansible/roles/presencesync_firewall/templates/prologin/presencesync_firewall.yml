@@ -1,2 +1,4 @@
 allowed_groups:
-  {{ presencesync_firewall_allowed_groups|to_nice_yaml|indent(2) }}
+  - root
+  - orga
+  {% if not contest_enabled %}- user{% endif %}

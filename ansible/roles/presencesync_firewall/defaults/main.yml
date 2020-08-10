@@ -1,4 +1,0 @@
-presencesync_firewall_allowed_groups:
-  - root
-  - orga
-  - user
