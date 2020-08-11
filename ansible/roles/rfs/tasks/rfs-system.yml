@@ -40,6 +40,33 @@
     state: directory
     mode: 0700
 
+- name: Create blacklisted services override directories
+  file:
+    path: '{{ rfs_path }}/etc/systemd/system/{{ item }}.d/'
+    state: directory
+  loop: '{{ rfs_machine_only_services + rfs_container_only_services }}'
+
+
+- name: Blacklist non-container services
+  copy:
+    dest: '{{ rfs_path }}/etc/systemd/system/{{ item }}.d/container-blacklist.conf'
+    content: |
+      [Unit]
+      ConditionHost =! rfs*container
+
+  loop: '{{ rfs_machine_only_services }}'
+
+
+- name: Blacklist container-only services
+  copy:
+    dest: '{{ rfs_path }}/etc/systemd/system/{{ item }}.d/container-blacklist.conf'
+    content: |
+      [Unit]
+      ConditionHost = rfs*container
+
+  loop: '{{ rfs_container_only_services }}'
+
+
 - name: Copy authorized_keys2
   when: authorized_keys2.stat.exists
   copy:
