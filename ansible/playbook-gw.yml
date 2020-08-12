@@ -2,6 +2,7 @@
   hosts:
     - gw
   remote_user: root
+  gather_facts: yes
 
   tasks:
     - import_role:

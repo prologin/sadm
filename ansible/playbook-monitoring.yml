@@ -2,6 +2,7 @@
   hosts:
     - monitoring
   remote_user: root
+  gather_facts: yes
 
   tasks:
     - name: Register Monitoring machine in MDB

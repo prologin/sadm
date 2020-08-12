@@ -2,6 +2,8 @@
   hosts:
     - rhfs
   remote_user: root
+  gather_facts: yes
+
   tasks:
     - name: Register RHFS machine in MDB
       mdb:

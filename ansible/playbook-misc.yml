@@ -2,6 +2,8 @@
   hosts:
     - misc
   remote_user: root
+  gather_facts: yes
+
   tasks:
     - name: Register Misc machine in MDB
       mdb:

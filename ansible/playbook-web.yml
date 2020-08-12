@@ -2,6 +2,7 @@
   hosts:
     - web
   remote_user: root
+  gather_facts: yes
 
   tasks:
     - name: Register Web machine in MDB
