@@ -25,13 +25,27 @@
     src: 'systemd/nic-configuration@.service'
     dest: '/etc/systemd/system'
 
-- name: Install networkd config
+- name: Install basic networkd DHCP config
+  template:
+    src: network/50-dhcp.network
+    dest: /etc/systemd/network/50-dhcp.network
+    mode: 0644
+  notify: restart networkd
+
+- name: Install machine-specific networkd config
   template:
     src: 'network/{{ item }}'
     dest: '/etc/systemd/network'
     lstrip_blocks: yes
   loop: "{{ network_config }}"
   notify: restart networkd
+
+- name: Install resolved.conf
+  template:
+    src: resolved.conf
+    dest: /etc/systemd/resolved.conf
+    mode: 0644
+  notify: restart resolved
 
 # Force restart networkd here because network configuration is required for the
 # other services to run properly.
@@ -40,5 +54,11 @@
 - name: Enable systemd-networkd
   systemd:
     name: systemd-networkd
+    state: started
+    enabled: True
+
+- name: Enable systemd-resolved
+  systemd:
+    name: systemd-resolved
     state: started
     enabled: True

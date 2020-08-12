@@ -14,9 +14,9 @@
     path: '{{ rfs_path }}/etc/machine-id'
     state: absent
 
-- name: Enable ssh and systemd-resolved
+- name: Enable networkd and sshd
   command: 'systemctl --root "{{ rfs_path }}" enable
-            systemd-networkd systemd-resolved sshd'
+            systemd-networkd sshd'
   notify: restart systemd-nspawn@rfs
 
 # SSH configuration is already installed in the "base" role but we also have to

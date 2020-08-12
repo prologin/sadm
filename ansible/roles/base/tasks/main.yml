@@ -117,27 +117,6 @@
     state: absent
 
 
-# Network
-
-- name: Install networkd config
-  template:
-    src: dhcp.network
-    dest: /etc/systemd/network/50-dhcp.network
-  notify: restart networkd
-
-- name: Install resolv.conf
-  template:
-    src: resolv.conf
-    dest: /etc/resolv.conf
-  notify: restart networkd
-
-- name: Enable systemd-networkd
-  systemd:
-    name: systemd-networkd
-    state: started
-    enabled: True
-
-
 # Time
 
 - name: Install timesyncd config

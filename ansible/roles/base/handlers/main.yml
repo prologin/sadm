@@ -16,6 +16,12 @@
     state: restarted
     daemon_reload: True
 
+- name: restart resolved
+  systemd:
+    name: systemd-resolved
+    state: restarted
+    daemon_reload: True
+
 - name: restart prometheus-node-exporter
   systemd:
     name: prometheus-node-exporter
