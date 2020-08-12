@@ -40,6 +40,8 @@
   # Grafana can take some seconds to become available.
   retries: 5
   delay: 2
+  register: grafana_datasource
+  until: grafana_datasource is succeeded
 
 - name: Create Grafana dashboard directory
   file:

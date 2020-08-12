@@ -75,6 +75,11 @@
     # Flush all the handlers here to register GW in MDB
     - meta: flush_handlers
 
+    - wait_for:
+        host: mdb
+        port: 80
+        timeout: 180
+
     - name: Register GW machine in MDB
       mdb:
         hostname: gw
@@ -98,6 +103,11 @@
     # FIXME: mdbsync needs to be restarted here, otherwise mdbdns does not get
     # refreshed. \_(o_O)_/
     - meta: flush_handlers
+
+    - wait_for:
+        host: udb
+        port: 80
+        timeout: 180
 
     - import_role:
         name: netboot

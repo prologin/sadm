@@ -28,9 +28,10 @@
     dest: /etc/pacman.d/prologin.pub
     mode: 0644
   # Network might not be ready yet.
-  retries: 30
+  retries: 10
   delay: 2
   register: downloadprolokey
+  until: downloadprolokey is succeeded
 
 - name: Add Prologin repo key to keyring
   shell: |
