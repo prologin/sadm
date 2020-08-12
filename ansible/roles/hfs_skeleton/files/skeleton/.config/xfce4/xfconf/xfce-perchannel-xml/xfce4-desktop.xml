@@ -7,13 +7,13 @@
         <property name="workspace0" type="empty">
           <property name="color-style" type="int" value="0"/>
           <property name="image-style" type="int" value="4"/>
-          <property name="last-image" type="string" value="/var/prologin/wallpaper.png"/>
+          <property name="last-image" type="string" value="/opt/prologin/wallpaper.png"/>
           <property name="backdrop-cycle-enable" type="bool" value="false"/>
         </property>
         <property name="workspace1" type="empty">
           <property name="color-style" type="int" value="0"/>
           <property name="image-style" type="int" value="4"/>
-          <property name="last-image" type="string" value="/var/prologin/wallpaper.png"/>
+          <property name="last-image" type="string" value="/opt/prologin/wallpaper.png"/>
           <property name="backdrop-cycle-enable" type="bool" value="false"/>
         </property>
       </property>

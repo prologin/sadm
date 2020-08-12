@@ -978,7 +978,7 @@ Customize the wallpaper
 To customize the desktop wallpaper, create a PNG file at the following
 location and :ref:`commit <rhfsinstall>` the changes::
 
-   /export/nfsroot_staging/var/prologin/wallpaper.png
+   /export/nfsroot_staging/opt/prologin/wallpaper.png
 
 The following DE are setup to use this file:
 

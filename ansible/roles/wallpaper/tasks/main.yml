@@ -2,8 +2,16 @@
   pacman:
     name: feh
 
+- name: Install wallpaper from wallpaper_override_url
+  when: wallpaper_override_url is defined
+  get_url:
+    url: '{{ wallpaper_override_url }}'
+    dest: '/opt/prologin/wallpaper.png'
+    mode: 0644
+
 - name: Copy default wallpaper
+  when: wallpaper_override_url is not defined
   copy:
     src: 'prologin-wallpaper-1920x1080.png'
-    dest: '/var/prologin/wallpaper.png'
+    dest: '/opt/prologin/wallpaper.png'
     mode: 0644

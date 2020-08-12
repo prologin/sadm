@@ -11,6 +11,7 @@
 
     - name: Gather facts
       setup:
+      tags: always
 
     - import_role:
         name: base

@@ -150,4 +150,4 @@ bar {
 }
 
 # apply wallpaper
-exec --no-startup-id feh --no-fehbg --bg-fill /var/prologin/wallpaper.png
+exec --no-startup-id feh --no-fehbg --bg-fill /opt/prologin/wallpaper.png
