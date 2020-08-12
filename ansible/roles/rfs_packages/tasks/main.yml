@@ -38,9 +38,17 @@
       - xrun
 
       # Compilers & interpreters
-      - make
+      - clang
       - gcc
+      - ghc
+      - jdk-openjdk
+      - make
+      - mono
+      - ocaml
+      - php
+      - php-embed
       - python
+      - rust
 
       # IRC clients
       - weechat
@@ -51,19 +59,6 @@
       # Other additional dependencies
       - i3lock
       - i3status
-
-      # Stechec2 additional dependencies
-      - zeromq
-      - gtest
-      - ruby
-      - python-yaml
-      - gflags
-
-      # Stechec2 language dependencies
-      - php
-      - php-embed
-      - ocaml
-      - mono
 
 - name: Install RFS extra packages
   when: rfs_install_extra_packages
@@ -113,55 +108,43 @@
       - gnome
       - xfce4
       - bspwm
-        # (aur)- dwm
 
       # Browsers
       - firefox
       - chromium
 
       # Tools
-      - most
-      - htop
-      - git
-      - mercurial
-      - subversion
-      - evince
-      - zathura
-      - screen
-      - tmux
-      - eog
-      - feh
-      - vlc
-      - moreutils
-      - netcat
-      - rlwrap
-      - valgrind
-      - gdb
       - cgdb
       - ddd
-      - gnuplot
-      - tig
-      - xorg-xrandr
-      - python-pylint
-      - tree
-      - xcape
       - dmenu
-      - synergy
-      - sxhkd
-
-      # Compilers & interpreters
-      - make
-      - gcc
-      - clang
-      - ocaml
-      - python
+      - eog
+      - evince
+      - feh
+      - gdb
+      - git
+      - gnuplot
+      - htop
       - jupyter-notebook
-      - jdk7-openjdk
-      - jre7-openjdk
-      - mono
-      - php
-      - ghc
-      - rust
+      - mercurial
+      - moreutils
+      - most
+      - netcat
+      - python-pylint
+      - rlwrap
+      - screen
+      - subversion
+      - sxhkd
+      - synergy
+      - tig
+      - tmux
+      - tree
+      - valgrind
+      - vlc
+      - xcape
+      - xorg-xrandr
+      - zathura
+
+      # Documentation
       - rust-docs
 
       # IRC clients
@@ -187,22 +170,7 @@
       - tk
       - gsfonts
 
-      # Stechec2 additional dependencies
-      - zeromq
-      - gtest
-      - ruby
-      - python-yaml
-      - gflags
-      - python-pygame
-
-      # Stechec2 language dependencies
-      - php
-      - php-embed
-      - ocaml
-      - mono
-
       # Language libraries
       - boost
       - python-numpy
       - python-scikit-learn
-        # (AUR)- python-theano
