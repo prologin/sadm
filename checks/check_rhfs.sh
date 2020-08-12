@@ -14,6 +14,10 @@ function main {
 
   echo_status "network"
   not_in_alien_subnet
+
+  echo_status "files"
+  test_file_present /export/nfsroot/boot/initramfs-linux-fallback.img
+  test_file_present /export/nfsroot/boot/vmlinuz-linux
 }
 
 main

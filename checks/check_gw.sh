@@ -24,7 +24,6 @@ function main {
     mdbdhcp.service \
     dhcpd4.service \
     netboot.service \
-    tftpd.socket \
     udb.service \
     udbsync.service \
     udbsync_django@mdb.service \
@@ -40,8 +39,6 @@ function main {
   echo_status "files"
   test_file_present /srv/tftp/arch.kpxe
   test_file_present /srv/tftp/prologin.kpxe
-  test_file_present /srv/tftp/initrd
-  test_file_present /srv/tftp/vmlinuz
 }
 
 # Run all the checks
