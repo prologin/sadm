@@ -4,6 +4,12 @@
     state: restarted
     daemon_reload: True
 
+- name: restart resolved
+  systemd:
+    name: systemd-resolved
+    state: restarted
+    daemon_reload: True
+
 - name: restart sysctl
   systemd:
     name: systemd-sysctl
