@@ -22,3 +22,4 @@
   copy:
     src: 'sysctl/memory.conf'
     dest: '/etc/sysctl.d/'
+    mode: 0644

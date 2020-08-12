@@ -2,6 +2,7 @@
   template:
     src: 'systemd/mdbdhcp.service'
     dest: '/etc/systemd/system/mdbdhcp.service'
+    mode: 0644
   notify: restart mdbdhcp
 
 - name: Enable mdbdhcp

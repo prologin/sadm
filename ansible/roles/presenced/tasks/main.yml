@@ -47,6 +47,7 @@
   template:
     src: 'systemd/presenced-heartbeat.service'
     dest: '/etc/systemd/system/'
+    mode: 0644
 
 - name: Enable presenced-heartbeat systemd service
   systemd:

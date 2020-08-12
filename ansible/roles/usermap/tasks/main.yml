@@ -2,18 +2,21 @@
   template:
     src: 'systemd/presencesync_usermap.service'
     dest: '/etc/systemd/system/'
+    mode: 0644
   notify: restart presencesync_usermap
 
 - name: Install usermap nginx service
   template:
     src: 'nginx/usermap.nginx'
     dest: '/etc/nginx/services/'
+    mode: 0644
   notify: reload nginx
 
 - name: Install usermap configuration
   template:
     src: 'prologin/presencesync_usermap.yml'
     dest: '/etc/prologin/'
+    mode: 0644
     group: presencesync_usermap
 
 - name: Create usermap service directory

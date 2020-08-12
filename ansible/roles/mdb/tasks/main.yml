@@ -2,12 +2,14 @@
   template:
     src: 'systemd/mdb.service'
     dest: '/etc/systemd/system/mdb.service'
+    mode: 0644
   notify: restart mdb
 
 - name: Install MDB nginx service
   template:
     src: 'nginx/mdb.nginx'
     dest: '/etc/nginx/services/mdb.nginx'
+    mode: 0644
   notify: reload nginx
 
 - name: Install client configurations

@@ -6,12 +6,14 @@
   template:
     src: 'systemd/teeworlds-server.service'
     dest: '/etc/systemd/system/'
+    mode: 0644
   notify: restart teeworlds-server
 
 - name: Install teeworlds configuration
   template:
     src: 'teeworlds_srv.cfg'
     dest: '/etc'
+    mode: 0644
   notify: restart teeworlds-server
 
 - name: Enable teeworlds-server

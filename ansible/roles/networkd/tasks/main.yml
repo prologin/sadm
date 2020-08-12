@@ -9,12 +9,14 @@
   template:
     src: 'sysctl/no_icmp_redirect.conf'
     dest: '/etc/sysctl.d/no_icmp_redirect.conf'
+    mode: 0644
   notify: restart sysctl
 
 - name: Setup dual NIC routing configuration with rp_filter
   template:
     src: 'sysctl/rp_filter.conf'
     dest: '/etc/sysctl.d/rp_filter.conf'
+    mode: 0644
   notify: restart sysctl
   when: dual_nic
 
@@ -24,6 +26,7 @@
   template:
     src: 'systemd/nic-configuration@.service'
     dest: '/etc/systemd/system'
+    mode: 0644
 
 - name: Install basic networkd DHCP config
   template:
@@ -36,6 +39,7 @@
   template:
     src: 'network/{{ item }}'
     dest: '/etc/systemd/network'
+    mode: 0644
     lstrip_blocks: yes
   loop: "{{ network_config }}"
   notify: restart networkd

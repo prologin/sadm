@@ -32,6 +32,7 @@
   template:
     src: 'nginx/http_boot.nginx'
     dest: '/etc/nginx/services/'
+    mode: 0644
   notify: reload nginx
 
 - import_tasks: rfs-system.yml

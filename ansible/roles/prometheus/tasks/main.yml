@@ -6,20 +6,23 @@
   template:
     src: 'systemd/prometheus.service'
     dest: '/etc/systemd/system/'
+    mode: 0644
   notify: restart prometheus
 
 - name: Install Prometheus nginx service
   template:
     src: 'nginx/prometheus.nginx'
     dest: '/etc/nginx/services'
+    mode: 0644
   notify: reload nginx
 
-- name: Install iptables firewall configuration
+- name: Install Prometheus configuration
   template:
     src: 'prometheus/{{ item }}'
     dest: '/etc/prometheus/'
     owner: prometheus
     group: prometheus
+    mode: 0644
   loop:
     - prometheus.yml
     - alert.rules.yml

@@ -2,6 +2,7 @@
   template:
     src: 'systemd/udbsync_rootssh.service'
     dest: '/etc/systemd/system/udbsync_rootssh.service'
+    mode: 0644
   notify: restart udbsync_rootssh
 
 - name: Enable udbsync_rootssh

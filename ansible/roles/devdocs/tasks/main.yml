@@ -2,12 +2,13 @@
   pacman:
     name:
       # https://aur.archlinux.org/packages/devdocs-git/
-      - devdocs-git
+      - prologin/devdocs-git
 
 - name: Install DevDocs nginx service
   template:
     src: 'nginx/devdocs.nginx'
     dest: '/etc/nginx/services/devdocs.nginx'
+    mode: 0644
   notify: reload nginx
 
 # Required for ruby tilde expansion, otherwise it crashes.
@@ -21,7 +22,9 @@
     content: |
       [Service]
       Environment=HOME=/opt/devdocs-git
+
     dest: '/etc/systemd/system/devdocs.service.d/override.conf'
+    mode: 0644
 
 - name: Enable DevDocs
   systemd:

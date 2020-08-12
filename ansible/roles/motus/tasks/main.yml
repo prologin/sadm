@@ -9,6 +9,7 @@
   template:
     src: eggdrop-motus.conf
     dest: '/etc/'
+    mode: 0644
   notify: restart eggdrop-motus
 
 - name: Set motus channel name
@@ -22,6 +23,7 @@
   template:
     src: systemd/eggdrop-motus.service
     dest: '/etc/systemd/system'
+    mode: 0644
   notify: restart eggdrop-motus
 
 - name: Enable motus service

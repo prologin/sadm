@@ -8,11 +8,13 @@
   copy:
     content: nbd
     dest: /etc/modules-load.d/nbd.conf
+    mode: 0644
 
 - name: Install prologin initcpio module
   copy:
     src: 'initcpio/{{ item }}'
     dest: '/lib/initcpio/{{ item }}'
+    mode: 0644
   loop:
     - 'hooks/prologin'
     - 'install/prologin'

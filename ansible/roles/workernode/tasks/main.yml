@@ -14,11 +14,13 @@
   template:
     src: 'systemd/workernode.service'
     dest: '/etc/systemd/system/'
+    mode: 0644
 
 - name: Install Workernode configuration
   template:
     src: 'prologin/workernode.yml'
     dest: '/etc/prologin/'
+    mode: 0644
     group: cluster
 
 - name: Enable Workernode

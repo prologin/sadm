@@ -2,12 +2,14 @@
   template:
     src: 'systemd/homepage.service'
     dest: '/etc/systemd/system/homepage.service'
+    mode: 0644
   notify: restart homepage
 
 - name: Install Homepage nginx service
   template:
     src: 'nginx/homepage.nginx'
     dest: '/etc/nginx/services/homepage.nginx'
+    mode: 0644
   notify: reload nginx
 
 - name: Install client configurations

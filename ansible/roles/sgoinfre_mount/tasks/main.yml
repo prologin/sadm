@@ -7,6 +7,7 @@
   template:
     src: systemd/sgoinfre.mount
     dest: /etc/systemd/system
+    mode: 0644
   notify: restart sgoinfre mount
 
 - name: Enable the sgoinfre mount

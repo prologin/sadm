@@ -2,12 +2,14 @@
   template:
     src: 'systemd/concours.service'
     dest: '/etc/systemd/system/concours.service'
+    mode: 0644
   notify: restart concours
 
 - name: Install Concours nginx service
   template:
     src: 'nginx/concours.nginx'
     dest: '/etc/nginx/services/concours.nginx'
+    mode: 0644
   notify: reload nginx
 
 - name: Install client configurations

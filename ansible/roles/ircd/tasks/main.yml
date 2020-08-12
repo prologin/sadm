@@ -13,17 +13,20 @@
   template:
     src: unrealircd_reload.conf
     dest: "/etc/systemd/system/unrealircd.service.d/unrealircd_reload.conf"
+    mode: 0644
 
 - name: Copy unrealircd configuration
   template:
     src: unrealircd.conf
     dest: "/etc/unrealircd/unrealircd.conf"
+    mode: 0644
   notify: reload unrealircd  # no easy way to /rehash from the CLI apparently
 
 - name: Install gatessh service
   template:
     src: irc_gatessh.service
     dest: "/etc/systemd/system/irc_gatessh.service"
+    mode: 0644
   notify: restart irc_gatessh
 
 
@@ -43,6 +46,7 @@
     path: /etc/unrealircd/tls/server.csr
     privatekey_path: /etc/unrealircd/tls/server.key.pem
     common_name: "misc.prolo"
+    mode: 0644
 
 - name: Generate a self signed OpenSSL certificate
   openssl_certificate:
@@ -51,6 +55,7 @@
     privatekey_path: /etc/unrealircd/tls/server.key.pem
     csr_path: /etc/unrealircd/tls/server.csr
     provider: selfsigned
+    mode: 0644
 
 
 - name: Enable unrealircd

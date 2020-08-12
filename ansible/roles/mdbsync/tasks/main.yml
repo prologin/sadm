@@ -2,12 +2,14 @@
   template:
     src: 'systemd/mdbsync.service'
     dest: '/etc/systemd/system/mdbsync.service'
+    mode: 0644
   notify: restart mdbsync
 
 - name: Install mdbsync nginx service
   template:
     src: 'nginx/mdbsync.nginx'
     dest: '/etc/nginx/services/mdbsync.nginx'
+    mode: 0644
   notify: reload nginx
 
 - name: Enable mdbsync

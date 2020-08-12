@@ -2,12 +2,14 @@
   template:
     src: 'systemd/udb.service'
     dest: '/etc/systemd/system/udb.service'
+    mode: 0644
   notify: restart udb
 
 - name: Install UDB nginx service
   template:
     src: 'nginx/udb.nginx'
     dest: '/etc/nginx/services/udb.nginx'
+    mode: 0644
   notify: reload nginx
 
 - name: Install client configurations

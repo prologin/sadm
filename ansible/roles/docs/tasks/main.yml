@@ -2,6 +2,7 @@
   template:
     src: 'nginx/docs.nginx'
     dest: '/etc/nginx/services/'
+    mode: 0644
   notify: reload nginx
 
 - name: Create docs service directory

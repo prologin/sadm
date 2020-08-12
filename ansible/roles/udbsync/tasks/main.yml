@@ -2,12 +2,14 @@
   template:
     src: 'systemd/udbsync.service'
     dest: '/etc/systemd/system/udbsync.service'
+    mode: 0644
   notify: restart udbsync
 
 - name: Install udbsync nginx service
   template:
     src: 'nginx/udbsync.nginx'
     dest: '/etc/nginx/services/udbsync.nginx'
+    mode: 0644
   notify: reload nginx
 
 - name: Enable udbsync

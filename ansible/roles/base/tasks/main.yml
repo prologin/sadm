@@ -7,11 +7,13 @@
     path: '/etc/localtime'
     src: '/usr/share/zoneinfo/{{ sadm_timezone }}'
     state: link
+    mode: 0644
 
 - name: Install locale.conf
   copy:
     content: "LANG={{ sadm_locale }}\n"
     dest: '/etc/locale.conf'
+    mode: 0644
 
 - name: Generate locale
   locale_gen:
@@ -24,6 +26,7 @@
   get_url:
     url: https://repo.prologin.org/prologin.pub
     dest: /etc/pacman.d/prologin.pub
+    mode: 0644
   # Network might not be ready yet.
   retries: 10
   delay: 2
@@ -123,6 +126,7 @@
   template:
     src: timesyncd.conf
     dest: /etc/systemd/timesyncd.conf
+    mode: 0644
   notify: restart timesyncd
 
 - name: Enable systemd-timesyncd
@@ -137,6 +141,7 @@
   template:
     src: sshd_config
     dest: /etc/ssh/sshd_config
+    mode: 0644
   notify: restart sshd
 
 - name: Enable sshd
@@ -152,6 +157,7 @@
   template:
     src: prometheus-node-exporter
     dest: /etc/conf.d/prometheus-node-exporter
+    mode: 0644
   notify: restart prometheus-node-exporter
   tags: prometheus-node-exporter
 
@@ -166,6 +172,7 @@
   template:
     src: journalbeat.yml
     dest: /etc/journalbeat/journalbeat.yml
+    mode: 0644
   notify: restart journalbeat
   tags: journalbeat
 

@@ -6,12 +6,14 @@
   template:
     src: 'systemd/firewall.service'
     dest: '/etc/systemd/system/firewall.service'
+    mode: 0644
   notify: restart firewall
 
 - name: Install iptables firewall configuration
   template:
     src: 'iptables.save'
     dest: '/etc/prologin/'
+    mode: 0644
   notify: restart firewall
 
 - name: Enable firewall

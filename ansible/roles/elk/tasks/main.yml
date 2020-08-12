@@ -8,6 +8,7 @@
   template:
     src: 'nginx/kibana.nginx'
     dest: '/etc/nginx/services/'
+    mode: 0644
   notify: reload nginx
 
 - name: Install Elasticsearch configuration

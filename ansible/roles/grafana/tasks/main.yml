@@ -6,6 +6,7 @@
   template:
     src: 'nginx/grafana.nginx'
     dest: '/etc/nginx/services/'
+    mode: 0644
   notify: reload nginx
 
 - name: Install Grafana configuration
@@ -51,6 +52,7 @@
   copy:
     src: '{{ item.src }}'
     dest: '/etc/grafana/dashboard/'
+    mode: 0644
   with_filetree: dashboards/
   loop_control:
     label: '{{ item.path }}'

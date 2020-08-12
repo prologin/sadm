@@ -2,12 +2,14 @@
   template:
     src: 'systemd/udbsync_passwd_nfsroot.service'
     dest: '/etc/systemd/system/'
+    mode: 0644
   notify: restart udbsync_passwd_nfsroot
 
 - name: Install rootssh-copy systemd service
   template:
     src: 'systemd/{{ item }}'
     dest: '/etc/systemd/system/'
+    mode: 0644
   loop:
     - rootssh-copy.service
     - rootssh.path

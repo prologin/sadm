@@ -8,12 +8,14 @@
   template:
     src: 'systemd/netboot.service'
     dest: '/etc/systemd/system/netboot.service'
+    mode: 0644
   notify: restart netboot
 
 - name: Install netboot nginx service
   template:
     src: 'nginx/netboot.nginx'
     dest: '/etc/nginx/services/netboot.nginx'
+    mode: 0644
   notify: reload nginx
 
 - name: Install netboot configuration

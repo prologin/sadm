@@ -50,6 +50,7 @@
 - name: Blacklist non-container services
   copy:
     dest: '{{ rfs_path }}/etc/systemd/system/{{ item }}.d/container-blacklist.conf'
+    mode: 0644
     content: |
       [Unit]
       ConditionHost =! rfs*container
@@ -59,6 +60,7 @@
 
 - name: Blacklist container-only services
   copy:
+    mode: 0644
     dest: '{{ rfs_path }}/etc/systemd/system/{{ item }}.d/container-blacklist.conf'
     content: |
       [Unit]
@@ -73,6 +75,7 @@
     remote_src: true
     src: '/root/.ssh/authorized_keys2'
     dest: '{{ rfs_path }}/root/.ssh/'
+    mode: 0644
 
 - name: Add rfs to /var/lib/machines
   file:
@@ -90,12 +93,14 @@
   template:
     src: 'rfs.nspawn'
     dest: '/etc/systemd/nspawn/{{ rfs_container }}.nspawn'
+    mode: 0644
   notify: restart systemd-nspawn@rfs
 
 - name: Add rfs container network config
   template:
     src: 'rfs.network'
     dest: '/etc/systemd/network/'
+    mode: 0644
   notify:
     - restart networkd
     - restart systemd-nspawn@rfs

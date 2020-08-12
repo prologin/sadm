@@ -2,12 +2,14 @@
   template:
     src: 'systemd/presencesync.service'
     dest: '/etc/systemd/system/presencesync.service'
+    mode: 0644
   notify: restart presencesync
 
 - name: Install presencesync nginx service
   template:
     src: 'nginx/presencesync.nginx'
     dest: '/etc/nginx/services/presencesync.nginx'
+    mode: 0644
   notify: reload nginx
 
 - name: Enable presencesync

@@ -2,12 +2,14 @@
   template:
     src: 'systemd/wiki.service'
     dest: '/etc/systemd/system/'
+    mode: 0644
   notify: restart wiki
 
 - name: Install Wiki nginx service
   template:
     src: 'nginx/wiki.nginx'
     dest: '/etc/nginx/services/wiki.nginx'
+    mode: 0644
   notify: reload nginx
 
 - name: Install client configurations

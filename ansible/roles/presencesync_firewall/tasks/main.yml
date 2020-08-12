@@ -6,12 +6,14 @@
   template:
     src: 'systemd/presencesync_firewall.service'
     dest: '/etc/systemd/system/presencesync_firewall.service'
+    mode: 0644
   notify: restart presencesync_firewall
 
 - name: Install presencesync_firewall configuration
   template:
     src: 'prologin/presencesync_firewall.yml'
     dest: '/etc/prologin/'
+    mode: 0644
   notify: restart presencesync_firewall
   tags: contest_mode
 

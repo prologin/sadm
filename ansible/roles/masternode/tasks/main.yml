@@ -2,12 +2,14 @@
   template:
     src: 'systemd/masternode.service'
     dest: '/etc/systemd/system/masternode.service'
+    mode: 0644
   notify: restart masternode
 
 - name: Install masternode configuration
   template:
     src: 'prologin/masternode.yml'
     dest: '/etc/prologin/'
+    mode: 0644
     group: concours
 
 - name: Enable Masternode

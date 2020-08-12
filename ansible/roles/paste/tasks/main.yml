@@ -2,12 +2,14 @@
   template:
     src: 'systemd/paste.service'
     dest: '/etc/systemd/system/paste.service'
+    mode: 0644
   notify: restart paste
 
 - name: Install Paste nginx service
   template:
     src: 'nginx/paste.nginx'
     dest: '/etc/nginx/services/paste.nginx'
+    mode: 0644
   notify: reload nginx
 
 - name: Install client configurations

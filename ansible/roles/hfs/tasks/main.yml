@@ -7,6 +7,7 @@
   template:
     src: 'systemd/hfs@.service'
     dest: '/etc/systemd/system/'
+    mode: 0644
   notify: restart hfs
 
 - name: Install hfs configuration
@@ -14,6 +15,7 @@
     src: 'prologin/hfs-server.yml'
     dest: '/etc/prologin/'
     group: hfs
+    mode: 0644
   notify: restart hfs
   tags: contest_mode
 
