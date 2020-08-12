@@ -1,3 +1,0 @@
-" syntax.vim
-
-syntax enable

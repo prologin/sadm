@@ -1,9 +1,0 @@
-[SddmGreeterTheme]
-Name=ProloginFancy
-Author=zopieux
-Type=sddm-theme
-Version=0.1
-MainScript=Main.qml
-ConfigFile=theme.conf
-Theme-Id=prologin-fancy
-Theme-API=2.0

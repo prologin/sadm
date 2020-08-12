@@ -1,6 +1,0 @@
-[Unit]
-Description=Teeworlds server
-
-[Service]
-DynamicUser=yes
-ExecStart=/usr/bin/teeworlds_srv -f /etc/teeworlds_srv.cfg

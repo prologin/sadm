@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-cd /var/prologin/mdb
-/opt/prologin/venv/bin/python ./manage.py ansible $*

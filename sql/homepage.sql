@@ -1,2 +1,0 @@
-CREATE ROLE homepage WITH LOGIN ENCRYPTED PASSWORD '%%SECRET:homepagedb%%';
-CREATE DATABASE homepage OWNER homepage;

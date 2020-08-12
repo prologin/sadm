@@ -1,2 +1,0 @@
-CREATE ROLE concours WITH LOGIN ENCRYPTED PASSWORD '%%SECRET:concoursdb%%';
-CREATE DATABASE concours OWNER concours;
