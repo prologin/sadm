@@ -75,7 +75,8 @@
     # Flush all the handlers here to register GW in MDB
     - meta: flush_handlers
 
-    - wait_for:
+    - name: Wait for mdb to become available
+      wait_for:
         host: mdb
         port: 80
         timeout: 180
@@ -104,7 +105,8 @@
     # refreshed. \_(o_O)_/
     - meta: flush_handlers
 
-    - wait_for:
+    - name: Wait for the DNS to become available
+      wait_for:
         host: udb
         port: 80
         timeout: 180
