@@ -28,7 +28,7 @@
     dest: /etc/pacman.d/prologin.pub
     mode: 0644
   # Network might not be ready yet.
-  retries: 10
+  retries: 30
   delay: 2
   register: downloadprolokey
 
