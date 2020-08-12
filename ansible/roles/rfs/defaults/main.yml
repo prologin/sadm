@@ -8,7 +8,4 @@ rfs_machine_only_services:
   - sgoinfre.mount
   - workernode.service
 
-rfs_container_only_services:
-  - systemd-networkd.service
-  - systemd-networkd.socket
-  - systemd-networkd-wait-online.service
+rfs_container_only_services: []

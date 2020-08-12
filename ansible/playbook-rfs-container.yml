@@ -14,6 +14,10 @@
       tags: always
 
     - import_role:
+        name: networkd
+      tags: networkd
+
+    - import_role:
         name: base
       tags: base
 
