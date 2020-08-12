@@ -2,7 +2,16 @@
   hosts:
     - rfs_container
   remote_user: root
+  gather_facts: no
+
   tasks:
+    - name: Wait for the RFS container to come back up after restart
+      wait_for_connection:
+        timeout: 60
+
+    - name: Gather facts
+      setup:
+
     - import_role:
         name: base
       tags: base
