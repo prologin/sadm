@@ -72,13 +72,14 @@ function stage_setup_ssh {
 function stage_write_inventory_mac {
     echo_status "[-] Write ethernet MAC in the ansible container inventory"
 
-    mkdir -p "$ANSIBLE_INVENTORY/host_vars/$CONTAINER_HOSTNAME"
+    host_var_dir="$ANSIBLE_INVENTORY/host_vars/$CONTAINER_HOSTNAME"
+    mkdir -p "$host_var_dir"
     CONTAINER_MAC=$(
         systemd-run -M $CONTAINER_NAME --quiet --pipe "$@" \
             /bin/cat /sys/class/net/host0/address
     )
-    echo "mac: \"$CONTAINER_MAC\"" \
-        > "$ANSIBLE_INVENTORY/host_vars/$CONTAINER_HOSTNAME/mac.yml"
+    echo "mac: \"$CONTAINER_MAC\"" > "$host_var_dir/mac.yml"
+    chown --reference="$host_var_dir" "$host_var_dir/mac.yml"
 }
 
 run container_stop
