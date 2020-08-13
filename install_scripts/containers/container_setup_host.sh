@@ -1,9 +1,10 @@
 #!/bin/bash
 
 CONTAINER_NAME=arch_linux_base
-GW_CONTAINER_NAME=dummy
+CONTAINER_HOSTNAME=dummy
 
-source ./container_setup_common.sh
+cd $(dirname -- $0)
+source ./container_common.sh
 
 this_script_must_be_run_as_root
 

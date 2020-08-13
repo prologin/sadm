@@ -105,27 +105,6 @@ else
   echo_status "Warning: root password file empty, not setting any root password"
 fi
 
-echo_status "Disabling pam_securetty, see https://github.com/systemd/systemd/issues/852#issuecomment-127759667"
-sed -i '/pam_securetty.so/s/^/#/' $root_dir/etc/pam.d/login
-
-echo_status "Setting up NTP"
-# TOOD(halfr): move this to a dedicated conf file in the repo
-echo "[Time]
-NTP=ntp.prolo" > "$root_dir/etc/systemd/timesyncd.conf"
-
-echo_status "Configuring DHCP for all en* interfaces"
-# TOOD(halfr): move this to a dedicated conf file in the repo
-echo "[Match]
-Name=eth* en* host*
-
-[Network]
-DHCP=yes
-LLDP=yes
-EmitLLDP=customer-bridge" > "$root_dir/etc/systemd/network/50-dhcp.network"
-
-echo_status "Copying resolv.conf"
-cp -v ../etc/resolv.conf "$root_dir/etc/resolv.conf"
-
 echo_status "Enabling base services"
 systemctl --root "$root_dir" enable sshd systemd-timesyncd systemd-networkd
 
