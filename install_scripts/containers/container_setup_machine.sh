@@ -59,7 +59,7 @@ EOF
 }
 
 function stage_setup_ssh {
-    echo_status "[-] Setup SSH keys"
+    echo_status "Setup SSH keys"
 
     mkdir -p "$CONTAINER_ROOT"/root/.ssh
     cat "$SSH_PUB_KEY" > "$CONTAINER_ROOT"/root/.ssh/authorized_keys
@@ -70,7 +70,7 @@ function stage_setup_ssh {
 }
 
 function stage_write_inventory_mac {
-    echo_status "[-] Write ethernet MAC in the ansible container inventory"
+    echo_status "Write ethernet MAC in the ansible container inventory"
 
     host_var_dir="$ANSIBLE_INVENTORY/host_vars/$CONTAINER_HOSTNAME"
     mkdir -p "$host_var_dir"

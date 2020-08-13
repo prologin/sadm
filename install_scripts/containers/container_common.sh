@@ -57,8 +57,13 @@ function container_stop {
 }
 
 function container_start {
-  echo_status "Spawn container with 5 seconds delay to have systemd start"
-  machinectl start $CONTAINER_NAME && sleep 5
+  echo_status "Spawn container"
+  machinectl start $CONTAINER_NAME
+
+  echo "[-] Wait for machine D-Bus socket to be ready"
+  until systemd-run --quiet --pipe -M "$CONTAINER_NAME" /bin/true 2>/dev/null; do
+      sleep 1;
+  done
 
   echo '[-] Containers on this system:'
   machinectl list
