@@ -51,9 +51,13 @@
     mode: 0644
   notify: restart resolved
 
-# Force restart networkd here because network configuration is required for the
-# other services to run properly.
-- meta: flush_handlers
+- name: Link the systemd resolv.conf stub
+  file:
+    state: link
+    path: /etc/resolv.conf
+    src: /run/systemd/resolve/stub-resolv.conf
+    force: true
+  notify: restart resolved
 
 - name: Enable systemd-networkd
   systemd:
@@ -66,3 +70,7 @@
     name: systemd-resolved
     state: started
     enabled: True
+
+# Force restart networkd here because network configuration is required for the
+# other services to run properly.
+- meta: flush_handlers
