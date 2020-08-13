@@ -100,3 +100,28 @@ class MDBServer(prologin.rpc.server.BaseRPCApp):
             raise RuntimeError('unable to register, duplicate name?')
 
         return machine.ip
+
+    @prologin.rpc.remote_method(auth_required=False)
+    async def ansible(self):
+        """
+        Generate an Ansible Ansible dynamic inventory from the machine database
+        (mdb) in JSON format.
+
+        References:
+
+            - http://docs.ansible.com/intro_dynamic_inventory.html
+            - http://docs.ansible.com/developing_inventory.html
+        """
+
+        ret = {
+            k: {'hosts': [], 'vars': {}} for k in ('orga', 'user', 'service')
+        }
+        # If this field is not present in the --list output ansible will
+        # iterate very slowly over all the hosts and call this script to get
+        # their hostvars. See https://github.com/ansible/ansible/issues/9291
+        ret['_meta'] = {'hostvars': {}}
+
+        for machine in Machine.objects.all():
+            ret[machine.mtype]['hosts'].append(machine.hostname)
+
+        return ret
