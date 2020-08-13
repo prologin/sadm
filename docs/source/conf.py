@@ -13,7 +13,7 @@ import sys
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
-PYTHON_LIB_PATH = os.path.abspath('../../python-lib')
+PYTHON_LIB_PATH = os.path.abspath('../..')
 sys.path.insert(0, PYTHON_LIB_PATH)
 
 # -- Project information -----------------------------------------------------

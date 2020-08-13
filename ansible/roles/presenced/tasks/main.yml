@@ -23,7 +23,7 @@
 - name: Install pam_prologin.py
   copy:
     remote_src: true
-    src: '/root/sadm/python-lib/prologin/presenced/pam_prologin.py'
+    src: '/root/sadm/prologin/presenced/pam_prologin.py'
     dest: '/opt/prologin/presenced/'
     mode: 0755
 

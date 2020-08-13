@@ -10,6 +10,15 @@
     path: "{{ venv_dir }}"
     state: directory
 
+- name: upgrade pip and wheel
+  pip:
+    name:
+      - wheel
+      - pip
+    state: latest
+    virtualenv: "{{ venv_dir }}"
+    virtualenv_command: /usr/bin/python3 -m venv
+
 - name: install venv and requirements
   pip:
     requirements: "{{ sadm_path }}/requirements.txt"
@@ -18,7 +27,7 @@
 
 - name: install libprologin
   pip:
-    name: "{{ sadm_path }}/python-lib"
+    name: "{{ sadm_path }}"
     virtualenv: "{{ venv_dir }}"
     virtualenv_command: python3 -m venv
 

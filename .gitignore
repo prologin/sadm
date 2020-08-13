@@ -6,8 +6,8 @@ __pycache__
 *.dev.yml
 .idea/
 venv/
-python-lib/dist
-python-lib/build
+dist
+build
 docs/source/api
 ansible/.mitogen
 ansible/**/mac.yml

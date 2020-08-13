@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
-from setuptools import setup, find_packages
+from setuptools import setup, find_namespace_packages
 
 setup(
     name='ProloginSADM',
@@ -25,7 +25,7 @@ setup(
     author='Association Prologin',
     author_email='info@prologin.org',
     url='https://github.com/prologin/sadm/',
-    packages=find_packages(),
+    packages=find_namespace_packages(include=['prologin', 'prologin.*']),
     scripts=['prologin/rpc/prolorpc', 'prologin/xhack.py'],
     package_data={
         'prologin.concours': [

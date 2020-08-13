@@ -1,5 +1,5 @@
-files: python-lib/.*
-exclude: python-lib/prologin/udb/migrations/.*
+files: prologin/.*
+exclude: prologin/udb/migrations/.*
 repos:
   - repo: https://github.com/psf/black
     rev: stable
