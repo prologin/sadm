@@ -22,14 +22,12 @@ def get_logged_on_prologin_users() -> Set[str]:
     """Returns the set of logged-on users that are handled by Prologin."""
     who = subprocess.check_output(['who', '-q'], encoding='utf-8')
     # Output of `$ who -q` looks like:
-    #   zopieux
-    #   # users=1
+    #   foo bar qux
+    #   # users=3
     return set(
         username
-        for line in who.splitlines(keepends=False)
-        if (username := line.strip())
-        and not username.startswith('#')
-        and is_prologin_user(username)
+        for part in who.splitlines(keepends=False)[0].split()
+        if (username := part.strip()) and is_prologin_user(username)
     )
 
 
