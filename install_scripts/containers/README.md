@@ -20,12 +20,9 @@ sudo ./container_setup_host.sh
 3. Spawn all the machines:
 
 ```bash
-sudo ./container_setup_machine.sh gw
-sudo ./container_setup_machine.sh monitoring
-sudo ./container_setup_machine.sh web
-sudo ./container_setup_machine.sh rhfs01
-sudo ./container_setup_machine.sh rhfs23
-sudo ./container_setup_machine.sh misc
+for ĥost in gw monitoring web rhfs01 rhfs23 misc; do
+  sudo ./container_setup_machine.sh $host
+done
 ```
 
 ## Organization
