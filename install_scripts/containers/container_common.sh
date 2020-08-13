@@ -25,6 +25,8 @@ if $DEBUG; then
 fi
 
 SADM_ROOT_DIR=$(readlink -f -- $PWD/../..)
+ANSIBLE_INVENTORY="$SADM_ROOT_DIR/ansible/inventory"
+
 ARCH_LINUX_BASE_ROOT=/var/lib/machines/arch_linux_base
 CONTAINER_ROOT=/var/lib/machines/$CONTAINER_NAME
 

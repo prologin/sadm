@@ -2,7 +2,7 @@
   hosts:
     - misc
   remote_user: root
-  gather_facts: yes
+  gather_facts: no
 
   tasks:
     - name: Register Misc machine in MDB
@@ -16,6 +16,14 @@
         room: pasteur
       delegate_to: gw
       tags: mdb_register
+
+    - name: Wait for the machine to get an IP
+      wait_for_connection:
+        timeout: 60
+
+    - name: Gather facts
+      setup:
+      tags: always
 
     - import_role:
         name: networkd

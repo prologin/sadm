@@ -41,6 +41,21 @@ Zone=$NETWORK_ZONE
 PrivateUsersChown=false
 BindReadOnly=${SADM_ROOT_DIR}:/root/sadm
 EOF
+
+    if [ "$CONTAINER_HOSTNAME" == "gw" ]; then
+        echo "[-] Bootstrap gateway static IP"
+	# This will be overwritten by ansible and just serves to bootstrap the
+	# gateway IP for the first time.
+        cat >"$CONTAINER_ROOT"/etc/systemd/network/10-gw.network <<EOF
+[Match]
+Name=host0
+
+[Network]
+DHCP=no
+Gateway=10.0.0.1
+Address=10.0.0.254/24
+EOF
+    fi
 }
 
 function stage_setup_ssh {
@@ -54,7 +69,20 @@ function stage_setup_ssh {
     chmod 600 "$CONTAINER_ROOT"/root/.ssh/*
 }
 
+function stage_write_inventory_mac {
+    echo_status "[-] Write ethernet MAC in the ansible container inventory"
+
+    mkdir -p "$ANSIBLE_INVENTORY/host_vars/$CONTAINER_HOSTNAME"
+    CONTAINER_MAC=$(
+        systemd-run -M $CONTAINER_NAME --quiet --pipe "$@" \
+            /bin/cat /sys/class/net/host0/address
+    )
+    echo "mac: \"$CONTAINER_MAC\"" \
+        > "$ANSIBLE_INVENTORY/host_vars/$CONTAINER_HOSTNAME/mac.yml"
+}
+
 run container_stop
 run stage_setup_container
 run stage_setup_ssh
 run container_start
+run stage_write_inventory_mac

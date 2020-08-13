@@ -10,3 +10,4 @@ python-lib/dist
 python-lib/build
 docs/source/api
 ansible/.mitogen
+ansible/**/mac.yml
