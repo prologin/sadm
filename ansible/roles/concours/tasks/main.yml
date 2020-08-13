@@ -27,7 +27,7 @@
 
 - name: Create Django app directory
   file:
-    path: /var/prologin/concours
+    path: /opt/prologin/concours
     state: directory
     owner: concours
     group: concours
@@ -36,7 +36,7 @@
 - name: Install Concours manage.py
   template:
     src: 'django/manage.py'
-    dest: '/var/prologin/concours/manage.py'
+    dest: '/opt/prologin/concours/manage.py'
     owner: concours
     group: concours
     mode: 0750
@@ -68,7 +68,7 @@
 - name: Migrate Concours database
   django_manage:
     command: migrate
-    app_path: '/var/prologin/concours'
+    app_path: '/opt/prologin/concours'
     virtualenv: '/opt/prologin/venv'
 
 - name: Enable Concours

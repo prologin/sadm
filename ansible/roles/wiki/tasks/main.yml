@@ -27,7 +27,7 @@
 
 - name: Create Django app directory
   file:
-    path: /var/prologin/wiki
+    path: /opt/prologin/wiki
     state: directory
     owner: wiki
     group: wiki
@@ -36,7 +36,7 @@
 - name: Install Wiki manage.py
   template:
     src: 'django/manage.py'
-    dest: '/var/prologin/wiki/manage.py'
+    dest: '/opt/prologin/wiki/manage.py'
     owner: wiki
     group: wiki
     mode: 0750
@@ -60,7 +60,7 @@
 - name: Migrate Wiki database
   django_manage:
     command: migrate
-    app_path: '/var/prologin/wiki'
+    app_path: '/opt/prologin/wiki'
     virtualenv: '/opt/prologin/venv'
 
 - name: Enable Wiki

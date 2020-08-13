@@ -26,7 +26,7 @@
 
 - name: Create Django app directory
   file:
-    path: /var/prologin/mdb
+    path: /opt/prologin/mdb
     state: directory
     owner: mdb
     group: mdb
@@ -35,7 +35,7 @@
 - name: Install MDB manage.py
   template:
     src: 'django/manage.py'
-    dest: '/var/prologin/mdb/manage.py'
+    dest: '/opt/prologin/mdb/manage.py'
     owner: mdb
     group: mdb
     mode: 0750
@@ -59,7 +59,7 @@
 - name: Migrate MDB database
   django_manage:
     command: migrate
-    app_path: '/var/prologin/mdb'
+    app_path: '/opt/prologin/mdb'
     virtualenv: '/opt/prologin/venv'
 
 - name: Enable mdb

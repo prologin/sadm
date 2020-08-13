@@ -5,6 +5,12 @@
     version: ansible
     update: no   # In case there are local changes people are working on
 
+- name: create prologin opt directory
+  file:
+    path: '/opt/prologin'
+    state: directory
+    mode: 0755
+
 - name: create venv directory
   file:
     path: "{{ venv_dir }}"

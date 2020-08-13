@@ -27,7 +27,7 @@
 
 - name: Create Django app directory
   file:
-    path: /var/prologin/paste
+    path: /opt/prologin/paste
     state: directory
     owner: paste
     group: paste
@@ -36,7 +36,7 @@
 - name: Install Paste manage.py
   template:
     src: 'django/manage.py'
-    dest: '/var/prologin/paste/manage.py'
+    dest: '/opt/prologin/paste/manage.py'
     owner: paste
     group: paste
     mode: 0750
@@ -60,7 +60,7 @@
 - name: Migrate Paste database
   django_manage:
     command: migrate
-    app_path: '/var/prologin/paste'
+    app_path: '/opt/prologin/paste'
     virtualenv: '/opt/prologin/venv'
 
 - name: Enable Paste

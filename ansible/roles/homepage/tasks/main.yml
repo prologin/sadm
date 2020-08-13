@@ -27,7 +27,7 @@
 
 - name: Create Django app directory
   file:
-    path: /var/prologin/homepage
+    path: /opt/prologin/homepage
     state: directory
     owner: homepage
     group: homepage
@@ -36,7 +36,7 @@
 - name: Install Homepage manage.py
   template:
     src: 'django/manage.py'
-    dest: '/var/prologin/homepage/manage.py'
+    dest: '/opt/prologin/homepage/manage.py'
     owner: homepage
     group: homepage
     mode: 0750
@@ -60,7 +60,7 @@
 - name: Migrate Homepage database
   django_manage:
     command: migrate
-    app_path: '/var/prologin/homepage'
+    app_path: '/opt/prologin/homepage'
     virtualenv: '/opt/prologin/venv'
 
 - name: Enable Homepage

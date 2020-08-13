@@ -114,7 +114,7 @@ def run_module():
             type='str',
             required=False,
             default=(
-                '/opt/prologin/venv/bin/python /var/prologin/mdb/manage.py'
+                '/opt/prologin/venv/bin/python /opt/prologin/mdb/manage.py'
             ),
         ),
         # Machine attributes

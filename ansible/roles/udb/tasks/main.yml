@@ -26,7 +26,7 @@
 
 - name: Create Django app directory
   file:
-    path: /var/prologin/udb
+    path: /opt/prologin/udb
     state: directory
     owner: udb
     group: udb
@@ -35,7 +35,7 @@
 - name: Install UDB manage.py
   template:
     src: 'django/manage.py'
-    dest: '/var/prologin/udb/manage.py'
+    dest: '/opt/prologin/udb/manage.py'
     owner: udb
     group: udb
     mode: 0750
@@ -59,7 +59,7 @@
 - name: Migrate UDB database
   django_manage:
     command: migrate
-    app_path: '/var/prologin/udb'
+    app_path: '/opt/prologin/udb'
     virtualenv: '/opt/prologin/venv'
 
 - name: Enable udb
