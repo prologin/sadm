@@ -16,7 +16,7 @@
 
 - name: Create presenced service directory
   file:
-    path: /var/prologin/presenced
+    path: /opt/prologin/presenced
     state: directory
     mode: 0755
 
@@ -24,7 +24,7 @@
   copy:
     remote_src: true
     src: '/root/sadm/python-lib/prologin/presenced/pam_prologin.py'
-    dest: '/var/prologin/presenced/'
+    dest: '/opt/prologin/presenced/'
     mode: 0755
 
 - name: Add pam_prologin to pam.d/system-login 'account'
@@ -33,7 +33,7 @@
     insertafter: 'account    required   pam_nologin.so'
     regexp: 'account    requisite  pam_exec.so'
     line: 'account    requisite  pam_exec.so
-           stdout /var/prologin/presenced/pam_prologin.py'
+           stdout /opt/prologin/presenced/pam_prologin.py'
 
 - name: Add pam_prologin to pam.d/system-login 'session'
   lineinfile:
@@ -41,7 +41,7 @@
     insertbefore: 'pam_systemd.so'
     regexp: 'session    requisite  pam_exec.so'
     line: 'session    requisite  pam_exec.so
-           stdout /var/prologin/presenced/pam_prologin.py'
+           stdout /opt/prologin/presenced/pam_prologin.py'
 
 - name: Install presenced-heartbeat systemd service
   template:

@@ -149,6 +149,10 @@ def handle_account(username: str):
     """
     Checks the user is allowed to log on and does a dry-run mount/umount cycle.
     """
+    # Exit early if user is already logged in
+    if os.path.ismount(get_home_dir(username)):
+        return
+
     hostname = current_hostname()
     send("Checking user…")
     check_presencesync_authorized(username, hostname)
@@ -156,19 +160,19 @@ def handle_account(username: str):
     send("Requesting home…")
     try:
         host, port = get_hfs_host_port(username, hostname)
-    except:
+    except Exception:
         raise LoginError("While retrieving HFS")
 
     send("Test-mounting home…")
     try:
         mount_home(username, host, port)
-    except:
+    except Exception:
         raise LoginError("While test-mounting home")
 
     send("Test-umounting home…")
     try:
         umount_home(username)
-    except:
+    except Exception:
         raise LoginError("While test-umounting home")
 
 
@@ -177,6 +181,10 @@ def handle_open_session(username: str):
 
     In-situ, we expect this function to fail less often than
     :func:`handle_account`."""
+    # Exit early if user is already logged in
+    if os.path.ismount(get_home_dir(username)):
+        return
+
     hostname = current_hostname()
     # This will most likely succeed since we already did it moments ago.
     check_presencesync_authorized(username, hostname)
@@ -184,13 +192,13 @@ def handle_open_session(username: str):
     try:
         # This will most likely be cached from before, and therefore instant.
         host, port = get_hfs_host_port(username, hostname)
-    except:
+    except Exception:
         raise LoginError("While retrieving HFS")
 
     try:
         # Same here, this is expected to work.
         mount_home(username, host, port)
-    except:
+    except Exception:
         raise LoginError("While mounting home")
 
 
