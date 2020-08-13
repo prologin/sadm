@@ -38,7 +38,7 @@
     is_default: true
     state: present
   # Grafana can take some seconds to become available.
-  retries: 5
+  retries: 30
   delay: 2
   register: grafana_datasource
   until: grafana_datasource is succeeded
