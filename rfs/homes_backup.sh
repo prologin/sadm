@@ -36,7 +36,7 @@ for user_nbd in "$@"; do
         fi
     }
 
-    site_id=$(/var/prologin/venv/bin/python -c \
+    site_id=$(/opt/prologin/venv/bin/python -c \
 	      "print(__import__('prologin.udb.client').udb.client.connect().query(login='$user', group='user')[0]['id'])" || :)
     output_file="${output_directory}/${site_id}.tar.gz"
     workdir="${output_directory}/${user}"
