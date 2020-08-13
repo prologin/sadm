@@ -114,7 +114,16 @@ class MDBServer(prologin.rpc.server.BaseRPCApp):
         """
 
         ret = {
-            k: {'hosts': [], 'vars': {}} for k in ('orga', 'user', 'service')
+            k: {'hosts': []}
+            for k in (
+                'orga',
+                'user',
+                'cluster',
+                'service',
+                'pasteur',
+                'alt',
+                'other',
+            )
         }
         # If this field is not present in the --list output ansible will
         # iterate very slowly over all the hosts and call this script to get
@@ -123,5 +132,15 @@ class MDBServer(prologin.rpc.server.BaseRPCApp):
 
         for machine in Machine.objects.all():
             ret[machine.mtype]['hosts'].append(machine.hostname)
+            ret[machine.room]['hosts'].append(machine.hostname)
+            ret['_meta']['hostvars'][machine.hostname] = {
+                'mac': machine.mac,
+                'rfs': machine.rfs,
+                'hfs': machine.hfs,
+                'room': machine.room,
+                'aliases': machine.aliases.split(','),
+                'is_faulty': machine.is_faulty,
+                'is_faulty_details': machine.is_faulty_details,
+            }
 
         return ret
