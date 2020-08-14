@@ -67,3 +67,34 @@
     name: udb
     enabled: True
     state: started
+
+- name: Wait for udb to come up
+  uri:
+    url: 'http://udb/login/'
+    status_code: 200
+  register: result
+  until: result.status == 200
+  retries: 10
+  delay: 1
+
+- name: Create temporary file for root user import
+  template:
+    src: 'prologin/roots.list'
+    dest: '/opt/prologin/udb/roots.list'
+    owner: udb
+    group: udb
+    mode: 0750
+
+- name: Import initial root users
+  django_manage:
+    command: >
+      batchimport
+        --file /opt/prologin/udb/roots.list --type root
+        --update --logins --passwords
+    app_path: '/opt/prologin/udb'
+    virtualenv: '/opt/prologin/venv'
+
+- name: Remove temporary file for root user import
+  file:
+    path: '/opt/prologin/udb/roots.list'
+    state: absent
