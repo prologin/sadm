@@ -38,6 +38,11 @@
     pacman-key --add /etc/pacman.d/prologin.pub
     pacman-key --lsign-key prologin
   when: downloadprolokey.changed
+  # Sometimes the GPG store is not ready and we need to retry
+  retries: 5
+  delay: 5
+  register: addprolokey
+  until: addprolokey is succeeded
 
 - name: Install Prologin package repository
   ini_file:
