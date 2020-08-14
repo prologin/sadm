@@ -6,14 +6,6 @@
 
   tasks:
     - import_role:
-        name: networkd
-      vars:
-        network_config:
-          - 10-gw.link
-          - 10-gw.network
-      tags: networkd
-
-    - import_role:
         name: base
       tags: base
 
@@ -31,6 +23,17 @@
     - import_role:
         name: bind
       tags: bind
+
+    # Start bind so that it gets picked up by resolved
+    - meta: flush_handlers
+
+    - import_role:
+        name: networkd
+      vars:
+        network_config:
+          - 10-gw.link
+          - 10-gw.network
+      tags: networkd
 
     - import_role:
         name: dhcpd

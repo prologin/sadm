@@ -55,6 +55,9 @@ DHCP=no
 Gateway=10.0.0.1
 Address=10.0.0.254/24
 EOF
+        cat >"$CONTAINER_ROOT"/etc/resolv.conf <<EOF
+nameserver 8.8.8.8
+EOF
     fi
 }
 
