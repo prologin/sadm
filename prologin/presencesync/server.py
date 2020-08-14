@@ -90,14 +90,16 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
 
         return to_remove
 
-    def remove_and_publish_expired(self):
-        """Remove expired users and publish updates for it if needed."""
+    def remove_and_publish_users(self, logins):
         update_msg = [
-            self.item_to_update('delete', login, None)
-            for login in self.remove_expired()
+            self.item_to_update('delete', login, None) for login in logins
         ]
         if update_msg:
             self.post_updates(update_msg)
+
+    def remove_and_publish_expired(self):
+        """Remove expired users and publish updates for it if needed."""
+        self.remove_and_publish_users(self.remove_expired())
 
     def update_backlog(self, login, hostname):
         """Register `login` as logged on `hostname`.  Send needed update
@@ -281,6 +283,16 @@ class TimeoutedPubSubQueue(prologin.synchronisation.BasePubSubQueue):
             self.update_backlog(login, hostname)
             return None
 
+    def notify_logout(self, login, hostname):
+        _, current_hostname = self.backlog.get(login, (None, None))
+        if current_hostname is None:
+            return 'Requested logout but not logged in'
+        if current_hostname != hostname:
+            return 'Requested logout from the wrong hostname'
+        self.backlog.pop(login, None)
+        self.reverse_backlog.pop(hostname, None)
+        self.remove_and_publish_users({login})
+
     def update_with_heartbeat(self, login, hostname):
         """Accept and register as-is the association between `login` and
         `hostname`, sending an update message if needed.  Check for expired
@@ -305,6 +317,20 @@ class LoginHandler(tornado.web.RequestHandler):
         )
         if failure_reason:
             self.set_status(423, 'Login refused')
+            self.write(failure_reason)
+        else:
+            self.set_status(200, 'OK')
+
+
+class LogoutHandler(tornado.web.RequestHandler):
+    @prologin.tornadauth.signature_checked('pub_secret', check_msg=True)
+    def post(self, msg):
+        msg = json.loads(msg)
+        failure_reason = self.application.pubsub_queue.notify_logout(
+            msg['login'], msg['hostname']
+        )
+        if failure_reason:
+            self.set_status(500, 'Logout failed')
             self.write(failure_reason)
         else:
             self.set_status(200, 'OK')
@@ -369,6 +395,7 @@ class SyncServer(prologin.synchronisation.Server):
             (r'/poll', prologin.synchronisation.PollHandler),
             (r'/get_list', GetListHandler),
             (r'/login', LoginHandler),
+            (r'/logout', LogoutHandler),
             (r'/heartbeat', HeartbeatHandler),
             (r'/remove_expired', RemoveExpiredHandler),
         ]

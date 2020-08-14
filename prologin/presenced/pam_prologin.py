@@ -216,6 +216,10 @@ def handle_close_session(username: str):
     time.sleep(2)
     umount_home(username)
 
+    # Notify presencesync we're logging out.
+    presencesync_client = prologin.presencesync.client.connect(publish=True)
+    presencesync_client.notify_logout(username, current_hostname())
+
 
 def main():
     # We use stderr for communication with PAM. Don't write on it.

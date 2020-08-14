@@ -54,6 +54,21 @@ class Client(prologin.synchronisation.Client):
         else:
             return None
 
+    def notify_logout(self, login, hostname):
+        """Tell that `login` is logging out from `hostname` to the PresenceSync
+        server. Return None if this is fine, or some failure reason otherwise.
+        """
+        r = self.send_request(
+            '/logout', self.pub_secret, {'login': login, 'hostname': hostname}
+        )
+        logging.debug(
+            'Notify logout: PresenceSync status code is %s', r.status_code
+        )
+        if r.status_code != 200:
+            return r.text or 'No reason given'
+        else:
+            return None
+
     def send_heartbeat(self, login, hostname):
         """Send a heartbeat to the PresenceSync server in order to keep
         the `login` of the user logged on `hostname`.
