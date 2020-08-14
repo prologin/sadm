@@ -104,8 +104,8 @@ class MDBServer(prologin.rpc.server.BaseRPCApp):
     @prologin.rpc.remote_method(auth_required=False)
     async def ansible(self):
         """
-        Generate an Ansible Ansible dynamic inventory from the machine database
-        (mdb) in JSON format.
+        Generate an Ansible dynamic inventory from the machine database (mdb)
+        in JSON format.
 
         References:
 
