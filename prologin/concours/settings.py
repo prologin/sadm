@@ -31,7 +31,7 @@ if cfg['online_mode'].get('enabled'):
     OAUTH_CLIENT_ID += cfg['online mode']['oauth_client_id']
     OAUTH_SECRET += cfg['online_mode']['oauth_secret']
 
-    INSTALLED_APPS += 'proloauth_client'
+    INSTALLED_APPS.append('proloauth_client')
 
     MIDDLEWARE.insert(
         MIDDLEWARE.index('django.middleware.csrf.CsrfViewMiddleware'),
