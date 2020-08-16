@@ -14,13 +14,28 @@
 # You should have received a copy of the GNU General Public License
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
+from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import F
+import pwd
 
 from django_prometheus.models import ExportModelOperationsMixin
 
 import prologin.utils.django
+
+
+def validate_unix_uid(login: str):
+    """Ensures 'login' does not already exist as a system-managed uid."""
+    try:
+        uid: int = pwd.getpwnam(login).pw_uid
+    except KeyError:
+        return
+    # https://en.wikipedia.org/wiki/User_identifier#Reserved_ranges
+    if 0 <= uid < 1000 or 60000 <= uid <= 65533:
+        raise ValidationError(
+            f"Username {login} is associated with uid {uid}, which is likely a system-managed user."
+        )
 
 
 class User(ExportModelOperationsMixin('user'), models.Model):
@@ -56,6 +71,7 @@ class User(ExportModelOperationsMixin('user'), models.Model):
         return self.login
 
     def save(self, *args, **kwargs):
+        validate_unix_uid(self.login)
         if not self.uid:
             self.allocate_uid()
         super().save(*args, **kwargs)
