@@ -25,3 +25,11 @@ if settings.DEBUG:
     urlpatterns = [
         path('__debug__/', include(debug_toolbar.urls)),
     ] + urlpatterns
+
+if settings.CONCOURS_ONLINE_MODE:
+    urlpatterns = [
+        path(
+            'user/auth',
+            include('proloauth_client.urls', namespace='proloauth_client'),
+        )
+    ] + urlpatterns

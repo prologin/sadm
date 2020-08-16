@@ -58,6 +58,12 @@ secret_key: "{{ concours_secret }}"
 # Should always be false in production!
 debug: true
 
+online_mode:
+  enabled: {{ concours_online_mode_enabled|to_json }}
+  oauth_endpoint: "{{ concours_online_mode_oauth_endpoint }}"
+  oauth_client_id: "{{ concours_online_mode_oauth_client_id }}"
+  oauth_secret: "{{ concours_online_mode_oauth_secret }}"
+
 # Website related informations.
 website:
   # Directory containing static files for the custom web design

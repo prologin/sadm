@@ -157,3 +157,8 @@ def show_toolbar(request):
 DEBUG_TOOLBAR_CONFIG = {
     'SHOW_TOOLBAR_CALLBACK': 'prologin.concours.settings.show_toolbar'
 }
+
+CONCOURS_ONLINE_MODE = False
+OAUTH_ENDPOINT = ''
+OAUTH_CLIENT_ID = ''
+OAUTH_SECRET = ''

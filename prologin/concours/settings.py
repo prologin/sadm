@@ -21,3 +21,19 @@ STECHEC_REPLAY = cfg["website"]["replay"]
 STECHEC_REDMINE_ISSUE_LIST = cfg["redmine_urls"]["issue_list"]
 STECHEC_REDMINE_ISSUE_NEW = cfg["redmine_urls"]["issue_new"]
 STECHEC_FIGHT_ONLY_OWN_CHAMPIONS = cfg["contest"]["fight_only_own_champions"]
+
+
+# online mode configuration
+
+if cfg['online_mode'].get('enabled'):
+    CONCOURS_ONLINE_MODE = True
+    OAUTH_ENDPOINT += cfg['online_mode']['oauth_endpoint']
+    OAUTH_CLIENT_ID += cfg['online mode']['oauth_client_id']
+    OAUTH_SECRET += cfg['online_mode']['oauth_secret']
+
+    INSTALLED_APPS += 'proloauth_client'
+
+    MIDDLEWARE.insert(
+        MIDDLEWARE.index('django.middleware.csrf.CsrfViewMiddleware'),
+        'proloauth_client.middleware.RefreshTokenMiddleware',
+    )

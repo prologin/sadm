@@ -53,6 +53,9 @@ from prologin.concours.stechec.restapi.permissions import (
     CreateMatchUserThrottle,
 )
 
+from prologin.concours.stechec.forms import LoginForm
+import django.contrib.auth.views.LoginView
+
 # Use API throttling in the standard view
 # Imported for side-effect
 import prologin.concours.stechec.monitoring  # noqa
@@ -783,3 +786,13 @@ class ReportBugList(RedmineIssueListView):
         ('tracker_id', '=', 1),
         ('author_id', '=', 'me'),
     ]
+
+
+class LoginView(django.contrib.auth.views.LoginView):
+    template_name = 'stechec/login.html'
+    authentication_form = LoginForm
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['CONCOURS_ONLINE_MODE'] = settings.CONCOURS_ONLINE_MODE
+        return context
