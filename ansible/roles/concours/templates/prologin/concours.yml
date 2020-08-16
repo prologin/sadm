@@ -59,7 +59,7 @@ secret_key: "{{ concours_secret }}"
 debug: true
 
 online_mode:
-  enabled: {{ concours_online_mode_enabled|to_json }}
+  enabled: {{ concours_online_mode_enabled | to_json | default(false) }}
   oauth_endpoint: "{{ concours_online_mode_oauth_endpoint }}"
   oauth_client_id: "{{ concours_online_mode_oauth_client_id }}"
   oauth_secret: "{{ concours_online_mode_oauth_secret }}"
