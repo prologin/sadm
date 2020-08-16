@@ -91,7 +91,13 @@ urlpatterns = [
         (TemplateView.as_view(template_name='stechec/home.html')),
         name="home",
     ),
-    path('login/', views.LoginView.as_view(), name="login"),
+    path(
+        'login/',
+        django.contrib.auth.views.LoginView.as_view(
+            template_name='stechec/login.html', authentication_form=LoginForm
+        ),
+        name="login",
+    ),
     path(
         'logout/',
         django.contrib.auth.views.LogoutView.as_view(next_page='/'),
