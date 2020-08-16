@@ -1,0 +1,12 @@
+[Unit]
+Description=mpv TCP bridge using socat
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/socat TCP-LISTEN:20221,reuseaddr,pf=ip4,fork UNIX-CONNECT:/tmp/mpv.sock
+Restart=always
+RestartSec=1
+
+[Install]
+WantedBy=multi-user.target
