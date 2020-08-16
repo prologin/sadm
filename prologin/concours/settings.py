@@ -28,7 +28,7 @@ STECHEC_FIGHT_ONLY_OWN_CHAMPIONS = cfg["contest"]["fight_only_own_champions"]
 if cfg['online_mode'].get('enabled'):
     CONCOURS_ONLINE_MODE = True
     OAUTH_ENDPOINT += cfg['online_mode']['oauth_endpoint']
-    OAUTH_CLIENT_ID += cfg['online mode']['oauth_client_id']
+    OAUTH_CLIENT_ID += cfg['online_mode']['oauth_client_id']
     OAUTH_SECRET += cfg['online_mode']['oauth_secret']
 
     INSTALLED_APPS.append('proloauth_client')
