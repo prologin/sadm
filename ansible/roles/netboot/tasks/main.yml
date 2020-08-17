@@ -25,6 +25,12 @@
     mode: 0640
     group: netboot
 
+- name: Download Archlinux bootable PXE image for server bootstrap
+  get_url:
+    url: https://www.archlinux.org/static/netboot/ipxe.pxe
+    dest: /srv/tftp/arch.kpxe
+    mode: 0644
+
 - name: Enable netboot
   systemd:
     name: netboot
