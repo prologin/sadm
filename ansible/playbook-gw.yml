@@ -1,0 +1,160 @@
+- name: install the gw machine
+  hosts:
+    - gw
+  remote_user: root
+  gather_facts: yes
+
+  tasks:
+    - import_role:
+        name: base
+      tags: base
+
+    - name: Use gw hosts file to bootstrap name resolving
+      lineinfile:
+        path: /etc/hosts
+        regexp: '\<{{ item }}\>'
+        line: '127.0.0.1 {{ item }}'
+      loop:
+        - mdb
+        - mdbsync
+        - sso
+      tags: gw_bootstrap_hosts
+
+    - import_role:
+        name: bind
+      tags: bind
+
+    # Start bind so that it gets picked up by resolved
+    - meta: flush_handlers
+
+    - import_role:
+        name: networkd
+      vars:
+        network_config:
+          - 10-gw.link
+          - 10-gw.network
+      tags: networkd
+
+    - import_role:
+        name: dhcpd
+      tags: dhcpd
+
+    - import_role:
+        name: nginx
+      tags: nginx
+
+    - import_role:
+        name: postgresql
+      tags: postgresql
+
+    - import_role:
+        name: firewall
+      tags: firewall
+
+    - import_role:
+        name: conntrack
+      tags: conntrack
+
+    - import_role:
+        name: libprologin
+      tags: libprologin
+
+    - import_role:
+        name: mdb
+      tags: mdb
+
+    - import_role:
+        name: mdbsync
+      tags: mdbsync
+
+    - import_role:
+        name: mdbdns
+      tags: mdbdns
+
+    - import_role:
+        name: mdbdhcp
+      tags: mdbdhcp
+
+    # Flush all the handlers here to register GW in MDB
+    - meta: flush_handlers
+
+    - name: Wait for mdb to become available
+      wait_for:
+        host: mdb
+        port: 80
+        timeout: 180
+
+    - name: Register GW machine in MDB
+      mdb:
+        hostname: gw
+        aliases:
+          - mdb
+          - mdbsync
+          - ns
+          - netboot
+          - udb
+          - udbsync
+          - presencesync
+          - ntp
+          - sso
+        ip: 192.168.1.254
+        mac: '{{ mac }}'
+        mtype: service
+        room: pasteur
+      tags: mdb_register
+      notify: restart mdbsync
+      # Wait for MDB to return valid data
+      retries: 20
+      delay: 5
+      register: mdb_register_task
+      until: mdb_register_task is succeeded
+
+    # FIXME: mdbsync needs to be restarted here, otherwise mdbdns does not get
+    # refreshed. \_(o_O)_/
+    - meta: flush_handlers
+
+    - name: Wait for the DNS to become available
+      wait_for:
+        host: udb
+        port: 80
+        timeout: 180
+
+    - import_role:
+        name: netboot
+      tags: netboot
+
+    - import_role:
+        name: udb
+      tags: udb
+
+    - import_role:
+        name: udbsync
+      tags: udbsync
+
+    - import_role:
+        name: udbsync_rootssh
+      tags: udbsync_rootssh
+
+    - import_role:
+        name: udbsync_django
+      vars:
+        udbsync_django_sites:
+          - udb
+          - mdb
+      tags: udbsync_django
+
+    - import_role:
+        name: presencesync
+      tags: presencesync
+
+    - import_role:
+        name: presencesync_sso
+      tags: presencesync_sso
+
+    - import_role:
+        name: presencesync_firewall
+      tags: presencesync_firewall
+
+    - import_role:
+        name: hfsdb
+      tags: hfsdb

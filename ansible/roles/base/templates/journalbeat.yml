@@ -1,0 +1,24 @@
+journalbeat.inputs:
+ - paths: []
+   seek: cursor
+
+setup.template.settings:
+  index.number_of_shards: 1
+
+setup.kibana:
+  host: "monitoring:5601"
+
+output.elasticsearch:
+  hosts: ["monitoring:9200"]
+
+# Without this setting, journalbeat sends its own logs to ES
+# DO NOT CHANGE TO info/debug.
+# https://github.com/elastic/beats/issues/11179
+logging.level: warning
+
+processors:
+  - add_host_metadata: ~
+  - drop_event:
+      when:
+        equals:
+          systemd.unit: "journalbeat.service"

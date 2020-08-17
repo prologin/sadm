@@ -1,0 +1,70 @@
+- name: Install Wiki systemd service
+  template:
+    src: 'systemd/wiki.service'
+    dest: '/etc/systemd/system/'
+    mode: 0644
+  notify: restart wiki
+
+- name: Install Wiki nginx service
+  template:
+    src: 'nginx/wiki.nginx'
+    dest: '/etc/nginx/services/wiki.nginx'
+    mode: 0644
+  notify: reload nginx
+
+- name: Install client configurations
+  template:
+    src: 'prologin/{{ item.name }}'
+    dest: '/etc/prologin/{{ item.name }}'
+    mode: '{{ item.mode }}'
+    group: wiki
+  loop:
+    - {name: wiki.yml, mode: '640'}
+    - {name: wiki-udbsync.yml, mode: '640'}
+  loop_control:
+    label: '{{ item.name }}'
+  notify: restart wiki
+
+- name: Create Django app directory
+  file:
+    path: /opt/prologin/wiki
+    state: directory
+    owner: wiki
+    group: wiki
+    mode: 0700
+
+- name: Install Wiki manage.py
+  template:
+    src: 'django/manage.py'
+    dest: '/opt/prologin/wiki/manage.py'
+    owner: wiki
+    group: wiki
+    mode: 0750
+
+- name: Create the PostgreSQL Wiki user
+  postgresql_user:
+    name: wiki
+    password: '{{ wiki_db_password }}'
+    encrypted: yes
+  no_log: true
+  become: true
+  become_user: postgres
+
+- name: Create the PostgreSQL Wiki database
+  postgresql_db:
+    name: wiki
+    owner: wiki
+  become: true
+  become_user: postgres
+
+- name: Migrate Wiki database
+  django_manage:
+    command: migrate
+    app_path: '/opt/prologin/wiki'
+    virtualenv: '/opt/prologin/venv'
+
+- name: Enable Wiki
+  systemd:
+    name: wiki
+    enabled: True
+    state: started

@@ -1,0 +1,11 @@
+server {
+    listen 80;
+    server_name devdocs;
+
+    access_log logs/devdocs.access.log main;
+
+    location / {
+        proxy_pass http://localhost:9292;
+        include include/proxy_params;
+    }
+}

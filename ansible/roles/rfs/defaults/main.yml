@@ -1,0 +1,11 @@
+rfs_path: '/export/nfsroot'
+
+rfs_machine_only_services:
+  - journalbeat.service
+  - lightdm.service
+  - presenced-heartbeat.service
+  - prometheus-node-exporter.service
+  - sgoinfre.mount
+  - workernode.service
+
+rfs_container_only_services: []

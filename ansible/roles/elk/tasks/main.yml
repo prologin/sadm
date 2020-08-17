@@ -1,0 +1,42 @@
+- name: Install ELK stack
+  pacman:
+    name:
+      - elasticsearch
+      - kibana
+
+- name: Install Kibana nginx service
+  template:
+    src: 'nginx/kibana.nginx'
+    dest: '/etc/nginx/services/'
+    mode: 0644
+  notify: reload nginx
+
+- name: Install Elasticsearch configuration
+  template:
+    src: elasticsearch.yml
+    dest: /etc/elasticsearch/elasticsearch.yml
+    owner: root
+    group: elasticsearch
+    mode: 0644
+  notify: restart elasticsearch
+
+- name: Install Kibana configuration
+  template:
+    src: kibana.yml
+    dest: /etc/elasticsearch/kibana.yml
+    owner: kibana
+    group: kibana
+    mode: 0640
+  notify: restart kibana
+
+- name: Enable Elasticsearch
+  systemd:
+    name: elasticsearch
+    enabled: True
+    state: started
+
+- name: Enable Kibana
+  systemd:
+    name: kibana
+    enabled: True
+    state: started

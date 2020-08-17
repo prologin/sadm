@@ -1,0 +1,5 @@
+- name: restart presencesync_firewall
+  systemd:
+    name: presencesync_firewall
+    state: restarted
+    daemon_reload: True

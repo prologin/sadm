@@ -1,0 +1,11 @@
+[Unit]
+Description=Local PresenceSync heartbeat, sends aliveness heart beats to PresenceSync
+After=network-online.target
+
+[Service]
+Type=simple
+User=presenced
+ExecStart=/opt/prologin/venv/bin/python -m prologin.presenced.heartbeat
+
+[Install]
+WantedBy=multi-user.target

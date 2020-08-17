@@ -1,0 +1,12 @@
+- name: Install udbsync_passwd systemd service
+  template:
+    src: 'systemd/udbsync_passwd.service'
+    dest: '/etc/systemd/system/udbsync_passwd.service'
+    mode: 0644
+  notify: restart udbsync_passwd
+
+- name: Enable udbsync_passwd
+  systemd:
+    name: udbsync_passwd
+    enabled: True
+    state: started

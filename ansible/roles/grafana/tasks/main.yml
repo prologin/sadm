@@ -1,0 +1,72 @@
+- name: Install Grafana
+  pacman:
+    name: grafana
+
+- name: Install Grafana nginx service
+  template:
+    src: 'nginx/grafana.nginx'
+    dest: '/etc/nginx/services/'
+    mode: 0644
+  notify: reload nginx
+
+- name: Install Grafana configuration
+  template:
+    src: 'grafana.ini'
+    dest: '/etc/'
+    owner: grafana
+    group: grafana
+    mode: 0640
+  notify: restart grafana
+
+- name: Enable Grafana
+  systemd:
+    name: grafana
+    enabled: True
+    state: started
+
+# Flush all the handlers here to add the datasources
+- meta: flush_handlers
+
+- name: Add Grafana datasource
+  grafana_datasource:
+    grafana_url: http://grafana
+    grafana_user: "{{ grafana_admin_user }}"
+    grafana_password: "{{ grafana_admin_password }}"
+    name: Prometheus
+    ds_type: prometheus
+    ds_url: http://prometheus
+    is_default: true
+    state: present
+  # Grafana can take some seconds to become available.
+  retries: 30
+  delay: 2
+  register: grafana_datasource
+  until: grafana_datasource is succeeded
+
+- name: Create Grafana dashboard directory
+  file:
+    path: '/etc/grafana/dashboard'
+    state: directory
+    group: grafana
+    mode: 0750
+
+- name: Copy Grafana dashboards
+  copy:
+    src: '{{ item.src }}'
+    dest: '/etc/grafana/dashboard/'
+    mode: 0644
+  with_filetree: dashboards/
+  loop_control:
+    label: '{{ item.path }}'
+
+- name: Import Grafana dashboards
+  grafana_dashboard:
+    grafana_url: http://grafana
+    grafana_user: "{{ grafana_admin_user }}"
+    grafana_password: "{{ grafana_admin_password }}"
+    state: present
+    path: '/etc/grafana/dashboard/{{ item.path }}'
+    overwrite: true
+  with_filetree: dashboards/
+  loop_control:
+    label: '{{ item.path }}'

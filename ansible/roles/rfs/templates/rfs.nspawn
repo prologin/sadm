@@ -1,0 +1,10 @@
+[Exec]
+Boot=yes
+
+[Network]
+Private=yes
+VirtualEthernet=yes
+
+[Files]
+PrivateUsersChown=false
+BindReadOnly=/root/sadm

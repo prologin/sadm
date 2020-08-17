@@ -1,0 +1,5 @@
+- name: restart netboot
+  systemd:
+    name: netboot
+    state: restarted
+    daemon_reload: True

@@ -1,0 +1,23 @@
+- name: Install firewall dependencies
+  pacman:
+    name: ipset
+
+- name: Install firewall systemd service
+  template:
+    src: 'systemd/firewall.service'
+    dest: '/etc/systemd/system/firewall.service'
+    mode: 0644
+  notify: restart firewall
+
+- name: Install iptables firewall configuration
+  template:
+    src: 'iptables.save'
+    dest: '/etc/prologin/'
+    mode: 0644
+  notify: restart firewall
+
+- name: Enable firewall
+  systemd:
+    name: firewall
+    enabled: True
+    state: started

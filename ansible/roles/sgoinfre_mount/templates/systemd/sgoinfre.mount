@@ -1,0 +1,10 @@
+[Unit]
+After=network-online.target
+
+[Mount]
+What=sgoinfre:/export/sgoinfre
+Where=/sgoinfre
+Options=nofail,nfsvers=4,nolock,noatime
+
+[Install]
+WantedBy=multi-user.target

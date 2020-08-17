@@ -1,0 +1,38 @@
+- name: Install RFS requirements
+  pacman:
+    name:
+      - arch-install-scripts
+      - nfs-utils
+
+- name: Create the export directories
+  file:
+    path: '{{ item }}'
+    state: directory
+    mode: 0755
+  loop:
+    - '/export'
+    - '{{ rfs_path }}'
+
+- name: Configure the NFS server
+  template:
+    src: rfs.exports
+    dest: '/etc/exports.d'
+    mode: 0640
+    owner: root
+    group: root
+  notify: reexport nfs
+
+- name: Enable the NFS server
+  systemd:
+    name: nfs-server.service
+    state: started
+    enabled: True
+
+- name: Install the nginx http boot service
+  template:
+    src: 'nginx/http_boot.nginx'
+    dest: '/etc/nginx/services/'
+    mode: 0644
+  notify: reload nginx
+
+- import_tasks: rfs-system.yml

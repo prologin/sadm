@@ -1,0 +1,12 @@
+- name: Install mdbdns systemd service
+  template:
+    src: 'systemd/mdbdns.service'
+    dest: '/etc/systemd/system/mdbdns.service'
+    mode: 0644
+  notify: restart mdbdns
+
+- name: Enable mdbdns
+  systemd:
+    name: mdbdns
+    enabled: True
+    state: started

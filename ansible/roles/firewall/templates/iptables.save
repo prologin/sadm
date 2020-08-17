@@ -1,0 +1,19 @@
+*nat
+:PREROUTING ACCEPT [0:0]
+:INPUT ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+:POSTROUTING ACCEPT [0:0]
+-A POSTROUTING -o prologin -j MASQUERADE
+-A POSTROUTING -o host0 -j MASQUERADE
+-A POSTROUTING -o uplink -j MASQUERADE
+COMMIT
+*filter
+:INPUT ACCEPT [0:0]
+:FORWARD DROP [0:0]
+:OUTPUT ACCEPT [0:0]
+-A FORWARD -s 192.168.0.0/23 -m conntrack --ctstate NEW -j LOG --log-prefix "Prologin outgoing connection "
+-A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -m comment --comment "Allow reply packets" -j ACCEPT
+-A FORWARD -m set --match-set allowed-internet-access src -j ACCEPT
+-A FORWARD -s 192.168.1.0/24 -m comment --comment "Allow services to access internet" -j ACCEPT
+-A FORWARD -i uplink -o lan -j ACCEPT
+COMMIT

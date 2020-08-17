@@ -1,0 +1,14 @@
+# Kernel options
+options: >
+  root=/dev/nfs
+  ip=${ip}:${next-server}:${gateway}:${netmask}:${hostname}.prolo:eth0:none
+  nosplash
+  rootdelay=0
+
+# Whether to use the fallback initrd. The fallback initrd does not use the
+# "autodetect" module, which means the usually unneeded kernel drivers are not
+# filtered out. See here for more details:
+# https://wiki.archlinux.org/index.php/Mkinitcpio#Image_creation_and_activation
+# We set this to true because we run mkinitcpio from the RFS container, which
+# is not necessarily the same hardware as the machines we boot in PXE.
+fallback: true

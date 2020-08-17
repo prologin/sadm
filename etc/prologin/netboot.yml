@@ -1,2 +1,0 @@
-static_path: /srv/tftp
-options: root=/dev/nfs ip=${ip}:${next-server}:${gateway}:${netmask}:${hostname}.prolo:eth0:none nosplash rootdelay=0

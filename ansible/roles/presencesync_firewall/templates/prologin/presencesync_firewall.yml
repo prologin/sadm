@@ -1,0 +1,4 @@
+allowed_groups:
+  - root
+  - orga
+  {% if not contest_enabled %}- user{% endif %}

@@ -2,4 +2,4 @@
 line-length = 79
 skip-string-normalization = true
 target-version = ['py38']
-include = 'python-lib/.*\.pyi?$'
+include = 'prologin/.*\.pyi?$'

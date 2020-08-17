@@ -1,0 +1,109 @@
+- name: install the web machine
+  hosts:
+    - web
+  remote_user: root
+  gather_facts: no
+
+  tasks:
+    - name: Register Web machine in MDB
+      mdb:
+        hostname: web
+        aliases:
+          - db
+          - concours
+          - wiki
+          - bugs
+          - redmine
+          - devdocs
+          - docs
+          - home
+          - paste
+          - map
+          - masternode
+        mac: '{{ mac }}'
+        mtype: service
+        room: pasteur
+      delegate_to: gw
+      tags: mdb_register
+
+    - name: Wait for the machine to get an IP
+      wait_for_connection:
+        timeout: 60
+
+    - name: Gather facts
+      setup:
+      tags: always
+
+    - import_role:
+        name: networkd
+      vars:
+        network_config:
+          - 10-web.link
+          - 10-web.network
+      tags: networkd
+
+    - import_role:
+        name: base
+      tags: base
+
+    - import_role:
+        name: nginx
+      tags: nginx
+
+    - import_role:
+        name: postgresql
+      tags: postgresql
+
+    - import_role:
+        name: libprologin
+      tags: libprologin
+
+    - import_role:
+        name: udbsync_rootssh
+      tags: udbsync_rootssh
+
+    - import_role:
+        name: homepage
+      tags: homepage
+
+    - import_role:
+        name: concours
+      tags: concours
+
+    - import_role:
+        name: masternode
+      tags: masternode
+
+    - import_role:
+        name: paste
+      tags: paste
+
+    - import_role:
+        name: wiki
+      tags: wiki
+
+    - import_role:
+        name: udbsync_django
+      vars:
+        udbsync_django_sites:
+          - concours
+          - homepage
+          - paste
+          - wiki
+      tags: udbsync_django
+
+    - import_role:
+        name: devdocs
+      tags: devdocs
+
+    - import_role:
+        name: docs
+      tags: docs
+
+    - import_role:
+        name: usermap
+      tags: usermap
+
+    # - import_role:
+    #     name: redmine
+    #   tags: redmine

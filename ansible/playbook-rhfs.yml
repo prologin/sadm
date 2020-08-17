@@ -1,0 +1,71 @@
+- name: install the rhfs machines
+  hosts:
+    - rhfs
+  remote_user: root
+  gather_facts: no
+
+  tasks:
+    - name: Register RHFS machine in MDB
+      mdb:
+        hostname: 'rhfs{{ item.id }}'
+        aliases: '{{ item.aliases|default([]) +
+                  ["rfs" + (item.id|string), "hfs" + (item.id|string)] }}'
+        mac: '{{ item.mac }}'
+        mtype: service
+        room: pasteur
+      loop: '{{ rhfs_setup }}'
+      delegate_to: gw
+      tags: mdb_register
+
+    - name: Wait for the machine to get an IP
+      wait_for_connection:
+        timeout: 60
+
+    - name: Gather facts
+      setup:
+      tags: always
+
+    - import_role:
+        name: networkd
+      vars:
+        network_config:
+          - 10-rhfs-a.link
+          - 10-rhfs-b.link
+          - 10-rhfs.network
+      tags: networkd
+
+    - import_role:
+        name: base
+      tags: base
+
+    - import_role:
+        name: nginx
+      tags: nginx
+
+    - import_role:
+        name: libprologin
+      tags: libprologin
+
+    - import_role:
+        name: udbsync_rootssh
+      tags: udbsync_rootssh
+
+    - import_role:
+        name: udbsync_passwd
+      tags: udbsync_passwd
+
+    - import_role:
+        name: rfs
+      tags: rfs
+
+    - import_role:
+        name: udbsync_rfs
+      tags: udbsync_rfs
+
+    - import_role:
+        name: hfs
+      tags: hfs
+
+    - import_role:
+        name: hfs_skeleton
+      tags: hfs_skeleton

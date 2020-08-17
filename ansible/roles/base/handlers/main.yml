@@ -1,0 +1,23 @@
+- name: restart sshd
+  systemd:
+    name: sshd
+    state: restarted
+    daemon_reload: True
+
+- name: restart timesyncd
+  systemd:
+    name: systemd-timesyncd
+    state: restarted
+    daemon_reload: True
+
+- name: restart prometheus-node-exporter
+  systemd:
+    name: prometheus-node-exporter
+    state: restarted
+    daemon_reload: True
+
+- name: restart journalbeat
+  systemd:
+    name: journalbeat
+    state: restarted
+    daemon_reload: True

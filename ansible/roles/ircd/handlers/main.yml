@@ -1,0 +1,17 @@
+- name: restart unrealircd
+  systemd:
+    name: unrealircd
+    state: restarted
+    daemon_reload: True
+
+- name: reload unrealircd
+  systemd:
+    name: unrealircd
+    state: reloaded
+    daemon_reload: True
+
+- name: restart irc_gatessh
+  systemd:
+    name: irc_gatessh
+    state: restarted
+    daemon_reload: True

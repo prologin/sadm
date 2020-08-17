@@ -1,0 +1,14 @@
+{% extends "wiki/base_site.html" %}
+
+{% block wiki_site_title %} - Wiki Finale Prologin{% endblock %}
+
+{% block wiki_header_branding %}
+<a class="navbar-brand" href="/">Finale Prologin</a>
+{% endblock %}
+
+{% block wiki_header_navlinks %}
+<ul class="nav navbar-nav">
+  <li class="active"><a href="{% url 'wiki:root' %}">Wiki</a></li>
+  {# Add more links here if needed #}
+</ul>
+{% endblock %}

@@ -1,0 +1,8 @@
+[Unit]
+Description=Copy ~root/.ssh/authorized_keys to NFS root
+
+[Service]
+Type=oneshot
+ExecStart=/bin/mkdir -p /export/nfsroot/root/.ssh
+ExecStart=/bin/cp /root/.ssh/authorized_keys /export/nfsroot/root/.ssh
+ExecStart=/bin/chmod -R go-rwx /export/nfsroot/root/.ssh

@@ -1,0 +1,55 @@
+- name: Install nbd
+  pacman:
+    # HFS relies on nbd-client and nbd-server on contestant machines.
+    name: nbd
+
+- name: Configure systemd-logind
+  lineinfile:
+    regexp: '^#?{{ item.key }}'
+    line: '{{ item.key }}={{ item.value }}'
+    path: /etc/systemd/logind.conf
+  loop: '{{ logind_config|dict2items }}'
+  vars:
+    logind_config:
+      KillUserProcesses: 'yes'
+      KillExcludeUsers: 'root'
+
+- name: Create presenced service directory
+  file:
+    path: /opt/prologin/presenced
+    state: directory
+    mode: 0755
+
+- name: Install pam_prologin.py
+  copy:
+    remote_src: true
+    src: '/root/sadm/prologin/presenced/pam_prologin.py'
+    dest: '/opt/prologin/presenced/'
+    mode: 0755
+
+- name: Add pam_prologin to pam.d/system-login 'account'
+  lineinfile:
+    path: '/etc/pam.d/system-login'
+    insertafter: 'account    required   pam_nologin.so'
+    regexp: 'account    requisite  pam_exec.so'
+    line: 'account    requisite  pam_exec.so
+           stdout /opt/prologin/presenced/pam_prologin.py'
+
+- name: Add pam_prologin to pam.d/system-login 'session'
+  lineinfile:
+    path: '/etc/pam.d/system-login'
+    insertbefore: 'pam_systemd.so'
+    regexp: 'session    requisite  pam_exec.so'
+    line: 'session    requisite  pam_exec.so
+           stdout /opt/prologin/presenced/pam_prologin.py'
+
+- name: Install presenced-heartbeat systemd service
+  template:
+    src: 'systemd/presenced-heartbeat.service'
+    dest: '/etc/systemd/system/'
+    mode: 0644
+
+- name: Enable presenced-heartbeat systemd service
+  systemd:
+    name: presenced-heartbeat
+    enabled: true

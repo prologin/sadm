@@ -1,0 +1,13 @@
+- name: Install udbsync_django systemd service
+  template:
+    src: 'systemd/udbsync_django@.service'
+    dest: '/etc/systemd/system/udbsync_django@.service'
+    mode: 0644
+  notify: restart udbsync_django
+
+- name: Enable udbsync_django
+  systemd:
+    name: 'udbsync_django@{{ item }}'
+    enabled: True
+    state: started
+  loop: '{{ udbsync_django_sites }}'

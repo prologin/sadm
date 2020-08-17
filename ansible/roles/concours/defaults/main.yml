@@ -1,0 +1,7 @@
+concours_db_name: concours
+concours_nb_players: 2
+concours_use_maps: false
+concours_fight_only_own_champions: false
+concours_static_path: null
+concours_enable_replay: false
+concours_map_validator_script: null

@@ -1,0 +1,58 @@
+- name: install the user root filesystem
+  hosts:
+    - rfs_container
+  remote_user: root
+  gather_facts: no
+
+  tasks:
+    - name: Wait for the RFS container to come back up after restart
+      wait_for_connection:
+        timeout: 60
+
+    - name: Gather facts
+      setup:
+      tags: always
+
+    - import_role:
+        name: networkd
+      tags: networkd
+
+    - import_role:
+        name: base
+      tags: base
+
+    - import_role:
+        name: rfs_initrd
+      tags: rfs_initrd
+
+    - import_role:
+        name: rfs_resource_limits
+      tags: rfs_resource_limits
+
+    - import_role:
+        name: rfs_packages
+      tags: rfs_packages
+
+    - import_role:
+        name: libprologin
+      tags: libprologin
+
+    - import_role:
+        name: presenced
+      tags: presenced
+
+    - import_role:
+        name: wallpaper
+      tags: wallpaper
+
+    - import_role:
+        name: workernode
+      tags: workernode
+
+    - import_role:
+        name: greeter
+      tags: greeter
+
+    - import_role:
+        name: sgoinfre_mount
+      tags: sgoinfre_mount

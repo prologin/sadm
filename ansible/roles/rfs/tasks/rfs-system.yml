@@ -1,0 +1,117 @@
+- name: Pacstrap the RFS system
+  command:
+    cmd: 'pacstrap -c -d "{{ rfs_path }}" --needed
+          base linux linux-firmware vim openssh rxvt-unicode-terminfo
+          bind-tools'
+    creates: '{{ rfs_path }}/etc/arch-release'
+  notify: restart systemd-nspawn@rfs
+  register: pacstrap
+
+# Pacstrap by default generates a machine-id identical to its host
+- name: Remove pacstrap machine-id
+  when: pacstrap.changed
+  file:
+    path: '{{ rfs_path }}/etc/machine-id'
+    state: absent
+
+- name: Enable networkd and sshd
+  command: 'systemctl --root "{{ rfs_path }}" enable
+            systemd-networkd sshd'
+  notify: restart systemd-nspawn@rfs
+
+# SSH configuration is already installed in the "base" role but we also have to
+# do some of it here first, to bootstrap the first connection to RFS that will
+# install the "base" role.
+- name: Ensure that sshd looks for authorized_keys2
+  lineinfile:
+    path: '{{ rfs_path }}/etc/ssh/sshd_config'
+    regex: '^#?AuthorizedKeysFile'
+    line: 'AuthorizedKeysFile .ssh/authorized_keys .ssh/authorized_keys2'
+
+- name: Lookup whether authorized_keys2 is present in the host
+  stat:
+    path: '/root/.ssh/authorized_keys2'
+  register: authorized_keys2
+
+- name: Create nfsroot /root/.ssh
+  when: authorized_keys2.stat.exists
+  file:
+    path: '{{ rfs_path }}/root/.ssh/'
+    state: directory
+    mode: 0700
+
+- name: Create blacklisted services override directories
+  file:
+    path: '{{ rfs_path }}/etc/systemd/system/{{ item }}.d/'
+    state: directory
+  loop: '{{ rfs_machine_only_services + rfs_container_only_services }}'
+
+
+- name: Blacklist non-container services
+  copy:
+    dest: '{{ rfs_path }}/etc/systemd/system/{{ item }}.d/container-blacklist.conf'
+    mode: 0644
+    content: |
+      [Unit]
+      ConditionHost =! rfs*container
+
+  loop: '{{ rfs_machine_only_services }}'
+
+
+- name: Blacklist container-only services
+  copy:
+    mode: 0644
+    dest: '{{ rfs_path }}/etc/systemd/system/{{ item }}.d/container-blacklist.conf'
+    content: |
+      [Unit]
+      ConditionHost = rfs*container
+
+  loop: '{{ rfs_container_only_services }}'
+
+
+- name: Copy authorized_keys2
+  when: authorized_keys2.stat.exists
+  copy:
+    remote_src: true
+    src: '/root/.ssh/authorized_keys2'
+    dest: '{{ rfs_path }}/root/.ssh/'
+    mode: 0644
+
+- name: Add rfs to /var/lib/machines
+  file:
+    path: '/var/lib/machines/{{ rfs_container }}'
+    src: '{{ rfs_path }}'
+    state: link
+  notify: restart systemd-nspawn@rfs
+
+- name: Create systemd nspawn directory
+  file:
+    path: '/etc/systemd/nspawn'
+    state: directory
+
+- name: Add rfs container nspawn config
+  template:
+    src: 'rfs.nspawn'
+    dest: '/etc/systemd/nspawn/{{ rfs_container }}.nspawn'
+    mode: 0644
+  notify: restart systemd-nspawn@rfs
+
+- name: Add rfs container network config
+  template:
+    src: 'rfs.network'
+    dest: '/etc/systemd/network/'
+    mode: 0644
+  notify:
+    - restart networkd
+    - restart systemd-nspawn@rfs
+
+- name: Start RFS
+  systemd:
+    name: 'systemd-nspawn@{{ rfs_container }}'
+    state: started
+    enabled: true
+
+- name: Enable machines target
+  systemd:
+    name: machines.target
+    enabled: true

@@ -1,0 +1,6 @@
+# Mapping of hostname -> login
+# This takes precedence over the mapping computed from presencesync.
+# ex: zopieuxlaptop: zopieux
+
+overrides:
+  {{ presencesync_sso_overrides|to_nice_yaml|indent(2) }}

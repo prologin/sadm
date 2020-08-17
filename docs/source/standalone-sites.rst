@@ -33,7 +33,7 @@ completed.
 #. Activate the venv, install the requirements::
 
      source .venv/bin/activate
-     pip install -r requirements.txt -e python-lib
+     pip install -r requirements.txt -e .
 
 #. Apply the migrations, create a super-user and run::
 

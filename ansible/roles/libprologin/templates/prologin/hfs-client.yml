@@ -1,0 +1,3 @@
+url_pattern: "http://{}:20100/"
+host_pattern: "hfs{}"
+shared_secret: "{{ hfs_secret }}"

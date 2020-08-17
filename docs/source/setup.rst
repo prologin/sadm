@@ -93,11 +93,11 @@ Let's start with the hardware setup. You can skip this section if you are
 doing a containerized install or if you already have a file system ready.
 
 For ``gw`` and other critical systems such as ``web``, we setup a `RAID1
-(mirroring)<https://en.wikipedia.org/wiki/Standard_RAID_levels#RAID_1>`__ over
+(mirroring) <https://en.wikipedia.org/wiki/Standard_RAID_levels#RAID_1>`__ over
 two discs. Because the RAID will be the size of the smallest disc, they have to
 be of the same capacity. We use regular 500GBytes SATA, which is usually more
-than enough. It is a good idea to choose two different disks (brand, age, batch)
-to reduce the chance to have them failing at the same time.
+than enough. It is a good idea to choose two different disks (brand, age,
+batch) to reduce the chance to have them failing at the same time.
 
 On top of the RAID1, our standard setup uses `LVM
 <https://wiki.archlinux.org/index.php/LVM>`_ to create and manage the system
@@ -106,7 +106,7 @@ partition. For bootloading the system we use the good old BIOS and ``syslinux``.
 All this setup is automated by our bootstrap scripts, but to run them you will
 need a bootstrap Linux distribution. The easiest solution is to boot on the
 Arch Linux's install medium
-<https://wiki.archlinux.org/index.php/beginners'_guide#Boot_the_installation_medium>`_.
+`<https://wiki.archlinux.org/index.php/Installation_guide#Boot_the_live_environment>`_.
 
 Once the bootstrap system is started, you can start the install using::
 
@@ -978,7 +978,7 @@ Customize the wallpaper
 To customize the desktop wallpaper, create a PNG file at the following
 location and :ref:`commit <rhfsinstall>` the changes::
 
-   /export/nfsroot_staging/var/prologin/wallpaper.png
+   /export/nfsroot_staging/opt/prologin/wallpaper.png
 
 The following DE are setup to use this file:
 

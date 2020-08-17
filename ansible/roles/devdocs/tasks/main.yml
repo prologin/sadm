@@ -1,0 +1,48 @@
+- name: Install DevDocs
+  pacman:
+    name:
+      # https://aur.archlinux.org/packages/devdocs-git/
+      - prologin/devdocs-git
+
+- name: Install DevDocs nginx service
+  template:
+    src: 'nginx/devdocs.nginx'
+    dest: '/etc/nginx/services/devdocs.nginx'
+    mode: 0644
+  notify: reload nginx
+
+# Required for ruby tilde expansion, otherwise it crashes.
+- name: Create service override directory
+  file:
+    path: '/etc/systemd/system/devdocs.service.d/'
+    state: directory
+
+- name: Add systemd override for HOME=
+  copy:
+    content: |
+      [Service]
+      Environment=HOME=/opt/devdocs-git
+
+    dest: '/etc/systemd/system/devdocs.service.d/override.conf'
+    mode: 0644
+
+- name: Enable DevDocs
+  systemd:
+    name: devdocs
+    enabled: True
+    state: started
+
+- name: Fetch language documentations
+  command:
+    cmd: "devdocs-cli docs:download {{ item }}"
+  loop:
+    - c
+    - cpp
+    - openjdk
+    - haskell
+    - php
+    - python
+    - rust
+    # Missing languages:
+    # - csharp
+    # - ocaml  # https://trello.com/c/zMP72zl2/410-ocaml

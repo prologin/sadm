@@ -1,0 +1,25 @@
+- name: Install sgoinfre requirements
+  pacman:
+    name:
+      - nfs-utils
+
+- name: Create the sgoinfre directory
+  file:
+    path: '/export/sgoinfre'
+    state: directory
+    mode: 0777
+
+- name: Configure the NFS server
+  template:
+    src: sgoinfre.exports
+    dest: '/etc/exports.d'
+    mode: 0640
+    owner: root
+    group: root
+  notify: reexport nfs
+
+- name: Enable the NFS server
+  systemd:
+    name: nfs-server.service
+    state: started
+    enabled: True

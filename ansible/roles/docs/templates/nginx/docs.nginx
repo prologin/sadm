@@ -1,0 +1,13 @@
+server {
+    listen 80;
+    server_name docs;
+
+    include include/require_contest_enabled;
+
+    access_log logs/docs.access.log main;
+
+    location / {
+        autoindex on;
+        root /var/prologin/docs;
+    }
+}

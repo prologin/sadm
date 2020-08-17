@@ -1,0 +1,5 @@
+- name: restart udb
+  systemd:
+    name: udb
+    state: restarted
+    daemon_reload: True

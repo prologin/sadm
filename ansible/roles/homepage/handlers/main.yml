@@ -1,0 +1,5 @@
+- name: restart homepage
+  systemd:
+    name: homepage
+    state: restarted
+    daemon_reload: True

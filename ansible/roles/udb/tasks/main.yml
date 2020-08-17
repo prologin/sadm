@@ -1,0 +1,69 @@
+- name: Install UDB systemd service
+  template:
+    src: 'systemd/udb.service'
+    dest: '/etc/systemd/system/udb.service'
+    mode: 0644
+  notify: restart udb
+
+- name: Install UDB nginx service
+  template:
+    src: 'nginx/udb.nginx'
+    dest: '/etc/nginx/services/udb.nginx'
+    mode: 0644
+  notify: reload nginx
+
+- name: Install client configurations
+  template:
+    src: 'prologin/{{ item.name }}'
+    dest: '/etc/prologin/{{ item.name }}'
+    mode: '{{ item.mode }}'
+    group: udb
+  loop:
+    - {name: udb-server.yml, mode: '640'}
+    - {name: udb-udbsync.yml, mode: '640'}
+  loop_control:
+    label: '{{ item.name }}'
+
+- name: Create Django app directory
+  file:
+    path: /opt/prologin/udb
+    state: directory
+    owner: udb
+    group: udb
+    mode: 0700
+
+- name: Install UDB manage.py
+  template:
+    src: 'django/manage.py'
+    dest: '/opt/prologin/udb/manage.py'
+    owner: udb
+    group: udb
+    mode: 0750
+
+- name: Create the PostgreSQL UDB user
+  postgresql_user:
+    name: udb
+    password: '{{ udb_db_password }}'
+    encrypted: yes
+  no_log: true
+  become: true
+  become_user: postgres
+
+- name: Create the PostgreSQL UDB database
+  postgresql_db:
+    name: udb
+    owner: udb
+  become: true
+  become_user: postgres
+
+- name: Migrate UDB database
+  django_manage:
+    command: migrate
+    app_path: '/opt/prologin/udb'
+    virtualenv: '/opt/prologin/venv'
+
+- name: Enable udb
+  systemd:
+    name: udb
+    enabled: True
+    state: started

@@ -1,0 +1,31 @@
+- name: Install PostgreSQL
+  pacman:
+    name:
+      - postgresql
+      - python-psycopg2
+  notify: restart postgresql
+
+- name: Initialize database cluster
+  command: "initdb --locale en_US.UTF-8 -E UTF8 -D '/var/lib/postgres/data'"
+  args:
+    creates: /var/lib/postgres/data/PG_VERSION
+  become: yes
+  become_method: sudo
+  become_user: postgres
+  notify: restart postgresql
+
+- name: Install postgresql config
+  template:
+    src: '{{ item }}'
+    dest: '/var/lib/postgres/data/{{ item }}'
+    mode: 0600
+  loop:
+    - 'postgresql.conf'
+    - 'pg_hba.conf'
+  notify: restart postgresql
+
+- name: Enable postgresql
+  systemd:
+    name: postgresql
+    enabled: true
+    state: started

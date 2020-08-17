@@ -1,0 +1,5 @@
+- name: restart presencesync_sso
+  systemd:
+    name: presencesync_sso
+    state: restarted
+    daemon_reload: True

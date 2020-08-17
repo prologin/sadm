@@ -1,0 +1,5 @@
+[Match]
+MACAddress={{ rhfs_setup[0].mac }}
+
+[Link]
+Name=rhfs{{ rhfs_setup[0].id }}

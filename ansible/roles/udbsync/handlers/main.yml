@@ -1,0 +1,5 @@
+- name: restart udbsync
+  systemd:
+    name: udbsync
+    state: restarted
+    daemon_reload: True

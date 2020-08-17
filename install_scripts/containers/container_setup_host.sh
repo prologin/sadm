@@ -1,9 +1,10 @@
 #!/bin/bash
 
 CONTAINER_NAME=arch_linux_base
-GW_CONTAINER_NAME=dummy
+CONTAINER_HOSTNAME=dummy
 
-source ./container_setup_common.sh
+cd $(dirname -- $0)
+source ./container_common.sh
 
 this_script_must_be_run_as_root
 
@@ -31,18 +32,6 @@ EOF
 
   echo "[-] Load the nbd kernel module"
   modprobe nbd
-
-  echo "[-] Checking for python-pexpect"
-  if ! python 2>/dev/null -c 'import pexpect'; then
-    echo_ko "Missing pexpect python module. Install with: "
-    echo_ko "pacman -Sy python-pexpect"
-  fi
-
-  echo "[-] Checking for qemu-system-x86_64"
-  if ! command -v qemu-system-x86_64 >/dev/null 2>&1; then
-    echo_ko "Missing qemu-system-x86_64. Install with: "
-    echo_ko "pacman -Sy qemu-headless"
-  fi
 }
 
 function container_bootstrap_arch_linux {

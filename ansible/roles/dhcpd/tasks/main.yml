@@ -1,0 +1,39 @@
+- name: Install ISC dhcp
+  pacman:
+    name: dhcp
+  notify: restart dhcpd
+
+- name: Install dhcpd config
+  template:
+    src: 'dhcpd.conf'
+    dest: '/etc/dhcpd.conf'
+    owner: dhcp
+    group: dhcp
+    mode: 0640
+    lstrip_blocks: yes
+  notify: restart dhcpd
+
+- name: Create dhcpd directory
+  file:
+    path: '/etc/dhcpd'
+    state: directory
+    owner: dhcp
+    group: mdbdhcp
+    mode: 0770
+  notify: restart dhcpd
+
+- name: Create empty dhcp generated file
+  copy:
+    content: ''
+    dest: '/etc/dhcpd/generated.conf'
+    force: no
+    owner: dhcp
+    group: dhcp
+    mode: 0640
+  notify: restart dhcpd
+
+- name: Enable dhcpd
+  systemd:
+    name: dhcpd4
+    state: started
+    enabled: True

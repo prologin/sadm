@@ -1,0 +1,35 @@
+# Master server settings.
+master:
+  # Both the website and the worker nodes will connect to the node through this
+  # port. Configure your firewall!
+  port: 8067
+
+  # A shared secret used to avoid malicious requests impersonating a worker
+  # node.
+  shared_secret: "{{ masternode_secret }}"
+
+worker:
+  # After this number of seconds has elapsed, if a worker node has not sent a
+  # ping it will be considered as dead. This value must be grater than the one
+  # configured as the ping interval in the worker nodes.
+  timeout_secs: 12
+  compilation_timeout_secs: 20
+  match_timeout_secs: 450
+  max_task_tries: 10
+
+# SQL connection informations and queries. If you are using the standard
+# stechec website, do not change the queries!
+sql:
+  host: web
+  port: 5432
+  user: concours
+  password: "{{ concours_db_password }}"
+  database: "{{ concours_db_name }}"
+
+contest:
+  # most likely prologin<YEAR>
+  game: "{{ concours_game }}"
+
+  # Root directory where the website uploads champions, finds logs, etc.
+  # Should be shared with the master node.
+  directory: /var/prologin/concours_shared

@@ -1,0 +1,29 @@
+- name: Install stechec2 and Workernode dependencies
+  pacman:
+    name:
+      - prologin/isolate-git
+      - prologin/stechec2
+
+- name: Install the game of the year if contest mode is started
+  pacman:
+    name: 'prologin/{{ concours_game }}'
+    state: "{{ 'present' if contest_started else 'absent' }}"
+  tags: contest_mode
+
+- name: Install Workernode systemd service
+  template:
+    src: 'systemd/workernode.service'
+    dest: '/etc/systemd/system/'
+    mode: 0644
+
+- name: Install Workernode configuration
+  template:
+    src: 'prologin/workernode.yml'
+    dest: '/etc/prologin/'
+    mode: 0644
+    group: cluster
+
+- name: Enable Workernode
+  systemd:
+    name: workernode
+    enabled: True

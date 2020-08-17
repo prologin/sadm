@@ -1,0 +1,36 @@
+- name: Install hfs dependencies
+  pacman:
+    name:
+      - nbd
+
+- name: Install hfs systemd service
+  template:
+    src: 'systemd/hfs@.service'
+    dest: '/etc/systemd/system/'
+    mode: 0644
+  notify: restart hfs
+
+- name: Install hfs configuration
+  template:
+    src: 'prologin/hfs-server.yml'
+    dest: '/etc/prologin/'
+    group: hfs
+    mode: 0644
+  notify: restart hfs
+  tags: contest_mode
+
+- name: Create hfs directories
+  file:
+    path: '{{ item }}'
+    state: directory
+  loop:
+    - /export
+    - /export/hfs
+    - /export/hfscontest
+
+- name: Enable hfs
+  systemd:
+    name: 'hfs@{{ item.id }}'
+    state: started
+    enabled: True
+  loop: '{{ rhfs_setup }}'

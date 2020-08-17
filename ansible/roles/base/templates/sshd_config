@@ -1,0 +1,9 @@
+PermitRootLogin yes
+AuthorizedKeysFile .ssh/authorized_keys .ssh/authorized_keys2
+PasswordAuthentication no
+ChallengeResponseAuthentication no
+UsePAM yes
+PrintMotd no
+UsePrivilegeSeparation sandbox
+AllowUsers root
+Subsystem sftp /usr/lib/ssh/sftp-server

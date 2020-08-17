@@ -1,0 +1,38 @@
+- name: Install netboot dependencies
+  pacman:
+    name:
+      - tftp-hpa
+      - ipxe-sadm-git
+
+- name: Install netboot systemd service
+  template:
+    src: 'systemd/netboot.service'
+    dest: '/etc/systemd/system/netboot.service'
+    mode: 0644
+  notify: restart netboot
+
+- name: Install netboot nginx service
+  template:
+    src: 'nginx/netboot.nginx'
+    dest: '/etc/nginx/services/netboot.nginx'
+    mode: 0644
+  notify: reload nginx
+
+- name: Install netboot configuration
+  template:
+    src: 'prologin/netboot.yml'
+    dest: '/etc/prologin/'
+    mode: 0640
+    group: netboot
+
+- name: Enable netboot
+  systemd:
+    name: netboot
+    enabled: True
+    state: started
+
+- name: Enable tftpd
+  systemd:
+    name: tftpd.socket
+    enabled: True
+    state: started

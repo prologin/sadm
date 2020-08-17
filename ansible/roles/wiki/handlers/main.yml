@@ -1,0 +1,5 @@
+- name: restart wiki
+  systemd:
+    name: wiki
+    state: restarted
+    daemon_reload: True

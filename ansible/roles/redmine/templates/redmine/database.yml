@@ -1,0 +1,7 @@
+production:
+  adapter: postgresql
+  jdatabase: redmine
+  host: web
+  username: redmine
+  password: "{{ redmine_db_password }}"
+  encoding: utf8

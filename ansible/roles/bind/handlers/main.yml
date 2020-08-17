@@ -1,0 +1,11 @@
+- name: restart bind
+  systemd:
+    name: named
+    state: restarted
+    daemon_reload: True
+
+- name: reload bind
+  systemd:
+    name: named
+    state: reloaded
+    daemon_reload: True

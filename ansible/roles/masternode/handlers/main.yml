@@ -1,0 +1,5 @@
+- name: restart masternode
+  systemd:
+    name: masternode
+    state: restarted
+    daemon_reload: True

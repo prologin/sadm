@@ -1,0 +1,14 @@
+server {
+    listen 80;
+    server_name paste;
+
+    access_log logs/paste.access.log main;
+
+    include sso/handler;
+
+    location / {
+        proxy_pass http://localhost:20190;
+        include include/proxy_params;
+        include sso/protect;
+    }
+}

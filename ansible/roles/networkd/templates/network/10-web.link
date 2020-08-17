@@ -1,0 +1,5 @@
+[Match]
+MACAddress={{ mac }}
+
+[Link]
+Name=prologin

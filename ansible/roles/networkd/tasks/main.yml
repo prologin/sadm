@@ -1,0 +1,76 @@
+- name: Disable default naming configuration
+  file:
+    src: '/dev/null'
+    dest: '/etc/systemd/network/99-default.link'
+    state: link
+  notify: restart networkd
+
+- name: Disable ICMP redirects
+  template:
+    src: 'sysctl/no_icmp_redirect.conf'
+    dest: '/etc/sysctl.d/no_icmp_redirect.conf'
+    mode: 0644
+  notify: restart sysctl
+
+- name: Setup dual NIC routing configuration with rp_filter
+  template:
+    src: 'sysctl/rp_filter.conf'
+    dest: '/etc/sysctl.d/rp_filter.conf'
+    mode: 0644
+  notify: restart sysctl
+  when: dual_nic
+
+# TODO: enable automatically? How do we get the interface name depending on
+# the host?
+- name: Install NIC configuration (You will need to enable it manually)
+  template:
+    src: 'systemd/nic-configuration@.service'
+    dest: '/etc/systemd/system'
+    mode: 0644
+
+- name: Install basic networkd DHCP config
+  template:
+    src: network/50-dhcp.network
+    dest: /etc/systemd/network/50-dhcp.network
+    mode: 0644
+  notify: restart networkd
+
+- name: Install machine-specific networkd config
+  template:
+    src: 'network/{{ item }}'
+    dest: '/etc/systemd/network'
+    mode: 0644
+    lstrip_blocks: yes
+  loop: "{{ network_config }}"
+  notify: restart networkd
+
+- name: Install resolved.conf
+  template:
+    src: resolved.conf
+    dest: /etc/systemd/resolved.conf
+    mode: 0644
+  notify: restart resolved
+
+- name: Link the systemd resolv.conf stub
+  file:
+    state: link
+    path: /etc/resolv.conf
+    src: /run/systemd/resolve/stub-resolv.conf
+    force: true
+  notify: restart resolved
+
+- name: Enable systemd-networkd
+  systemd:
+    name: systemd-networkd
+    state: started
+    enabled: True
+
+- name: Enable systemd-resolved
+  systemd:
+    name: systemd-resolved
+    state: started
+    enabled: True
+
+# Force restart networkd here because network configuration is required for the
+# other services to run properly.
+- meta: flush_handlers

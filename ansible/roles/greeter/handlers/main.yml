@@ -1,0 +1,5 @@
+- name: restart lightdm
+  systemd:
+    name: lightdm
+    state: restarted
+    daemon_reload: true

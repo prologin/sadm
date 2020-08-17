@@ -1,0 +1,15 @@
+[Unit]
+Description=User Database
+After=network-online.target postgresql.service
+
+[Service]
+Type=simple
+User=udb
+WorkingDirectory=/opt/prologin/udb
+ExecStart=/opt/prologin/venv/bin/gunicorn \
+            -b 127.0.0.1:20080 \
+            --worker-class aiohttp.worker.GunicornWebWorker \
+            prologin.udb.wsgi:application.app
+
+[Install]
+WantedBy=multi-user.target

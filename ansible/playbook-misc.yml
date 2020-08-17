@@ -1,0 +1,58 @@
+- name: install the misc machine
+  hosts:
+    - misc
+  remote_user: root
+  gather_facts: no
+
+  tasks:
+    - name: Register Misc machine in MDB
+      mdb:
+        hostname: misc
+        aliases:
+          - irc
+          - sgoinfre
+        mac: '{{ mac }}'
+        mtype: service
+        room: pasteur
+      delegate_to: gw
+      tags: mdb_register
+
+    - name: Wait for the machine to get an IP
+      wait_for_connection:
+        timeout: 60
+
+    - name: Gather facts
+      setup:
+      tags: always
+
+    - import_role:
+        name: networkd
+      tags: networkd
+
+    - import_role:
+        name: base
+      tags: base
+
+    - import_role:
+        name: libprologin
+      tags: libprologin
+
+    - import_role:
+        name: udbsync_rootssh
+      tags: udbsync_rootssh
+
+    - import_role:
+        name: ircd
+      tags: ircd
+
+    - import_role:
+        name: sgoinfre
+      tags: sgoinfre
+
+    - import_role:
+        name: teeworlds_server
+      tags: teeworlds_server
+
+    - import_role:
+        name: motus
+      tags: motus

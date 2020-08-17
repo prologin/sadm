@@ -2,6 +2,7 @@ aiohttp-wsgi==0.8.2
 aiohttp==3.6.2
 aiopg==0.16.0
 django-bootstrap-breadcrumbs==0.9.1
+dpaste==3.5
 django-crispy-forms==1.7.2
 django-debug-toolbar==2.2
 django-prometheus==1.0.15
@@ -9,7 +10,7 @@ Django==2.2.13
 djangorestframework==3.9.2
 gunicorn==19.9.0
 irc3==1.1.2
-markdown2==2.3.8
+markdown2==2.3.9
 nose==1.3.7
 prometheus_client==0.6.0
 psycopg2-binary==2.8.2
@@ -19,6 +20,7 @@ pytest==4.4.1
 PyYAML==5.1
 requests==2.21.0
 tornado==4.5.1
+wiki==0.5
 
 # From prologin
 -e git://github.com/prologin/camisole.git#egg=camisole
