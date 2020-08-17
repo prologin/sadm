@@ -10,6 +10,7 @@
         hostname: misc
         aliases:
           - irc
+          - radio
           - sgoinfre
         mac: '{{ mac }}'
         mtype: service
@@ -44,6 +45,14 @@
     - import_role:
         name: ircd
       tags: ircd
+
+    - import_role:
+        name: nginx
+      tags: nginx
+
+    - import_role:
+        name: djenius
+      tags: djenius
 
     - import_role:
         name: sgoinfre

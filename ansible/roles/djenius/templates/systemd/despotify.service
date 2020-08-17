@@ -1,0 +1,18 @@
+[Unit]
+Description=despotify
+After=network-online.target
+
+[Service]
+Type=simple
+User=djenius
+WorkingDirectory=/opt/prologin/djenius
+EnvironmentFile=/opt/prologin/djenius/despotify.env
+Environment=DESPOTIFY_COMPANION=/opt/prologin/djenius/despotify-companion
+Environment=DESPOTIFY_CDM=/opt/prologin/djenius/libwidevinecdm.so
+Environment=GOPS_CONFIG_DIR=/opt/prologin/djenius
+ExecStart=/opt/prologin/djenius/despotify --listen 127.0.0.1:{{ despotify_port }}
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

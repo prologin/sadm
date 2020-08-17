@@ -1,0 +1,22 @@
+[Unit]
+Description=djenius (collaborative jukebox) server
+After=network-online.target
+Requires=djenius-resolver.service
+
+[Service]
+Type=simple
+User=djenius
+WorkingDirectory=/opt/prologin/djenius
+ExecStart={{ djenius_venv_dir }}/bin/python -m djenius.bin.backend \
+    --logging=INFO \
+    --unix=/opt/prologin/djenius/server.socket \
+    --state-file=/opt/prologin/djenius/state.pickle \
+    --whoosh-dir=/opt/prologin/djenius/whoosh \
+    --auth=djenius_auth_udbsync.UdbSyncAuthProvider \
+    --resolver=http://radio/resolve \
+    --mpv=speaker:20221
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

@@ -56,3 +56,7 @@
     - import_role:
         name: sgoinfre_mount
       tags: sgoinfre_mount
+
+    - import_role:
+        name: mpv
+      tags: mpv

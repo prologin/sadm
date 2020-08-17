@@ -1,0 +1,14 @@
+- name: restart djenius
+  systemd:
+    name: 'djenius-{{ item }}'
+    state: restarted
+    daemon_reload: True
+  with_items:
+    - resolver
+    - server
+
+- name: restart despotify
+  systemd:
+    name: 'despotify'
+    state: restarted
+    daemon_reload: True

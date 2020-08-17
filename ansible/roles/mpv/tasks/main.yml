@@ -1,0 +1,14 @@
+- name: Install socat & mpv
+  pacman:
+    name:
+      - mpv
+      - socat
+
+- name: Install mpv and mpv-tcp-bridge systemd services
+  template:
+    src: 'systemd/{{ item }}.service'
+    dest: '/usr/lib/systemd/user/'
+    mode: 0644
+  with_items:
+    - mpv
+    - mpv-tcp-bridge

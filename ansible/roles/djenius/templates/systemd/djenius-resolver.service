@@ -1,0 +1,17 @@
+[Unit]
+Description=djenius (collaborative jukebox) resolver
+After=network-online.target
+
+[Service]
+Type=simple
+User=djenius
+WorkingDirectory=/opt/prologin/djenius
+Environment=DESPOTIFY_URL=http://127.0.0.1:{{ despotify_port }}
+ExecStart={{ djenius_venv_dir }}/bin/python -m djenius.bin.resolver \
+    --logging=INFO \
+    --unix=/opt/prologin/djenius/resolver.socket
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

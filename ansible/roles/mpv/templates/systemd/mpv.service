@@ -1,0 +1,15 @@
+[Unit]
+Description=mpv
+After=network-online.target
+After=mpv-tcp-bridge.service
+Requires=mpv-tcp-bridge.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/mpv --input-ipc-server=/tmp/mpv.sock \
+    --idle --input-terminal=no --no-ytdl --no-audio-display --force-seekable=yes
+Restart=always
+RestartSec=1
+
+[Install]
+WantedBy=multi-user.target

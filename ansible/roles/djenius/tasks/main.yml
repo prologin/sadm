@@ -1,0 +1,92 @@
+- name: Install libprologin requirements
+  pip:
+    requirements: "{{ sadm_path }}/requirements.txt"
+    virtualenv: "{{ djenius_venv_dir }}"
+    virtualenv_command: python3 -m venv
+
+- name: Install djenius Python packages
+  pip:
+    name:
+      - "{{ sadm_path }}"
+      - djenius-auth-udbsync~=1.0
+      - djenius~=1.0
+      - youtube_dl
+    virtualenv: "{{ djenius_venv_dir }}"
+    virtualenv_command: python3 -m venv
+
+- name: Symlink youtube-dl
+  file:
+    path: /usr/bin/youtube-dl
+    state: link
+    src: "{{ djenius_venv_dir }}/bin/youtube-dl"
+
+- name: Create djenius state directory
+  file:
+    path: "/opt/prologin/djenius"
+    owner: djenius
+    group: djenius
+    state: directory
+    mode: '0755'
+
+- name: Install djenius nginx config
+  template:
+    src: 'nginx/djenius.nginx'
+    dest: '/etc/nginx/services/'
+    mode: 0644
+  notify: reload nginx
+
+- name: Install djenius systemd services
+  template:
+    src: 'systemd/djenius-{{ item }}.service'
+    dest: '/etc/systemd/system/'
+    mode: 0644
+  with_items:
+    - server
+    - resolver
+  notify: restart djenius
+
+- name: Enable djenius-resolver
+  systemd:
+    name: djenius-resolver
+    enabled: True
+
+- name: Enable and start djenius-server
+  systemd:
+    name: djenius-server
+    enabled: True
+    state: started
+
+- name: Check whether despotify is available
+  tags: despotify
+  local_action: stat path={{ role_path }}/files/despotify/
+  register: despotify
+
+- name: Install despotify binaries/config
+  tags: despotify
+  when: despotify.stat.exists and item.state == 'file'
+  copy:
+    src: "{{ item.src }}"
+    dest: "/opt/prologin/djenius/{{ item.path }}"
+    mode: preserve
+    owner: djenius
+    group: djenius
+  with_filetree: despotify/
+  loop_control:
+    label: "{{ item.path }}"
+
+- name: Install despotify service
+  tags: despotify
+  when: despotify.stat.exists
+  template:
+    src: 'systemd/despotify.service'
+    dest: '/etc/systemd/system/'
+    mode: 0644
+  notify: restart despotify
+
+- name: Enable despotify service
+  tags: despotify
+  when: despotify.stat.exists
+  systemd:
+    name: despotify
+    enabled: True
+    state: started
