@@ -20,6 +20,7 @@
           - paste
           - map
           - masternode
+          - matchmaker
         mac: '{{ mac }}'
         mtype: service
         room: pasteur
@@ -73,6 +74,10 @@
     - import_role:
         name: masternode
       tags: masternode
+
+    - import_role:
+        name: matchmaker
+      tags: matchmaker
 
     - import_role:
         name: paste

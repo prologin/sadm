@@ -1,0 +1,21 @@
+- name: Install MatchMaker systemd service
+  template:
+    src: 'systemd/matchmaker.service'
+    dest: '/etc/systemd/system/matchmaker.service'
+    mode: 0644
+  notify: restart matchmaker
+
+- name: Install matchmaker configuration
+  template:
+    src: 'prologin/matchmaker.yml'
+    dest: '/etc/prologin/'
+    mode: 0644
+    group: concours
+  notify: restart matchmaker
+
+- name: Enable MatchMaker
+  systemd:
+    name: matchmaker
+    enabled: True
+    state: started
+
