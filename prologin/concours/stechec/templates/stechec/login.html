@@ -13,7 +13,7 @@
 {% block content %}
 
   {% if settings.CONCOURS_ONLINE_MODE %}
-    <a class="btn-lg btn-primary" href="{% url 'proloauth_client:autologin'%}">Connexion avec prologin.org</a>
+    <a class="btn btn-primary btn-lg" href="{% url 'proloauth_client:autologin'%}">Connexion avec prologin.org</a>
   {% else %}
     {% crispy form %}
   {% endif %}

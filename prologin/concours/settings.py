@@ -33,6 +33,8 @@ if cfg['online_mode'].get('enabled'):
 
     INSTALLED_APPS.append('proloauth_client')
 
+    AUTHENTICATION_BACKENDS.remove('prologin.sso.django.SSOUserBackend')
+    MIDDLEWARE.remove('prologin.sso.django.SSOMiddleware')
     MIDDLEWARE.insert(
         MIDDLEWARE.index('django.middleware.csrf.CsrfViewMiddleware'),
         'proloauth_client.middleware.RefreshTokenMiddleware',

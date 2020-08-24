@@ -42,24 +42,24 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )
 
-MIDDLEWARE = (
+MIDDLEWARE = [
     'django_prometheus.middleware.PrometheusBeforeMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'prologin.sso.django.SSOMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'prologin.sso.django.SSOMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django_prometheus.middleware.PrometheusAfterMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
-)
+]
 
-AUTHENTICATION_BACKENDS = (
+AUTHENTICATION_BACKENDS = [
     'prologin.sso.django.SSOUserBackend',
     'django.contrib.auth.backends.ModelBackend',
-)
+]
 
 ROOT_URLCONF = 'prologin.concours.urls'
 
@@ -79,7 +79,7 @@ TEMPLATES = [
     },
 ]
 
-INSTALLED_APPS = (
+INSTALLED_APPS = [
     # Built-in
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -98,7 +98,7 @@ INSTALLED_APPS = (
     # Monitoring
     'django_prometheus',
     'debug_toolbar',
-)
+]
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to

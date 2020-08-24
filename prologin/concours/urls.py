@@ -29,7 +29,7 @@ if settings.DEBUG:
 if settings.CONCOURS_ONLINE_MODE:
     urlpatterns = [
         path(
-            'user/auth',
+            'user/auth/',
             include('proloauth_client.urls', namespace='proloauth_client'),
         )
     ] + urlpatterns

@@ -28,6 +28,9 @@
           <li><a href="{% url 'admin:index' %}" title="Administration"><i class="fa fa-wrench i-align"></i> Admin</a></li>
           <li><a href="{% url 'match-stream' %}"><i class="fa fa-caret-right i-align"></i> Match stream</a></li>
         {% endif %}
+          {% if settings.CONCOURS_ONLINE_MODE %}
+            <li><a href="{% url 'logout' %}" title="Déconnexion"><i class="fa fa-sign-out i-align"></i> Déconnexion</a></li>
+          {% endif %}
       {% else %}
         <li><a href="{% url 'login' %}"><i class="fa fa-user i-align"></i> Connexion</a></li>
       {% endif %}
