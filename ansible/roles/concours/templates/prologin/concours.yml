@@ -63,6 +63,7 @@ online_mode:
   oauth_endpoint: "{{ concours_online_mode_oauth_endpoint }}"
   oauth_client_id: "{{ concours_online_mode_oauth_client_id }}"
   oauth_secret: "{{ concours_online_mode_oauth_secret }}"
+  api_key_length: {{ concours_online_mode_api_key_length | to_json | default(32) }}
 
 # Website related informations.
 website:

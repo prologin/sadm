@@ -1,0 +1,30 @@
+{% extends "stechec/base.html" %}
+{% load django_bootstrap_breadcrumbs %}
+
+{% block title %}Clés d'API{% endblock %}
+{% block titleh1 %}Gestion des clés d'API{% endblock %}
+
+{% block breadcrumbs %}
+  {{ block.super }}
+  {% breadcrumb_for "api-keys" %}Clés d'API{% endbreadcrumb_for %}
+{% endblock %}
+
+{% block content %}
+  <p>Les clés d'API vous permettent d'utiliser l'<a href="{% url 'restapi:api-root' %}">API REST de finale</a>. Votre clé d'API est <b>personnelle et confidentielle</b>.</p>
+  <div class="row">
+      <div class="col-lg-6">
+          <h2>Votre clé d'API</h2>
+          <input class="form-control control-lg" type="text" value="{{ user_api_key }}" readonly>
+      </div>
+      <div class="col-lg-6">
+          <h2>Regénérer une clé d'API</h2>
+          <p>Si vous pensez que votre clé d'API a été compromise, vous pouvez en regnénérer une nouvelle en cliquant sur le bouton ci-dessous.</p>
+          <p><b>Attention : vous allez être déconnecté.e</b></p>
+          <form method="POST">
+              {% csrf_token %}
+              <button class="btn btn-danger btn-lg">Regénérer ma clé d'API</button>
+          </form>
+      </div>
+  </div>
+
+{% endblock %}

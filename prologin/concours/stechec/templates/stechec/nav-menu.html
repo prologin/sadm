@@ -3,7 +3,11 @@
   {% url 'home' as u_home %}
   {% url 'tournaments-all' as u_tournaments_all %}
   {% url 'status' as u_status %}
+  {% url 'api-keys' as u_api_keys %}
   <li class="{% active u_home %}"><a href="{{ u_home }}">Accueil</a></li>
+  {% if settings.CONCOURS_ONLINE_MODE and user.is_authenticated %}
+    <li class="{% active u_api_keys %}"><a href="{{ u_api_keys }}">Mes clés d'API</a></li>
+  {% endif %}
   <li class="{% active u_status %}"><a href="{{ u_status }}">
     État des serveurs
   </a></li>

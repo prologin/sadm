@@ -159,6 +159,15 @@ DEBUG_TOOLBAR_CONFIG = {
 }
 
 CONCOURS_ONLINE_MODE = False
+API_KEY_LENGTH = 32
 OAUTH_ENDPOINT = ''
 OAUTH_CLIENT_ID = ''
 OAUTH_SECRET = ''
+
+# These are the default Django password hashers
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+]

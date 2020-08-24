@@ -125,3 +125,10 @@ if settings.STECHEC_USE_MAPS:
     urlpatterns += [
         path('maps/', include(map_patterns)),
     ]
+
+if settings.CONCOURS_ONLINE_MODE:
+    urlpatterns += [
+        path(
+            'api-keys/', views.APIKeyManagementView.as_view(), name='api-keys'
+        ),
+    ]
