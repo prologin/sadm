@@ -98,6 +98,7 @@ INSTALLED_APPS = [
     # Monitoring
     'django_prometheus',
     'debug_toolbar',
+    'webide',
 ]
 
 # A sample logging configuration. The only tangible logging
