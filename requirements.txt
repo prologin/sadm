@@ -28,3 +28,4 @@ git+https://github.com/prologin/django-proloauth-client
 
 # finale2020 please delete
 django-filter==2.3.0
+django-oidc-provider==0.7.0

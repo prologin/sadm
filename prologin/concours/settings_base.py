@@ -99,6 +99,7 @@ INSTALLED_APPS = [
     # Monitoring
     'django_prometheus',
     'debug_toolbar',
+    'oidc_provider',
     'webide',
 ]
 
@@ -173,3 +174,5 @@ PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.Argon2PasswordHasher',
     'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
 ]
+
+OIDC_EXTRA_SCOPE_CLAIMS = 'webide.oidc_scopes.ProloginSpecificClaims'
