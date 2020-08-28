@@ -94,6 +94,7 @@ INSTALLED_APPS = [
     'prologin.concours.stechec',
     # Built-in or vendor (for template overriding)
     'rest_framework',
+    'django_filters',
     'django.contrib.admin',
     # Monitoring
     'django_prometheus',

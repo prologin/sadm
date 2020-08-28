@@ -15,6 +15,7 @@ urlpatterns = [
     path('api/', include(prologin.concours.stechec.restapi.urls)),
     path('', include(prologin.concours.stechec.urls)),
     path('', include('django_prometheus.urls')),
+    path('webide/', include('webide.urls')),
 ]
 
 urlpatterns += staticfiles_urlpatterns()

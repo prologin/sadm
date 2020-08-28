@@ -25,3 +25,6 @@ wiki==0.5
 # From prologin
 git+https://github.com/prologin/django-proloauth-client
 -e git://github.com/prologin/camisole.git#egg=camisole
+
+# finale2020 please delete
+django-filter==2.3.0

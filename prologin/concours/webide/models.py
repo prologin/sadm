@@ -19,5 +19,4 @@ class UserMachine(models.Model):
         to=get_user_model(), primary_key=True, on_delete=models.CASCADE
     )
     workspace = models.OneToOneField(
-        to='MachineTheia', on_delete=models.SET_NULL, null=True, blank=True
-    )
+        to='MachineTheia', on_delete=models.CASCADE)
