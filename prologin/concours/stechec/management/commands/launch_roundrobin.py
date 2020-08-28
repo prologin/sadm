@@ -3,7 +3,7 @@ import sys
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from prologin.concours.stechec.models import Match, Tournament
+from prologin.concours.stechec.models import Match, Tournament, MatchPriority
 
 
 class Command(BaseCommand):
@@ -71,4 +71,4 @@ class Command(BaseCommand):
         if confirm.lower() not in ("yes", "y"):
             sys.exit(1)
 
-        Match.launch_bulk(matches, priority=Match.Priority.TOURNAMENT)
+        Match.launch_bulk(matches, priority=MatchPriority.TOURNAMENT)
