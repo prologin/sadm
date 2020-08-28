@@ -4,5 +4,5 @@ from . import api
 app_name = 'webide'
 
 urlpatterns = [
-        path('api/', include(api.router.urls)),
+    path('api/', include(api.router.urls)),
 ]

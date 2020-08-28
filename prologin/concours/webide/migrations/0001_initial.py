@@ -17,20 +17,42 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='MachineTheia',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                (
+                    'id',
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name='ID',
+                    ),
+                ),
                 ('host', models.CharField(max_length=10)),
                 ('room', models.CharField(max_length=20)),
                 ('port', models.IntegerField()),
             ],
-            options={
-                'unique_together': {('host', 'room', 'port')},
-            },
+            options={'unique_together': {('host', 'room', 'port')},},
         ),
         migrations.CreateModel(
             name='UserMachine',
             fields=[
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, primary_key=True, serialize=False, to=settings.AUTH_USER_MODEL)),
-                ('workspace', models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='webide.MachineTheia')),
+                (
+                    'user',
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        primary_key=True,
+                        serialize=False,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    'workspace',
+                    models.OneToOneField(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to='webide.MachineTheia',
+                    ),
+                ),
             ],
         ),
     ]
