@@ -6,6 +6,9 @@ master:
 
   shared_secret: "%%SECRET:cluster%%" # A shared secret used to avoid malicious
                                       # requests impersonating a worker node.
+                                      #
+  # Maximum number of tasks loaded in masternode's queues (task or match queue)
+  max_tasks_in_queue: 1000
 
 worker:
   timeout_secs: 12      # After this number of seconds has elapsed, if a worker

@@ -32,6 +32,8 @@ REQUESTS = {
             ON auth_user.id = stechec_champion.author_id
           WHERE
             stechec_champion.status = %(champion_status)s
+          LIMIT
+            %(max_tasks_in_queue)%
     ''',
     'set_champion_status': '''
           UPDATE
@@ -65,6 +67,8 @@ REQUESTS = {
           ORDER BY
             stechec_match.priority DESC,
             stechec_match.id ASC
+          LIMIT
+            %(max_tasks_in_queue)%
     ''',
     'set_match_status': '''
           UPDATE
@@ -94,6 +98,7 @@ class ConcoursQuery:
         self.user = config['sql']['user']
         self.password = config['sql']['password']
         self.database = config['sql']['database']
+        self.max_tasks_in_queue = config['master']['max_tasks_in_queue']
         self.pool = None
 
     async def connect(self):
@@ -111,6 +116,7 @@ class ConcoursQuery:
         if name not in REQUESTS:
             raise AttributeError('No such request')
 
+        params['max_tasks_in_queue'] = self.max_tasks_in_queue
         await self.connect()
         async with self.pool.acquire() as conn:
             async with conn.cursor() as cursor:
@@ -129,4 +135,5 @@ class ConcoursQuery:
         async with self.pool.acquire() as conn:
             async with conn.cursor() as cursor:
                 for p in seq_of_params:
+                    p['max_tasks_in_queue'] = self.max_tasks_in_queue
                     await cursor.execute(REQUESTS[name], p)

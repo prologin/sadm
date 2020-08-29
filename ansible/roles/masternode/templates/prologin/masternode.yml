@@ -8,6 +8,9 @@ master:
   # node.
   shared_secret: "{{ masternode_secret }}"
 
+  # Maximum number of tasks loaded in masternode's queues (task or match queue)
+  max_tasks_in_queue: 1000
+
 worker:
   # After this number of seconds has elapsed, if a worker node has not sent a
   # ping it will be considered as dead. This value must be grater than the one
