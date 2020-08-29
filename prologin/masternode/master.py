@@ -19,6 +19,7 @@
 # along with Prologin-SADM.  If not, see <http://www.gnu.org/licenses/>.
 
 import asyncio
+import json
 import logging
 import os.path
 import prologin.rpc.server
@@ -26,6 +27,7 @@ import random
 import time
 
 from base64 import b64decode
+from pathlib import Path
 
 from .concoursquery import ConcoursQuery
 from .monitoring import (
@@ -42,8 +44,12 @@ from .monitoring import (
     masternode_zombie_worker,
     masternode_exception,
 )
-from .task import MatchTask, CompilationTask
-from .task import champion_compiled_path, match_path, clog_path
+from .task import (
+    CompilationTask,
+    MatchTask,
+    get_champion_path,
+    get_match_path,
+)
 from .worker import Worker
 
 
@@ -113,108 +119,136 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         await self.update_worker(worker)
 
     @prologin.rpc.remote_method
-    async def compilation_result(
-        self, worker, cid, user, ret, b64compiled, log
-    ):
-        hostname, port, slots, max_slots = worker
-        w = self.workers[(hostname, port)]
-
-        task = w.get_compilation_task(cid)
-        # Ignore the tasks we already redispatched
-        if task is None:
-            return
-        w.remove_compilation_task(task)
-
-        status = "ready" if ret else "error"
-        if ret:
-            with open(
-                champion_compiled_path(self.config, user, cid), 'wb'
-            ) as f:
-                f.write(b64decode(b64compiled))
-        with open(clog_path(self.config, user, cid), 'w') as f:
-            f.write(log)
-        logging.info('compilation of champion %s: %s', cid, status)
-        await self.db.execute(
-            'set_champion_status',
-            {'champion_id': cid, 'champion_status': status},
-        )
-
-    # TODO: move arguments to a dataclass
-    @prologin.rpc.remote_method
-    async def match_done(
-        self,
-        worker,
-        mid,
-        result,
-        dumper_stdout,
-        replay,
-        server_stats,
-        server_stdout,
-        players_stdout,
-    ):
+    async def compilation_done(self, worker, user, champion_id, result):
         hostname, port, slots, max_slots = worker
         try:
             w = self.workers[(hostname, port)]
         except KeyError:
             # Ignore tasks from zombie workers
             masternode_zombie_worker.inc()
+            logging.info(
+                'discarding result zombie worker %s', str((hostname, port))
+            )
+            return
+
+        task = w.get_compilation_task(champion_id)
+        # Ignore the tasks we already redispatched
+        if task is None:
+            logging.info(
+                'discarding result of redispatched compilation task %s',
+                champion_id,
+            )
+            return
+        w.remove_compilation_task(task)
+
+        if result['success']:  # Successful compilation
+            status = 'ready'
+        elif 'error' in result:  # Internal error
+            status = 'failed'
+        else:  # Compilation failure
+            status = 'error'
+        logging.info('compilation of champion %s: %s', champion_id, status)
+
+        champion_path = get_champion_path(self.config, user, champion_id)
+        if result['stdout'] is not None:
+            (champion_path / 'compilation.log').write_text(result['stdout'])
+        if result['success'] and result['champion_compiled']:
+            (champion_path / 'champion-compiled.tgz').write_bytes(
+                b64decode(result['champion_compiled'])
+            )
+        (champion_path / 'compilation-workernode-result.json').write_text(
+            json.dumps(result)
+        )
+        await self.db.execute(
+            'set_champion_status',
+            {'champion_id': champion_id, 'champion_status': status},
+        )
+
+    @prologin.rpc.remote_method
+    async def match_done(self, worker, mid, result):
+        hostname, port, slots, max_slots = worker
+        try:
+            w = self.workers[(hostname, port)]
+        except KeyError:
+            # Ignore tasks from zombie workers
+            masternode_zombie_worker.inc()
+            logging.info(
+                'discarding result zombie worker %s', str((hostname, port))
+            )
             return
 
         task = w.get_match_task(mid)
         # Ignore the tasks we already redispatched
         if task is None:
+            logging.info(
+                'discarding result of redispatched match task %s', mid
+            )
             return
         w.remove_match_task(task)
 
-        logging.info('match %s ended', mid)
+        if result['success']:
+            status = 'done'
+        else:
+            status = 'failed'
+        logging.info('result of match %s: %s', mid, status)
+        match_path = get_match_path(self.config, mid)
 
         # Write player logs
-        for pl_id, (champ_id, retcode, log) in players_stdout.items():
-            logname = 'log-champ-{}-{}.log'.format(pl_id, champ_id)
-            logpath = os.path.join(match_path(self.config, mid), logname)
-            with masternode_client_done_file.time(), open(
-                logpath, 'w'
-            ) as fplayer:
-                fplayer.write(log)
+        for player_id, player_result in result['players'].items():
+            logname = 'log-champ-{}-{}.log'.format(
+                player_id, player_result['champion_id']
+            )
+            with masternode_client_done_file.time():
+                if player_result['stdout'] is not None:
+                    (match_path / logname).write_text(player_result['stdout'])
 
         # Store match artifacts
-        server_log_path = os.path.join(
-            match_path(self.config, mid), 'server.log'
-        )
-        dump_path = os.path.join(match_path(self.config, mid), 'dump.json.gz')
-        replay_path = os.path.join(match_path(self.config, mid), 'replay.gz')
-        server_stats_path = os.path.join(
-            match_path(self.config, mid), 'server_stats.yaml.gz'
-        )
-        with masternode_match_done_file.time(), open(
-            server_log_path, 'w'
-        ) as fserver, open(dump_path, 'wb') as fdump, open(
-            replay_path, 'wb'
-        ) as freplay, open(
-            server_stats_path, 'wb'
-        ) as fserver_stats:
-            fserver.write(server_stdout)
-            fdump.write(b64decode(dumper_stdout))
-            freplay.write(b64decode(replay))
-            fserver_stats.write(b64decode(server_stats))
+        with masternode_match_done_file.time():
+            if result['stdout'] is not None:
+                (match_path / 'server.stdout.log').write_text(result['stdout'])
+            if result['stderr'] is not None:
+                (match_path / 'server.stderr.log').write_text(result['stderr'])
+            if result['dump']:
+                (match_path / 'dump.json.gz').write_bytes(
+                    b64decode(result['dump'])
+                )
+            if result['replay']:
+                (match_path / 'replay.gz').write_bytes(
+                    b64decode(result['replay'])
+                )
+            if result['stats']:
+                (match_path / 'server_stats.yaml.gz').write_bytes(
+                    b64decode(result['stats'])
+                )
+            (match_path / 'server-workernode-result.json').write_text(
+                json.dumps(result)
+            )
 
-        match_status = {'match_id': mid, 'match_status': 'done'}
-        try:
-            player_scores = [
-                {
-                    'player_id': r['player'],
-                    'player_score': r['score'],
-                    'player_timeout': r['nb_timeout'] != 0,
-                }
-                for r in result
-            ]
-        except KeyError:
-            masternode_bad_result.inc()
-            return
+        if status == 'done':
+            try:
+                player_scores = [
+                    {
+                        'player_id': r['player'],
+                        'player_score': r['score'],
+                        'player_timeout': r['nb_timeout'] != 0,
+                    }
+                    for r in result['match_result']
+                ]
+            except KeyError:
+                masternode_bad_result.inc()
+                logging.warning(
+                    "received malformed result for match result %s: %s",
+                    mid,
+                    repr(result['match_result']),
+                )
+                status = 'failed'
+            else:
+                await self.db.executemany('set_player_score', player_scores)
+
+        match_status = {'match_id': mid, 'match_status': status}
+        await self.db.execute('set_match_status', match_status)
 
         start = time.monotonic()
-        await self.db.execute('set_match_status', match_status)
-        await self.db.executemany('set_player_score', player_scores)
         masternode_match_done_db.observe(time.monotonic() - start)
 
     async def redispatch_worker(self, worker):

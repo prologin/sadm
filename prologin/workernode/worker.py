@@ -26,6 +26,13 @@ import prologin.rpc.server
 import socket
 import time
 
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_fixed,
+    retry_if_exception_type,
+)
+
 from . import operations
 
 from .monitoring import (
@@ -127,67 +134,66 @@ class WorkerNode(prologin.rpc.server.BaseRPCApp):
     @prologin.rpc.remote_method
     @async_work(slots=1)
     async def compile_champion(self, user, cid, ctgz):
+        logging.info('compilation %s: starting', cid)
         compile_champion_start = time.monotonic()
-
-        ret, compiled, log = await operations.compile_champion(
-            self.config, ctgz
-        )
-        try:
-            await self.master.compilation_result(
-                self.get_worker_infos(),
-                cid,
-                user,
-                ret,
-                compiled,
-                log,
-                max_retries=self.config['master']['max_retries'],
-                retry_delay=self.config['master']['retry_delay'],
-            )
-        except socket.error:
-            logging.warning('master down, cannot send compiled %s', cid)
-
+        result = await operations.compile_champion(self.config, ctgz)
         workernode_compile_champion_summary.observe(
             max(time.monotonic() - compile_champion_start, 0)
         )
+        logging.info('compilation %s: done', cid)
+
+        @retry(
+            reraise=True,
+            stop=stop_after_attempt(15),
+            wait=wait_fixed(10),
+            retry=retry_if_exception_type(socket.error),
+        )
+        async def send_master_result():
+            await self.master.compilation_done(
+                self.get_worker_infos(),
+                user,
+                cid,
+                result,
+            )
+
+        try:
+            await send_master_result()
+        except socket.error:
+            logging.warning('master down, cannot send compiled %s', cid)
+        else:
+            logging.info('compilation %s: sent to masternode', cid)
 
     @prologin.rpc.remote_method
     @async_work(slots=5)
     async def run_match(self, match_id, players, map_contents=None):
-        logging.info('starting match %s', match_id)
+        logging.info('match %s: started', match_id)
         run_match_start = time.monotonic()
-
-        (
-            server_result,
-            server_out,
-            dump,
-            replay,
-            server_stats,
-            players_info,
-        ) = await (
-            operations.spawn_match(
-                self.config, match_id, players, map_contents
-            )
+        result = await operations.spawn_match(
+            self.config, players, map_contents
         )
-        logging.info('match %s done', match_id)
+        workernode_run_match_summary.observe(
+            max(time.monotonic() - run_match_start, 0)
+        )
+        logging.info('match %s: done', match_id)
 
-        try:
+        @retry(
+            reraise=True,
+            stop=stop_after_attempt(15),
+            wait=wait_fixed(10),
+            retry=retry_if_exception_type(socket.error),
+        )
+        async def send_master_result():
             await self.master.match_done(
                 self.get_worker_infos(),
                 match_id,
-                server_result,
-                dump,
-                replay,
-                server_stats,
-                server_out,
-                players_info,
-                max_retries=self.config['master']['max_retries'],
-                retry_delay=self.config['master']['retry_delay'],
+                result,
             )
+
+        try:
+            await send_master_result()
         except socket.error:
             logging.warning(
                 'master down, cannot send match %s result', match_id
             )
-
-        workernode_run_match_summary.observe(
-            max(time.monotonic() - run_match_start, 0)
-        )
+        else:
+            logging.info('match %s: sent to masternode', match_id)

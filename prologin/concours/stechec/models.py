@@ -1,17 +1,19 @@
-from enum import IntEnum
 import contextlib
 import itertools
+import json
 import os
+import pprint
 import re
 import tarfile
 import tempfile
 
 from django.conf import settings
-from django.urls import reverse
 from django.db import connection, models, transaction
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.functional import cached_property
 from django_prometheus.models import ExportModelOperationsMixin
+from enum import IntEnum
 
 import prologin.rpc.client
 from prologin.concours.stechec.languages import LANGUAGES, PYGMENTS_LEXERS
@@ -21,6 +23,21 @@ stripper_re = re.compile(r'\033\[.*?m')
 
 def strip_ansi_codes(t):
     return stripper_re.sub('', t)
+
+
+def rec_truncate(obj, maxlen=79):
+    if isinstance(obj, str) and len(obj) > maxlen:
+        return "..." + strip_ansi_codes(obj[-maxlen:])
+    if isinstance(obj, bytes) and len(obj) > maxlen:
+        return b"..." + obj[-maxlen:]
+    if isinstance(obj, dict):
+        return {
+            rec_truncate(k, maxlen): rec_truncate(v, maxlen)
+            for k, v in obj.items()
+        }
+    if isinstance(obj, list):
+        return [rec_truncate(e, maxlen) for e in obj]
+    return obj
 
 
 def bulk_create_return_ids(model, objs):
@@ -65,7 +82,6 @@ class Map(ExportModelOperationsMixin('map'), models.Model):
 
 class Champion(ExportModelOperationsMixin('champion'), models.Model):
     SOURCES_FILENAME = 'champion.tgz'
-    LOG_FILENAME = 'compilation.log'
     STATUS_CHOICES = (
         ('new', 'En attente de compilation'),
         ('pending', 'En cours de compilation'),
@@ -116,13 +132,30 @@ class Champion(ExportModelOperationsMixin('champion'), models.Model):
 
     @property
     def compilation_log(self):
-        log_path = self.directory / self.LOG_FILENAME
+        log_path = self.directory / 'compilation.log'
         try:
-            return log_path.open().read()
+            return log_path.read_text().strip()
         except FileNotFoundError:
             return "Log de compilation introuvable."
         except Exception as e:
             return str(e)
+
+    def workernode_result(self):
+        try:
+            return json.loads(
+                (
+                    self.directory / 'compilation-workernode-result.json'
+                ).read_text()
+            )
+        except FileNotFoundError:
+            return None
+
+    def workernode_result_printable(self):
+        result = self.workernode_result()
+        if result is None:
+            return "Résultat Workernode introuvable."
+        rep = rec_truncate(result, maxlen=2000)
+        return pprint.pformat(rep, width=120)
 
     @contextlib.contextmanager
     def _extract_sources(self):
@@ -147,16 +180,14 @@ class Champion(ExportModelOperationsMixin('champion'), models.Model):
     def source_contents(self):
         '''Returns a dictionary file_name -> content'''
         ext_whitelist = set(
-            itertools.chain(*(l['exts'] for l in LANGUAGES.values()))
+            itertools.chain(*(lang['exts'] for lang in LANGUAGES.values()))
         )
         file_blacklist = [
             'interface',
             'api',
             'constant',
             'ffi',
-            'prologin_stub',
             'capi',
-            'prologin.hh',
         ]
         sources = {}
         with self._extract_sources() as tmpd:
@@ -303,9 +334,6 @@ class MatchPriority(IntEnum):
 
 
 class Match(ExportModelOperationsMixin('match'), models.Model):
-    DUMP_FILENAME = "dump.json.gz"
-    REPLAY_FILENAME = "replay.gz"
-    LOG_FILENAME = "server.log"
     STATUS_CHOICES = (
         ('creating', 'En cours de création'),
         ('new', 'En attente de lancement'),
@@ -363,22 +391,26 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
             / "{:03d}".format(low_id)
         )
 
-    @property
-    def log_path(self):
-        return self.directory / self.LOG_FILENAME
-
-    @property
-    def log(self):
+    def log(self, out='stdout'):
+        log_path = self.directory / 'server.{}.log'.format(out)
         try:
-            return strip_ansi_codes(self.log_path.open().read()).strip()
+            return strip_ansi_codes(log_path.open().read()).strip()
         except FileNotFoundError:
             return "Log de match introuvable."
         except Exception as e:
             return str(e)
 
     @property
+    def log_out(self):
+        return self.log('stdout')
+
+    @property
+    def log_err(self):
+        return self.log('stderr')
+
+    @property
     def dump_path(self):
-        return self.directory / self.DUMP_FILENAME
+        return self.directory / 'dump.json.gz'
 
     @property
     def dump(self):
@@ -393,7 +425,7 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
 
     @property
     def replay_path(self):
-        return self.directory / self.REPLAY_FILENAME
+        return self.directory / 'replay.gz'
 
     @property
     def replay(self):
@@ -412,6 +444,21 @@ class Match(ExportModelOperationsMixin('match'), models.Model):
 
     def get_absolute_url(self):
         return reverse('match-detail', kwargs={'pk': self.id})
+
+    def workernode_result(self):
+        try:
+            return json.loads(
+                (self.directory / 'server-workernode-result.json').read_text()
+            )
+        except FileNotFoundError:
+            return None
+
+    def workernode_result_printable(self):
+        result = self.workernode_result()
+        if result is None:
+            return "Résultat Workernode introuvable."
+        rep = rec_truncate(result, maxlen=2000)
+        return pprint.pformat(rep, width=120)
 
     def __str__(self):
         return "%s (par %s)" % (self.ts, self.author)

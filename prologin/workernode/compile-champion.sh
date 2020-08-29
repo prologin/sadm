@@ -28,7 +28,6 @@ champion_dir=$2
 
 compil_dir=`mktemp -d /tmp/stechec_compil_XXXXXX`
 champion_tarball=$champion_dir/champion.tgz
-compil_log=$champion_dir/compilation.log
 lang_file=_lang
 
 # Signal the makefiles to use wildcards to find the champion sources
@@ -89,7 +88,7 @@ export STECHEC_SERVER=1
 
     rm -rf "$champion_dir/champion-compiled/"
     echo 'Success!'
-) 2>&1 | tee "$compil_log"
+) 2>&1
 
 res=${PIPESTATUS[0]}
 rm -rf "$compil_dir"

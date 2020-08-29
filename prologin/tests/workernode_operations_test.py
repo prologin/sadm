@@ -81,33 +81,30 @@ class CompilationTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as makefiles:
             makefiles_p = pathlib.Path(makefiles)
-            makefile = makefiles_p / 'Makefile-cxx'
+            makefiles_cxx_p = makefiles_p / 'cxx'
+            makefiles_cxx_p.mkdir()
+            makefile = makefiles_cxx_p / 'Makefile-cxx'
             with makefile.open('w') as mkf:
                 mkf.write(
                     '''\
 all: champion.so
 champion.so: prologin.c
 \tgcc -shared -fPIE prologin.c -o champion.so
-list-run-reqs:
-\t@echo champion.so
 '''
                 )
             makefiles_p.chmod(0o755)
             makefile.chmod(0o644)
             config = {
-                'path': {'makefiles': makefiles},
+                'path': {'player_env': makefiles},
                 'timeout': {'compile': 400},
             }
-            loop = asyncio.get_event_loop()
-            ret, compiled, log = loop.run_until_complete(
-                operations.compile_champion(config, ctgz)
-            )
+            result = asyncio.run(operations.compile_champion(config, ctgz))
 
-        self.assertEqual(ret, True)
+        self.assertTrue(result['success'])
         for f in ('prologin.c', '_lang', 'champion.so'):
-            self.assertIn(f, log)
+            self.assertIn(f, result['stdout'])
 
-        tgz = b64decode(compiled)
+        tgz = b64decode(result['champion_compiled'])
         with tempfile.TemporaryDirectory() as tmpdir:
             operations.untar(tgz, tmpdir)
             cpath = os.path.join(tmpdir, 'champion.so')
@@ -131,8 +128,12 @@ print('test_map:', open(map).read())
 
 # Write on all outputs
 dump_path = sys.argv[sys.argv.index('--dump') + 1]
-print('DUMP TEST', file=open(dump_path, 'w'))
+replay_path = sys.argv[sys.argv.index('--replay') + 1]
+stats_path = sys.argv[sys.argv.index('--stats') + 1]
 print('some log on stderr', file=sys.stderr)
+print('DUMP TEST', file=open(dump_path, 'w'))
+print('REPLAY TEST', file=open(replay_path, 'w'))
+print('STATS TEST', file=open(stats_path, 'w'))
 
 # Test sockets
 pubsub = sys.argv[sys.argv.index('--pub_addr') + 1][len('ipc://'):]
@@ -247,40 +248,43 @@ class FakeMatchTest(unittest.TestCase):
         }
         with SetupScripts(scripts) as scripts_paths:
             config = get_worker_config(**scripts_paths)
-            loop = asyncio.get_event_loop()
 
             # Construct map player_id -> [champion id, tarball]
-            match_id = 4224
             players = {42: [0, ctgz], 1337: [0, ctgz]}
             map_contents = 'TEST_MAP'
 
-            (
-                server_result,
-                server_out,
-                dump,
-                players_info,
-            ) = loop.run_until_complete(
-                operations.spawn_match(config, match_id, players, map_contents)
+            result = asyncio.run(
+                operations.spawn_match(config, players, map_contents)
             )
 
-        self.assertEqual(gzip.decompress(b64decode(dump)), b'DUMP TEST\n')
+        self.assertEqual(
+            gzip.decompress(b64decode(result['dump'])), b'DUMP TEST\n'
+        )
+        self.assertEqual(
+            gzip.decompress(b64decode(result['replay'])), b'REPLAY TEST\n'
+        )
+        self.assertEqual(
+            gzip.decompress(b64decode(result['stats'])), b'STATS TEST\n'
+        )
 
         sr_expected = [
             {'player': 1, 'score': 42, 'nb_timeout': 0},
             {'player': 2, 'score': 1337, 'nb_timeout': 0},
         ]
-        self.assertEqual(server_result, sr_expected)
+        self.assertEqual(result['match_result'], sr_expected)
 
-        self.assertIn('map: TEST_MAP', server_out)
-        self.assertIn('some log on stderr', server_out)
+        self.assertIn('map: TEST_MAP', result['stdout'])
+        self.assertIn('some log on stderr', result['stderr'])
 
-        players_it = enumerate(sorted(players_info.items()), 1)
-        for o_id, (pl_id, (_, retcode, output)) in players_it:
+        players_it = enumerate(sorted(result['players'].items()))
+        for order_id, (player_id, player_result) in players_it:
             self.assertEqual(
-                retcode, 0, msg='\nClient script output:\n' + output
+                player_result['success'],
+                True,
+                msg='\nClient script output:\n' + player_result['stdout'],
             )
-            self.assertIn('some log on stdout', output)
-            self.assertIn('some log on stderr', output)
-            self.assertIn('map: TEST_MAP', output)
-            self.assertIn('name: {}'.format(pl_id), output)
-            self.assertIn('client_id: {}'.format(o_id), output)
+            self.assertIn('some log on stdout', player_result['stdout'])
+            self.assertIn('some log on stderr', player_result['stderr'])
+            self.assertIn('map: TEST_MAP', player_result['stdout'])
+            self.assertIn(f'name: {player_id}', player_result['stdout'])
+            self.assertIn(f'client_id: {order_id}', player_result['stdout'])
