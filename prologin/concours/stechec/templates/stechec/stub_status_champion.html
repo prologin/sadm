@@ -6,5 +6,7 @@
 <i class="champ-status fa fa-check i-align"></i>
 {% elif champion.status == 'error' %}
 <i class="champ-status fa fa-times i-align"></i>
+{% elif champion.status == 'failed' %}
+<i class="champ-status fa fa-exclamation-circle i-align"></i>
 {% endif %}
 {{ champion.get_status_display }}

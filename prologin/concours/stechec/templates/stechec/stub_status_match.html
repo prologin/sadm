@@ -6,5 +6,7 @@
 <i class="champ-status fa fa-cogs i-align"></i>
 {% elif match.status == 'done' %}
 <i class="champ-status fa fa-check i-align"></i>
+{% elif match.status == 'failed' %}
+<i class="champ-status fa fa-exclamation-circle i-align"></i>
 {% endif %}
 {{ match.get_status_display }}

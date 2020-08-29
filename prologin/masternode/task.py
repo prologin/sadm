@@ -24,45 +24,23 @@ import os.path
 import time
 
 from base64 import b64encode
+from pathlib import Path
 
 
-def champion_path(config, user, cid):
-    return os.path.join(
+def get_champion_path(config, user, cid):
+    return Path(
         config['contest']['directory'],
         config['contest']['game'],
         'champions',
         user,
         str(cid),
-        'champion.tgz',
     )
 
 
-def champion_compiled_path(config, user, cid):
-    return os.path.join(
-        config['contest']['directory'],
-        config['contest']['game'],
-        'champions',
-        user,
-        str(cid),
-        'champion-compiled.tgz',
-    )
-
-
-def clog_path(config, user, cid):
-    return os.path.join(
-        config['contest']['directory'],
-        config['contest']['game'],
-        'champions',
-        user,
-        str(cid),
-        'compilation.log',
-    )
-
-
-def match_path(config, match_id):
+def get_match_path(config, match_id):
     match_id_high = "{:03}".format(match_id // 1000)
     match_id_low = "{:03}".format(match_id % 1000)
-    return os.path.join(
+    return Path(
         config['contest']['directory'],
         config['contest']['game'],
         'matches',
@@ -113,7 +91,7 @@ class CompilationTask(Task):
         self.db = db
         self.user = user
         self.champ_id = champ_id
-        self.champ_path = champion_path(config, user, champ_id)
+        self.champ_path = get_champion_path(config, user, champ_id)
 
     @property
     def slots_taken(self):
@@ -122,8 +100,9 @@ class CompilationTask(Task):
     async def execute(self, master, worker):
         await super().execute()
 
-        with open(self.champ_path, "rb") as f:
-            ctgz = b64encode(f.read()).decode()
+        ctgz = b64encode(
+            (self.champ_path / 'champion.tgz').read_bytes()
+        ).decode()
 
         await self.db.execute(
             "set_champion_status",
@@ -155,12 +134,15 @@ class MatchTask(Task):
         self.mid = mid
         self.map_contents = map_contents
         self.players = {}
-        self.match_path = match_path(config, self.mid)
+        self.match_path = get_match_path(config, self.mid)
 
         for (cid, mpid, user) in players:
-            cpath = champion_compiled_path(config, user, cid)
-            with open(cpath, 'rb') as f:
-                ctgz = b64encode(f.read()).decode()
+            ctgz = b64encode(
+                (
+                    get_champion_path(config, user, cid)
+                    / 'champion-compiled.tgz'
+                ).read_bytes()
+            ).decode()
             self.players[mpid] = (cid, ctgz)
 
     def __repr__(self):

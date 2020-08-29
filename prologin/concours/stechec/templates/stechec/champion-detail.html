@@ -1,10 +1,15 @@
 {% extends "stechec/base.html" %}
 {% load static %}
 {% load django_bootstrap_breadcrumbs %}
+{% load pygmentize %}
 
 {% block title %}{{ champion.name }} – Champion{% endblock %}
 {% block titleh1 %}Détails du champion {{ champion.name }}
   <small>#{{ champion.id }}</small>{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/pygments-monokai.css' %}" type="text/css">
+{% endblock %}
 
 {% block breadcrumbs %}
   {{ block.super }}
@@ -54,13 +59,22 @@
     </div>
   </div>
 
-  {% if champion.compilation_log and can_see_log %}
+  {% if can_see_log %}
     <p>
-      <button class="btn btn-default btn-small" data-role="toggler" data-target="#log"><i class="fa"></i>
-        <span>Afficher</span> le log de
-        compilation
-      </button>
-    <pre id="log">{{ champion.compilation_log }}</pre>
+    <details>
+      <summary>Log de compilation</summary>
+      <pre>{{ champion.compilation_log }}</pre>
+    </details>
+    </p>
+  {% endif %}
+
+  {% if request.user.is_staff %}
+    <p>
+    <details>
+      <summary>Résultat workernode</summary>
+      {% pygmentize champion.workernode_result_printable 'python' %}
+    </details>
+    </p>
   {% endif %}
 
 {% endblock %}
