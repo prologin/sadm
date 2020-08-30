@@ -145,7 +145,9 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={'ordering': ('hostname', 'ip'),},
+            options={
+                'ordering': ('hostname', 'ip'),
+            },
         ),
         migrations.CreateModel(
             name='VolatileSetting',
@@ -180,7 +182,9 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={'ordering': ('key',),},
+            options={
+                'ordering': ('key',),
+            },
         ),
         migrations.AddField(
             model_name='machine',

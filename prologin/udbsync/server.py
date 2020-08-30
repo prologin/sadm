@@ -31,7 +31,11 @@ SUB_CFG = prologin.config.load('udbsync-sub')
 class SyncServer(prologin.synchronisation.Server):
     def __init__(self, pub_secret, sub_secret, port):
         super(SyncServer, self).__init__(
-            'login', pub_secret, sub_secret, port, 'udbsync',
+            'login',
+            pub_secret,
+            sub_secret,
+            port,
+            'udbsync',
         )
 
     def get_initial_backlog(self):

@@ -125,8 +125,7 @@ class BasePubSubQueue:
         self.subscribers = set()
 
     def get_backlog_message(self):
-        """Return the backlog that is sent to new subscribers as a JSON object.
-        """
+        """Return the backlog that is sent to new subscribers as a JSON object."""
         raise NotImplementedError()
 
     def post_updates(self, update_msg):
@@ -155,8 +154,7 @@ class BasePubSubQueue:
 
 
 class DefaultPubSubQueue(BasePubSubQueue):
-    """Maintain a backlog of updates for records with a field that is unique.
-    """
+    """Maintain a backlog of updates for records with a field that is unique."""
 
     def __init__(self, pk, initial_backlog):
         super(DefaultPubSubQueue, self).__init__()

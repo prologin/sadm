@@ -118,18 +118,18 @@ class BootHandler(tornado.web.RequestHandler):
 class BootstrapHandler(tornado.web.RequestHandler):
     """Send the base IPXE script with switches names for LLDP.
 
-       This is the expected format (sw_name_X is the corresponding switch
-       chassis ID):
+    This is the expected format (sw_name_X is the corresponding switch
+    chassis ID):
 
-       set sw_name_0 02:99:71:f6:c6:5a
-       set sw_rfs_0  0
-       set sw_hfs_0  0
-       set sw_room_0 pasteur
+    set sw_name_0 02:99:71:f6:c6:5a
+    set sw_rfs_0  0
+    set sw_hfs_0  0
+    set sw_room_0 pasteur
 
-       set sw_name_1 02:99:71:f6:c6:5b
-       set sw_rfs_1  1
-       set sw_hfs_1  1
-       set sw_room_1 alt
+    set sw_name_1 02:99:71:f6:c6:5b
+    set sw_rfs_1  1
+    set sw_hfs_1  1
+    set sw_room_1 alt
     """
 
     def get(self):

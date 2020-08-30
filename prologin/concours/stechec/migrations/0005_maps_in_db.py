@@ -11,8 +11,14 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(model_name='match', name='file_options',),
-        migrations.RemoveField(model_name='match', name='options',),
+        migrations.RemoveField(
+            model_name='match',
+            name='file_options',
+        ),
+        migrations.RemoveField(
+            model_name='match',
+            name='options',
+        ),
         migrations.AddField(
             model_name='map',
             name='contents',

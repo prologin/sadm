@@ -32,7 +32,8 @@ def generate_token(secret, message=None):
     """Generate a token given some `secret`."""
     timestamp = str(int(time.time()))
     return '{}:{}'.format(
-        timestamp, get_hmac(secret, str(message) + timestamp),
+        timestamp,
+        get_hmac(secret, str(message) + timestamp),
     )
 
 

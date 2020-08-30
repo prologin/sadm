@@ -29,7 +29,11 @@ def callback(users, updates_metadata):
     logging.info('Calling redmine runner user_update.rb...')
 
     proc = subprocess.Popen(
-        ['sh', '-c', RUNNER,],
+        [
+            'sh',
+            '-c',
+            RUNNER,
+        ],
         env=ENV,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,

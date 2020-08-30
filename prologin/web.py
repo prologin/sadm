@@ -123,8 +123,7 @@ class TornadoApp(tornado.web.Application):
         """Wrap a special handler into a Tornado-compatible handler class."""
 
         class SpecialHandler(tornado.web.RequestHandler):
-            """Wrapper handler for special resources.
-            """
+            """Wrapper handler for special resources."""
 
             def get(self):
                 status_code, reason, headers, content = handler_func()

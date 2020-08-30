@@ -28,6 +28,8 @@ class Migration(migrations.Migration):
                 ),
                 ('display_order', models.IntegerField()),
             ],
-            options={'ordering': ('display_order', 'name'),},
+            options={
+                'ordering': ('display_order', 'name'),
+            },
         ),
     ]

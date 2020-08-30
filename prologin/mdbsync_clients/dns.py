@@ -86,8 +86,7 @@ def build_machines_revdns_zone(machines, mtype, ip):
 
 
 def build_alien_prolo_zone():
-    """Alien machines just need to be able to access netboot.
-    """
+    """Alien machines just need to be able to access netboot."""
 
     build_zone(
         'prolo_alien',

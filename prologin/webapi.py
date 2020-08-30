@@ -56,7 +56,8 @@ class AsyncClient:
         self.timeout = timeout
         self.url = url
         self.client = aiohttp.client.ClientSession(
-            raise_for_status=True, timeout=self.timeout,
+            raise_for_status=True,
+            timeout=self.timeout,
         )
 
     async def __aenter__(self):
