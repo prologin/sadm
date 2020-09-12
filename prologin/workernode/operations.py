@@ -27,6 +27,8 @@ import os.path
 import tarfile
 import tempfile
 import traceback
+from typing import Dict, List, Any
+
 import yaml
 
 from base64 import b64decode, b64encode
@@ -35,26 +37,51 @@ from pathlib import Path
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 
-def tar(path, compression='gz'):
+def tar(path: os.PathLike, compression: str = 'gz') -> bytes:
+    """
+    Create a tarball of the given path.
+
+    Args:
+        path: the directory to tarball
+        compression: the tarball compression format
+
+    Returns:
+        the binary representation of the tarball object.
+    """
     obj = io.BytesIO()
     with tarfile.open(fileobj=obj, mode='w:' + compression) as tarobj:
-        tarobj.add(path)
+        tarobj.add(str(path))
     return obj.getvalue()
 
 
-def untar(content, path, compression='gz'):
+def untar(content: bytes, path: os.PathLike, compression: str = 'gz'):
+    """
+    Extract a tarball at a given path.
+
+    Args:
+        content: the binary representation of the tarball.
+        path: the path of the extracted directory
+        compression: the tarball compression format
+    """
     obj = io.BytesIO(content)
     with tarfile.open(fileobj=obj, mode='r:' + compression) as tarobj:
         tarobj.extractall(path)
+
+
+def read_compress_b64(path: Path) -> str:
+    """
+    Read the given file, gzip compress it and return a base64 of the result.
+    """
+    return b64encode(gzip.compress(path.read_bytes())).decode()
 
 
 class Operation:
     def __init__(self, config):
         self.config = config
         self.isolator = None
-        self.isolate_limits = {}
-        self.isolate_allowed_dirs = []
-        self.result = {
+        self.isolate_limits: Dict[str, Any] = {}
+        self.isolate_allowed_dirs: List[str] = []
+        self.result: Dict[str, Any] = {
             'success': None,
             'isolate': {},
             'stdout': None,
@@ -131,7 +158,7 @@ class CompileChampion(Operation):
             self.config['path']['player_env'],
         ]
 
-    def write_champion(self, champion_tgz_b64):
+    def write_champion(self, champion_tgz_b64: str):
         ctgz = b64decode(champion_tgz_b64)
         (self.isolator.path / 'champion.tgz').write_bytes(ctgz)
         return Path('/box')
@@ -150,11 +177,11 @@ class CompileChampion(Operation):
             compiled_path.read_bytes()
         ).decode()
 
-    async def _run(self, *, champion_tgz_b64):
+    async def _run(self, *, champion_tgz_b64: str):
         compile_script = self.write_compile_script()
         champion_path = self.write_champion(champion_tgz_b64)
 
-        cmd = [
+        cmd: List[str] = [
             str(compile_script),
             self.config['path']['player_env'],
             str(champion_path),
@@ -183,13 +210,16 @@ class SpawnServer(Operation):
             os.path.dirname(self.config['path']['rules']),
         ]
 
-    def read_compress_b64(self, path):
-        return b64encode(gzip.compress(path.read_bytes())).decode()
-
     async def _run(
-        self, *, sockets_dir, rep_addr, pub_addr, nb_players, map_content
+        self,
+        *,
+        sockets_dir: os.PathLike,
+        rep_addr: str,
+        pub_addr: str,
+        nb_players: int,
+        map_content: str,
     ):
-        self.isolate_allowed_dirs.append(sockets_dir + ':rw')
+        self.isolate_allowed_dirs.append(str(sockets_dir) + ':rw')
         # fmt: off
         cmd = [
             self.config['path']['stechec_server'],
@@ -216,13 +246,13 @@ class SpawnServer(Operation):
                     self.isolator.isolate_retcode
                 )
             )
-        self.result['dump'] = self.read_compress_b64(
+        self.result['dump'] = read_compress_b64(
             self.isolator.path / 'dump.json'
         )
-        self.result['replay'] = self.read_compress_b64(
+        self.result['replay'] = read_compress_b64(
             self.isolator.path / "replay"
         )
-        self.result['stats'] = self.read_compress_b64(
+        self.result['stats'] = read_compress_b64(
             self.isolator.path / "stats.yaml"
         )
 
@@ -248,32 +278,35 @@ class SpawnClient(Operation):
             os.path.dirname(self.config['path']['rules']),
         ]
 
-    def extract_champion(self, champion_tgz_b64):
-        ctgz = b64decode(champion_tgz_b64)
+    def extract_champion(self, champion_tgz_b64: str) -> Path:
+        ctgz: bytes = b64decode(champion_tgz_b64)
         untar(ctgz, self.isolator.path)
         return Path('/box')
 
     async def _run(
         self,
         *,
-        sockets_dir,
-        req_addr,
-        sub_addr,
-        champion_id,
-        player_id,
-        champion_tgz_b64,
-        map_content=None,
-        order_id=None,
+        sockets_dir: os.PathLike,
+        req_addr: str,
+        sub_addr: str,
+        champion_id: int,
+        player_id: int,
+        champion_tgz_b64: str,
+        map_content: str = None,
+        order_id: int = None,
     ):
         self.result['champion_id'] = champion_id
 
-        self.isolate_allowed_dirs.append(sockets_dir + ':rw')
+        self.isolate_allowed_dirs.append(str(sockets_dir) + ':rw')
 
         champion_path = self.extract_champion(champion_tgz_b64)
-        env = {'CHAMPION_PATH': champion_path, 'HOME': '/tmp'}
+        env: Dict[str, str] = {
+            'CHAMPION_PATH': str(champion_path),
+            'HOME': '/tmp',
+        }
 
         # fmt: off
-        cmd = [
+        cmd: List[str] = [
             self.config['path']['stechec_client'],
             "--name", str(player_id),
             "--rules", self.config['path']['rules'],
