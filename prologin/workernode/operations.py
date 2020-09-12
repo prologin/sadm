@@ -1,6 +1,6 @@
 # This file is part of Prologin-SADM.
 #
-# Copyright (c) 2013-2015 Antoine Pietri <antoine.pietri@prologin.org>
+# Copyright (c) 2013-2020 Antoine Pietri <antoine.pietri@prologin.org>
 # Copyright (c) 2011 Pierre Bourdon <pierre.bourdon@prologin.org>
 # Copyright (c) 2011-2014 Association Prologin <info@prologin.org>
 #
@@ -34,20 +34,18 @@ from camisole import isolate
 from pathlib import Path
 from tenacity import retry, stop_after_attempt, wait_fixed
 
-ioloop = asyncio.get_event_loop()
-
 
 def tar(path, compression='gz'):
     obj = io.BytesIO()
-    with tarfile.open(fileobj=obj, mode='w:' + compression) as tar:
-        tar.add(path)
+    with tarfile.open(fileobj=obj, mode='w:' + compression) as tarobj:
+        tarobj.add(path)
     return obj.getvalue()
 
 
 def untar(content, path, compression='gz'):
     obj = io.BytesIO(content)
-    with tarfile.open(fileobj=obj, mode='r:' + compression) as tar:
-        tar.extractall(path)
+    with tarfile.open(fileobj=obj, mode='r:' + compression) as tarobj:
+        tarobj.extractall(path)
 
 
 class Operation:
@@ -66,7 +64,7 @@ class Operation:
     @contextlib.asynccontextmanager
     async def spawn_isolator(self):
         isolator = isolate.Isolator(
-            self.isolate_limits, allowed_dirs=self.allowed_dirs
+            self.isolate_limits, allowed_dirs=self.isolate_allowed_dirs
         )
         async with isolator:
             self.isolator = isolator
@@ -94,7 +92,7 @@ class Operation:
 
     async def __call__(self, *args, **kwargs):
         try:
-            async with self.spawn_isolator() as self.isolator:
+            async with self.spawn_isolator():
                 await self._run(*args, **kwargs)
         except Exception as e:
             logging.exception('Workernode operation error:')
@@ -102,6 +100,9 @@ class Operation:
             self.result['error'] = str(e)
             self.result['traceback'] = traceback.format_exc()
         return self.result
+
+    async def _run(self, *args, **kwargs):
+        raise NotImplemented
 
     # Shared utilities
 
@@ -124,7 +125,7 @@ class CompileChampion(Operation):
             'wall-time': self.config['timeout'].get('compile', 400),
             'fsize': 50 * 1024,
         }
-        self.allowed_dirs = [
+        self.isolate_allowed_dirs = [
             '/tmp:rw',
             '/etc',
             self.config['path']['player_env'],
@@ -174,7 +175,7 @@ class SpawnServer(Operation):
             **self.result,
         }
         self.limits = {'wall-time': self.config['timeout'].get('server', 400)}
-        self.allowed_dirs = [
+        self.isolate_allowed_dirs = [
             '/var',
             '/etc',
             '/tmp',
@@ -188,7 +189,7 @@ class SpawnServer(Operation):
     async def _run(
         self, *, sockets_dir, rep_addr, pub_addr, nb_players, map_content
     ):
-        self.allowed_dirs.append(sockets_dir + ':rw')
+        self.isolate_allowed_dirs.append(sockets_dir + ':rw')
         # fmt: off
         cmd = [
             self.config['path']['stechec_server'],
@@ -239,7 +240,7 @@ class SpawnClient(Operation):
             'processes': self.config['isolate'].get('processes', 50),
             'fsize': 256,
         }
-        self.allowed_dirs = [
+        self.isolate_allowed_dirs = [
             '/var',
             '/etc',
             '/tmp',
@@ -266,7 +267,7 @@ class SpawnClient(Operation):
     ):
         self.result['champion_id'] = champion_id
 
-        self.allowed_dirs.append(sockets_dir + ':rw')
+        self.isolate_allowed_dirs.append(sockets_dir + ':rw')
 
         champion_path = self.extract_champion(champion_tgz_b64)
         env = {'CHAMPION_PATH': champion_path, 'HOME': '/tmp'}
@@ -320,13 +321,12 @@ async def spawn_match(config, players, map_content):
     )
     await asyncio.sleep(0.1)  # Let the server start
 
-    # Retry every seconds for 5 seconds
     @retry(reraise=True, stop=stop_after_attempt(7), wait=wait_fixed(2))
     async def wait_for_server_sockets():
         if not all(
             os.access(f, os.R_OK | os.W_OK) for f in (f_reqrep, f_pubsub)
         ):
-            raise RuntimeError("Server socket was never created")
+            raise RuntimeError("Server socket was not created")
 
     await wait_for_server_sockets()
 
