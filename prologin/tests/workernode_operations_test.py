@@ -284,7 +284,8 @@ class FakeMatchTest(unittest.TestCase):
                 msg='\nClient script output:\n' + player_result['stdout'],
             )
             self.assertIn('some log on stdout', player_result['stdout'])
-            self.assertIn('some log on stderr', player_result['stderr'])
+            # stderr is merged in stdout
+            self.assertIn('some log on stderr', player_result['stdout'])
             self.assertIn('map: TEST_MAP', player_result['stdout'])
             self.assertIn(f'name: {player_id}', player_result['stdout'])
             self.assertIn(f'client_id: {order_id}', player_result['stdout'])

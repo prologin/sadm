@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 # This file is part of Prologin-SADM.
 #
-# Copyright (c) 2014-2015 Antoine Pietri <antoine.pietri@prologin.org>
+# Copyright (c) 2014-2020 Antoine Pietri <antoine.pietri@prologin.org>
 # Copyright (c) 2011 Pierre Bourdon <pierre.bourdon@prologin.org>
 # Copyright (c) 2011 Association Prologin <info@prologin.org>
 #
@@ -27,7 +27,7 @@ from base64 import b64encode
 from pathlib import Path
 
 
-def get_champion_path(config, user, cid):
+def get_champion_dir(config, user: str, cid: int) -> Path:
     return Path(
         config['contest']['directory'],
         config['contest']['game'],
@@ -37,7 +37,7 @@ def get_champion_path(config, user, cid):
     )
 
 
-def get_match_path(config, match_id):
+def get_match_dir(config, match_id: int) -> Path:
     match_id_high = "{:03}".format(match_id // 1000)
     match_id_low = "{:03}".format(match_id % 1000)
     return Path(
@@ -91,7 +91,7 @@ class CompilationTask(Task):
         self.db = db
         self.user = user
         self.champ_id = champ_id
-        self.champ_path = get_champion_path(config, user, champ_id)
+        self.champ_path = get_champion_dir(config, user, champ_id)
 
     @property
     def slots_taken(self):
@@ -134,12 +134,12 @@ class MatchTask(Task):
         self.mid = mid
         self.map_contents = map_contents
         self.players = {}
-        self.match_path = get_match_path(config, self.mid)
+        self.match_path = get_match_dir(config, self.mid)
 
         for (cid, mpid, user) in players:
             ctgz = b64encode(
                 (
-                    get_champion_path(config, user, cid)
+                    get_champion_dir(config, user, cid)
                     / 'champion-compiled.tgz'
                 ).read_bytes()
             ).decode()

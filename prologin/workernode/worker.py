@@ -1,6 +1,6 @@
 # This file is part of Prologin-SADM.
 #
-# Copyright (c) 2013-2015 Antoine Pietri <antoine.pietri@prologin.org>
+# Copyright (c) 2013-2020 Antoine Pietri <antoine.pietri@prologin.org>
 # Copyright (c) 2011 Pierre Bourdon <pierre.bourdon@prologin.org>
 # Copyright (c) 2011-2014 Association Prologin <info@prologin.org>
 #

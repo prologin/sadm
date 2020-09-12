@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 # This file is part of Prologin-SADM.
 #
-# Copyright (c) 2013-2015 Antoine Pietri <antoine.pietri@prologin.org>
+# Copyright (c) 2013-2020 Antoine Pietri <antoine.pietri@prologin.org>
 # Copyright (c) 2011 Pierre Bourdon <pierre.bourdon@prologin.org>
 # Copyright (c) 2011 Association Prologin <info@prologin.org>
 #
@@ -21,13 +21,11 @@
 import asyncio
 import json
 import logging
-import os.path
 import prologin.rpc.server
 import random
 import time
 
 from base64 import b64decode
-from pathlib import Path
 
 from .concoursquery import ConcoursQuery
 from .monitoring import (
@@ -47,8 +45,8 @@ from .monitoring import (
 from .task import (
     CompilationTask,
     MatchTask,
-    get_champion_path,
-    get_match_path,
+    get_champion_dir,
+    get_match_dir,
 )
 from .worker import Worker
 
@@ -127,7 +125,8 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             # Ignore tasks from zombie workers
             masternode_zombie_worker.inc()
             logging.info(
-                'discarding result zombie worker %s', str((hostname, port))
+                'discarding result from zombie worker %s',
+                str((hostname, port)),
             )
             return
 
@@ -149,7 +148,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
             status = 'error'
         logging.info('compilation of champion %s: %s', champion_id, status)
 
-        champion_path = get_champion_path(self.config, user, champion_id)
+        champion_path = get_champion_dir(self.config, user, champion_id)
         if result['stdout'] is not None:
             (champion_path / 'compilation.log').write_text(result['stdout'])
         if result['success'] and result['champion_compiled']:
@@ -191,7 +190,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
         else:
             status = 'failed'
         logging.info('result of match %s: %s', mid, status)
-        match_path = get_match_path(self.config, mid)
+        match_path = get_match_dir(self.config, mid)
 
         # Write player logs
         for player_id, player_result in result['players'].items():
@@ -224,6 +223,7 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
                 json.dumps(result)
             )
 
+        start = time.monotonic()
         if status == 'done':
             try:
                 player_scores = [
@@ -247,8 +247,6 @@ class MasterNode(prologin.rpc.server.BaseRPCApp):
 
         match_status = {'match_id': mid, 'match_status': status}
         await self.db.execute('set_match_status', match_status)
-
-        start = time.monotonic()
         masternode_match_done_db.observe(time.monotonic() - start)
 
     async def redispatch_worker(self, worker):
