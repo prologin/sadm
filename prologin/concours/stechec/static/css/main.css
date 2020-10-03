@@ -108,7 +108,8 @@ i.champ-status {
   animation-iteration-count: infinite;
 }
 
-
 .codehilite > pre {
   white-space: pre-wrap;
+  background: rgba(0,0,0,0.02);
+  border-color: #111;
 }

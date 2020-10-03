@@ -119,6 +119,12 @@
         port: 80
         timeout: 180
 
+    - name: Wait for external internet to become available
+      wait_for:
+        host: www.gstatic.com
+        port: 80
+        timeout: 180
+
     - import_role:
         name: netboot
       tags: netboot

@@ -1,9 +1,14 @@
 {% extends "stechec/base.html" %}
 {% load humanize static substract %}
 {% load django_bootstrap_breadcrumbs %}
+{% load pygmentize %}
 
 {% block title %}Détail du match{% endblock %}
 {% block titleh1 %}Détail du match <small>#{{ match.id }}</small>{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/pygments-monokai.css' %}" type="text/css">
+{% endblock %}
 
 {% block breadcrumbs %}
   {{ block.super }}
@@ -101,11 +106,26 @@
   </table>
 
   <p>
-  <button class="btn btn-default" data-role="toggler" data-target="#serv-log"><i class="fa"></i>
-      <span>Afficher</span> le log serveur
-  </button>
+  <details>
+    <summary>Log server (sortie standard)</summary>
+    <pre>{{ match.log_out }}</pre>
+  </details>
   </p>
-  <pre id="serv-log">{{ match.log }}</pre>
+  <p>
+  <details>
+    <summary>Log server (sortie d'erreur)</summary>
+    <pre>{{ match.log_err }}</pre>
+  </details>
+  </p>
+
+  {% if request.user.is_staff %}
+    <p>
+    <details>
+      <summary>Résultat workernode</summary>
+      {% pygmentize match.workernode_result_printable 'python' %}
+    </details>
+    </p>
+  {% endif %}
 
   {% if settings.STECHEC_REPLAY %}
     <h2>Replay</h2>

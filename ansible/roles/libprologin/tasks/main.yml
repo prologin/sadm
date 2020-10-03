@@ -36,6 +36,7 @@
     name: "{{ sadm_path }}"
     virtualenv: "{{ venv_dir }}"
     virtualenv_command: python3 -m venv
+  tags: libprologin_setup
 
 - name: create prologin configuration directory
   file:

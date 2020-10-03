@@ -5,7 +5,7 @@ import sys
 if __name__ == "__main__":
     settings_module = (
         "prologin.concours.settings_test"
-        if sys.argv[1] == "test"
+        if len(sys.argv) >= 2 and sys.argv[1] == "test"
         else "prologin.concours.settings"
     )
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", settings_module)

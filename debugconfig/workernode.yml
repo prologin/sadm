@@ -3,8 +3,6 @@ master:
     host: masternode
     port: 8067
     heartbeat_secs: 5             # Must be < to the master timeout.
-    max_retries: 15               # Max retries when the master is down
-    retry_delay: 10               # Delay between each retry
     shared_secret: "%%SECRET:cluster%%"
 
 # Configuration of this worker.
