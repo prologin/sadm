@@ -1,0 +1,6 @@
+matchmaker_author_username: matchmaker
+matchmaker_tournament_name: live
+matchmaker_match_repeat: 5
+matchmaker_include_staff: false
+matchmaker_match_batch_size: 100
+matchmaker_match_pending_limit: 1000

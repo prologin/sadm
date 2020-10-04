@@ -1,0 +1,5 @@
+- name: restart matchmaker
+  systemd:
+    name: matchmaker
+    state: restarted
+    daemon_reload: True

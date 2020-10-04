@@ -1,0 +1,11 @@
+[Unit]
+Description=MatchMaker
+After=network-online.target
+
+[Service]
+Type=simple
+User=concours
+ExecStart=/opt/prologin/venv/bin/python -m prologin.matchmaker
+
+[Install]
+WantedBy=multi-user.target

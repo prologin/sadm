@@ -1,0 +1,28 @@
+# MatchMaker server settings.
+matchmaker:
+  # RPC server endpoint
+  port: 8069
+  # A shared secret used to avoid rogue requests.
+  shared_secret: "{{ matchmaker_secret }}"
+
+  # Concours user used to create matches.
+  author_username: "{{ matchmaker_author_username }}"
+  # Name of the tournament managed by MatchMaker.
+  tournament_name: "{{ matchmaker_tournament_name }}"
+  # Number of repeat for each match configuration.
+  match_repeat: {{ matchmaker_match_repeat }}
+  # Whether to include staff champions in the tournament.
+  include_staff: {{ matchmaker_include_staff }}
+  # Size of the batch of matches that are scheduled at once.
+  match_batch_size: {{ matchmaker_match_batch_size }}
+  # Maximum number of MatchMaker matches that can be pending. As long as this
+  # limit is reached, MatchMaker will not schedule new matches.
+  match_pending_limit: {{ matchmaker_match_pending_limit }}
+
+  # ISO 8601 formatted deadline, champions created after this date will not be
+  # included in the tournament (optional)
+  {% if matchmaker_deadline is defined -%}
+  deadline: "{{ matchmaker_deadline }}"
+  {%- else -%}
+  #deadline: "2020-05-24T21:58:05.311020"
+  {%- endif %}
