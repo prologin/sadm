@@ -22,6 +22,10 @@
       <i class="fa fa-warning"></i> Le serveur de répartition de tâches sur le cluster (<em>masternode</em>) est
       inaccessible.
     </p>
+  {% else %}
+    <p class="alert alert-info">
+      Il y a actuellement {{ status|length }} workernodes connectés.
+    </p>
   {% endif %}
 
   <table class="table table-striped">

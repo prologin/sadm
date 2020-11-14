@@ -1,7 +1,9 @@
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth import get_user_model
 from django.contrib.admin.views.decorators import staff_member_required
+from django.shortcuts import redirect
 from django.urls import reverse
 from django.db import transaction
 from django.db.models import (
@@ -783,3 +785,36 @@ class ReportBugList(RedmineIssueListView):
         ('tracker_id', '=', 1),
         ('author_id', '=', 'me'),
     ]
+
+
+class APIKeyManagementView(LoginRequiredMixin, TemplateView):
+    template_name = 'stechec/api_keys.html'
+
+    @staticmethod
+    def generate_api_key():
+        return get_user_model().objects.make_random_password(
+            length=settings.API_KEY_LENGTH
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = get_user_model().objects.get(pk=self.request.user.pk)
+
+        if user.password == '':
+            # on the first visit of the page, generate an API key
+            user.set_password(APIKeyManagementView.generate_api_key())
+
+        context['user_api_key'] = user.password.split('$')[-1]
+        return context
+
+    """
+    When user POSTs on this view, it regenerates an API Key and
+    stores it in password field
+    """
+
+    def post(self, request, *args, **kwargs):
+        user = get_user_model().objects.get(pk=self.request.user.pk)
+        user.set_password(APIKeyManagementView.generate_api_key())
+        user.save()
+
+        return redirect(reverse('api-keys'))

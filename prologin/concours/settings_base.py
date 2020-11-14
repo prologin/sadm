@@ -18,6 +18,7 @@ from django.urls import reverse_lazy
 ALLOWED_HOSTS = ['*']
 
 SITE_ID = 1
+SITE_URL = 'https://prologin.dev'
 
 LOGIN_URL = reverse_lazy('login')
 LOGIN_REDIRECT_URL = reverse_lazy('home')
@@ -42,24 +43,23 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )
 
-MIDDLEWARE = (
+MIDDLEWARE = [
     'django_prometheus.middleware.PrometheusBeforeMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'prologin.sso.django.SSOMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'prologin.sso.django.SSOMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django_prometheus.middleware.PrometheusAfterMiddleware',
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
-)
+]
 
-AUTHENTICATION_BACKENDS = (
+AUTHENTICATION_BACKENDS = [
     'prologin.sso.django.SSOUserBackend',
     'django.contrib.auth.backends.ModelBackend',
-)
+]
 
 ROOT_URLCONF = 'prologin.concours.urls'
 
@@ -79,7 +79,7 @@ TEMPLATES = [
     },
 ]
 
-INSTALLED_APPS = (
+INSTALLED_APPS = [
     # Built-in
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -94,11 +94,14 @@ INSTALLED_APPS = (
     'prologin.concours.stechec',
     # Built-in or vendor (for template overriding)
     'rest_framework',
+    'django_filters',
     'django.contrib.admin',
     # Monitoring
     'django_prometheus',
     'debug_toolbar',
-)
+    'oidc_provider',
+    'webide',
+]
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
@@ -157,3 +160,19 @@ def show_toolbar(request):
 DEBUG_TOOLBAR_CONFIG = {
     'SHOW_TOOLBAR_CALLBACK': 'prologin.concours.settings.show_toolbar'
 }
+
+CONCOURS_ONLINE_MODE = False
+API_KEY_LENGTH = 32
+OAUTH_ENDPOINT = ''
+OAUTH_CLIENT_ID = ''
+OAUTH_SECRET = ''
+
+# These are the default Django password hashers
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+]
+
+OIDC_EXTRA_SCOPE_CLAIMS = 'webide.oidc_scopes.ProloginSpecificClaims'

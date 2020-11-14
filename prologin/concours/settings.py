@@ -21,3 +21,25 @@ STECHEC_REPLAY = cfg["website"]["replay"]
 STECHEC_REDMINE_ISSUE_LIST = cfg["redmine_urls"]["issue_list"]
 STECHEC_REDMINE_ISSUE_NEW = cfg["redmine_urls"]["issue_new"]
 STECHEC_FIGHT_ONLY_OWN_CHAMPIONS = cfg["contest"]["fight_only_own_champions"]
+
+
+# online mode configuration
+
+if cfg['online_mode'].get('enabled'):
+    CONCOURS_ONLINE_MODE = True
+    OAUTH_ENDPOINT += cfg['online_mode']['oauth_endpoint']
+    OAUTH_CLIENT_ID += cfg['online_mode']['oauth_client_id']
+    OAUTH_SECRET += cfg['online_mode']['oauth_secret']
+    API_KEY_LENGTH = cfg['online_mode'].get('api_key_length', 32)
+
+    INSTALLED_APPS.append('proloauth_client')
+
+    AUTHENTICATION_BACKENDS.remove('prologin.sso.django.SSOUserBackend')
+    MIDDLEWARE.remove('prologin.sso.django.SSOMiddleware')
+    MIDDLEWARE.insert(
+        MIDDLEWARE.index('django.middleware.csrf.CsrfViewMiddleware'),
+        'proloauth_client.middleware.RefreshTokenMiddleware',
+    )
+
+    # Needed to store and keep track user's API keys in online mode
+    PASSWORD_HASHERS = ['stechec.utils.PlainTextPasswordHasher']

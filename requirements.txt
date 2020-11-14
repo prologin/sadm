@@ -23,4 +23,9 @@ tornado==4.5.1
 wiki==0.5
 
 # From prologin
+git+https://github.com/prologin/django-proloauth-client
 -e git://github.com/prologin/camisole.git#egg=camisole
+
+# finale2020 please delete
+django-filter==2.3.0
+django-oidc-provider==0.7.0
