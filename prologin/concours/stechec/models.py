@@ -149,6 +149,8 @@ class Champion(ExportModelOperationsMixin('champion'), models.Model):
         ext_whitelist = set(
             itertools.chain(*(l['exts'] for l in LANGUAGES.values()))
         )
+        # Manually whitelist documentation extensions as well
+        ext_whitelist.update(['.txt', '.md', '.rst'])
         file_blacklist = [
             'interface',
             'api',
