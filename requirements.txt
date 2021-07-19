@@ -7,7 +7,7 @@ django-crispy-forms==1.7.2
 django-debug-toolbar==2.2.1
 django-prometheus==1.0.15
 Django==2.2.24
-djangorestframework==3.9.2
+djangorestframework==3.11.2
 gunicorn==19.9.0
 irc3==1.1.2
 markdown2==2.4.0
