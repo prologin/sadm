@@ -22,7 +22,7 @@ pytest-aiohttp==0.3.0
 PyYAML==5.4
 requests==2.21.0
 tornado==4.5.1
-wiki==0.5
+wiki==0.7.9
 tenacity==5.1.4
 
 # From prologin
